@@ -10812,6 +10812,12 @@
     -fx-wrap-text: true;
 }
 
+.chatbot-context-pill .context-pill-close {
+    -fx-font-size: 11px;
+    -fx-padding: 0 0 0 2px;
+    -fx-opacity: 0.9;
+}
+
 .agent-ok-label {
     -fx-font-size: 12px;
     -fx-text-fill: #4caf50;

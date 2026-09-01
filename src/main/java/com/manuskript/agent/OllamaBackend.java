@@ -114,7 +114,15 @@ public class OllamaBackend implements AIBackend {
                                                    Consumer<String> onDelta) {
         CompletableFuture<String> future = new CompletableFuture<>();
         StringBuilder acc = new StringBuilder();
-        // maxTokens steckt in den Ollama-Session-Defaults; Stream-API hat kein Extra-Feld.
+        int previousMaxTokens = ollamaService.getMaxTokens();
+        if (maxTokens > 0) {
+            ollamaService.applySamplingInMemory(-1, maxTokens);
+        }
+        Runnable restoreMaxTokens = () -> {
+            if (maxTokens > 0) {
+                ollamaService.applySamplingInMemory(-1, previousMaxTokens);
+            }
+        };
         chatStreaming(systemPrompt, userMessage, chunk -> {
             if (chunk == null || chunk.isEmpty()) {
                 return;
@@ -123,7 +131,13 @@ public class OllamaBackend implements AIBackend {
             if (onDelta != null) {
                 onDelta.accept(chunk);
             }
-        }, () -> future.complete(ModelTextNormalizer.normalize(acc.toString())), future::completeExceptionally);
+        }, () -> {
+            restoreMaxTokens.run();
+            future.complete(ModelTextNormalizer.normalize(acc.toString()));
+        }, ex -> {
+            restoreMaxTokens.run();
+            future.completeExceptionally(ex);
+        });
         return future;
     }
 

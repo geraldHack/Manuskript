@@ -162,17 +162,28 @@ public class ChatbotContextPane extends VBox {
     private void refreshContextPills() {
         contextPills.getChildren().clear();
         for (ChatbotContextSource source : contextConfig.getSources()) {
-            Button pill = new Button(source.getLabel() + " ✕");
-            pill.getStyleClass().add("chatbot-context-pill");
-            pill.setTooltip(new Tooltip(source.getTooltip()));
-            pill.setOnAction(e -> {
+            contextPills.getChildren().add(createContextPill(source, () -> {
                 contextConfig.removeSource(source);
                 refreshContextPills();
                 updateNeighborSpinnersVisibility();
                 persist();
-            });
-            contextPills.getChildren().add(pill);
+            }));
         }
+    }
+
+    /** Kontext-Chip: Label + kleines × (nicht das schwere ✕). */
+    static Button createContextPill(ChatbotContextSource source, Runnable onRemove) {
+        Label name = new Label(source.getLabel());
+        Label closeMark = new Label("×");
+        closeMark.getStyleClass().add("context-pill-close");
+        HBox row = new HBox(4, name, closeMark);
+        row.setAlignment(Pos.CENTER_LEFT);
+        Button pill = new Button();
+        pill.setGraphic(row);
+        pill.getStyleClass().add("chatbot-context-pill");
+        pill.setTooltip(new Tooltip(source.getTooltip()));
+        pill.setOnAction(e -> onRemove.run());
+        return pill;
     }
 
     private void updateNeighborSpinnersVisibility() {

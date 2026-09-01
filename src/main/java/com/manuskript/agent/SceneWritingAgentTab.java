@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.prefs.Preferences;
 
+import com.manuskript.MdTextArea;
 import com.manuskript.ResourceManager;
 
 import javafx.application.Platform;
@@ -63,7 +64,7 @@ public class SceneWritingAgentTab extends ScrollPane {
     private final Tab resultTab;
     private final Tab metaTab;
     private final TextArea metaArea;
-    private final TextArea resultArea;
+    private final MdTextArea resultArea;
 
     private Runnable onConfigChanged;
     private Consumer<String> onInsertClicked;
@@ -76,6 +77,7 @@ public class SceneWritingAgentTab extends ScrollPane {
     private boolean activityRegistered = false;
     private AgentActivityTracker activityTracker;
     private List<String> availableModels = new ArrayList<>();
+    private int currentThemeIndex = AgentFindingStyles.themeIndex();
 
     public interface SceneGenerationHandler {
         /**
@@ -247,13 +249,7 @@ public class SceneWritingAgentTab extends ScrollPane {
                 "Entwurf mit Feedback neu generieren (kein Chat — ein neuer Vorschlag)"));
         reviseButton.setOnAction(e -> startRevision());
 
-        resultArea = new TextArea();
-        resultArea.setPrefRowCount(12);
-        resultArea.setWrapText(true);
-        resultArea.setEditable(true);
-        resultArea.setMaxWidth(Double.MAX_VALUE);
-        resultArea.setMaxHeight(Double.MAX_VALUE);
-        VBox.setVgrow(resultArea, Priority.ALWAYS);
+        resultArea = AgentAnswerMdArea.create(null, 14, false, currentThemeIndex);
         resultArea.textProperty().addListener((obs, oldText, newText) ->
                 updateReviseButtonState());
 
@@ -269,8 +265,10 @@ public class SceneWritingAgentTab extends ScrollPane {
         resultTab = new Tab("Ergebnis");
         resultTab.setClosable(false);
         VBox resultBox = new VBox(resultArea);
-        VBox.setVgrow(resultArea, Priority.ALWAYS);
+        resultBox.setFillWidth(true);
+        resultBox.setMinHeight(0);
         resultBox.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        VBox.setVgrow(resultArea, Priority.ALWAYS);
         resultTab.setContent(resultBox);
 
         metaTab = new Tab("Hinweis");
@@ -278,15 +276,17 @@ public class SceneWritingAgentTab extends ScrollPane {
         metaTab.setDisable(true);
         metaTab.setTooltip(new Tooltip("Optionale Meta-Hinweise des Modells — nicht Teil der Szene"));
         VBox metaBox = new VBox(metaArea);
-        VBox.setVgrow(metaArea, Priority.ALWAYS);
+        metaBox.setFillWidth(true);
+        metaBox.setMinHeight(0);
         metaBox.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        VBox.setVgrow(metaArea, Priority.ALWAYS);
         metaTab.setContent(metaBox);
 
         resultTabs = new TabPane(resultTab, metaTab);
         resultTabs.getStyleClass().add("scene-result-tabs");
         resultTabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-        resultTabs.setMinHeight(160);
-        resultTabs.setMaxWidth(Double.MAX_VALUE);
+        resultTabs.setMinHeight(0);
+        resultTabs.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         VBox.setVgrow(resultTabs, Priority.ALWAYS);
 
         insertButton = new Button("An Cursorposition einfügen");
@@ -531,13 +531,7 @@ public class SceneWritingAgentTab extends ScrollPane {
     }
 
     private void scrollResultToTop() {
-        Platform.runLater(() -> {
-            resultArea.positionCaret(0);
-            try {
-                resultArea.setScrollTop(0);
-            } catch (Exception ignored) {
-            }
-        });
+        Platform.runLater(() -> resultArea.positionCaret(0));
     }
 
     private static StringConverter<SceneContextSize> contextSizeConverter() {
@@ -691,6 +685,14 @@ public class SceneWritingAgentTab extends ScrollPane {
 
     public void applyEditorFont(String fontFamily, int fontSizePx) {
         AgentFontSizeSupport.applyEditorFont(this, fontSizePx, fontFamily, null);
+        applyAnswerTheme(currentThemeIndex);
+    }
+
+    public void applyAnswerTheme(int themeIndex) {
+        if (themeIndex >= 0) {
+            currentThemeIndex = themeIndex;
+        }
+        AgentAnswerMdArea.applyTheme(resultArea, currentThemeIndex);
     }
 
     public static String loadDefaultInstruction() {

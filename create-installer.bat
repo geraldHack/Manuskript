@@ -106,6 +106,20 @@ if not exist "tools\mammouth-monitor\target\mammouth-monitor.jar" (
 )
 echo [OK] Mammouth-Monitor erstellt.
 
+echo   Baue Projekt-Backup...
+call mvn -f tools\projekt-backup\pom.xml package -DskipTests -q
+if errorlevel 1 (
+    echo FEHLER: Backup-Plugin-Build fehlgeschlagen!
+    pause
+    exit /b 1
+)
+if not exist "tools\projekt-backup\target\projekt-backup.jar" (
+    echo FEHLER: tools\projekt-backup\target\projekt-backup.jar nicht gefunden!
+    pause
+    exit /b 1
+)
+echo [OK] Projekt-Backup erstellt.
+
 REM --- Schritt 2: JavaFX jmods herunterladen (falls noetig) ---
 echo.
 echo [2/7] Pruefe JavaFX jmods...
@@ -190,6 +204,7 @@ REM LanguageTool-Wörterbuch nicht mitshipen (projektspezifisch; App legt leere 
 if exist "%APP_DIR%\config\languagetool-dictionary.txt" del "%APP_DIR%\config\languagetool-dictionary.txt" >nul 2>&1
 if exist "%APP_DIR%\config\openrouter-monitor.properties" del "%APP_DIR%\config\openrouter-monitor.properties" >nul 2>&1
 if exist "%APP_DIR%\config\mammouth-monitor.properties" del "%APP_DIR%\config\mammouth-monitor.properties" >nul 2>&1
+if exist "%APP_DIR%\config\projekt-backup.json" del "%APP_DIR%\config\projekt-backup.json" >nul 2>&1
 copy /Y "installer-assets\installer-config\launchers.json" "%APP_DIR%\config\launchers.json" >nul
 
 REM Plugin-Katalog (inaktiv). plugins\ bleibt leer, bis der Nutzer im Setup aktiviert.
@@ -216,6 +231,12 @@ if not exist "tools\mammouth-monitor\target\mammouth-monitor.jar" (
 copy /Y "tools\mammouth-monitor\target\mammouth-monitor.jar" "%APP_DIR%\plugin-catalog\mammouth-monitor.jar" >nul
 copy /Y "tools\mammouth-monitor\packaged\run-mammouth-monitor.sh" "%APP_DIR%\plugin-catalog\run-mammouth-monitor.sh" >nul
 copy /Y "tools\mammouth-monitor\packaged\run-mammouth-monitor.bat" "%APP_DIR%\plugin-catalog\run-mammouth-monitor.bat" >nul
+if not exist "tools\projekt-backup\target\projekt-backup.jar" (
+    echo FEHLER: tools\projekt-backup\target\projekt-backup.jar fehlt.
+    pause
+    exit /b 1
+)
+copy /Y "tools\projekt-backup\target\projekt-backup.jar" "%APP_DIR%\plugin-catalog\projekt-backup.jar" >nul
 
 REM FFmpeg (nur ZIP, wird beim ersten Start automatisch entpackt)
 echo   - ffmpeg/

@@ -1,6 +1,7 @@
 package com.manuskript.agent;
 
 import com.manuskript.CustomChatArea;
+import com.manuskript.MdTextArea;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
@@ -28,10 +29,14 @@ public final class AgentFontSizeSupport {
         if (root == null) {
             return;
         }
-        applyToNode(root, clamp(size), cssFontFamily(fontFamily), opacityLabel);
+        applyToNode(root, clamp(size), fontFamily, cssFontFamily(fontFamily), opacityLabel);
     }
 
-    private static void applyToNode(Node node, int size, String cssFamily, Label opacityLabel) {
+    private static void applyToNode(Node node, int size, String fontFamily, String cssFamily, Label opacityLabel) {
+        if (node instanceof MdTextArea md) {
+            AgentAnswerMdArea.applyFont(md, fontFamily, size);
+            return;
+        }
         if (node instanceof TextInputControl textControl) {
             textControl.setStyle(mergeFontStyle(textControl.getStyle(), size, cssFamily));
         } else if (node instanceof Text text) {
@@ -46,7 +51,7 @@ public final class AgentFontSizeSupport {
             labeled.setStyle(mergeFontStyle(labeled.getStyle(), size, cssFamily));
         } else if (node instanceof Parent parent) {
             for (Node child : parent.getChildrenUnmodifiable()) {
-                applyToNode(child, size, cssFamily, opacityLabel);
+                applyToNode(child, size, fontFamily, cssFamily, opacityLabel);
             }
         }
     }

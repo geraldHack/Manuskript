@@ -777,6 +777,10 @@ public class DocxProcessor {
                 BooleanDefaultTrue italic = new BooleanDefaultTrue();
                 rpr.setI(italic);
             }
+            if (segment.isUnderline) {
+                U underline = f.createU();
+                rpr.setU(underline);
+            }
             
             // Code-Formatierung: Zeichenvorlage "Code" verwenden
             if (segment.isCode) {
@@ -928,16 +932,36 @@ public class DocxProcessor {
         StringBuilder current = new StringBuilder();
         boolean bold = false;
         boolean italic = false;
+        boolean underline = false;
         boolean code = false;
         int i = 0;
         while (i < text.length()) {
             char c = text.charAt(i);
+
+            if (c == '<' && i + 2 < text.length() && text.regionMatches(true, i, "<u>", 0, 3)) {
+                if (current.length() > 0) {
+                    segments.add(new TextSegment(current.toString(), bold, italic, false, code, null, underline));
+                    current.setLength(0);
+                }
+                underline = true;
+                i += 3;
+                continue;
+            }
+            if (c == '<' && i + 3 < text.length() && text.regionMatches(true, i, "</u>", 0, 4)) {
+                if (current.length() > 0) {
+                    segments.add(new TextSegment(current.toString(), bold, italic, false, code, null, underline));
+                    current.setLength(0);
+                }
+                underline = false;
+                i += 4;
+                continue;
+            }
             
             // HTML <code> Tag erkennen
             if (c == '<' && i + 5 < text.length() && text.substring(i, i + 6).equalsIgnoreCase("<code>")) {
                 // Vorherigen Text speichern
                 if (current.length() > 0) {
-                    segments.add(new TextSegment(current.toString(), bold, italic, false, code, null));
+                    segments.add(new TextSegment(current.toString(), bold, italic, false, code, null, underline));
                     current.setLength(0);
                 }
                 // Code-Tag öffnen
@@ -950,7 +974,7 @@ public class DocxProcessor {
             if (c == '<' && i + 6 < text.length() && text.substring(i, i + 7).equalsIgnoreCase("</code>")) {
                 // Code-Text speichern
                 if (current.length() > 0) {
-                    segments.add(new TextSegment(current.toString(), bold, italic, false, true, null));
+                    segments.add(new TextSegment(current.toString(), bold, italic, false, true, null, underline));
                     current.setLength(0);
                 }
                 // Code-Tag schließen
@@ -967,7 +991,7 @@ public class DocxProcessor {
                     if (urlEnd != -1) {
                         // Vorherigen Text speichern
                         if (current.length() > 0) {
-                            segments.add(new TextSegment(current.toString(), bold, italic, false, code, null));
+                            segments.add(new TextSegment(current.toString(), bold, italic, false, code, null, underline));
                             current.setLength(0);
                         }
                         
@@ -976,7 +1000,7 @@ public class DocxProcessor {
                         String linkUrl = text.substring(linkEnd + 2, urlEnd);
                         
                         // Link-Segment hinzufügen
-                        segments.add(new TextSegment(linkText, bold, italic, true, code, linkUrl));
+                        segments.add(new TextSegment(linkText, bold, italic, true, code, linkUrl, underline));
                         
                         i = urlEnd + 1;
                         continue;
@@ -987,7 +1011,7 @@ public class DocxProcessor {
             // Bold-Marker **
             if (c == '*' && i + 1 < text.length() && text.charAt(i + 1) == '*') {
                 if (current.length() > 0) {
-                    segments.add(new TextSegment(current.toString(), bold, italic, false, code, null));
+                    segments.add(new TextSegment(current.toString(), bold, italic, false, code, null, underline));
                     current.setLength(0);
                 }
                 bold = !bold;
@@ -997,7 +1021,7 @@ public class DocxProcessor {
             // Italic-Marker *
             if (c == '*') {
                 if (current.length() > 0) {
-                    segments.add(new TextSegment(current.toString(), bold, italic, false, code, null));
+                    segments.add(new TextSegment(current.toString(), bold, italic, false, code, null, underline));
                     current.setLength(0);
                 }
                 italic = !italic;
@@ -1009,7 +1033,7 @@ public class DocxProcessor {
             i += 1;
         }
         if (current.length() > 0) {
-            segments.add(new TextSegment(current.toString(), bold, italic, false, code, null));
+            segments.add(new TextSegment(current.toString(), bold, italic, false, code, null, underline));
         }
         return segments;
     }
@@ -1024,15 +1048,22 @@ public class DocxProcessor {
         boolean isItalic;
         boolean isLink;
         boolean isCode;
+        boolean isUnderline;
         String linkUrl;
-        
+
         TextSegment(String text, boolean isBold, boolean isItalic, boolean isLink, boolean isCode, String linkUrl) {
+            this(text, isBold, isItalic, isLink, isCode, linkUrl, false);
+        }
+
+        TextSegment(String text, boolean isBold, boolean isItalic, boolean isLink, boolean isCode, String linkUrl,
+                    boolean isUnderline) {
             this.text = text;
             this.isBold = isBold;
             this.isItalic = isItalic;
             this.isLink = isLink;
             this.isCode = isCode;
             this.linkUrl = linkUrl;
+            this.isUnderline = isUnderline;
         }
     }
     
@@ -1188,7 +1219,6 @@ public class DocxProcessor {
         }
 
         // Text mit Formatierung
-        R r = f.createR();
         RPr rpr = f.createRPr();
         
         // Sprache
@@ -1228,13 +1258,48 @@ public class DocxProcessor {
             }
         }
         
-        r.setRPr(rpr);
-        org.docx4j.wml.Text t = f.createText();
-        t.setValue(text);
-        r.getContent().add(t);
-        p.getContent().add(r);
+        String headingVisible = text == null ? "" : text.replaceAll("(?i)</?u>", "");
+        java.util.List<TextSegment> headingSegments = parseFormattedText(headingVisible);
+        if (headingSegments.isEmpty()) {
+            headingSegments.add(new TextSegment("", false, false, false, false, null, false));
+        }
+        for (TextSegment segment : headingSegments) {
+            R headingRun = f.createR();
+            headingRun.setRPr(copyHeadingRunProperties(f, rpr, segment));
+            org.docx4j.wml.Text headingTextNode = f.createText();
+            headingTextNode.setSpace("preserve");
+            headingTextNode.setValue(segment.text);
+            headingRun.getContent().add(headingTextNode);
+            p.getContent().add(headingRun);
+        }
         
         pkg.getMainDocumentPart().addObject(p);
+    }
+
+    private static RPr copyHeadingRunProperties(ObjectFactory f, RPr template, TextSegment segment) {
+        RPr rpr = f.createRPr();
+        if (template.getLang() != null) {
+            rpr.setLang(template.getLang());
+        }
+        if (template.getRFonts() != null) {
+            rpr.setRFonts(template.getRFonts());
+        }
+        if (template.getSz() != null) {
+            rpr.setSz(template.getSz());
+        }
+        if (template.getSzCs() != null) {
+            rpr.setSzCs(template.getSzCs());
+        }
+        if (template.getColor() != null) {
+            rpr.setColor(template.getColor());
+        }
+        if ((template.getB() != null && template.getB().isVal()) || segment.isBold) {
+            rpr.setB(new BooleanDefaultTrue());
+        }
+        if (segment.isItalic) {
+            rpr.setI(new BooleanDefaultTrue());
+        }
+        return rpr;
     }
     
     private static void addCodeBlock(WordprocessingMLPackage pkg, ObjectFactory f, String code, DocxOptions options) {
@@ -1522,6 +1587,61 @@ public class DocxProcessor {
         }
     }
     
+    /**
+     * Überschriftenebene aus Word-Vorlage oder Outline-Level (auch deutsche IDs).
+     */
+    static int headingLevelOf(P paragraph, Map<String, Style> styleMap) {
+        if (paragraph == null || paragraph.getPPr() == null) {
+            return 0;
+        }
+        PPr ppr = paragraph.getPPr();
+        if (ppr.getOutlineLvl() != null && ppr.getOutlineLvl().getVal() != null) {
+            int level = ppr.getOutlineLvl().getVal().intValue() + 1;
+            if (level >= 1 && level <= 6) {
+                return level;
+            }
+        }
+        String styleId = null;
+        if (ppr.getPStyle() != null) {
+            styleId = ppr.getPStyle().getVal();
+        }
+        int fromName = headingLevelFromStyleId(styleId);
+        if (fromName > 0) {
+            return fromName;
+        }
+        if (styleId != null && styleMap != null) {
+            Style style = styleMap.get(styleId);
+            if (style != null && style.getPPr() != null && style.getPPr().getOutlineLvl() != null
+                    && style.getPPr().getOutlineLvl().getVal() != null) {
+                int level = style.getPPr().getOutlineLvl().getVal().intValue() + 1;
+                if (level >= 1 && level <= 6) {
+                    return level;
+                }
+            }
+        }
+        return 0;
+    }
+
+    static int headingLevelFromStyleId(String styleId) {
+        if (styleId == null || styleId.isBlank()) {
+            return 0;
+        }
+        String name = styleId.trim();
+        if (name.equalsIgnoreCase("Title") || name.equalsIgnoreCase("Titel")) {
+            return 1;
+        }
+        if (name.equalsIgnoreCase("Subtitle") || name.equalsIgnoreCase("Untertitel")) {
+            return 2;
+        }
+        java.util.regex.Matcher heading = java.util.regex.Pattern
+                .compile("(?i)^(?:Heading|Überschrift|Ueberschrift)([1-9])$")
+                .matcher(name);
+        if (heading.matches()) {
+            return Integer.parseInt(heading.group(1));
+        }
+        return 0;
+    }
+
     private static String extractTextFromParagraph(P paragraph, Map<String, Style> styleMap) {
         StringBuilder text = new StringBuilder();
         
@@ -1586,21 +1706,7 @@ public class DocxProcessor {
         }
         
         // Prüfe Paragraph-Style für Überschriften
-        int headingLevel = 0;
-        if (paragraph.getPPr() != null && paragraph.getPPr().getPStyle() != null) {
-            String styleName = paragraph.getPPr().getPStyle().getVal();
-            if (styleName != null) {
-                if (styleName.startsWith("Heading")) {
-                    try {
-                        headingLevel = Integer.parseInt(styleName.substring(7));
-                    } catch (NumberFormatException e) {
-                        // Fallback für andere Heading-Styles
-                        if (styleName.equals("Title")) headingLevel = 1;
-                        else if (styleName.equals("Subtitle")) headingLevel = 2;
-                    }
-                }
-            }
-        }
+        int headingLevel = headingLevelOf(paragraph, styleMap);
         
         // Überschriften-Markdown hinzufügen
         if (headingLevel > 0) {

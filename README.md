@@ -140,6 +140,7 @@ Ausführliche Hilfe: im Editor über die Hilfe-Buttons (?).
 |--------|--------|
 | [OpenRouter-Monitor](tools/openrouter-monitor/) | Credits und API-Logs für OpenRouter |
 | [Mammouth-Monitor](tools/mammouth-monitor/) | Credits und Modellliste für Mammouth |
+| [Projekt-Backup](tools/projekt-backup/) | ZIP-Backup (optional AES) nach Ordner, USB, Dropbox, iCloud; Prüfung beim Start |
 
 Beide laufen **in derselben JVM** wie Manuskript (Manuskript-Look, Theme). Zusätzlich standalone: `./run-openrouter-monitor.sh` bzw. `./run-mammouth-monitor.sh`.
 
@@ -240,6 +241,7 @@ Demo-Plugins bauen (kopiert die JAR nach `plugin-catalog/`):
 ```bash
 cd tools/openrouter-monitor && mvn package
 cd ../mammouth-monitor && mvn package
+cd ../projekt-backup && mvn package
 ```
 
 Siehe auch `AGENTS.md` (Canvas-Editor als Standard) und [plugins/README.md](plugins/README.md) für die Plugin-API.

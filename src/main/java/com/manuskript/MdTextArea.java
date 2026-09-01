@@ -61,6 +61,8 @@ public class MdTextArea extends VBox {
             getChildren().add(toolbarBox);
         }
         getChildren().add(editor);
+        editor.setMinHeight(0);
+        editor.setMaxHeight(Double.MAX_VALUE);
         VBox.setVgrow(editor, Priority.ALWAYS);
 
         applyTheme(this.options.themeIndex());
@@ -428,20 +430,26 @@ public class MdTextArea extends VBox {
 
     /** Scrollt zum Ende des Textes (z. B. beim Streamen von Chat-Antworten). */
     public void scrollToEnd() {
-        int len = getText().length();
-        positionCaret(len);
-        if (len > 0) {
-            editor.scrollToOffset(len);
-        } else {
-            editor.scrollToRatio(1.0);
-        }
+        editor.scrollToContentEnd();
     }
 
     public void appendText(String addition) {
         if (addition == null || addition.isEmpty()) {
             return;
         }
-        setText(getText() + addition);
+        editor.appendAtEnd(addition);
+    }
+
+    public void beginStreamingUpdate() {
+        editor.beginStreamingUpdate();
+    }
+
+    public void endStreamingUpdate() {
+        editor.endStreamingUpdate();
+    }
+
+    public void cancelStreamingUpdate() {
+        editor.cancelStreamingUpdate();
     }
 
     private static Button toolbarButton(String label, String tooltip, Runnable action) {

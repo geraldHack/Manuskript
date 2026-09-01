@@ -56,24 +56,25 @@ class OpenAIBackendCompatTest {
     }
 
     @Test
-    void deepSeekAutoUsesLowReasoningEffort() {
-        assertTrue(OpenAIBackend.isDeepSeekModel("deepseek-v4-flash"));
-        assertTrue(OpenAIBackend.isDeepSeekModel("deepseek/deepseek-v4-flash"));
-        assertFalse(OpenAIBackend.isDeepSeekModel("gpt-4o-mini"));
+    void reasoningEffortIsOnlySentWhenExplicitlyConfigured() {
+        JsonObject none = new JsonObject();
+        OpenAIBackend.applyReasoningEffort(none, "none");
+        assertFalse(none.has("reasoning_effort"));
+        assertFalse(none.has("thinking"));
 
         JsonObject auto = new JsonObject();
-        OpenAIBackend.applyReasoningEffort(auto, "deepseek-v4-flash", "auto");
-        assertEquals("low", auto.get("reasoning_effort").getAsString());
-        assertEquals("enabled", auto.getAsJsonObject("thinking").get("type").getAsString());
+        OpenAIBackend.applyReasoningEffort(auto, "auto");
+        assertFalse(auto.has("reasoning_effort"));
+        assertFalse(auto.has("thinking"));
 
-        JsonObject off = new JsonObject();
-        OpenAIBackend.applyReasoningEffort(off, "deepseek-v4-flash", "none");
-        assertFalse(off.has("reasoning_effort"));
-        assertEquals("disabled", off.getAsJsonObject("thinking").get("type").getAsString());
+        JsonObject low = new JsonObject();
+        OpenAIBackend.applyReasoningEffort(low, "low");
+        assertEquals("low", low.get("reasoning_effort").getAsString());
+        assertFalse(low.has("thinking"));
 
-        JsonObject other = new JsonObject();
-        OpenAIBackend.applyReasoningEffort(other, "gpt-4o-mini", "auto");
-        assertFalse(other.has("reasoning_effort"));
-        assertFalse(other.has("thinking"));
+        JsonObject high = new JsonObject();
+        OpenAIBackend.applyReasoningEffort(high, "high");
+        assertEquals("high", high.get("reasoning_effort").getAsString());
+        assertFalse(high.has("thinking"));
     }
 }

@@ -102,7 +102,8 @@ public class PlotholeAgent {
         String messageStr = buildUserMessage(currentChapterText, allChapters, authorInstruction);
         int maxTokens = clampMaxOutputTokens(maxOutputTokens);
         logger.info(
-                "Plothole-Anfrage: Manuskript={} Zeichen, Kontext={} Zeichen, max_output_tokens={}",
+                "Plothole-Anfrage: Modell={}, Backend={}, Manuskript={} Zeichen, Kontext={} Zeichen, max_output_tokens={}",
+                backend.getCurrentModel(), backend.getName(),
                 currentChapterText != null ? currentChapterText.length() : 0,
                 allChapters != null ? allChapters.length() : 0,
                 maxTokens);
@@ -144,8 +145,9 @@ public class PlotholeAgent {
         String messageStr = buildUserMessage(currentChapterText, contextBlock, authorInstruction, freeform);
         int maxTokens = clampMaxOutputTokens(maxOutputTokens);
         logger.info(
-                "Plothole-Anfrage{}: Manuskript={} Zeichen, Kontext={} Zeichen, max_output_tokens={}",
+                "Plothole-Anfrage{}: Modell={}, Backend={}, Manuskript={} Zeichen, Kontext={} Zeichen, max_output_tokens={}",
                 freeform ? " (freeform)" : "",
+                backend.getCurrentModel(), backend.getName(),
                 currentChapterText != null ? currentChapterText.length() : 0,
                 contextBlock != null ? contextBlock.length() : 0,
                 maxTokens);

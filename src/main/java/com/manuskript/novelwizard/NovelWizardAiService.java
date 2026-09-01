@@ -16,12 +16,13 @@ import java.util.concurrent.CompletableFuture;
 public class NovelWizardAiService {
     private static final int DEFAULT_MAX_TOKENS = 1800;
 
-    private final AIBackend backend;
+    private AIBackend backend;
+    private String configuredBackendType;
     private final NovelWizardPromptRegistry promptRegistry;
 
     public NovelWizardAiService(Path promptConfig) {
-        this.backend = createBackend();
         this.promptRegistry = new NovelWizardPromptRegistry(promptConfig);
+        syncBackendFromParameters();
     }
 
     public CompletableFuture<NovelWizardTurn> nextTurn(NovelWizardSession session, String existingContext) {
@@ -74,6 +75,7 @@ public class NovelWizardAiService {
             user.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
         }
         user.append("</COLLECTED>\n");
+        syncBackendFromParameters();
         return backend.chat(systemPrompt, user.toString(), maxTokensForPhase(NovelWizardPhase.SYNOPSIS))
                 .thenApply(raw -> {
                     NovelWizardTurn turn = NovelWizardResponseParser.parse(raw, true);
@@ -91,6 +93,7 @@ public class NovelWizardAiService {
         String userPrompt = buildUserPrompt(session, prompt, existingContext, attempt > 0);
         session.addPromptLog(phase, systemPrompt, userPrompt);
 
+        syncBackendFromParameters();
         return backend.chat(systemPrompt, userPrompt, maxTokensForPhase(phase))
                 .thenCompose(raw -> {
                     NovelWizardTurn turn = finalizeTurn(NovelWizardResponseParser.parse(raw, contentPhase), phase);
@@ -138,19 +141,37 @@ public class NovelWizardAiService {
                 || phase == NovelWizardPhase.CHAPTERS;
     }
 
-    private static AIBackend createBackend() {
+    /** Liest Modell, Backend und Temperatur vor jedem KI-Aufruf aus den Parametern. */
+    private void syncBackendFromParameters() {
         String backendType = ResourceManager.getParameter("agent.backend", "Ollama");
-        AIBackend backend;
-        if ("OpenAI".equalsIgnoreCase(backendType)) {
-            backend = new OpenAIBackend();
-            backend.setCurrentModel(ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini"));
-            backend.setTemperature(ResourceManager.getDoubleParameter("agent.openai.temperature", 0.7));
-        } else {
-            backend = new OllamaBackend(new OllamaService());
-            backend.setCurrentModel(ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL));
-            backend.setTemperature(ResourceManager.getDoubleParameter("ollama.temperature", 0.5));
+        if (backend == null || configuredBackendType == null
+                || !backendType.equalsIgnoreCase(configuredBackendType)) {
+            backend = createBackend(backendType);
+            configuredBackendType = backendType;
+            return;
         }
-        return backend;
+        applySamplingSettings(backend);
+    }
+
+    private static AIBackend createBackend(String backendType) {
+        AIBackend created;
+        if ("OpenAI".equalsIgnoreCase(backendType)) {
+            created = new OpenAIBackend();
+        } else {
+            created = new OllamaBackend(new OllamaService());
+        }
+        applySamplingSettings(created);
+        return created;
+    }
+
+    private static void applySamplingSettings(AIBackend backend) {
+        if (backend instanceof OpenAIBackend openAi) {
+            openAi.setCurrentModel(ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini"));
+            openAi.setTemperature(ResourceManager.getDoubleParameter("agent.openai.temperature", 0.7));
+        } else if (backend instanceof OllamaBackend ollama) {
+            ollama.setCurrentModel(ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL));
+            ollama.setTemperature(ResourceManager.getDoubleParameter("ollama.temperature", 0.5));
+        }
     }
 
     private static int maxTokens() {
@@ -211,6 +232,14 @@ public class NovelWizardAiService {
                         Praemisse, Setting, Konflikt, Eskalation, Wendepunkte, Aufloesung/Ende.
                         Hauptfiguren nur kurz (Namen + je ein Satz Rolle) – keine ausfuehrlichen Character Sheets
                         (die stehen in characters.txt). Spoiler sind erwuenscht. Keine Plot-Rueckfragen.
+                        Bekannte Kapitel aus chapter.txt immer als „Kapitel N: Titel“ zitieren (Nummern fuer Reihenfolge).
+                        """);
+            } else if (phase == NovelWizardPhase.CHAPTERS) {
+                sb.append("""
+                        
+                        Kapitel-Ueberschriften PFLICHT nummeriert: „#### Kapitel N: Titel“ oder „## Kapitel N: Titel“
+                        (N fortlaufend ab 1). Nie nur „## Titel“ ohne Kapitelnummer – sonst fehlt die DOCX-Reihenfolge.
+                        Optional davor: ## AKT …, ### Abschnitt …; darunter je Kapitel 3–5 Saetze Zusammenfassung.
                         """);
             } else if (phase == NovelWizardPhase.STRUCTURE) {
                 sb.append("""

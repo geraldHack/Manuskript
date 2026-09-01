@@ -100,6 +100,10 @@ public class LocalWhisperBackend implements SpeechToTextBackend {
                         + cause.getMessage(), cause);
             }
             int exitCode = process.exitValue();
+            if (looksLikeCliFailure(consoleOutput, exitCode)) {
+                throw new IllegalStateException(
+                        "whisper-cli Fehler (Exit " + exitCode + "): " + abbreviate(consoleOutput, 400));
+            }
 
             if (Files.isRegularFile(txtOutput)) {
                 String text = Files.readString(txtOutput, StandardCharsets.UTF_8).trim();
@@ -117,10 +121,6 @@ public class LocalWhisperBackend implements SpeechToTextBackend {
                 }
             }
 
-            if (exitCode != 0) {
-                throw new IllegalStateException(
-                        "whisper-cli Fehler (Exit " + exitCode + "): " + abbreviate(consoleOutput, 400));
-            }
             throw new IllegalStateException("whisper-cli lieferte leere Transkription.");
         } finally {
             if (process != null && process.isAlive()) {
@@ -128,6 +128,19 @@ public class LocalWhisperBackend implements SpeechToTextBackend {
             }
             WhisperRuntime.deleteQuietly(outputPrefix);
         }
+    }
+
+    static boolean looksLikeCliFailure(String consoleOutput, int exitCode) {
+        if (exitCode != 0) {
+            return true;
+        }
+        if (consoleOutput == null || consoleOutput.isBlank()) {
+            return false;
+        }
+        String lower = consoleOutput.toLowerCase();
+        return lower.contains("unknown argument")
+                || lower.contains("usage: whisper-cli")
+                || lower.contains("error: unknown");
     }
 
     private static int resolveTimeoutSec() {

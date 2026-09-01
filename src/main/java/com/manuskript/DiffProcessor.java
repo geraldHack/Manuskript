@@ -228,6 +228,18 @@ public class DiffProcessor {
      * Erstellt ein Diff zwischen zwei Texten mit echtem Myers-Diff-Algorithmus
      */
     public static DiffResult createDiff(String originalText, String newText) {
+        return createDiff(originalText, newText, false);
+    }
+
+    /**
+     * MD gegen aus einer DOCX extrahiertes Markdown: Überschriften, * / ** und
+     * Gedankenstrich-Varianten zählen nicht als inhaltliche Änderung.
+     */
+    public static DiffResult createDocxMarkdownDiff(String markdown, String docxExtracted) {
+        return createDiff(markdown, docxExtracted, true);
+    }
+
+    private static DiffResult createDiff(String originalText, String newText, boolean resolveMarkup) {
         DiffResult result = new DiffResult();
         
         if (originalText == null) originalText = "";
@@ -247,8 +259,8 @@ public class DiffProcessor {
         List<DiffLine> diffLines = new ArrayList<>();
         
         // LCS-basierter Diff-Algorithmus für intelligente Block-Erkennung
-        int[][] lcs = computeLCS(originalLines, newLines);
-        List<DiffOperation> operations = backtrackLCS(originalLines, newLines, lcs);
+        int[][] lcs = computeLCS(originalLines, newLines, resolveMarkup);
+        List<DiffOperation> operations = backtrackLCS(originalLines, newLines, lcs, resolveMarkup);
         
         int originalIndex = 0;
         int newIndex = 0;
@@ -258,9 +270,14 @@ public class DiffProcessor {
         for (DiffOperation op : operations) {
             switch (op.getType()) {
                 case KEEP:
-                    // Beide Zeilen sind gleich
-                    diffLines.add(new DiffLine(leftLineNumber, rightLineNumber, DiffType.UNCHANGED, 
-                        originalLines[originalIndex], newLines[newIndex]));
+                    String keptOriginal = originalLines[originalIndex];
+                    String keptNew = newLines[newIndex];
+                    // Markup-only-Unterschiede (z. B. # Lyra vs. <u>Lyra</u>) nicht als zwei Texte zeigen
+                    if (resolveMarkup && MarkdownMarkup.equivalent(keptOriginal, keptNew)) {
+                        keptNew = keptOriginal;
+                    }
+                    diffLines.add(new DiffLine(leftLineNumber, rightLineNumber, DiffType.UNCHANGED,
+                            keptOriginal, keptNew));
                     originalIndex++;
                     newIndex++;
                     leftLineNumber++;
@@ -288,9 +305,23 @@ public class DiffProcessor {
         }
         
         result.setDiffLines(diffLines);
-        result.setHasChanges(!normalizedOriginal.equals(normalizedNew));
+        boolean hasChanges = false;
+        for (DiffLine line : diffLines) {
+            if (line.getType() != DiffType.UNCHANGED) {
+                hasChanges = true;
+                break;
+            }
+        }
+        result.setHasChanges(hasChanges);
 
         return result;
+    }
+
+    private static boolean linesMatch(String left, String right, boolean resolveMarkup) {
+        if (left.equals(right)) {
+            return true;
+        }
+        return resolveMarkup && MarkdownMarkup.equivalent(left, right);
     }
     
 
@@ -298,7 +329,7 @@ public class DiffProcessor {
     /**
      * Berechnet die Longest Common Subsequence (LCS) Matrix
      */
-    private static int[][] computeLCS(String[] original, String[] modified) {
+    private static int[][] computeLCS(String[] original, String[] modified, boolean resolveMarkup) {
         // Null-Checks für Arrays
         if (original == null) original = new String[0];
         if (modified == null) modified = new String[0];
@@ -312,7 +343,7 @@ public class DiffProcessor {
             for (int j = 1; j <= n; j++) {
                 String origLine = original[i - 1] != null ? original[i - 1] : "";
                 String modLine = modified[j - 1] != null ? modified[j - 1] : "";
-                if (origLine.equals(modLine)) {
+                if (linesMatch(origLine, modLine, resolveMarkup)) {
                     lcs[i][j] = lcs[i - 1][j - 1] + 1;
                 } else {
                     lcs[i][j] = Math.max(lcs[i - 1][j], lcs[i][j - 1]);
@@ -326,7 +357,8 @@ public class DiffProcessor {
     /**
      * Backtracking um die Diff-Operationen zu finden
      */
-    private static List<DiffOperation> backtrackLCS(String[] original, String[] modified, int[][] lcs) {
+    private static List<DiffOperation> backtrackLCS(String[] original, String[] modified, int[][] lcs,
+                                                    boolean resolveMarkup) {
         List<DiffOperation> operations = new ArrayList<>();
         
         // Null-Checks für Arrays
@@ -340,7 +372,7 @@ public class DiffProcessor {
             if (i > 0 && j > 0) {
                 String origLine = original[i - 1] != null ? original[i - 1] : "";
                 String modLine = modified[j - 1] != null ? modified[j - 1] : "";
-                if (origLine.equals(modLine)) {
+                if (linesMatch(origLine, modLine, resolveMarkup)) {
                     operations.add(0, new DiffOperation(DiffOpType.KEEP));
                     i--;
                     j--;

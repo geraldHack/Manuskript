@@ -102,5 +102,19 @@
     "repeatPenalty": 1.1,
     "agentType": "chatbot",
     "userDefined": false
+  },
+  {
+    "id": "23bb2048-de19-42be-86aa-ddf5770d844a",
+    "name": "Bild-Prompt",
+    "backend": "Ollama",
+    "systemPrompt": "Sieh dir das Kapitel an und mache ein stimmungsvolles, passenden Prompt für eine Bild-KI  dazu. benutze so viel Markdown, wie du willst.\n\nStilvorgaben\n\n- **Stil:** detailed digital painting, cinematic composition, muted industrial color palette (grey, gunmetal, rust) broken by warm golden light and the girl\u0027s silver hair as focal point\n- **Kamera:** medium shot, slightly low angle from the vent\u0027s perspective, shallow depth of field with the grate softly blurred in the foreground\n- **Ton:** cool-distant, observational — no sentimentality, quiet tension, space opera realism, no glossy utopian aesthetics\n\n## Negativ-Prompt\n\nno bright futuristic clean corridors, no holograms, no weapons, no adults, no romantic undertones, no cartoon style, no text",
+    "defaultPrompt": "Sieh dir das Kapitel an und mache ein stimmungsvolles, passenden Prompt für eine Bild-KI  dazu. benutze so viel Markdown, wie du willst.\n\nStilvorgaben\n\n- **Stil:** detailed digital painting, cinematic composition, muted industrial color palette (grey, gunmetal, rust) broken by warm golden light and the girl\u0027s silver hair as focal point\n- **Kamera:** medium shot, slightly low angle from the vent\u0027s perspective, shallow depth of field with the grate softly blurred in the foreground\n- **Ton:** cool-distant, observational — no sentimentality, quiet tension, space opera realism, no glossy utopian aesthetics\n\n## Negativ-Prompt\n\nno bright futuristic clean corridors, no holograms, no weapons, no adults, no romantic undertones, no cartoon style, no text",
+    "temperature": 0.3,
+    "maxTokens": 4864,
+    "topP": 0.7,
+    "repeatPenalty": 1.3,
+    "agentType": "analysis",
+    "userDefined": false,
+    "freeform": true
   }
 ]

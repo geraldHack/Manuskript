@@ -53,4 +53,22 @@ public final class TextChangeOffsetMapper {
         int mappedMiddle = (int) Math.round(offsetInMiddle * (afterMiddleLength / (double) beforeMiddleLength));
         return prefix + Math.max(0, Math.min(afterMiddleLength, mappedMiddle));
     }
+
+    /**
+     * O(1)-Abbildung bei einer einzigen zusammenhängenden Ersetzung {@code [start, end)}.
+     * Offsets davor bleiben, danach verschieben sie sich um die Längendifferenz;
+     * Offsets in der ersetzten Spanne landen am Anfang der Einfügung.
+     */
+    public static int mapOffsetThroughRangeReplace(int offset, int start, int end, int insertedLength) {
+        int safeStart = Math.max(0, start);
+        int safeEnd = Math.max(safeStart, end);
+        int inserted = Math.max(0, insertedLength);
+        if (offset < safeStart) {
+            return Math.max(0, offset);
+        }
+        if (offset < safeEnd) {
+            return safeStart;
+        }
+        return offset + inserted - (safeEnd - safeStart);
+    }
 }

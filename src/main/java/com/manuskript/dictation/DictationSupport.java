@@ -5,13 +5,17 @@ import com.manuskript.EditingShortcuts;
 import com.manuskript.ManuskriptTextEditor;
 import com.manuskript.NovelManager;
 import com.manuskript.ResourceManager;
+import javafx.animation.Animation;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,9 +41,10 @@ public class DictationSupport {
     private ToggleButton dictationButton;
     private boolean dictationModeEnabled;
     private boolean recordingViaHotkey;
+    private boolean recordingViaMouse;
     private boolean spacePushToTalkActive;
-    private boolean altModifierHeld;
     private boolean keyHandlersInstalled;
+    private final PauseTransition holdToTalkDelay = new PauseTransition(Duration.millis(280));
     /** Fortlaufende Job-ID für geordnetes Einfügen trotz paralleler Verarbeitung. */
     private int nextJobId;
     private int nextApplyJobId;
@@ -65,8 +70,8 @@ public class DictationSupport {
         String hotkeyHint = pushToTalkHint();
         dictationButton = new ToggleButton("Diktat");
         dictationButton.setTooltip(new Tooltip(
-                "Diktat-Modus ein/aus.\n"
-                        + "Im Modus: " + hotkeyHint + " gedrückt halten zum Sprechen, loslassen zum Einfügen.\n"
+                "Diktat-Modus ein/aus (erster Klick schaltet ein, kurzer Klick danach aus).\n"
+                        + "Sprechen: Taste „Diktat“ gedrückt halten, oder " + hotkeyHint + " halten.\n"
                         + "Beim Loslassen wird die Cursorposition als Markierung ⟦d:…⟧ gespeichert; "
                         + "während der Verarbeitung kannst du dahinter weiter editieren oder erneut diktieren.\n"
                         + "Fertige Texte ersetzen die Markierung in Aufnahme-Reihenfolge.\n"
@@ -104,6 +109,8 @@ public class DictationSupport {
                     return;
                 }
             } else if (dictationService.isRecording()) {
+                holdToTalkDelay.stop();
+                recordingViaMouse = false;
                 dictationService.cancelRecording();
                 setRecordingAppearance(false);
                 refreshBusyBar();
@@ -111,8 +118,13 @@ public class DictationSupport {
             dictationModeEnabled = selected;
             preferences.putBoolean(PREF_DICTATION_MODE, selected);
             applyModeAppearance();
-            host.updateStatus(selected ? "Diktat-Modus an (" + hotkeyHint + " halten)" : "Bereit");
+            host.updateStatus(selected
+                    ? "Diktat-Modus an (Taste halten oder " + hotkeyHint + ")"
+                    : "Bereit");
         });
+
+        dictationButton.addEventFilter(MouseEvent.MOUSE_PRESSED, this::onDictationButtonPressed);
+        dictationButton.addEventFilter(MouseEvent.MOUSE_RELEASED, this::onDictationButtonReleased);
 
         return dictationButton;
     }
@@ -139,6 +151,11 @@ public class DictationSupport {
         if (keyHandlersInstalled) {
             return;
         }
+        if (stage != null) {
+            stage.addEventFilter(KeyEvent.KEY_PRESSED, this::onKeyPressed);
+            stage.addEventFilter(KeyEvent.KEY_RELEASED, this::onKeyReleased);
+            stage.addEventFilter(KeyEvent.KEY_TYPED, this::onKeyTyped);
+        }
         Scene scene = stage != null ? stage.getScene() : null;
         if (scene != null) {
             scene.addEventFilter(KeyEvent.KEY_PRESSED, this::onKeyPressed);
@@ -150,21 +167,61 @@ public class DictationSupport {
             editor.addEventFilter(KeyEvent.KEY_RELEASED, this::onKeyReleased);
             editor.addEventFilter(KeyEvent.KEY_TYPED, this::onKeyTyped);
         }
-        keyHandlersInstalled = scene != null || editor != null;
-        logger.debug("Diktat-Hotkeys installiert (scene={}, editor={})", scene != null, editor != null);
+        keyHandlersInstalled = stage != null || scene != null || editor != null;
+        logger.debug("Diktat-Hotkeys installiert (stage={}, scene={}, editor={})",
+                stage != null, scene != null, editor != null);
+    }
+
+    private void onDictationButtonPressed(MouseEvent event) {
+        if (event.getButton() != MouseButton.PRIMARY || event.isConsumed() || !dictationModeEnabled) {
+            return;
+        }
+        if (dictationService.isRecording() || recordingViaHotkey) {
+            return;
+        }
+        event.consume();
+        holdToTalkDelay.stop();
+        holdToTalkDelay.setOnFinished(e -> {
+            if (!dictationModeEnabled || dictationService.isRecording()) {
+                return;
+            }
+            recordingViaMouse = true;
+            startRecording();
+        });
+        holdToTalkDelay.playFromStart();
+    }
+
+    private void onDictationButtonReleased(MouseEvent event) {
+        if (event.getButton() != MouseButton.PRIMARY) {
+            return;
+        }
+        boolean delayRunning = holdToTalkDelay.getStatus() == Animation.Status.RUNNING;
+        holdToTalkDelay.stop();
+        if (recordingViaMouse) {
+            event.consume();
+            recordingViaMouse = false;
+            if (dictationService.isRecording()) {
+                finishRecording();
+            }
+            return;
+        }
+        if (delayRunning && dictationModeEnabled && dictationButton != null) {
+            event.consume();
+            dictationButton.setSelected(false);
+        }
     }
 
     private void onKeyPressed(KeyEvent event) {
         if (event.isConsumed()) {
             return;
         }
-        trackModifiers(event, true);
         if (!dictationModeEnabled) {
             return;
         }
         if (!isPushToTalkKey(event) || dictationService.isRecording()) {
             return;
         }
+        holdToTalkDelay.stop();
         event.consume();
         recordingViaHotkey = true;
         spacePushToTalkActive = isOptionSpacePushToTalk(event);
@@ -172,16 +229,10 @@ public class DictationSupport {
     }
 
     private void onKeyReleased(KeyEvent event) {
-        if (event.isConsumed()) {
+        if (event.isConsumed() || !recordingViaHotkey) {
             return;
         }
-        if (!recordingViaHotkey) {
-            trackModifiers(event, false);
-            return;
-        }
-        boolean release = isPushToTalkReleaseKey(event);
-        trackModifiers(event, false);
-        if (!release) {
+        if (!isPushToTalkReleaseKey(event)) {
             return;
         }
         event.consume();
@@ -200,61 +251,34 @@ public class DictationSupport {
         event.consume();
     }
 
-    private void trackModifiers(KeyEvent event, boolean pressed) {
-        if (event.getCode() == KeyCode.ALT) {
-            altModifierHeld = pressed;
-        } else if (pressed && event.isAltDown()) {
-            altModifierHeld = true;
-        }
-    }
-
     private boolean shouldSuppressTypedCharacter(KeyEvent event) {
-        if (!dictationModeEnabled) {
+        if (!dictationModeEnabled || !recordingViaHotkey || !spacePushToTalkActive) {
             return false;
         }
-        if (recordingViaHotkey && spacePushToTalkActive) {
-            String character = event.getCharacter();
-            return character != null && !character.isEmpty();
-        }
-        return EditingShortcuts.isMac()
-                && (altModifierHeld || event.isAltDown())
-                && isSpaceTypedCharacter(event);
-    }
-
-    private static boolean isSpaceTypedCharacter(KeyEvent event) {
         String character = event.getCharacter();
-        if (character == null || character.isEmpty()) {
-            return false;
-        }
-        char ch = character.charAt(0);
-        return ch == ' ' || ch == '\u00a0';
+        return character != null && !character.isEmpty();
     }
 
     private boolean isPushToTalkKey(KeyEvent event) {
-        if (event.getCode() == KeyCode.F9 || event.getCode() == KeyCode.F10) {
-            return true;
-        }
-        return isOptionSpacePushToTalk(event);
+        return DictationHotkeys.isPushToTalkPress(
+                event.getCode(),
+                event.isAltDown(),
+                event.isMetaDown(),
+                event.isControlDown(),
+                EditingShortcuts.isMac());
     }
 
     private boolean isOptionSpacePushToTalk(KeyEvent event) {
-        if (!EditingShortcuts.isMac() || event.getCode() != KeyCode.SPACE) {
-            return false;
-        }
-        return event.isAltDown() || altModifierHeld;
+        return DictationHotkeys.isOptionSpace(
+                event.getCode(),
+                event.isAltDown(),
+                event.isMetaDown(),
+                event.isControlDown(),
+                EditingShortcuts.isMac());
     }
 
     private boolean isPushToTalkReleaseKey(KeyEvent event) {
-        if (event.getCode() == KeyCode.F9 || event.getCode() == KeyCode.F10) {
-            return true;
-        }
-        if (!spacePushToTalkActive) {
-            return false;
-        }
-        if (event.getCode() == KeyCode.SPACE) {
-            return true;
-        }
-        return event.getCode() == KeyCode.ALT;
+        return DictationHotkeys.isPushToTalkRelease(event.getCode(), spacePushToTalkActive);
     }
 
     private static String pushToTalkHint() {
@@ -283,21 +307,29 @@ public class DictationSupport {
         refreshBusyBar();
         host.updateStatus(statusWhileProcessing());
 
-        int insertStart = Math.min(host.getSelectionStart(), host.getSelectionEnd());
-        int insertEnd = Math.max(host.getSelectionStart(), host.getSelectionEnd());
-        String editorText = host.getText() != null ? host.getText() : "";
-        insertStart = Math.max(0, Math.min(editorText.length(), insertStart));
-        insertEnd = Math.max(insertStart, Math.min(editorText.length(), insertEnd));
+        String marker;
+        String editorContext;
+        try {
+            int insertStart = Math.min(host.getSelectionStart(), host.getSelectionEnd());
+            int insertEnd = Math.max(host.getSelectionStart(), host.getSelectionEnd());
+            String editorText = host.getText() != null ? host.getText() : "";
+            insertStart = Math.max(0, Math.min(editorText.length(), insertStart));
+            insertEnd = Math.max(insertStart, Math.min(editorText.length(), insertEnd));
 
-        // Kontext ohne Markierung; Einfügeanker als sichtbare Markierung setzen.
-        String editorContext = DictationPromptBuilder.extractEditorContext(editorText, insertStart);
-        String marker = buildPendingMarker(jobId);
-        host.replaceRange(insertStart, insertEnd, marker);
-        int afterMarker = insertStart + marker.length();
-        host.selectRange(afterMarker, afterMarker);
+            editorContext = DictationPromptBuilder.extractEditorContext(editorText, insertStart);
+            marker = buildPendingMarker(jobId);
+            host.replaceRange(insertStart, insertEnd, marker);
+            int afterMarker = insertStart + marker.length();
+            host.selectRange(afterMarker, afterMarker);
+        } catch (RuntimeException e) {
+            logger.warn("Diktat-Markierung konnte nicht gesetzt werden: {}", e.getMessage());
+            editorContext = "";
+            marker = null;
+        }
 
         DictationVocabulary vocabulary = DictationVocabulary.fromHost(host);
         int quoteStyleIndex = host.getQuoteStyleIndex();
+        final String pendingMarker = marker;
 
         dictationService.stopAndProcess(editorContext, vocabulary, analysis -> Platform.runLater(() -> {
                     if (dictationService.isRecording()) {
@@ -318,9 +350,9 @@ public class DictationSupport {
                 .whenComplete((result, error) -> Platform.runLater(() -> {
                     if (error != null) {
                         Throwable cause = error.getCause() != null ? error.getCause() : error;
-                        readyOutcomes.put(jobId, PendingOutcome.error(cause.getMessage(), marker));
+                        readyOutcomes.put(jobId, PendingOutcome.error(cause.getMessage(), pendingMarker));
                     } else {
-                        readyOutcomes.put(jobId, PendingOutcome.success(result, marker));
+                        readyOutcomes.put(jobId, PendingOutcome.success(result, pendingMarker));
                     }
                     drainReadyOutcomes();
                 }));
@@ -330,6 +362,7 @@ public class DictationSupport {
      * Fügt fertige Diktate in Aufnahme-Reihenfolge ein, auch wenn ein späteres Job früher fertig ist.
      */
     private void drainReadyOutcomes() {
+        boolean lastWasRawFallback = false;
         while (readyOutcomes.containsKey(nextApplyJobId)) {
             PendingOutcome outcome = readyOutcomes.remove(nextApplyJobId);
             nextApplyJobId++;
@@ -340,10 +373,13 @@ public class DictationSupport {
                 logger.warn("Diktat fehlgeschlagen: {}", outcome.errorMessage);
                 removePendingMarker(outcome.marker);
                 showError(resolveErrorHeader(outcome.errorMessage), outcome.errorMessage);
+                lastWasRawFallback = false;
             } else if (outcome.result != null) {
+                lastWasRawFallback = !outcome.result.llmFormatted();
                 applyResult(outcome.result, outcome.marker);
             } else {
                 removePendingMarker(outcome.marker);
+                lastWasRawFallback = false;
             }
         }
         refreshBusyBar();
@@ -351,8 +387,10 @@ public class DictationSupport {
             host.updateStatus(statusWhileRecording());
         } else if (uiPendingJobs > 0) {
             host.updateStatus(statusWhileProcessing());
+        } else if (lastWasRawFallback) {
+            host.updateStatus("Diktat eingefügt (ohne KI-Korrektur — Zeitüberschreitung).");
         } else if (dictationModeEnabled) {
-            host.updateStatus("Diktat-Modus an (" + pushToTalkHint() + " halten)");
+            host.updateStatus("Diktat-Modus an (Taste halten oder " + pushToTalkHint() + ")");
         } else {
             host.updateStatus("Diktat eingefügt.");
         }
@@ -369,10 +407,10 @@ public class DictationSupport {
 
     private String statusWhileRecording() {
         if (uiPendingJobs > 0) {
-            return "Diktat: Aufnahme… (" + uiPendingJobs + " in Verarbeitung, "
+            return "Diktat: Aufnahme… (" + uiPendingJobs + " in Verarbeitung, Taste oder "
                     + pushToTalkHint() + " halten)";
         }
-        return "Diktat: Aufnahme… (" + pushToTalkHint() + " halten)";
+        return "Diktat: Aufnahme… (Taste oder " + pushToTalkHint() + " halten)";
     }
 
     private String statusWhileProcessing() {
@@ -447,6 +485,10 @@ public class DictationSupport {
         }
         if (lower.contains("ollama") || lower.contains("connection refused")) {
             return "KI-Verbindung";
+        }
+        if (lower.contains("timeout") || lower.contains("zeitüberschreitung")
+                || lower.contains("timed out")) {
+            return "KI antwortet nicht";
         }
         return "Diktat fehlgeschlagen";
     }

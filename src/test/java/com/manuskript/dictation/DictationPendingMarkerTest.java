@@ -21,4 +21,14 @@ class DictationPendingMarkerTest {
         assertEquals(7, document.indexOf(first));
         assertTrue(document.indexOf(second) > document.indexOf(first));
     }
+
+    @Test
+    void resultTracksWhetherLlmFormattedTheText() {
+        DictationResult fromLlm = new DictationResult("roh", "sauber", DictationMode.TRANSCRIPTION, true);
+        DictationResult rawOnly = new DictationResult("roh", "roh.", DictationMode.TRANSCRIPTION, false);
+
+        assertTrue(fromLlm.llmFormatted());
+        assertFalse(rawOnly.llmFormatted());
+        assertEquals("roh.", rawOnly.processedText());
+    }
 }

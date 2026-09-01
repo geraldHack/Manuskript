@@ -3,6 +3,7 @@ package com.manuskript;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
+import javafx.geometry.Rectangle2D;
 import javafx.util.Duration;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -139,12 +140,27 @@ public class DebugWindow {
     }
     
     /**
+     * Bindet Strg/Cmd+D an die Scene (wird in {@link CustomStage#setSceneWithTitleBar} gesetzt).
+     */
+    public static void bindOpenShortcut(Scene scene, Window owner) {
+        if (scene == null) {
+            return;
+        }
+        Window shortcutOwner = owner != null ? owner : scene.getWindow();
+        EditingShortcuts.bindPlatformAccelerators(
+                scene.getAccelerators(),
+                "D",
+                () -> Platform.runLater(() -> show(shortcutOwner)));
+    }
+
+    /**
      * Öffnet oder zeigt das Debug-Fenster
      */
     public static void show(Window owner) {
         if (instance == null || instance.stage == null || !instance.stage.isShowing()) {
             instance = new DebugWindow(owner);
         } else {
+            instance.ensureOnScreen();
             instance.stage.toFront();
             instance.stage.requestFocus();
         }
@@ -904,20 +920,26 @@ public class DebugWindow {
     private void loadWindowProperties() {
         double width = preferences.getDouble("debug_window_width", 1400);
         double height = preferences.getDouble("debug_window_height", 900);
-        double x = preferences.getDouble("debug_window_x", -1);
-        double y = preferences.getDouble("debug_window_y", -1);
         double divider = preferences.getDouble("debug_window_divider", 0.5);
-        
-        if (width > 0) stage.setWidth(width);
-        if (height > 0) stage.setHeight(height);
-        if (x >= 0) stage.setX(x);
-        if (y >= 0) stage.setY(y);
-        
+
+        Rectangle2D bounds = PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
+                preferences, "debug_window", width, height);
+        PreferencesManager.MultiMonitorValidator.applyWindowProperties(stage, bounds);
+
         Platform.runLater(() -> {
             if (divider > 0 && divider < 1) {
                 splitPane.setDividerPositions(divider);
             }
         });
+    }
+
+    private void ensureOnScreen() {
+        if (stage == null) {
+            return;
+        }
+        Rectangle2D corrected = PreferencesManager.MultiMonitorValidator.correctWindowPosition(
+                stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
+        PreferencesManager.MultiMonitorValidator.applyWindowProperties(stage, corrected);
     }
     
     /**

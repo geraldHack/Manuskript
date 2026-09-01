@@ -640,16 +640,12 @@ public class ChatbotAgentTab extends ScrollPane {
     private void refreshContextPills() {
         contextPills.getChildren().clear();
         for (ChatbotContextSource source : contextConfig.getSources()) {
-            Button pill = new Button(source.getLabel() + " ✕");
-            pill.getStyleClass().add("chatbot-context-pill");
-            pill.setTooltip(new Tooltip(source.getTooltip()));
-            pill.setOnAction(e -> {
+            contextPills.getChildren().add(ChatbotContextPane.createContextPill(source, () -> {
                 contextConfig.removeSource(source);
                 refreshContextPills();
                 updateNeighborSpinnersVisibility();
                 persistSessionSettings();
-            });
-            contextPills.getChildren().add(pill);
+            }));
         }
     }
 

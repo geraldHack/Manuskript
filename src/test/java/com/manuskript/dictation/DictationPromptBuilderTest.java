@@ -43,6 +43,16 @@ class DictationPromptBuilderTest {
     }
 
     @Test
+    void analyzeTranscript_befehlInProseIsNotInstruction() {
+        assertEquals(DictationMode.TRANSCRIPTION,
+                DictationPromptBuilder.analyzeTranscript(
+                        "Er gab den Befehl, die Tore zu schließen.").mode());
+        assertEquals(DictationMode.TRANSCRIPTION,
+                DictationPromptBuilder.analyzeTranscript(
+                        "Auf Kommando drehte sie sich um.").mode());
+    }
+
+    @Test
     void deduplicateAgainstContext_removesRepeatedLastSentence() {
         String context = "Es war kalt. Luna zog den Mantel enger.";
         String duplicate = "Luna zog den Mantel enger.";

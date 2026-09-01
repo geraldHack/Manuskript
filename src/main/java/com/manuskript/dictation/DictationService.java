@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -23,6 +25,7 @@ public class DictationService {
 
     private static final Logger logger = LoggerFactory.getLogger(DictationService.class);
     private static final int LLM_MAX_TOKENS = 2000;
+    private static final int LLM_TIMEOUT_SEC_DEFAULT = 45;
 
     private final MicrophoneRecorder recorder = new MicrophoneRecorder();
     /** Anzahl laufender STT/LLM-Jobs (Aufnahme und Verarbeitung sind entkoppelt). */
@@ -151,21 +154,92 @@ public class DictationService {
                 : DictationPromptBuilder.buildUserMessage(transcriptForLlm, editorContext, vocab);
 
         final String transcriptForDedup = transcriptForLlm;
+        int timeoutSec = resolveLlmTimeoutSec();
+        logger.info("Diktat: KI-Korrektur startet (Timeout {} s, Transkript {} Zeichen)",
+                timeoutSec, transcriptForLlm.length());
+
         return backend.chat(systemPrompt, userMessage, LLM_MAX_TOKENS)
-                .thenApply(response -> {
-                    String processed = DictationPromptBuilder.cleanLlmOutput(response);
-                    if (!instruction) {
-                        processed = DictationPromptBuilder.deduplicateAgainstContext(
-                                processed, editorContext, transcriptForDedup);
+                .orTimeout(timeoutSec, TimeUnit.SECONDS)
+                .handle((response, error) -> {
+                    if (error != null) {
+                        Throwable cause = unwrap(error);
+                        if (instruction) {
+                            throw new CompletionException(cause);
+                        }
+                        logger.warn("Diktat-KI nicht rechtzeitig ({} s): {} — Rohtranskript wird eingefügt",
+                                timeoutSec, causeMessage(cause));
+                        return fallbackWithoutLlm(analysis, transcriptForDedup, editorContext, quoteStyleIndex);
                     }
-                    processed = DictationSpokenMarkup.finish(processed, editorContext, quoteStyleIndex);
-                    if (processed.isBlank()) {
-                        throw new IllegalStateException("LLM lieferte leeren Text.");
+                    try {
+                        return formatLlmResponse(
+                                response, instruction, editorContext, transcriptForDedup,
+                                quoteStyleIndex, analysis);
+                    } catch (RuntimeException e) {
+                        if (instruction) {
+                            throw e;
+                        }
+                        logger.warn("Diktat-KI-Antwort unbrauchbar: {} — Rohtranskript wird eingefügt",
+                                e.getMessage());
+                        return fallbackWithoutLlm(analysis, transcriptForDedup, editorContext, quoteStyleIndex);
                     }
-                    logger.debug("Diktat verarbeitet ({}): {} → {} Zeichen",
-                            analysis.mode(), analysis.rawTranscript().length(), processed.length());
-                    return new DictationResult(analysis.rawTranscript(), processed, analysis.mode());
                 });
+    }
+
+    private static DictationResult formatLlmResponse(
+            String response,
+            boolean instruction,
+            String editorContext,
+            String transcriptForDedup,
+            int quoteStyleIndex,
+            DictationPromptBuilder.TranscriptAnalysis analysis) {
+        String processed = DictationPromptBuilder.cleanLlmOutput(response);
+        if (!instruction) {
+            processed = DictationPromptBuilder.deduplicateAgainstContext(
+                    processed, editorContext, transcriptForDedup);
+        }
+        processed = DictationSpokenMarkup.finish(processed, editorContext, quoteStyleIndex);
+        if (processed.isBlank()) {
+            throw new IllegalStateException("LLM lieferte leeren Text.");
+        }
+        logger.info("Diktat verarbeitet ({}): {} → {} Zeichen",
+                analysis.mode(), analysis.rawTranscript().length(), processed.length());
+        return new DictationResult(analysis.rawTranscript(), processed, analysis.mode(), true);
+    }
+
+    private static DictationResult fallbackWithoutLlm(
+            DictationPromptBuilder.TranscriptAnalysis analysis,
+            String transcriptForLlm,
+            String editorContext,
+            int quoteStyleIndex) {
+        String processed = DictationSpokenMarkup.finish(transcriptForLlm, editorContext, quoteStyleIndex);
+        if (processed == null || processed.isBlank()) {
+            throw new IllegalStateException("Leeres Transkript.");
+        }
+        return new DictationResult(analysis.rawTranscript(), processed, analysis.mode(), false);
+    }
+
+    private static int resolveLlmTimeoutSec() {
+        int t = ResourceManager.getIntParameter("dictation.llm_timeout_sec", LLM_TIMEOUT_SEC_DEFAULT);
+        return Math.max(10, Math.min(180, t));
+    }
+
+    private static Throwable unwrap(Throwable error) {
+        Throwable t = error;
+        while (t instanceof CompletionException && t.getCause() != null) {
+            t = t.getCause();
+        }
+        return t;
+    }
+
+    private static String causeMessage(Throwable cause) {
+        if (cause == null) {
+            return "unbekannt";
+        }
+        String msg = cause.getMessage();
+        if (msg != null && !msg.isBlank()) {
+            return msg;
+        }
+        return cause.getClass().getSimpleName();
     }
 
     static SpeechToTextBackend createSttBackend() {
@@ -234,6 +308,9 @@ public class DictationService {
                 : ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL);
         backend.setCurrentModel(model);
         backend.setTemperature(0.3);
+        if (backend instanceof OpenAIBackend openai) {
+            openai.setReasoningEffortOverride("none");
+        }
         return backend;
     }
 

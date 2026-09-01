@@ -68,6 +68,7 @@ Thumbs.db
 config/sessions/
 config/openrouter-monitor.properties
 config/mammouth-monitor.properties
+config/projekt-backup.json
 
 # Alle docx-Dateien ignorieren
 #*.docx 

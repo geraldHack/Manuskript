@@ -55,6 +55,20 @@ class DictationVocabularyTest {
     }
 
     @Test
+    void whisperPrompt_doesNotUseCapitalizedChapterNouns() {
+        DictationVocabulary vocab = DictationVocabulary.fromSources(
+                "",
+                "",
+                "",
+                "Nacken und Schultern. Ihre nackten Schultern glänzten.");
+
+        String prompt = vocab.whisperInitialPrompt();
+        assertFalse(prompt.contains("Nacken"));
+        assertFalse(prompt.contains("Schultern"));
+        assertFalse(vocab.llmGlossaryBlock().contains("Nacken"));
+    }
+
+    @Test
     void mergeTermsIntoGlossaryText_skipsDuplicatesCaseInsensitive() {
         StringBuilder glossary = new StringBuilder("Luna\nvintage\n");
         int added = DictationVocabulary.mergeTermsIntoGlossaryText(

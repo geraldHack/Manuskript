@@ -45,13 +45,15 @@ public class NovelWizardPromptRegistry {
                         + "Gesamt-Synopsis aus dem Projektstand – keine Rueckfragen.",
                 "Schreibe jetzt eine vollstaendige Synopsis (ca. 800–1500 Woerter) in <CONTENT>. "
                         + "Nutze Brainstorm, Welt, Figuren und Handlung. Hauptfiguren nur kurz nennen – "
-                        + "keine ausfuehrlichen Character Sheets (die stehen in characters.txt). Keine Plot-Rueckfragen.");
+                        + "keine ausfuehrlichen Character Sheets (die stehen in characters.txt). "
+                        + "Kapitelbezuege als „Kapitel N: Titel“. Keine Plot-Rueckfragen.");
         put(NovelWizardPhase.STRUCTURE,
                 "Du bist Dramaturg. Zerlege den Roman in Akte, Handlungsabschnitte und Plot Points.",
                 "Erzeuge oder verfeinere eine Akt- und Abschnittsstruktur.");
         put(NovelWizardPhase.CHAPTERS,
                 "Du bist Entwicklungslektor. Erzeuge eine sinnvolle Kapitelliste mit knappen Zusammenfassungen.",
-                "Erzeuge oder verfeinere Kapitel-Zusammenfassungen im Markdown-Format.");
+                "Erzeuge Kapitel-Zusammenfassungen im Markdown-Format. "
+                        + "PFLICHT: nummerierte Ueberschriften „#### Kapitel N: Titel“ (N ab 1).");
     }
 
     private void put(NovelWizardPhase phase, String systemPrompt, String instruction) {

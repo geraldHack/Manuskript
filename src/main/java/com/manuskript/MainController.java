@@ -181,6 +181,8 @@ public class MainController implements Initializable {
     private ProjectDisplayItem draggingProjectItem;
     private File draggingSeriesBook;
     private File projectRootDirectory;
+    /** Aktueller Buchordner (DOCX). Nicht dasselbe wie die Wurzel im Textfeld. */
+    private File currentProjectDirectory;
     // SortedList entfernt - einfache Lösung
     private DocxProcessor docxProcessor;
     private Preferences preferences;
@@ -435,7 +437,7 @@ public class MainController implements Initializable {
             
             // Prüfe beim Start, ob ein cover_image.png im aktuellen Verzeichnis vorhanden ist
             // WICHTIG: Nur aufrufen, wenn txtDirectoryPath bereits gesetzt ist
-            if (txtDirectoryPath.getText() != null && !txtDirectoryPath.getText().trim().isEmpty()) {
+            if (getCurrentProjectPath() != null && !getCurrentProjectPath().trim().isEmpty()) {
                 loadCoverImageFromCurrentDirectory();
             }
             
@@ -628,14 +630,13 @@ public class MainController implements Initializable {
     
     private void setupEventHandlers() {
         btnSelectDirectory.setOnAction(e -> selectDirectory());
-        btnSelectDirectory.setTooltip(new Tooltip("Projektverzeichnis mit DOCX-Dateien auswählen. Hier liegen die Kapiteldateien Ihres Buchprojekts."));
+        btnSelectDirectory.setTooltip(new Tooltip("Wurzelverzeichnis wählen. Darin liegen die Projekte (Unterordner mit DOCX-Dateien)."));
         // Filter, Sortierung und Format-Event-Handler entfernt - einfache Lösung
         btnAddToSelected.setOnAction(e -> addSelectedToRight());
         
         // Downloads-Monitor Event-Handler
         chkDownloadsMonitor.setOnAction(e -> toggleDownloadsMonitor());
         if (txtDirectoryPath != null) {
-            txtDirectoryPath.textProperty().addListener((obs, oldValue, newValue) -> updateCachedProjectDirectoryPath());
             updateCachedProjectDirectoryPath();
         }
         if (downloadsMonitorContainer != null) {
@@ -706,7 +707,7 @@ public class MainController implements Initializable {
         }
         if (btnAudiobook != null) {
             btnAudiobook.setOnAction(e -> {
-                String currentDirectory = txtDirectoryPath != null ? txtDirectoryPath.getText() : null;
+                String currentDirectory = txtDirectoryPath != null ? getCurrentProjectPath() : null;
                 File dataDir = currentDirectory != null && !currentDirectory.isEmpty() ? new File(currentDirectory, "data") : null;
                 List<DocxFile> chapters = new ArrayList<>(selectedDocxFiles);
                 AudiobookDialog.show(primaryStage != null ? primaryStage : null, chapters, dataDir, currentThemeIndex);
@@ -716,6 +717,7 @@ public class MainController implements Initializable {
         btnSearchAllFiles.setOnAction(e -> searchAllFiles());
         applyFeatureVisibility();
         rebuildLauncherToolbar();
+        startBackgroundPlugins();
     }
 
     /**
@@ -724,11 +726,7 @@ public class MainController implements Initializable {
     private void setupKeyboardShortcuts() {
         if (mainContainer != null) {
             mainContainer.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-                if (event.isControlDown() && event.getCode() == KeyCode.D) {
-                    DebugWindow.show(primaryStage);
-                    event.consume();
-                }
-                else if (EditingShortcuts.isShortcutDown(event) && event.getCode() == KeyCode.R) {
+                if (EditingShortcuts.isShortcutDown(event) && event.getCode() == KeyCode.R) {
                     resetAllScreenSettings();
                     event.consume();
                 }
@@ -1100,8 +1098,8 @@ public class MainController implements Initializable {
             if (lastDir.exists()) {
                 directoryChooser.setInitialDirectory(lastDir);
             }
-        } else if (txtDirectoryPath.getText() != null && !txtDirectoryPath.getText().isEmpty()) {
-            File currentDir = new File(txtDirectoryPath.getText());
+        } else if (getCurrentProjectPath() != null && !getCurrentProjectPath().isEmpty()) {
+            File currentDir = new File(getCurrentProjectPath());
             if (currentDir.exists()) {
                 directoryChooser.setInitialDirectory(currentDir);
             }
@@ -1187,16 +1185,15 @@ public class MainController implements Initializable {
             if (!selectedDir.isEmpty()) {
                 File directory = new File(selectedDir);
                 if (directory.exists() && directory.isDirectory()) {
-                    txtDirectoryPath.setText(selectedDir);
-                    updateProjectTitleFromCurrentPath();
-                    loadDocxFiles(directory);
-                    startBookLengthTimer();
-
-                    // Speichere den Pfad in den Einstellungen
-                    preferences.put("lastDirectory", selectedDir);
-                    
-                    // WICHTIG: Lade das Cover-Bild für das neue Verzeichnis
-                    loadCoverImageFromCurrentDirectory();
+                    setProjectRootDirectory(directory);
+                    showProjectRootInDirectoryField();
+                    if (looksLikeSingleProject(directory)) {
+                        setCurrentProjectDirectory(directory);
+                        loadDocxFiles(directory);
+                        startBookLengthTimer();
+                        notifyPluginsLoaded();
+                        loadCoverImageFromCurrentDirectory();
+                    }
                 }
             }
             
@@ -1244,7 +1241,7 @@ public class MainController implements Initializable {
      */
     private void saveCoverImageAsPng(File sourceImage) {
         try {
-            String currentDir = txtDirectoryPath.getText();
+            String currentDir = getCurrentProjectPath();
             if (currentDir != null && !currentDir.isEmpty()) {
                 File targetDir = new File(currentDir);
                 if (targetDir.exists() && targetDir.isDirectory()) {
@@ -1266,7 +1263,7 @@ public class MainController implements Initializable {
     
     private void loadLastCoverImage() {
         // PRIORITÄT: Suche zuerst nach cover_image.png im aktuellen Verzeichnis
-        String currentDir = txtDirectoryPath.getText();
+        String currentDir = getCurrentProjectPath();
         if (currentDir != null && !currentDir.isEmpty()) {
             File currentDirectory = new File(currentDir);
             if (currentDirectory.exists() && currentDirectory.isDirectory()) {
@@ -1312,10 +1309,7 @@ public class MainController implements Initializable {
     }
 
     private File getCurrentDirectory() {
-        String path = (txtDirectoryPath != null) ? txtDirectoryPath.getText() : null;
-        if (path == null || path.trim().isEmpty()) {
-            path = preferences.get("lastDirectory", "");
-        }
+        String path = getCurrentProjectPath();
         if (path == null || path.trim().isEmpty()) {
             return null;
         }
@@ -1323,9 +1317,50 @@ public class MainController implements Initializable {
         return (dir.exists() && dir.isDirectory()) ? dir : null;
     }
 
+    /** Pfad des aktuellen Buchs (Kapitel-DOCX), nicht der Projektwurzel. */
+    private String getCurrentProjectPath() {
+        if (currentProjectDirectory != null) {
+            return currentProjectDirectory.getAbsolutePath();
+        }
+        if (preferences != null) {
+            String last = preferences.get("lastDirectory", "");
+            if (last != null && !last.isBlank()) {
+                return last;
+            }
+        }
+        return "";
+    }
+
+    private void setCurrentProjectDirectory(File dir) {
+        if (dir != null && dir.isDirectory()) {
+            currentProjectDirectory = dir.getAbsoluteFile();
+            if (preferences != null) {
+                preferences.put("lastDirectory", currentProjectDirectory.getAbsolutePath());
+            }
+        } else {
+            currentProjectDirectory = null;
+        }
+        updateCachedProjectDirectoryPath();
+        updateProjectTitleFromCurrentPath();
+    }
+
+    private void showProjectRootInDirectoryField() {
+        if (txtDirectoryPath == null) {
+            return;
+        }
+        String root = ResourceManager.getParameter("project.root.directory", "");
+        if ((root == null || root.isBlank()) && projectRootDirectory != null) {
+            root = projectRootDirectory.getAbsolutePath();
+        }
+        String shown = root != null ? root : "";
+        if (!shown.equals(txtDirectoryPath.getText())) {
+            txtDirectoryPath.setText(shown);
+        }
+    }
+
     private void updateProjectTitleFromCurrentPath() {
         if (projectTitleLabel == null) return;
-        String currentDir = txtDirectoryPath != null ? txtDirectoryPath.getText() : null;
+        String currentDir = getCurrentProjectPath();
         String name = "";
         if (currentDir != null && !currentDir.trim().isEmpty()) {
             File dir = new File(currentDir);
@@ -1370,10 +1405,11 @@ public class MainController implements Initializable {
             return;
         }
 
-        txtDirectoryPath.setText(lastDirectory);
-        updateProjectTitleFromCurrentPath();
+        setCurrentProjectDirectory(lastDir);
+        showProjectRootInDirectoryField();
         loadDocxFiles(lastDir);
         startBookLengthTimer();
+        notifyPluginsLoaded();
     }
     
     /**
@@ -1827,7 +1863,7 @@ public class MainController implements Initializable {
     
     public void refreshDocxFiles() {
         try {
-            String currentPath = txtDirectoryPath.getText();
+            String currentPath = getCurrentProjectPath();
             if (currentPath != null && !currentPath.isEmpty()) {
                 File directory = new File(currentPath);
                 if (directory.exists() && directory.isDirectory()) {
@@ -1988,7 +2024,7 @@ public class MainController implements Initializable {
      * Wird vom Hintergrund-Timer alle 60 Sekunden aufgerufen.
      */
     private String computeBookLengthStats() {
-        String dir = txtDirectoryPath != null ? txtDirectoryPath.getText() : null;
+        String dir = txtDirectoryPath != null ? getCurrentProjectPath() : null;
         if (dir == null || dir.trim().isEmpty()) {
             return "— Zeichen · — Wörter";
         }
@@ -2675,96 +2711,101 @@ public class MainController implements Initializable {
             if (mdFile != null && mdFile.exists()) {
                 // MD-Datei existiert - PRÜFE OB DOCX EXTERN VERÄNDERT WURDE
                 if (DiffProcessor.hasDocxChanged(chapterFile.getFile(), mdFile)) {
-                    DocxChangeDecision decision = showDocxChangedDialogInMain(chapterFile);
-                    switch (decision) {
-                        case DIFF: {
-                            try {
-                                String docxContent = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
-                                String mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
-                                DiffProcessor.DiffResult diff = DiffProcessor.createDiff(docxContent, mdContent);
-                                showDetailedDiffDialog(chapterFile, mdFile, diff, format);
-                                    } catch (Exception e) {
-                                        logger.error("Fehler beim Anzeigen des DOCX/MD-Diffs", e);
-                                        showError("Fehler", "Diff konnte nicht angezeigt werden: " + e.getMessage());
-                                    }
-                                    return; // nach Diff kein Editor öffnen
-                                }
-                                case DOCX: {
-                            try {
-                                String docxContent = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
-                                File mdFileToSave = deriveMdFileFor(chapterFile.getFile());
-                                // KRITISCH: Immer den DOCX-Inhalt (nicht getText()) in die Zieldatei schreiben,
-                                // damit nie falscher Editor-Inhalt in ein anderes Kapitel gerät (Race mit runLater).
-                                if (mdFileToSave != null) {
-                                    try {
-                                        java.nio.file.Files.createDirectories(mdFileToSave.getParentFile().toPath());
-                                        java.nio.file.Files.write(mdFileToSave.toPath(), docxContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                                    } catch (Exception saveException) {
-                                        logger.error("Fehler beim Speichern der MD-Datei (DOCX übernommen)", saveException);
-                                    }
-                                }
-                                // WICHTIG: Prüfe ob bereits ein Editor für dieses Kapitel existiert
-                                final ChapterEditorHost foundHost = findExistingChapterEditor(editorKey);
-                                ChapterEditorHost editorHost;
-                                if (foundHost != null) {
-                                    editorHost = foundHost;
-                                    Platform.runLater(() -> {
-                                        applyDiffContentToHost(foundHost, docxContent, chapterFile);
-                                        bringChapterEditorToFront(foundHost);
-                                    });
-                                } else {
-                                    editorHost = openChapterEditorHost(docxContent, chapterFile, format);
-                                }
-                                updateStatus("Kapitel-Editor geöffnet (DOCX übernommen): " + chapterFile.getFileName());
-                                DiffProcessor.saveDocxHashAsync(chapterFile.getFile(), mdFile);
-                                updateDocxHashAfterAccept(chapterFile.getFile());
-                                markDocxFileAsUnchanged(chapterFile.getFile());
-                            } catch (Exception e) {
-                                logger.error("Fehler beim Übernehmen des DOCX-Inhalts", e);
-                                showError("Fehler", "DOCX-Inhalt konnte nicht übernommen werden: " + e.getMessage());
-                            }
-                            return;
-                        }
-                        case IGNORE: {
-
-                            // Hash aktualisieren und mit MD fortfahren
-                            try {
-                                updateDocxHashAfterAccept(chapterFile.getFile());
-                                // "!" aus Tabelle entfernen
-                                markDocxFileAsUnchanged(chapterFile.getFile());
-                            } catch (Exception e) {
-                                logger.warn("Konnte DOCX-Hash nicht aktualisieren", e);
-                            }
-                            break; // weiter unten MD laden
-                        }
-                        case CANCEL:
-                        default:
-                            return;
-                    }
-                } else {
-                    // Keine Änderung - MD-Datei öffnen (Standard-Verhalten)
+                    boolean onlyMarkupDiff = false;
                     try {
-                        String mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
-
-                        // Öffne Chapter-Editor mit MD-Inhalt
-                        EditorWindow editor = openChapterEditorWindow(mdContent, chapterFile, format);
-                        if (editor != null) {
-                            updateStatus("Kapitel-Editor geöffnet (MD): " + chapterFile.getFileName());
-                        }
-
+                        String docxContent = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
+                        String mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()),
+                                java.nio.charset.StandardCharsets.UTF_8);
+                        onlyMarkupDiff = !DiffProcessor.createDocxMarkdownDiff(mdContent, docxContent).hasChanges();
                     } catch (Exception e) {
-                        logger.error("Fehler beim Laden der MD-Datei", e);
-                        // Fallback: Lade DOCX-Inhalt
-                        String content = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
-                        EditorWindow editor = openChapterEditorWindow(content, chapterFile, format);
-                        if (editor != null) {
-                            updateStatus("Kapitel-Editor geöffnet (DOCX-Fallback): " + chapterFile.getFileName());
-                            if (mdFile != null) {
-                                DiffProcessor.saveDocxHashAsync(chapterFile.getFile(), mdFile);
-                                updateDocxHashAfterAccept(chapterFile.getFile());
-                                markDocxFileAsUnchanged(chapterFile.getFile());
-                            }
+                        logger.debug("Konnte DOCX/MD-Inhalt nicht vorab vergleichen: {}", e.getMessage());
+                    }
+                    if (onlyMarkupDiff) {
+                        try {
+                            updateDocxHashAfterAccept(chapterFile.getFile());
+                            markDocxFileAsUnchanged(chapterFile.getFile());
+                        } catch (Exception e) {
+                            logger.warn("Konnte DOCX-Hash nicht aktualisieren", e);
                         }
+                    } else {
+                        DocxChangeDecision decision = showDocxChangedDialogInMain(chapterFile);
+                        switch (decision) {
+                            case DIFF: {
+                                try {
+                                    String docxContent = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
+                                    String mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()),
+                                            java.nio.charset.StandardCharsets.UTF_8);
+                                    DiffProcessor.DiffResult diff = DiffProcessor.createDocxMarkdownDiff(mdContent, docxContent);
+                                    Platform.runLater(() -> showDetailedDiffDialog(chapterFile, mdFile, diff, format));
+                                } catch (Exception e) {
+                                    logger.error("Fehler beim Anzeigen des DOCX/MD-Diffs", e);
+                                    showError("Fehler", "Diff konnte nicht angezeigt werden: " + e.getMessage());
+                                }
+                                return;
+                            }
+                            case DOCX: {
+                                try {
+                                    String docxContent = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
+                                    File mdFileToSave = deriveMdFileFor(chapterFile.getFile());
+                                    if (mdFileToSave != null) {
+                                        try {
+                                            java.nio.file.Files.createDirectories(mdFileToSave.getParentFile().toPath());
+                                            java.nio.file.Files.write(mdFileToSave.toPath(),
+                                                    docxContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                                        } catch (Exception saveException) {
+                                            logger.error("Fehler beim Speichern der MD-Datei (DOCX übernommen)", saveException);
+                                        }
+                                    }
+                                    final ChapterEditorHost foundHost = findExistingChapterEditor(editorKey);
+                                    if (foundHost != null) {
+                                        Platform.runLater(() -> {
+                                            applyDiffContentToHost(foundHost, docxContent, chapterFile);
+                                            bringChapterEditorToFront(foundHost);
+                                        });
+                                    } else {
+                                        openChapterEditorHost(docxContent, chapterFile, format);
+                                    }
+                                    updateStatus("Kapitel-Editor geöffnet (DOCX übernommen): " + chapterFile.getFileName());
+                                    DiffProcessor.saveDocxHashAsync(chapterFile.getFile(), mdFile);
+                                    updateDocxHashAfterAccept(chapterFile.getFile());
+                                    markDocxFileAsUnchanged(chapterFile.getFile());
+                                } catch (Exception e) {
+                                    logger.error("Fehler beim Übernehmen des DOCX-Inhalts", e);
+                                    showError("Fehler", "DOCX-Inhalt konnte nicht übernommen werden: " + e.getMessage());
+                                }
+                                return;
+                            }
+                            case IGNORE: {
+                                try {
+                                    updateDocxHashAfterAccept(chapterFile.getFile());
+                                    markDocxFileAsUnchanged(chapterFile.getFile());
+                                } catch (Exception e) {
+                                    logger.warn("Konnte DOCX-Hash nicht aktualisieren", e);
+                                }
+                                break;
+                            }
+                            case CANCEL:
+                            default:
+                                return;
+                        }
+                    }
+                }
+                try {
+                    String mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()),
+                            java.nio.charset.StandardCharsets.UTF_8);
+                    ChapterEditorHost editor = openChapterEditorHost(mdContent, chapterFile, format);
+                    if (editor != null) {
+                        updateStatus("Kapitel-Editor geöffnet (MD): " + chapterFile.getFileName());
+                    }
+                } catch (Exception e) {
+                    logger.error("Fehler beim Laden der MD-Datei", e);
+                    String content = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
+                    ChapterEditorHost editor = openChapterEditorHost(content, chapterFile, format);
+                    if (editor != null) {
+                        updateStatus("Kapitel-Editor geöffnet (DOCX-Fallback): " + chapterFile.getFileName());
+                        DiffProcessor.saveDocxHashAsync(chapterFile.getFile(), mdFile);
+                        updateDocxHashAfterAccept(chapterFile.getFile());
+                        markDocxFileAsUnchanged(chapterFile.getFile());
                     }
                 }
             } else {
@@ -2819,7 +2860,7 @@ public class MainController implements Initializable {
                     }
                 }
             }
-            String currentDirectory = txtDirectoryPath.getText();
+            String currentDirectory = getCurrentProjectPath();
             File dataDir = currentDirectory != null && !currentDirectory.isEmpty() ? new File(currentDirectory, "data") : null;
             ChapterTtsEditorWindow.open(chapterFile, content, mdFile, dataDir, primaryStage != null ? primaryStage : null, currentThemeIndex);
             updateStatus("Sprachsynthese-Editor geöffnet: " + chapterFile.getFileName());
@@ -3238,7 +3279,7 @@ public class MainController implements Initializable {
             
             // Erstelle echten Diff mit Block-Erkennung (asynchron)
             // Erstelle echten Diff mit Block-Erkennung
-            DiffProcessor.DiffResult realDiff = DiffProcessor.createDiff(mdContent, docxContent);
+            DiffProcessor.DiffResult realDiff = DiffProcessor.createDocxMarkdownDiff(mdContent, docxContent);
             
             // Gruppiere zusammenhängende Änderungen zu Blöcken
             List<DiffBlock> blocks = groupIntoBlocks(realDiff.getDiffLines());
@@ -3880,7 +3921,7 @@ public class MainController implements Initializable {
             try {
                 diffStage.setFullTheme(currentThemeIndex);
             } catch (Exception ignore) {}
-            diffStage.showAndWait();
+            diffStage.show();
             
         } catch (Exception e) {
             logger.error("Fehler beim Anzeigen des detaillierten Diff-Dialogs", e);
@@ -4409,7 +4450,7 @@ public class MainController implements Initializable {
                     break;
             }
             
-            String currentDirectory = txtDirectoryPath.getText();
+            String currentDirectory = getCurrentProjectPath();
             File dataDir = new File(currentDirectory, "data");
             if (!dataDir.exists()) {
                 dataDir.mkdirs();
@@ -4635,7 +4676,7 @@ public class MainController implements Initializable {
             }
             
             // Erstelle das Buch als echte Datei
-            String currentDirectory = txtDirectoryPath.getText();
+            String currentDirectory = getCurrentProjectPath();
             File completeDocumentFile = new File(currentDirectory, baseFileName + " Buch.md");
             
             
@@ -4723,7 +4764,7 @@ public class MainController implements Initializable {
                 editorController.setOutputFormat(currentFormat);
             
             // Erstelle eine virtuelle Datei mit dem vollständigen Pfad
-            String currentDirectory = txtDirectoryPath.getText();
+            String currentDirectory = getCurrentProjectPath();
             // Füge die korrekte Dateiendung basierend auf dem Format hinzu
             String fileExtension = "";
             if (currentFormat != null) {
@@ -4857,7 +4898,8 @@ public class MainController implements Initializable {
      * Gibt den aktuellen Verzeichnispfad zurück
      */
     public String getCurrentDirectoryPath() {
-        return txtDirectoryPath != null ? txtDirectoryPath.getText() : null;
+        String path = getCurrentProjectPath();
+        return path.isEmpty() ? null : path;
     }
     
     /**
@@ -4992,7 +5034,7 @@ public class MainController implements Initializable {
         if (selectedDirectory != null) {
             downloadsDirectory = selectedDirectory;
             // Backup-Verzeichnis im aktuellen Arbeitsverzeichnis erstellen
-            backupDirectory = new File(txtDirectoryPath.getText(), "backup");
+            backupDirectory = new File(getCurrentProjectPath(), "backup");
             if (!backupDirectory.exists()) {
                 backupDirectory.mkdirs();
             }
@@ -5222,12 +5264,7 @@ public class MainController implements Initializable {
     
     /** Aktualisiert den gecachten Projektpfad für den Downloads-Hintergrund-Thread. */
     private void updateCachedProjectDirectoryPath() {
-        if (txtDirectoryPath == null) {
-            cachedProjectDirectoryPath = "";
-            return;
-        }
-        String path = txtDirectoryPath.getText();
-        cachedProjectDirectoryPath = path == null ? "" : path.trim();
+        cachedProjectDirectoryPath = getCurrentProjectPath().trim();
     }
 
     /**
@@ -5265,7 +5302,7 @@ public class MainController implements Initializable {
      */
     private void copyAllDocxFile(File downloadFile) {
         try {
-            File targetFile = new File(txtDirectoryPath.getText(), downloadFile.getName());
+            File targetFile = new File(getCurrentProjectPath(), downloadFile.getName());
             
             
             // Prüfe ob Datei bereits existiert (nach Sperrprüfung)
@@ -5323,7 +5360,7 @@ public class MainController implements Initializable {
             
             // Datei-Liste aktualisieren
             Platform.runLater(() -> {
-                File currentDir = new File(txtDirectoryPath.getText());
+                File currentDir = new File(getCurrentProjectPath());
                 if (currentDir.exists()) {
                     loadDocxFiles(currentDir);
                 }
@@ -5361,7 +5398,7 @@ public class MainController implements Initializable {
             
             // Datei-Liste aktualisieren
             Platform.runLater(() -> {
-                File currentDir = new File(txtDirectoryPath.getText());
+                File currentDir = new File(getCurrentProjectPath());
                 if (currentDir.exists()) {
                     loadDocxFiles(currentDir);
                 }
@@ -5418,6 +5455,8 @@ public class MainController implements Initializable {
 
             // Stoppe den Buchlängen-Timer
             stopBookLengthTimer();
+
+            stopLoadedPlugins();
             
             // Prüfe ob noch andere Fenster offen sind
             boolean hasOtherWindows = false;
@@ -6201,7 +6240,7 @@ public class MainController implements Initializable {
             }
             
             // Prüfe ob Verzeichnis ausgewählt ist
-            String directoryPath = txtDirectoryPath.getText();
+            String directoryPath = getCurrentProjectPath();
             if (directoryPath == null || directoryPath.trim().isEmpty()) {
                 showError("Fehler", "Bitte wählen Sie zuerst ein Verzeichnis aus.");
                 return;
@@ -7104,6 +7143,38 @@ public class MainController implements Initializable {
             currentProjectStage = projectStage;
 
             loadAndDisplayProjects(projectFlow, projectStage);
+
+            Label rootPathLabel = new Label();
+            rootPathLabel.setWrapText(true);
+            Runnable refreshRootLabel = () -> {
+                String path = ResourceManager.getParameter("project.root.directory", "");
+                if (path == null || path.isBlank()) {
+                    path = projectRootDirectory != null ? projectRootDirectory.getAbsolutePath() : "(nicht gesetzt)";
+                }
+                rootPathLabel.setText("Projekte aus: " + path);
+            };
+            Button chooseRootButton = new Button("Wurzelverzeichnis wählen…");
+            chooseRootButton.getStyleClass().add("select-project-button");
+            chooseRootButton.setOnAction(e -> {
+                DirectoryChooser chooser = new DirectoryChooser();
+                chooser.setTitle("Wurzelverzeichnis – der Ordner, in dem die Projekte liegen");
+                File start = projectRootDirectory != null && projectRootDirectory.isDirectory()
+                        ? projectRootDirectory
+                        : defaultWritableProjectRoot();
+                if (start != null && start.isDirectory()) {
+                    chooser.setInitialDirectory(start);
+                }
+                File chosen = chooser.showDialog(projectStage);
+                if (chosen != null) {
+                    setProjectRootDirectory(chosen);
+                    refreshRootLabel.run();
+                    loadAndDisplayProjects(projectFlow, projectStage);
+                }
+            });
+            HBox rootRow = new HBox(10, rootPathLabel, chooseRootButton);
+            rootRow.setAlignment(Pos.CENTER_LEFT);
+            HBox.setHgrow(rootPathLabel, Priority.ALWAYS);
+            refreshRootLabel.run();
             
             // Neues-Projekt-Button
             Button createProjectButton = new Button("📁 Neues Projekt erstellen");
@@ -7146,7 +7217,7 @@ public class MainController implements Initializable {
             }
             
             // Layout zusammenbauen (ohne Spacer)
-            mainLayout.getChildren().addAll(titleRow, mainScrollPane, buttonContainer);
+            mainLayout.getChildren().addAll(titleRow, rootRow, mainScrollPane, buttonContainer);
             
             // ScrollPane soll sich ausdehnen
             VBox.setVgrow(mainScrollPane, Priority.ALWAYS);
@@ -7221,8 +7292,8 @@ public class MainController implements Initializable {
                     }
                     return;
                 }
-                ResourceManager.saveParameter("project.root.directory", chosen.getAbsolutePath());
-                rootDir = chosen.getAbsolutePath();
+                setProjectRootDirectory(chosen);
+                rootDir = projectRootDirectory.getAbsolutePath();
             }
             
             File searchDir = new File(rootDir);
@@ -7242,12 +7313,26 @@ public class MainController implements Initializable {
                     }
                     return;
                 }
-                ResourceManager.saveParameter("project.root.directory", chosen.getAbsolutePath());
-                searchDir = chosen;
+                setProjectRootDirectory(chosen);
+                searchDir = projectRootDirectory;
+            }
+
+            searchDir = resolveAsProjectRoot(searchDir);
+            if (projectRootDirectory == null
+                    || !getCanonicalId(projectRootDirectory).equals(getCanonicalId(searchDir))) {
+                setProjectRootDirectory(searchDir);
+                searchDir = projectRootDirectory;
             }
 
             projectRootDirectory = searchDir;
             loadProjectOrder(searchDir);
+            List<ProjectDisplayItem> itemsInRoot = new ArrayList<>();
+            for (ProjectDisplayItem item : projectItems) {
+                if (isUnderProjectRoot(item.getDirectory(), searchDir)) {
+                    itemsInRoot.add(item);
+                }
+            }
+            projectItems = itemsInRoot;
             
             logger.info("[Projektübersicht] Root-Verzeichnis: {}", searchDir.getAbsolutePath());
             logger.info("[Projektübersicht] lastDirectory: {}", preferences.get("lastDirectory", "(leer)"));
@@ -7342,11 +7427,12 @@ public class MainController implements Initializable {
                 }
             }
 
-            // Aktuelles Projekt immer sicherstellen (aber nicht doppelt, wenn es Teil einer Serie ist)
+            // Aktuelles Projekt nur ergänzen, wenn es unter der Projektwurzel liegt
             String currentDir = preferences.get("lastDirectory", "");
             if (!currentDir.isEmpty()) {
                 File currentProject = new File(currentDir);
-                if (currentProject.exists() && currentProject.isDirectory()) {
+                if (currentProject.exists() && currentProject.isDirectory()
+                        && isUnderProjectRoot(currentProject, searchDir)) {
                     String currentId = getCanonicalId(currentProject);
                     boolean alreadyInSeries = projectItems.stream()
                         .filter(ProjectDisplayItem::isSeries)
@@ -7904,16 +7990,15 @@ public class MainController implements Initializable {
     private void selectProject(File projectDir, CustomStage projectStage) {
         try {
             // Lade das ausgewählte Projekt
-            txtDirectoryPath.setText(projectDir.getAbsolutePath());
+            setCurrentProjectDirectory(projectDir);
+            showProjectRootInDirectoryField();
             loadDocxFiles(projectDir);
             updateProjectTitleFromCurrentPath();
             startBookLengthTimer();
-
-            // Speichere den Pfad
-            preferences.put("lastDirectory", projectDir.getAbsolutePath());
             
             // Lade das Cover-Bild für das neue Projekt (nur cover_image.png aus dem aktuellen Verzeichnis)
             loadCoverImageFromCurrentDirectory();
+            notifyPluginsLoaded();
             
             // Schließe die Projektauswahl
             projectStage.close();
@@ -7934,7 +8019,7 @@ public class MainController implements Initializable {
      */
     private void loadCoverImageFromCurrentDirectory() {
         try {
-            String currentDir = txtDirectoryPath.getText();
+            String currentDir = getCurrentProjectPath();
             if (currentDir != null && !currentDir.isEmpty()) {
                 File currentDirectory = new File(currentDir);
                 if (currentDirectory.exists() && currentDirectory.isDirectory()) {
@@ -8056,7 +8141,7 @@ public class MainController implements Initializable {
                 String selectedPath = dirField.getText().trim();
                 if (!selectedPath.isEmpty()) {
                     // Speichere das Root-Verzeichnis
-                    ResourceManager.saveParameter("project.root.directory", selectedPath);
+                    setProjectRootDirectory(new File(selectedPath));
                     chooserStage.close();
                 } else {
                     showError("Fehler", "Bitte wähle ein Verzeichnis aus.");
@@ -8361,9 +8446,10 @@ public class MainController implements Initializable {
                         return;
                     }
                     createDemoDocx(new File(targetDir, "readme.docx"), projectName);
-                    txtDirectoryPath.setText(targetDir.getAbsolutePath());
-                    preferences.put("lastDirectory", targetDir.getAbsolutePath());
+                    setCurrentProjectDirectory(targetDir);
+                    showProjectRootInDirectoryField();
                     loadDocxFiles(targetDir);
+                    notifyPluginsLoaded();
 
                     dialogStage.close();
                     if (projectFlow != null && parentStage != null) {
@@ -8416,7 +8502,7 @@ public class MainController implements Initializable {
             return;
         }
 
-        String projectDirectory = txtDirectoryPath.getText();
+        String projectDirectory = getCurrentProjectPath();
         if (projectDirectory == null || projectDirectory.trim().isEmpty()) {
             showWarning("Kein Projekt ausgewählt", "Bitte wählen Sie zuerst ein Projektverzeichnis aus.");
             return;
@@ -8759,6 +8845,9 @@ public class MainController implements Initializable {
                 if (!directory.exists() || !directory.isDirectory()) {
                     continue;
                 }
+                if (!isUnderProjectRoot(directory, searchDir)) {
+                    continue;
+                }
                 String type = (String) entry.get("type");
                 if ("series".equals(type)) {
                     List<String> bookPaths = (List<String>) entry.get("books");
@@ -8802,6 +8891,115 @@ public class MainController implements Initializable {
         } catch (Exception e) {
             return directory.getAbsolutePath();
         }
+    }
+
+    /** True, wenn candidate die Wurzel selbst ist oder ein Unterordner davon. */
+    static boolean isUnderProjectRoot(File candidate, File root) {
+        if (candidate == null || root == null) {
+            return false;
+        }
+        try {
+            Path cand = candidate.getCanonicalFile().toPath().normalize();
+            Path base = root.getCanonicalFile().toPath().normalize();
+            return cand.equals(base) || cand.startsWith(base);
+        } catch (Exception e) {
+            String cand = candidate.getAbsolutePath();
+            String base = root.getAbsolutePath();
+            if (cand.equals(base)) {
+                return true;
+            }
+            String prefix = base.endsWith(File.separator) ? base : base + File.separator;
+            return cand.startsWith(prefix);
+        }
+    }
+
+    /** Speichert nur die Projektwurzel. Öffnet kein Projekt und ändert lastDirectory nicht. */
+    private void setProjectRootDirectory(File root) {
+        File resolved = resolveAsProjectRoot(root);
+        if (resolved == null || !resolved.isDirectory()) {
+            return;
+        }
+        ResourceManager.saveParameter("project.root.directory", resolved.getAbsolutePath());
+        projectRootDirectory = resolved;
+        showProjectRootInDirectoryField();
+        logger.info("Projektwurzel gesetzt auf {}", resolved.getAbsolutePath());
+    }
+
+    /**
+     * Buchordner (DOCX direkt darin) sind keine Wurzel.
+     * Wurzel ist der Ordner, in dem die Projekte als Unterordner liegen.
+     */
+    static File resolveAsProjectRoot(File chosen) {
+        if (chosen == null || !chosen.isDirectory()) {
+            return chosen;
+        }
+        File abs = chosen.getAbsoluteFile();
+        if (looksLikeProjectCollection(abs)) {
+            return abs;
+        }
+        if (looksLikeSingleProject(abs)) {
+            File parent = abs.getParentFile();
+            if (parent != null && parent.isDirectory() && looksLikeProjectCollection(parent)) {
+                return parent.getAbsoluteFile();
+            }
+        }
+        return abs;
+    }
+
+    static boolean looksLikeSingleProject(File dir) {
+        if (dir == null || !dir.isDirectory()) {
+            return false;
+        }
+        File[] docx = dir.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
+        return docx != null && docx.length > 0;
+    }
+
+    static boolean looksLikeProjectCollection(File dir) {
+        if (dir == null || !dir.isDirectory()) {
+            return false;
+        }
+        File[] subDirs = dir.listFiles(File::isDirectory);
+        if (subDirs == null) {
+            return false;
+        }
+        int projectChildren = 0;
+        for (File sub : subDirs) {
+            if (isSkippedProjectScanName(sub.getName())) {
+                continue;
+            }
+            File[] docx = sub.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
+            if (docx != null && docx.length > 0) {
+                projectChildren++;
+                if (projectChildren >= 2) {
+                    return true;
+                }
+            }
+            File[] nested = sub.listFiles(File::isDirectory);
+            if (nested == null) {
+                continue;
+            }
+            for (File book : nested) {
+                if (isSkippedProjectScanName(book.getName())) {
+                    continue;
+                }
+                File[] bookDocx = book.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
+                if (bookDocx != null && bookDocx.length > 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean isSkippedProjectScanName(String dirName) {
+        if (dirName == null) {
+            return true;
+        }
+        String n = dirName.toLowerCase();
+        return n.equals("data") || n.equals("backup") || n.equals("config") || n.equals("logs")
+                || n.equals("export") || n.equals("target") || n.equals("src") || n.equals("node_modules")
+                || n.equals(".git") || n.equals(".idea") || n.equals(".vscode") || n.equals("__pycache__")
+                || n.equals("archiv") || n.equals(".history");
     }
 
     public File getProjectRootDirectory() {
@@ -8980,7 +9178,7 @@ public class MainController implements Initializable {
         if (confirmAlert.showAndWait(primaryStage).orElse(null) == ButtonType.OK) {
             try {
                 // Archiv-Verzeichnis erstellen
-                File projectDir = new File(txtDirectoryPath.getText());
+                File projectDir = new File(getCurrentProjectPath());
                 File archiveDir = new File(projectDir, "archiv");
                 if (!archiveDir.exists()) {
                     archiveDir.mkdirs();
@@ -9754,6 +9952,7 @@ public class MainController implements Initializable {
             return;
         }
         ensurePluginsLoaded();
+        startBackgroundPlugins();
         launcherToolbarBox.getChildren().clear();
         List<ProgramLauncher> launchers = ProgramLauncherStore.load();
         if (loadedPlugins.isEmpty() && launchers.isEmpty()) {
@@ -9816,7 +10015,7 @@ public class MainController implements Initializable {
         return new PluginHost() {
             @Override
             public Optional<Path> projectRoot() {
-                String path = txtDirectoryPath != null ? txtDirectoryPath.getText() : null;
+                String path = txtDirectoryPath != null ? getCurrentProjectPath() : null;
                 if (path == null || path.isBlank()) {
                     return Optional.empty();
                 }
@@ -9874,7 +10073,7 @@ public class MainController implements Initializable {
 
     private void startProgramLauncher(ProgramLauncher launcher) {
         try {
-            String projectRoot = txtDirectoryPath != null ? txtDirectoryPath.getText() : null;
+            String projectRoot = txtDirectoryPath != null ? getCurrentProjectPath() : null;
             File home = ApplicationPaths.getApplicationHomeDirectory();
             String configDir = home != null ? home.getAbsolutePath() : System.getProperty("user.dir", ".");
             DocxFile selected = tableViewSelected != null
@@ -9896,6 +10095,14 @@ public class MainController implements Initializable {
     }
 
     private void reloadPlugins() {
+        stopLoadedPlugins();
+        loadedPlugins = List.of();
+        pluginsLoaded = false;
+        ensurePluginsLoaded();
+        notifyPluginsLoaded();
+    }
+
+    private void stopLoadedPlugins() {
         for (ManuskriptPlugin plugin : loadedPlugins) {
             try {
                 plugin.stop();
@@ -9903,13 +10110,38 @@ public class MainController implements Initializable {
                 logger.warn("Plugin stop fehlgeschlagen: {}", plugin.id(), ex);
             }
         }
-        loadedPlugins = List.of();
-        pluginsLoaded = false;
+    }
+
+    private void startBackgroundPlugins() {
         ensurePluginsLoaded();
+        PluginHost host = createPluginHost();
+        for (ManuskriptPlugin plugin : loadedPlugins) {
+            if (!plugin.wantsBackgroundStart()) {
+                continue;
+            }
+            try {
+                plugin.startBackground(host);
+            } catch (Exception ex) {
+                logger.warn("Plugin startBackground fehlgeschlagen: {}", plugin.id(), ex);
+            }
+        }
+    }
+
+    private void notifyPluginsLoaded() {
+        ensurePluginsLoaded();
+        PluginHost host = createPluginHost();
+        for (ManuskriptPlugin plugin : loadedPlugins) {
+            try {
+                plugin.onLoaded(host);
+            } catch (Exception ex) {
+                logger.warn("Plugin onLoaded fehlgeschlagen: {}", plugin.id(), ex);
+            }
+        }
+        startBackgroundPlugins();
     }
 
     private void openWorldEditor() {
-        String projectDirectory = txtDirectoryPath.getText();
+        String projectDirectory = getCurrentProjectPath();
         if (projectDirectory == null || projectDirectory.trim().isEmpty()) {
             showWarning("Kein Projekt ausgewählt", "Bitte wählen Sie zuerst ein Projektverzeichnis aus.");
             return;

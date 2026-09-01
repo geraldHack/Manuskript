@@ -66,7 +66,7 @@ public class CustomAlert {
     private static final String MAC_SYMBOL_COLOR = "#ffffff";
     private static final String MAC_MINIMIZE_SYMBOL = "−";
     private static final String MAC_MAXIMIZE_SYMBOL = "⤢";
-    private static final String MAC_CLOSE_SYMBOL = "✕";
+    private static final String MAC_CLOSE_SYMBOL = "×";
     
     // UI-Komponenten
     private Stage stage;

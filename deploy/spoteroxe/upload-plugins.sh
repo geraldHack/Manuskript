@@ -35,6 +35,8 @@ PY
 
 OR_JAR="${ROOT_DIR}/tools/openrouter-monitor/target/openrouter-monitor.jar"
 MM_JAR="${ROOT_DIR}/tools/mammouth-monitor/target/mammouth-monitor.jar"
+BK_JAR="${ROOT_DIR}/tools/projekt-backup/target/projekt-backup.jar"
+ST_JAR="${ROOT_DIR}/tools/schreib-statistik/target/schreib-statistik.jar"
 if [[ ! -f "$OR_JAR" ]]; then
     echo "FEHLER: ${OR_JAR} fehlt. Zuerst: cd tools/openrouter-monitor && mvn package"
     exit 1
@@ -43,22 +45,34 @@ if [[ ! -f "$MM_JAR" ]]; then
     echo "FEHLER: ${MM_JAR} fehlt. Zuerst: cd tools/mammouth-monitor && mvn package"
     exit 1
 fi
+if [[ ! -f "$ST_JAR" ]]; then
+    echo "FEHLER: ${ST_JAR} fehlt. Zuerst: cd tools/schreib-statistik && mvn package"
+    exit 1
+fi
 
 OR_VERSION="$(pom_version "${ROOT_DIR}/tools/openrouter-monitor/pom.xml")"
 MM_VERSION="$(pom_version "${ROOT_DIR}/tools/mammouth-monitor/pom.xml")"
+BK_VERSION="$(pom_version "${ROOT_DIR}/tools/projekt-backup/pom.xml")"
+ST_VERSION="$(pom_version "${ROOT_DIR}/tools/schreib-statistik/pom.xml")"
 OR_REMOTE_NAME="openrouter-monitor-${OR_VERSION}.jar"
 MM_REMOTE_NAME="mammouth-monitor-${MM_VERSION}.jar"
+BK_REMOTE_NAME="projekt-backup-${BK_VERSION}.jar"
+ST_REMOTE_NAME="schreib-statistik-${ST_VERSION}.jar"
 OR_SHA="$(hash_file "$OR_JAR")"
 MM_SHA="$(hash_file "$MM_JAR")"
+BK_SHA="$(hash_file "$BK_JAR")"
+ST_SHA="$(hash_file "$ST_JAR")"
 UPDATED="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 
 JSON_FILE="$(mktemp -t manuskript-plugins)"
 python3 - "$JSON_FILE" "$UPDATED" \
     "$OR_VERSION" "$OR_REMOTE_NAME" "$OR_SHA" \
     "$MM_VERSION" "$MM_REMOTE_NAME" "$MM_SHA" \
+    "$BK_VERSION" "$BK_REMOTE_NAME" "$BK_SHA" \
+    "$ST_VERSION" "$ST_REMOTE_NAME" "$ST_SHA" \
     "$PUBLIC_BASE" <<'PY'
 import json, sys
-out, updated, or_ver, or_name, or_sha, mm_ver, mm_name, mm_sha, base = sys.argv[1:]
+out, updated, or_ver, or_name, or_sha, mm_ver, mm_name, mm_sha, bk_ver, bk_name, bk_sha, st_ver, st_name, st_sha, base = sys.argv[1:]
 doc = {
     "updated": updated,
     "plugins": [
@@ -82,6 +96,26 @@ doc = {
             "sha256": mm_sha,
             "requires": "2.1.70",
         },
+        {
+            "id": "projekt-backup",
+            "label": "Backup",
+            "version": bk_ver,
+            "description": "Projekt als ZIP sichern (optional AES). Mehrere Ziele: Ordner/Cloud oder SSH/SCP, eigene Zeitpläne, Überwachung ohne Fenster.",
+            "fileName": "projekt-backup.jar",
+            "jar": f"{base}/{bk_name}",
+            "sha256": bk_sha,
+            "requires": "2.1.72",
+        },
+        {
+            "id": "schreib-statistik",
+            "label": "Statistik",
+            "version": st_ver,
+            "description": "Wörter, Kapitel, zuletzt bearbeitet, Sprechantworten, Phrasen und Bilder im geöffneten Buch.",
+            "fileName": "schreib-statistik.jar",
+            "jar": f"{base}/{st_name}",
+            "sha256": st_sha,
+            "requires": "2.1.72",
+        },
     ],
 }
 with open(out, "w", encoding="utf-8") as f:
@@ -95,10 +129,14 @@ ssh -o BatchMode=yes -o ConnectTimeout=15 "$DEPLOY_HOST" "mkdir -p '${REMOTE_PLU
 
 scp -o BatchMode=yes "$OR_JAR" "${DEPLOY_HOST}:${REMOTE_PLUGINS}/${OR_REMOTE_NAME}"
 scp -o BatchMode=yes "$MM_JAR" "${DEPLOY_HOST}:${REMOTE_PLUGINS}/${MM_REMOTE_NAME}"
+scp -o BatchMode=yes "$BK_JAR" "${DEPLOY_HOST}:${REMOTE_PLUGINS}/${BK_REMOTE_NAME}"
+scp -o BatchMode=yes "$ST_JAR" "${DEPLOY_HOST}:${REMOTE_PLUGINS}/${ST_REMOTE_NAME}"
 scp -o BatchMode=yes "$JSON_FILE" "${DEPLOY_HOST}:${DEPLOY_PATH}/manuskript-plugins.json"
-ssh -o BatchMode=yes "$DEPLOY_HOST" "chmod 644 '${DEPLOY_PATH}/manuskript-plugins.json' '${REMOTE_PLUGINS}/${OR_REMOTE_NAME}' '${REMOTE_PLUGINS}/${MM_REMOTE_NAME}'"
+ssh -o BatchMode=yes "$DEPLOY_HOST" "chmod 644 '${DEPLOY_PATH}/manuskript-plugins.json' '${REMOTE_PLUGINS}/${OR_REMOTE_NAME}' '${REMOTE_PLUGINS}/${MM_REMOTE_NAME}' '${REMOTE_PLUGINS}/${BK_REMOTE_NAME}' '${REMOTE_PLUGINS}/${ST_REMOTE_NAME}'"
 rm -f "$JSON_FILE"
 
 echo "[OK] https://spoteroxe.de/downloads/manuskript-plugins.json"
 echo "     ${OR_REMOTE_NAME}  ${OR_SHA}"
 echo "     ${MM_REMOTE_NAME}  ${MM_SHA}"
+echo "     ${BK_REMOTE_NAME}  ${BK_SHA}"
+echo "     ${ST_REMOTE_NAME}  ${ST_SHA}"

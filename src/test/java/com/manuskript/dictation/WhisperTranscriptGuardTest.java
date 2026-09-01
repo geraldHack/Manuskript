@@ -59,10 +59,19 @@ class WhisperTranscriptGuardTest {
                 "de",
                 Path.of("out"),
                 null);
-        assertTrue(cmd.contains("-nc"));
+        assertTrue(cmd.contains("-sns"));
+        assertFalse(cmd.contains("-nc"));
         assertTrue(cmd.contains("-tp"));
         assertTrue(cmd.contains("-tpi"));
         assertTrue(cmd.contains("-nth"));
         assertFalse(cmd.contains("--prompt"));
+    }
+
+    @Test
+    void whisperHelpTextIsNotATranscript() {
+        String help = "error: unknown argument: -nc\nusage: whisper-cli [options] file0 file1 ...";
+        assertTrue(LocalWhisperBackend.looksLikeCliFailure(help, 1));
+        assertTrue(LocalWhisperBackend.looksLikeCliFailure(help, 0));
+        assertFalse(LocalWhisperBackend.looksLikeCliFailure("Er ging zur Tür.", 0));
     }
 }

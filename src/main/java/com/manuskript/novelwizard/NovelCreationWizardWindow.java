@@ -68,6 +68,12 @@ public class NovelCreationWizardWindow {
     private static final double WINDOW_INSET = 22;
     /** Abstand zwischen Aktionsbuttons in einer Zeile */
     private static final double BUTTON_GAP = 8;
+    /** Max. Hoehe Frage/Hinweis — laengere KI-Texte scrollen statt Buttons zu verdecken. */
+    private static final double PROMPT_SCROLL_MAX_HEIGHT = 180;
+    /** Max. Hoehe Optionsliste (CSS novel-wizard-options-scroll). */
+    private static final double OPTIONS_SCROLL_MAX_HEIGHT = 240;
+    private static final double OPTIONS_SCROLL_MIN_HEIGHT = 48;
+    private static final double ANSWER_TABS_MAX_HEIGHT = 200;
 
     private static final Preferences UI_PREFS = Preferences.userNodeForPackage(NovelCreationWizardWindow.class);
     private static final String WINDOW_PREFS_PREFIX = "novel_wizard_window";
@@ -108,6 +114,9 @@ public class NovelCreationWizardWindow {
     private VBox questionBox;
     private Text hintText;
     private VBox hintBox;
+    private VBox promptBlock;
+    private ScrollPane promptScroll;
+    private ScrollPane interactionScroll;
     private VBox optionsBox;
     private ScrollPane optionsScroll;
     private TextArea customAnswerArea;
@@ -445,7 +454,10 @@ public class NovelCreationWizardWindow {
             syncOptionsScrollToContent();
         });
         optionsBox.getChildren().addListener((ListChangeListener<Node>) c ->
-                Platform.runLater(this::syncOptionsScrollToContent));
+                Platform.runLater(() -> {
+                    syncPromptScrollToContent();
+                    syncOptionsScrollToContent();
+                }));
 
         customAnswerArea = new TextArea();
         customAnswerArea.setPromptText("Eigene Antwort, Überarbeitung oder Korrektur an die KI…");
@@ -487,9 +499,16 @@ public class NovelCreationWizardWindow {
         answerTabs.getStyleClass().add("novel-wizard-answer-tabs");
         answerTabs.setMinHeight(110);
         answerTabs.setPrefHeight(150);
-        answerTabs.setMaxHeight(Double.MAX_VALUE);
-        VBox.setVgrow(answerTabs, Priority.ALWAYS);
+        answerTabs.setMaxHeight(ANSWER_TABS_MAX_HEIGHT);
         updateStandingInstructionsTabLabel();
+
+        promptBlock = new VBox(GAP, questionBox, hintBox);
+        promptBlock.setFillWidth(true);
+        promptScroll = new ScrollPane(promptBlock);
+        promptScroll.setFitToWidth(true);
+        promptScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        promptScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        promptScroll.getStyleClass().add("novel-wizard-prompt-scroll");
 
         Button sendCustomButton = actionButton("Antwort senden", "novel-wizard-action-primary");
         sendCustomButton.setOnAction(e -> submitCustomAnswer());
@@ -520,12 +539,15 @@ public class NovelCreationWizardWindow {
                 pauseButton,
                 finishPhaseButton);
 
-        VBox interactionPanel = new VBox(GAP,
-                questionBox,
-                hintBox,
-                optionsScroll,
-                answerTabs,
-                actionsRow);
+        VBox interactionContent = new VBox(GAP, promptScroll, optionsScroll, answerTabs);
+        interactionContent.setFillWidth(true);
+        interactionScroll = new ScrollPane(interactionContent);
+        interactionScroll.setFitToWidth(true);
+        interactionScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        interactionScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        interactionScroll.getStyleClass().add("novel-wizard-interaction-scroll");
+
+        VBox interactionPanel = new VBox(GAP, interactionScroll, actionsRow);
         interactionPanel.getStyleClass().add("novel-wizard-interaction");
         interactionPanel.setFillWidth(true);
         interactionPanel.setMinWidth(0);
@@ -535,9 +557,14 @@ public class NovelCreationWizardWindow {
         hintBox.prefWidthProperty().bind(interactionPanel.widthProperty());
         bindWrappingText(questionText, interactionPanel, QUESTION_BOX_HORIZONTAL_PADDING);
         bindWrappingText(hintText, interactionPanel, 0);
+        VBox.setVgrow(interactionScroll, Priority.ALWAYS);
+        VBox.setVgrow(promptScroll, Priority.NEVER);
         VBox.setVgrow(optionsScroll, Priority.NEVER);
+        VBox.setVgrow(answerTabs, Priority.NEVER);
+        VBox.setVgrow(actionsRow, Priority.NEVER);
         VBox.setMargin(answerTabs, new Insets(6, 0, 2, 0));
         VBox.setMargin(actionsRow, new Insets(4, 0, 0, 0));
+        syncPromptScrollToContent();
         syncOptionsScrollToContent();
 
         mainSplitPane = new SplitPane(contentSplitPane, interactionPanel);
@@ -596,6 +623,7 @@ public class NovelCreationWizardWindow {
             hintText.setFont(Font.font(null, FontWeight.NORMAL, uiFontSize));
         }
         applyWizardTextColors();
+        syncPromptScrollToContent();
         syncOptionsScrollToContent();
         for (MdTextArea editor : previewEditorByFile.values()) {
             if (editor != null && editor.getEditor() != null) {
@@ -765,7 +793,27 @@ public class NovelCreationWizardWindow {
         optionsBox.getChildren().add(createOptionButton(text, onSelect));
     }
 
-    /** Passt die Optionsliste an den Inhalt an, damit alle Antworten sichtbar sind, wenn Platz ist. */
+    /** Frage/Hinweis: wachsen bis PROMPT_SCROLL_MAX_HEIGHT, danach Scrollbalken. */
+    private void syncPromptScrollToContent() {
+        if (promptScroll == null || promptBlock == null) {
+            return;
+        }
+        if (hintBox != null && !hintBox.isVisible() && (questionText == null || questionText.getText().isBlank())) {
+            promptScroll.setMinHeight(0);
+            promptScroll.setPrefHeight(0);
+            promptScroll.setMaxHeight(0);
+            return;
+        }
+        double width = resolveScrollContentWidth(promptScroll, promptBlock, 400);
+        promptBlock.applyCss();
+        double contentHeight = Math.max(8, promptBlock.prefHeight(width));
+        double capped = Math.min(PROMPT_SCROLL_MAX_HEIGHT, contentHeight);
+        promptScroll.setMinHeight(Math.min(48, capped));
+        promptScroll.setPrefHeight(capped);
+        promptScroll.setMaxHeight(PROMPT_SCROLL_MAX_HEIGHT);
+    }
+
+    /** Optionsliste: wachsen bis OPTIONS_SCROLL_MAX_HEIGHT, danach Scrollbalken. */
     private void syncOptionsScrollToContent() {
         if (optionsScroll == null || optionsBox == null) {
             return;
@@ -776,23 +824,27 @@ public class NovelCreationWizardWindow {
             optionsScroll.setMaxHeight(0);
             return;
         }
-        double width = optionsScroll.getWidth();
-        if (width <= 1) {
-            width = optionsScroll.getViewportBounds().getWidth();
-        }
-        if (width <= 1) {
-            width = Math.max(optionsBox.getWidth(), 400);
-        }
-        double contentWidth = Math.max(80, width - 4);
+        double width = resolveScrollContentWidth(optionsScroll, optionsBox, 400);
         for (Node child : optionsBox.getChildren()) {
             child.applyCss();
         }
         optionsBox.applyCss();
-        double contentHeight = optionsBox.prefHeight(contentWidth);
-        double height = Math.max(8, contentHeight);
-        optionsScroll.setMinHeight(Math.min(48, height));
-        optionsScroll.setPrefHeight(height);
-        optionsScroll.setMaxHeight(height);
+        double contentHeight = Math.max(8, optionsBox.prefHeight(width));
+        double capped = Math.min(OPTIONS_SCROLL_MAX_HEIGHT, contentHeight);
+        optionsScroll.setMinHeight(Math.min(OPTIONS_SCROLL_MIN_HEIGHT, capped));
+        optionsScroll.setPrefHeight(capped);
+        optionsScroll.setMaxHeight(OPTIONS_SCROLL_MAX_HEIGHT);
+    }
+
+    private static double resolveScrollContentWidth(ScrollPane scroll, Region content, double fallbackWidth) {
+        double width = scroll.getWidth();
+        if (width <= 1) {
+            width = scroll.getViewportBounds().getWidth();
+        }
+        if (width <= 1) {
+            width = Math.max(content.getWidth(), fallbackWidth);
+        }
+        return Math.max(80, width - 4);
     }
 
     private void renderSession() {
@@ -935,9 +987,13 @@ public class NovelCreationWizardWindow {
             }
         }
         Platform.runLater(() -> {
+            syncPromptScrollToContent();
             syncOptionsScrollToContent();
             if (optionsScroll != null) {
                 optionsScroll.setVvalue(0);
+            }
+            if (promptScroll != null) {
+                promptScroll.setVvalue(0);
             }
         });
     }
@@ -1010,9 +1066,9 @@ public class NovelCreationWizardWindow {
                 showDocxResultDialog(false, "Keine Kapitel erkannt",
                         "In chapter.txt wurden keine Kapitel-Ueberschriften gefunden.\n\n"
                                 + "Bitte pro Kapitel eine Zeile wie:\n"
-                                + "  ## Kapitel 1: Titel\n"
-                                + "  Kapitel 2: Titel\n"
-                                + "schreiben.\n\nDatei: " + chapterFile);
+                                + "  #### Kapitel 1: Titel\n"
+                                + "  ## Kapitel 2: Titel\n"
+                                + "(optional mit ## AKT / ### Abschnitt darüber)\n\nDatei: " + chapterFile);
                 setBusy(false, "Keine Kapitel-Ueberschriften in chapter.txt.");
                 return;
             }
@@ -1027,7 +1083,11 @@ public class NovelCreationWizardWindow {
             body.append("Projektordner:\n").append(projectDirectory).append("\n\n");
             body.append("Erkannt: ").append(result.titles().size()).append(" Kapitel\n");
             body.append("Neu erstellt: ").append(result.created()).append("\n");
-            body.append("Aktualisiert (Titel + Zusammenfassung): ").append(result.updatedExisting()).append("\n\n");
+            body.append("Aktualisiert (Titel + Zusammenfassung): ").append(result.updatedExisting()).append("\n");
+            if (result.preservedExisting() > 0) {
+                body.append("Unveraendert (bestehende DOCX behalten): ").append(result.preservedExisting()).append("\n");
+            }
+            body.append("\n");
             for (int i = 0; i < result.titles().size(); i++) {
                 body.append(String.format("%02d. %s → %s%n",
                         i + 1,
@@ -1038,8 +1098,8 @@ public class NovelCreationWizardWindow {
                 body.append("\nHinweis: Bestehende DOCX wurden mit Zusammenfassungen aus chapter.txt ueberschrieben.");
             }
             showDocxResultDialog(true, "Kapitel-DOCX", body.toString());
-            setBusy(false, result.created() + " neu, " + result.updatedExisting()
-                    + " aktualisiert – " + result.total() + " Kapitel gesamt.");
+            setBusy(false, String.format("%d neu erstellt, %d aktualisiert, %d behalten – %d Kapitel gesamt.",
+                    result.created(), result.updatedExisting(), result.preservedExisting(), result.total()));
         } catch (Exception e) {
             logger.warn("DOCX-Erzeugung aus chapter.txt fehlgeschlagen", e);
             showDocxResultDialog(false, "DOCX-Erzeugung fehlgeschlagen", e.getMessage());
@@ -1068,6 +1128,9 @@ public class NovelCreationWizardWindow {
     }
 
     private void finishCharactersPhaseWithSheets() {
+        if (!confirmCharactersFileOverwriteIfNeeded()) {
+            return;
+        }
         syncStandingInstructionsFromUi();
         setBusy(true, "Character Sheets werden erzeugt …");
         String dialogue = NovelWizardAiService.buildPhaseDialogue(session, NovelWizardPhase.CHARACTERS);
@@ -1091,6 +1154,27 @@ public class NovelCreationWizardWindow {
                 }));
     }
 
+    private boolean confirmCharactersFileOverwriteIfNeeded() {
+        if (!worldEditorMapper.charactersFileHasPersistableContent()) {
+            return true;
+        }
+        ButtonType overwrite = new ButtonType("Character Sheets schreiben");
+        ButtonType cancel = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
+        CustomAlert alert = new CustomAlert(CustomAlert.AlertType.CONFIRMATION);
+        alert.setTitle("Figuren-Phase");
+        alert.setHeaderText("characters.txt ist nicht leer");
+        alert.setContentText(
+                "Beim Abschließen werden strukturierte Character Sheets in characters.txt geschrieben.\n\n"
+                        + "Ein vorhandener Block „## Character Sheets“ wird dabei ersetzt. "
+                        + "Text oberhalb dieses Blocks (z. B. Ihre manuelle Charakterliste) bleibt erhalten.\n\n"
+                        + "Trotzdem fortfahren?");
+        alert.getButtonTypes().setAll(overwrite, cancel);
+        alert.applyTheme(themeIndex);
+        Window dialogOwner = stage != null ? stage : owner;
+        Optional<ButtonType> result = alert.showAndWait(dialogOwner);
+        return result.isPresent() && result.get() == overwrite;
+    }
+
     private void completePhase(NovelWizardPhase phase, String contentOverride) {
         try {
             String content = contentOverride;
@@ -1100,6 +1184,22 @@ public class NovelCreationWizardWindow {
             worldEditorMapper.persistPhase(phase, content);
             if (phase == NovelWizardPhase.CHAPTERS) {
                 String chapterSource = worldEditorMapper.readChapterContentForDocx();
+                List<String> titles = NovelWizardDocxFactory.extractChapterTitles(chapterSource);
+                if (titles.isEmpty()) {
+                    session.getPhaseStatus().put(phase, NovelWizardPhaseStatus.COMPLETED);
+                    session.setPendingTurn(null);
+                    persistSession();
+                    renderSession();
+                    refreshPreview();
+                    renderWizardCompleteState(-1);
+                    showDocxResultDialog(false, "Keine Kapitel-DOCX erzeugt",
+                            "In chapter.txt wurden keine Kapitel erkannt (erwartet z. B. „## Kapitel 1: Titel“ "
+                                    + "oder „#### Kapitel 1: Titel“).\n\n"
+                                    + "Phase wurde gespeichert. Bitte chapter.txt prüfen und "
+                                    + "„DOCX aus chapter.txt erzeugen“ nutzen.\n\n" + projectDirectory);
+                    setBusy(false, "Phase gespeichert – keine Kapitel in chapter.txt erkannt.");
+                    return;
+                }
                 NovelWizardDocxResult docxResult = NovelWizardDocxFactory.createChapterDocxFiles(projectDirectory, chapterSource);
                 if (onProjectChanged != null) {
                     onProjectChanged.run();
@@ -1114,7 +1214,8 @@ public class NovelCreationWizardWindow {
                         docxResult.created() + " neu erstellt, " + docxResult.updatedExisting()
                                 + " aktualisiert (" + docxResult.total() + " Kapitel, mit Zusammenfassungen).\n\nProjektordner:\n"
                                 + projectDirectory);
-                setBusy(false, "Fertig: " + docxResult.total() + " Kapitel-DOCX.");
+                setBusy(false, String.format("Fertig: %d Kapitel-DOCX (%d neu, %d aktualisiert).",
+                        docxResult.total(), docxResult.created(), docxResult.updatedExisting()));
                 return;
             }
             session.getPhaseStatus().put(phase, NovelWizardPhaseStatus.COMPLETED);
@@ -1318,6 +1419,7 @@ public class NovelCreationWizardWindow {
             hintBox.setManaged(false);
             hintBox.setVisible(false);
             clearOptions();
+            syncPromptScrollToContent();
         }
     }
 

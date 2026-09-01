@@ -149,9 +149,23 @@
 .novel-wizard-options-scroll {
     -fx-background-insets: 0;
     -fx-padding: 6 0;
-    -fx-min-height: 100;
+    -fx-min-height: 48;
     -fx-pref-height: 160;
     -fx-max-height: 240;
+}
+
+.novel-wizard-prompt-scroll {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-min-height: 48;
+    -fx-pref-height: 120;
+    -fx-max-height: 180;
+}
+
+.novel-wizard-interaction-scroll {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-min-height: 120;
 }
 
 .novel-wizard-options-box {

@@ -252,14 +252,18 @@ public final class ParameterRegistry {
                 "Agenten");
         add("agent.openai.temperature", ParameterDef.Type.DOUBLE, "0.7",
                 "Temperatur fuer OpenAI-Backend (Welt-Editor, Agenten, Online-Lektorat). Bereich 0.0–2.0; bei Claude-Modellen max. 1.0.", "Agenten");
+        add("agent.openai.frequency_penalty", ParameterDef.Type.DOUBLE, "0.0",
+                "Gegen Wort-/Phrasen-Schleifen in Antworten (OpenAI/OpenRouter: frequency_penalty, 0.0–2.0). "
+                        + "Bei Wiederholungsschleifen typisch 0.3–0.8. Entspricht bei Ollama ungefaehr repeat_penalty.",
+                "Agenten");
         add("agent.openai.request_timeout_sec", ParameterDef.Type.INT, "300",
                 "Timeout pro Agenten-API-Anfrage in Sekunden. Cloud: 60–900 (Default 300). "
                         + "Lokale Server (localhost): Default 900, max. 3600. "
                         + "Bei Timeout zuerst Kontext verkleinern.",
                 "Agenten");
-        add("agent.openai.reasoning_effort", ParameterDef.Type.CHOICE, "low",
-                "Wie stark das Modell nachdenkt, bevor es schreibt. none = aus (schnell, DeepSeek ohne Thinking). "
-                        + "low = wenig (empfohlen für DeepSeek v4 Flash). high = langes Nachdenken.",
+        add("agent.openai.reasoning_effort", ParameterDef.Type.CHOICE, "none",
+                "Optional: reasoning_effort an die API senden (low/high), falls das Modell das Feld kennt. "
+                        + "none = nichts Extra schicken — gilt fuer jedes Modell.",
                 "Agenten", new String[]{"none", "low", "high"});
         add("agent.chatbot.max_history_turns", ParameterDef.Type.INT, "10",
                 "Anzahl Q&A-Paare, die der Chatbot an die KI mitsendet (Multi-Turn).", "Agenten");
@@ -291,6 +295,10 @@ public final class ParameterRegistry {
                 "Diktat-Ergebnis vor dem Einfuegen in einer Vorschau anzeigen.", "Diktat");
         add("dictation.local_whisper_timeout_sec", ParameterDef.Type.INT, "180",
                 "Timeout fuer lokales whisper.cpp in Sekunden (30–900). Bei Timeout wird der Prozess abgebrochen.", "Diktat");
+        add("dictation.llm_timeout_sec", ParameterDef.Type.INT, "45",
+                "Maximale Wartezeit fuer die KI-Korrektur nach Whisper (10–180 s). "
+                        + "Bei Timeout wird das Rohtranskript eingefuegt, damit das Diktat nicht haengen bleibt.",
+                "Diktat");
     }
 
     private static void add(String key, ParameterDef.Type type, String defaultValue, String helpText, String category) {

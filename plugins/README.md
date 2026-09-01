@@ -110,6 +110,29 @@ public final class MeinPlugin implements ManuskriptPlugin {
 
 Fenster immer so öffnen: `createThemedStage` → `attachScene` → `show`. Nicht `Application.launch` und nicht `Platform.exit()` — das würde Manuskript beenden.
 
+### Überwachungsmodus (ohne GUI)
+
+Plugins, die im Hintergrund laufen sollen (Zeitpläne, Überwachung), setzen `wantsBackgroundStart()` auf `true` und implementieren `startBackground`. Manuskript ruft das beim Laden auf, sobald die JAR in `plugins/` aktiv ist — **ohne Fenster**. `start` bleibt der Toolbar-Klick.
+
+```java
+@Override
+public boolean wantsBackgroundStart() {
+    return true;
+}
+
+@Override
+public void startBackground(PluginHost host) {
+    // Timer, fällige Jobs — kein stage.show()
+}
+
+@Override
+public void stop() {
+    // Timer beenden
+}
+```
+
+`startBackground` und `onLoaded` können mehrfach kommen (Projektwechsel, Setup). Idempotent halten. `stop` läuft beim Deaktivieren und beim Schließen des Hauptfensters.
+
 ## 4. Service-Datei (ohne die wird nichts geladen)
 
 Datei im Plugin-Projekt:
@@ -139,5 +162,7 @@ Vollständige Beispiele:
 
 - [`tools/openrouter-monitor`](../tools/openrouter-monitor/)
 - [`tools/mammouth-monitor`](../tools/mammouth-monitor/)
+- [`tools/projekt-backup`](../tools/projekt-backup/)
+- [`tools/schreib-statistik`](../tools/schreib-statistik/)
 
 Standalone ohne laufende Haupt-App bleibt möglich (`./run-openrouter-monitor.sh`), ist für ein reines Plugin aber nicht nötig.

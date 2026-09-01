@@ -609,8 +609,8 @@ public final class WhisperRuntime {
         cmd.add("-of");
         cmd.add(outputPrefix.toAbsolutePath().toString());
         cmd.add("-nt");
-        // Kurze Clips: Whisper füllt Stille sonst mit Halluzinationen (Outros, Wortsalat).
-        cmd.add("-nc");
+        // Unterdrückt Nicht-Sprache-Tokens (Musik/Outros). -nc gibt es in whisper-cli 1.9 nicht.
+        cmd.add("-sns");
         cmd.add("-tp");
         cmd.add("0");
         cmd.add("-tpi");

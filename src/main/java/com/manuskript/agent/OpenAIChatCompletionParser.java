@@ -245,6 +245,18 @@ public final class OpenAIChatCompletionParser {
                 merged.append(text);
             }
         }
+        if (merged.length() == 0) {
+            for (String key : new String[]{"reasoning_content", "reasoning"}) {
+                if (!delta.has(key) || delta.get(key).isJsonNull()) {
+                    continue;
+                }
+                String text = OpenAIMessageContentExtractor.extractText(delta.get(key));
+                if (text != null && !text.isEmpty()) {
+                    merged.append(text);
+                    break;
+                }
+            }
+        }
         if (delta.has("text") && delta.get("text").isJsonPrimitive()) {
             merged.append(delta.get("text").getAsString());
         }

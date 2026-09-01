@@ -19,7 +19,7 @@ final class VisualLineBreaker {
     }
 
     static List<Span> breakLines(
-            String text,
+            CharSequence text,
             boolean wrapText,
             IntToDoubleFunction charWidth,
             IntPredicate breakOpportunity,
@@ -83,7 +83,7 @@ final class VisualLineBreaker {
         return lines;
     }
 
-    static int coveredEnd(String text, List<Span> lines) {
+    static int coveredEnd(CharSequence text, List<Span> lines) {
         if (text == null || text.isEmpty() || lines == null || lines.isEmpty()) {
             return 0;
         }
@@ -94,7 +94,7 @@ final class VisualLineBreaker {
         return cover;
     }
 
-    private static void appendUncoveredTail(String text, List<Span> lines, LineOmitter omitter) {
+    private static void appendUncoveredTail(CharSequence text, List<Span> lines, LineOmitter omitter) {
         int cover = coveredEnd(text, lines);
         if (cover >= text.length()) {
             return;

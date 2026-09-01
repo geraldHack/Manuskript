@@ -357,9 +357,15 @@ public class AgentTabPane extends StackPane {
     public void applyEditorAppearance(int fontSizePx, int themeIndex, String fontFamily) {
         for (AgentTab tab : agentTabs) {
             tab.applyEditorFont(fontFamily, fontSizePx);
+            if (themeIndex >= 0) {
+                tab.applyAnswerTheme(themeIndex);
+            }
         }
         for (SceneWritingAgentTab tab : sceneWritingTabs) {
             tab.applyEditorFont(fontFamily, fontSizePx);
+            if (themeIndex >= 0) {
+                tab.applyAnswerTheme(themeIndex);
+            }
         }
         for (ChatbotAgentTab tab : chatbotTabs) {
             tab.applyFontSize(fontSizePx);

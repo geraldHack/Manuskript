@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import com.manuskript.MdTextArea;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -23,6 +25,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+import javafx.util.Duration;
 
 /**
  * Ein einzelner Agent-Tab: Konfiguration (einklappbar), Aktionen und Findings-Liste.
@@ -80,13 +83,17 @@ public class AgentTab extends ScrollPane {
     private AgentActivityTracker activityTracker;
     private int currentFontSize = 12;
     private String currentFontFamily;
+    private int currentThemeIndex = AgentFindingStyles.themeIndex();
     private List<String> availableModels = new ArrayList<>();
     private TextArea revisionInstructionField;
     private ChatbotContextPane contextPane;
-    private TextArea rewriteTextArea;
+    private MdTextArea rewriteTextArea;
     private Button applyRewriteButton;
     private Runnable onApplyRewriteClicked;
-    private TextArea freeformOutputArea;
+    private MdTextArea freeformOutputArea;
+    private boolean freeformStreaming;
+    private final StringBuilder pendingFreeformDelta = new StringBuilder();
+    private PauseTransition freeformFlushDelay;
 
     /** Letzte Markierung für den Überarbeiten-Agenten (Ersetzung auch bei Platzhalter-Zitat). */
     private int revisionSelectionStart = -1;
@@ -341,11 +348,7 @@ public class AgentTab extends ScrollPane {
         } else if (idiomReview) {
             contextPane = new ChatbotContextPane(config.getId());
             Label rewriteLabel = new Label("Überarbeitete Markierung:");
-            rewriteTextArea = new TextArea();
-            rewriteTextArea.setPromptText("Erscheint nach der Analyse…");
-            rewriteTextArea.setWrapText(true);
-            rewriteTextArea.setPrefRowCount(6);
-            rewriteTextArea.setMaxWidth(Double.MAX_VALUE);
+            rewriteTextArea = AgentAnswerMdArea.create(currentFontFamily, currentFontSize, true, currentThemeIndex);
             applyRewriteButton = new Button("Übernehmen");
             applyRewriteButton.setMaxWidth(Double.MAX_VALUE);
             applyRewriteButton.getStyleClass().add("button primary");
@@ -357,6 +360,11 @@ public class AgentTab extends ScrollPane {
             });
             contentRoot.getChildren().addAll(toggleConfigButton, configBox, contextPane,
                     buttonRow, scrollPane, rewriteLabel, rewriteTextArea, applyRewriteButton);
+            VBox.setVgrow(scrollPane, Priority.NEVER);
+            scrollPane.setMinHeight(80);
+            scrollPane.setPrefHeight(100);
+            scrollPane.setMaxHeight(140);
+            VBox.setVgrow(rewriteTextArea, Priority.ALWAYS);
         } else {
             contextPane = new ChatbotContextPane(config.getId(), "WORLD_EDITOR");
             contentRoot.getChildren().addAll(toggleConfigButton, configBox, contextPane, buttonRow, scrollPane);
@@ -366,10 +374,14 @@ public class AgentTab extends ScrollPane {
             boolean show = toggleConfigButton.isSelected();
             configBox.setVisible(show);
             configBox.setManaged(show);
-            AgentScrollPaneSupport.applyConfigExpandedLayout(this, contentRoot, scrollPane, show);
+            AgentScrollPaneSupport.applyConfigExpandedLayout(this, contentRoot, flexibleContentRegion(), show);
         });
-        AgentScrollPaneSupport.applyConfigExpandedLayout(this, contentRoot, scrollPane, false);
+        AgentScrollPaneSupport.applyConfigExpandedLayout(this, contentRoot, flexibleContentRegion(), false);
         applyFreeformUi();
+    }
+
+    private Region flexibleContentRegion() {
+        return rewriteTextArea != null ? rewriteTextArea : scrollPane;
     }
 
     private void applyFreeformUi() {
@@ -439,10 +451,18 @@ public class AgentTab extends ScrollPane {
         if (contentRoot != null) {
             AgentFontSizeSupport.applyEditorFont(contentRoot, size, currentFontFamily, null);
         }
-        if (freeformOutputArea != null) {
-            AgentFontSizeSupport.applyEditorFont(freeformOutputArea, size, currentFontFamily, null);
-        }
+        AgentAnswerMdArea.applyFont(freeformOutputArea, currentFontFamily, size);
+        AgentAnswerMdArea.applyFont(rewriteTextArea, currentFontFamily, size);
+        applyAnswerTheme(currentThemeIndex);
         AgentActionButtonSupport.applyFontSize(size, analyzeButton, realtimeToggle);
+    }
+
+    public void applyAnswerTheme(int themeIndex) {
+        if (themeIndex >= 0) {
+            currentThemeIndex = themeIndex;
+        }
+        AgentAnswerMdArea.applyTheme(freeformOutputArea, currentThemeIndex);
+        AgentAnswerMdArea.applyTheme(rewriteTextArea, currentThemeIndex);
     }
 
     // === Öffentliche API ===
@@ -667,6 +687,7 @@ public class AgentTab extends ScrollPane {
         }
         Platform.runLater(() -> {
             findingsList.getChildren().clear();
+            useFindingsCardScroll();
             switch (result.getOutcome()) {
                 case UNPARSEABLE -> {
                     Label warn = new Label("⚠ " + result.getDetailMessage());
@@ -1093,7 +1114,16 @@ public class AgentTab extends ScrollPane {
 
     /** Sofort auf dem FX-Thread: alte Ergebnisse aus der UI entfernen. */
     private void clearFindingsNow() {
+        if (freeformFlushDelay != null) {
+            freeformFlushDelay.stop();
+        }
+        pendingFreeformDelta.setLength(0);
+        if (freeformStreaming && freeformOutputArea != null) {
+            freeformOutputArea.cancelStreamingUpdate();
+            freeformStreaming = false;
+        }
         findingsList.getChildren().clear();
+        useFindingsCardScroll();
         Label placeholder = analyzing
                 ? new Label("Analyse läuft…")
                 : emptyLabel;
@@ -1126,40 +1156,93 @@ public class AgentTab extends ScrollPane {
             return;
         }
         Platform.runLater(() -> {
-            TextArea area = ensureFreeformOutput();
-            area.appendText(delta);
+            pendingFreeformDelta.append(delta);
+            if (freeformFlushDelay == null) {
+                freeformFlushDelay = new PauseTransition(Duration.millis(50));
+                freeformFlushDelay.setOnFinished(e -> flushFreeformDelta());
+            }
+            freeformFlushDelay.playFromStart();
         });
     }
 
     public void finishFreeformAnalysis(String fullText) {
         Platform.runLater(() -> {
-            TextArea area = ensureFreeformOutput();
-            if ((area.getText() == null || area.getText().isBlank()) && fullText != null) {
+            if (freeformFlushDelay != null) {
+                freeformFlushDelay.stop();
+            }
+            flushFreeformDelta();
+            MdTextArea area = ensureFreeformOutput();
+            String current = area.getText();
+            if ((current == null || current.isBlank()) && fullText != null) {
                 area.setText(fullText);
+            } else if (fullText != null && current != null && fullText.startsWith(current)
+                    && fullText.length() > current.length()) {
+                area.appendText(fullText.substring(current.length()));
+            }
+            if (freeformStreaming) {
+                area.endStreamingUpdate();
+                freeformStreaming = false;
             }
             analyzing = false;
             analyzeButton.setDisable(false);
             unregisterActivity();
-            reportStatus("Antwort erhalten");
+            String visible = area.getText();
+            if (visible == null || visible.isBlank()) {
+                showParseResult(PlotholeParseResult.unparseable(
+                        "Leere Antwort vom Modell. Bei Reasoning-Modellen (z. B. Qwen3) "
+                                + "max. Ausgabe-Tokens erhöhen oder ein Modell ohne Denk-Modus wählen."));
+            } else {
+                reportStatus("Antwort erhalten");
+            }
         });
     }
 
-    private TextArea ensureFreeformOutput() {
+    private void flushFreeformDelta() {
+        if (pendingFreeformDelta.length() == 0) {
+            return;
+        }
+        String chunk = pendingFreeformDelta.toString();
+        pendingFreeformDelta.setLength(0);
+        MdTextArea area = ensureFreeformOutput();
+        if (!freeformStreaming) {
+            area.beginStreamingUpdate();
+            freeformStreaming = true;
+        }
+        area.appendText(chunk);
+    }
+
+    private MdTextArea ensureFreeformOutput() {
         if (freeformOutputArea != null && findingsList.getChildren().contains(freeformOutputArea)) {
             return freeformOutputArea;
         }
-        freeformOutputArea = new TextArea();
-        freeformOutputArea.setWrapText(true);
-        freeformOutputArea.setEditable(true);
+        freeformOutputArea = AgentAnswerMdArea.create(currentFontFamily, currentFontSize, false, currentThemeIndex);
         freeformOutputArea.getStyleClass().add("agent-freeform-output");
-        freeformOutputArea.setPromptText("Antwort erscheint hier…");
-        freeformOutputArea.setPrefRowCount(16);
-        freeformOutputArea.setMinHeight(180);
-        freeformOutputArea.setMaxWidth(Double.MAX_VALUE);
-        VBox.setVgrow(freeformOutputArea, Priority.ALWAYS);
-        AgentFontSizeSupport.applyEditorFont(freeformOutputArea, currentFontSize, currentFontFamily, null);
         findingsList.getChildren().clear();
         findingsList.getChildren().add(freeformOutputArea);
+        fillFindingsScrollWithAnswer();
         return freeformOutputArea;
+    }
+
+    private void useFindingsCardScroll() {
+        AgentScrollPaneSupport.configureFindingsScrollPane(scrollPane);
+        findingsList.setMinHeight(Region.USE_COMPUTED_SIZE);
+        findingsList.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        findingsList.setMaxHeight(Region.USE_COMPUTED_SIZE);
+        if (rewriteTextArea == null) {
+            scrollPane.setMinHeight(0);
+            scrollPane.setMaxHeight(Double.MAX_VALUE);
+            VBox.setVgrow(scrollPane, Priority.ALWAYS);
+        }
+    }
+
+    private void fillFindingsScrollWithAnswer() {
+        findingsList.setFillWidth(true);
+        findingsList.setMinHeight(0);
+        findingsList.setMaxHeight(Double.MAX_VALUE);
+        VBox.setVgrow(freeformOutputArea, Priority.ALWAYS);
+        scrollPane.setFitToHeight(true);
+        scrollPane.setMinHeight(0);
+        scrollPane.setMaxHeight(Double.MAX_VALUE);
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
     }
 }

@@ -10,12 +10,12 @@ import java.util.regex.Pattern;
  */
 public final class DictationPromptBuilder {
 
-    private static final int MAX_CONTEXT_CHARS = 1500;
+    private static final int MAX_CONTEXT_CHARS = 220;
     private static final int MAX_INSTRUCTION_CONTEXT_CHARS = 3500;
 
-    /** Anweisung:, Befehl:, Kommando: (STT setzt Doppelpunkt oft nicht). */
+    /** Anweisung:, Befehl:, Kommando: nur am Anfang des Diktats (nicht mitten im Satz). */
     private static final Pattern INSTRUCTION_PREFIX = Pattern.compile(
-            "(?is)(?:^|\\b)(anweisung|befehl|kommando)\\s*:?\\s+(.+)$");
+            "(?is)^(anweisung|befehl|kommando)\\s*:?\\s+(.+)$");
 
     private DictationPromptBuilder() {
     }
@@ -82,9 +82,12 @@ public final class DictationPromptBuilder {
                      dürfen NICHT wörtlich im Ausgabetext stehen bleiben.
                 5. Entferne Füllwörter wie „äh“, „ähm“, „also“ wenn sie keinen Sinn tragen.
                 6. Korrigiere offensichtliche Diktierfehler, wenn der Autor sie nicht selbst korrigiert hat.
-                7. Behalte Stil und Satzstellung des Autors bei; erfinde keinen neuen Inhalt.
-                8. Figurennamen, Orte und Begriffe aus dem Projekt-Glossar exakt schreiben.
-                9. Rohtranskript mit Glossar abgleichen: phonetische Fehler und zusammengezogene Wörter korrigieren.
+                7. Behalte Stil und Satzstellung des Autors bei.
+                7a. HARTE GRENZE: Erfinde keine Handlung, keine neuen Sätze und keine Absätze.
+                    Nur das Rohtranskript glätten — die Szene NICHT weiterschreiben.
+                8. Figurennamen und vom Autor gepflegte Glossar-Begriffe exakt schreiben.
+                9. Alltagsdeutsch nicht anfassen: keine Wörter zusammenziehen, keine neuen Komposita,
+                   keine ähnlich klingenden normalen Wörter durch Glossar-Wörter ersetzen.
                 10. Editor-Kontext NUR zur Disambiguierung — NIEMALS wiederholen oder aus dem Kontext neu schreiben.
                 11. Ausgabe = ausschließlich der aus dem Rohtranskript abgeleitete NEUE Text (wird an der Cursorposition angehängt).
 
@@ -92,6 +95,7 @@ public final class DictationPromptBuilder {
                 - Nur der fertige NEUE Text, ohne Erklärung, ohne Anführungszeichen um den gesamten Text.
                 - Kein Markdown-Codeblock, kein JSON.
                 - Keine Wiederholung von Sätzen aus dem Editor-Kontext.
+                - Kein Fortsetzen der Handlung über das Rohtranskript hinaus.
                 - Anführungszeichen-Stil des Autors: %s — diesen Stil für Dialog und Hervorhebungen verwenden.
                 """.formatted(quoteStyleLabel);
     }
@@ -140,7 +144,8 @@ public final class DictationPromptBuilder {
             sb.append(ctx);
             sb.append("\n\n");
         }
-        sb.append("Gib nur den verarbeiteten Manuskripttext aus — nur das Diktat, keinen Text aus dem Editor-Kontext wiederholen.");
+        sb.append("Gib nur den verarbeiteten Manuskripttext aus. "
+                + "Der Editor-Kontext ist kein Auftrag, die Szene fortzusetzen — nur das Rohtranskript.");
         return sb.toString();
     }
 

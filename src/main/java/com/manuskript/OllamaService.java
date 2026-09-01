@@ -795,8 +795,27 @@ public class OllamaService {
         return handle;
     }
 
+    /**
+     * Chat-Stream-Zeile: {@code message.content} bevorzugen, bei Reasoning-Modellen (z. B. Qwen3)
+     * auf {@code message.thinking} zurückfallen — analog zu {@link #parseChatResponse(String)}.
+     */
+    static String extractChatStreamText(String line) {
+        if (line == null || !line.contains("\"message\":")) {
+            return null;
+        }
+        String chunk = extractJsonValueStatic(line, "content");
+        if (chunk != null && !chunk.isEmpty()) {
+            return chunk;
+        }
+        return extractJsonValueStatic(line, "thinking");
+    }
+
     // Einfache JSON-Extraktion für Streaming-Zeilen: zieht den Stringwert eines Schlüssels heraus
     private String extractJsonValue(String json, String key) {
+        return extractJsonValueStatic(json, key);
+    }
+
+    private static String extractJsonValueStatic(String json, String key) {
         if (json == null || key == null) return null;
         String needle = "\"" + key + "\":\"";
         int start = json.indexOf(needle);
@@ -2082,12 +2101,9 @@ public class OllamaService {
                     String line;
                     while ((line = br.readLine()) != null) {
                         if (line.isEmpty()) continue;
-                        if (line.contains("\"message\":")) {
-                            // Chat-API verwendet "message" statt "response"
-                            String chunk = extractJsonValue(line, "content");
-                            if (chunk != null && !chunk.isEmpty() && onChunk != null) {
-                                onChunk.accept(chunk);
-                            }
+                        String chunk = extractChatStreamText(line);
+                        if (chunk != null && !chunk.isEmpty() && onChunk != null) {
+                            onChunk.accept(chunk);
                         }
                         if (line.contains("\"done\":true")) {
                             if (onComplete != null) onComplete.run();
@@ -2174,11 +2190,9 @@ public class OllamaService {
                     String line;
                     while ((line = br.readLine()) != null) {
                         if (line.isEmpty()) continue;
-                        if (line.contains("\"message\":")) {
-                            String chunk = extractJsonValue(line, "content");
-                            if (chunk != null && !chunk.isEmpty() && onChunk != null) {
-                                onChunk.accept(chunk);
-                            }
+                        String chunk = extractChatStreamText(line);
+                        if (chunk != null && !chunk.isEmpty() && onChunk != null) {
+                            onChunk.accept(chunk);
                         }
                         if (line.contains("\"done\":true")) {
                             if (onComplete != null) onComplete.run();

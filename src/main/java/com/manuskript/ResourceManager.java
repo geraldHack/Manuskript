@@ -496,6 +496,7 @@ public class ResourceManager {
         try {
             Preferences preferences = ApplicationPreferences.resourceManagerNode();
             preferences.put(key, value);
+            preferences.flush();
         } catch (Exception e) {
             logger.warn("Fehler beim Speichern der User Preference {}", key, e);
         }

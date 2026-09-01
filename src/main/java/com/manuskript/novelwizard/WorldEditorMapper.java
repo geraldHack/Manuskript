@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class WorldEditorMapper {
@@ -77,10 +78,14 @@ public class WorldEditorMapper {
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, String> entry : worldFiles().entrySet()) {
             String text = read(entry.getKey());
-            if (!text.isBlank()) {
+            if (hasPersistableContent(text)) {
                 sb.append("## ").append(entry.getValue()).append("\n")
                         .append(text).append("\n\n");
             }
+        }
+        String manuscript = NovelWizardProjectBootstrap.describeExistingManuscript(projectDirectory);
+        if (!manuscript.isBlank()) {
+            sb.append("## Bestehendes Manuskript\n").append(manuscript).append("\n\n");
         }
         return sb.toString().trim();
     }
@@ -107,7 +112,8 @@ public class WorldEditorMapper {
             case PLOT -> appendSection(NovelManager.OUTLINE_FILE, "Roman-Assistent: Handlung", content);
             case STRUCTURE -> appendSection(AKTE_FILE, "Roman-Assistent: Akte", content);
             case SYNOPSIS -> appendSection(NovelManager.SYNOPSIS_FILE, "Roman-Assistent: Synopsis", content);
-            case CHAPTERS -> appendSection(CHAPTER_FILE, "Roman-Assistent: Kapitel", content);
+            case CHAPTERS -> appendSection(CHAPTER_FILE, "Roman-Assistent: Kapitel",
+                    NovelWizardDocxFactory.normalizeChapterMarkdown(content));
             default -> {
             }
         }
@@ -142,16 +148,27 @@ public class WorldEditorMapper {
         Path file = projectDirectory.resolve(NovelManager.CHARACTERS_FILE);
         String existing = Files.exists(file) ? Files.readString(file, StandardCharsets.UTF_8) : "";
         String withoutLegacy = removeSectionBody(existing, LEGACY_CHARACTERS_HEADING);
-        appendSectionToText(withoutLegacy, NovelManager.CHARACTERS_FILE, CHARACTER_SHEETS_HEADING, content);
+        appendSectionToText(withoutLegacy, NovelManager.CHARACTERS_FILE, CHARACTER_SHEETS_HEADING, content, true);
     }
 
     private void appendSectionToText(String baseText, String fileName, String heading, String wizardContent)
             throws IOException {
+        appendSectionToText(baseText, fileName, heading, wizardContent, false);
+    }
+
+    private void appendSectionToText(String baseText, String fileName, String heading, String wizardContent,
+                                     boolean replaceSectionBody)
+            throws IOException {
         Path file = projectDirectory.resolve(fileName);
         Files.createDirectories(file.getParent());
         SectionParts parts = splitAroundSection(baseText, heading);
-        String manualInSection = extractManualLines(parts.sectionBody());
-        String mergedBody = buildMergedSectionBody(manualInSection, wizardContent.trim());
+        String mergedBody;
+        if (replaceSectionBody) {
+            mergedBody = wizardContent == null ? "" : wizardContent.trim();
+        } else {
+            String manualInSection = extractManualLines(parts.sectionBody());
+            mergedBody = buildMergedSectionBody(manualInSection, wizardContent.trim());
+        }
         String block = "## " + heading + "\n\n" + mergedBody + "\n";
 
         StringBuilder result = new StringBuilder();
@@ -342,7 +359,45 @@ public class WorldEditorMapper {
         }
     }
 
+    /** Ob characters.txt bereits sinnvollen Inhalt hat (manuell oder Character Sheets). */
+    public boolean charactersFileHasPersistableContent() {
+        return hasPersistableContent(read(NovelManager.CHARACTERS_FILE));
+    }
+
     public String readChapterContentForDocx() {
+        String fromFile = readChapterFileSection();
+        if (!NovelWizardDocxFactory.extractChapterTitles(fromFile).isEmpty()) {
+            return fromFile;
+        }
+        try {
+            List<NovelWizardProjectBootstrap.ExistingChapterRef> existing =
+                    NovelWizardProjectBootstrap.listExistingChapters(projectDirectory);
+            if (!existing.isEmpty()) {
+                return NovelWizardProjectBootstrap.buildChapterOutlineMarkdown(existing);
+            }
+        } catch (IOException ignored) {
+            // Fallback unten: leerer Datei-Inhalt
+        }
+        return fromFile;
+    }
+
+    /** Schreibt Kapitel-Uebersicht aus bestehenden DOCX in leere chapter.txt. */
+    public boolean bootstrapChapterFileFromExistingDocxIfEmpty() throws IOException {
+        Path chapterPath = projectDirectory.resolve(CHAPTER_FILE);
+        if (Files.exists(chapterPath) && Files.size(chapterPath) > 0) {
+            return false;
+        }
+        List<NovelWizardProjectBootstrap.ExistingChapterRef> existing =
+                NovelWizardProjectBootstrap.listExistingChapters(projectDirectory);
+        if (existing.isEmpty()) {
+            return false;
+        }
+        String outline = NovelWizardProjectBootstrap.buildChapterOutlineMarkdown(existing);
+        Files.writeString(chapterPath, outline.strip() + "\n", StandardCharsets.UTF_8);
+        return true;
+    }
+
+    private String readChapterFileSection() {
         String full = read(CHAPTER_FILE);
         if (full == null || full.isBlank()) {
             return "";

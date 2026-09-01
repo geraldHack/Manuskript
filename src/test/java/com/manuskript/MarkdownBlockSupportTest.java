@@ -177,4 +177,22 @@ class MarkdownBlockSupportTest {
         var blocks = MarkdownBlockSupport.parseTableBlocks(md);
         assertEquals(2, blocks.size());
     }
+
+    @Test
+    void lineLooksStructuralDetectsHeadingsListsAndIgnoresProse() {
+        String heading = "# Titel\nFliesstext\n";
+        assertTrue(MarkdownBlockSupport.lineLooksStructural(heading, 0));
+        assertFalse(MarkdownBlockSupport.lineLooksStructural(heading, heading.indexOf("Fliesstext")));
+
+        String list = "- Punkt\nAbsatz mit *kursiv* darin.\n";
+        assertTrue(MarkdownBlockSupport.lineLooksStructural(list, 0));
+        assertFalse(MarkdownBlockSupport.lineLooksStructural(list, list.indexOf("Absatz")));
+
+        String italicAtStart = "*kursiv* am Zeilenanfang\n";
+        assertFalse(MarkdownBlockSupport.lineLooksStructural(italicAtStart, 0));
+
+        String dictation = "Ihre nackten Schultern zitterten.\n\nDer Wind strich über die Terrasse.";
+        assertFalse(MarkdownBlockSupport.lineLooksStructural(dictation, 0));
+        assertFalse(MarkdownBlockSupport.lineLooksStructural(dictation, dictation.indexOf("Der Wind")));
+    }
 }

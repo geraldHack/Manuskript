@@ -27,4 +27,15 @@ class TextChangeOffsetMapperTest {
         assertEquals(0, TextChangeOffsetMapper.mapOffsetThroughTextChange(before, after, 0));
         assertEquals(23, TextChangeOffsetMapper.mapOffsetThroughTextChange(before, after, 25));
     }
+
+    @Test
+    void mapOffsetThroughRangeReplaceShiftsAfterInsertion() {
+        int markerStart = 10;
+        int markerEnd = 18;
+        int inserted = 120;
+        assertEquals(2, TextChangeOffsetMapper.mapOffsetThroughRangeReplace(2, markerStart, markerEnd, inserted));
+        assertEquals(markerStart, TextChangeOffsetMapper.mapOffsetThroughRangeReplace(12, markerStart, markerEnd, inserted));
+        assertEquals(25 + inserted - (markerEnd - markerStart),
+                TextChangeOffsetMapper.mapOffsetThroughRangeReplace(25, markerStart, markerEnd, inserted));
+    }
 }

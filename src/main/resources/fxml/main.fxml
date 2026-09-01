@@ -12,9 +12,9 @@
       <!-- Verzeichnis-Auswahl -->
       <HBox spacing="10" alignment="CENTER_LEFT">
          <children>
-            <Label text="Verzeichnis:" />
-            <TextField fx:id="txtDirectoryPath" promptText="Wählen Sie ein Verzeichnis mit DOCX-Dateien" HBox.hgrow="ALWAYS" />
-            <Button fx:id="btnSelectDirectory" text="Verzeichnis auswählen" />
+            <Label text="Wurzelverzeichnis:" />
+            <TextField fx:id="txtDirectoryPath" promptText="Ordner, in dem die Projekte liegen" HBox.hgrow="ALWAYS" />
+            <Button fx:id="btnSelectDirectory" text="Wurzelverzeichnis auswählen" />
             <Button fx:id="btnSplit" text="Kapitel-Split" prefWidth="120.0" />
          </children>
          <padding>

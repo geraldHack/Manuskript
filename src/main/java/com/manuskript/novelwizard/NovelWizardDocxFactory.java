@@ -5,20 +5,28 @@ import org.docx4j.Docx4J;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.docx4j.wml.ObjectFactory;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class NovelWizardDocxFactory {
     private static final Pattern INDIVIDUAL_CHAPTER = Pattern.compile(
             "^#{4}\\s+Kapitel\\s+(\\d+)\\s*[:.]\\s*(.+)$",
+            Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+    /** Fallback: KI-Phase sagt oft „## Kapitel N:“ statt „#### …“. */
+    private static final Pattern INDIVIDUAL_CHAPTER_LEVEL2 = Pattern.compile(
+            "^#{2}\\s+Kapitel\\s+(\\d+)\\s*[:.]\\s*(.+)$",
             Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
     private static final Pattern GROUP_HEADING = Pattern.compile("^#{3}\\s+(.+)$");
     private static final Pattern ACT_HEADING = Pattern.compile("^#{2}\\s+(.+)$");
@@ -28,14 +36,20 @@ public final class NovelWizardDocxFactory {
     }
 
     public static NovelWizardDocxResult createChapterDocxFiles(Path projectDirectory, String chapterMarkdown) throws Exception {
-        List<ChapterEntry> chapters = extractChapters(chapterMarkdown);
+        List<ChapterEntry> chapters = extractChapters(normalizeChapterMarkdown(chapterMarkdown));
         List<String> titles = chapters.stream().map(ChapterEntry::title).toList();
         List<Path> paths = new ArrayList<>();
         int created = 0;
         int updated = 0;
+        int preserved = 0;
         for (ChapterEntry chapter : chapters) {
-            Path target = projectDirectory.resolve(chapterDocxFileName(chapter));
+            Path target = resolveChapterDocxPath(projectDirectory, chapter);
             boolean existed = Files.exists(target);
+            if (existed && Files.size(target) > 0) {
+                preserved++;
+                paths.add(target);
+                continue;
+            }
             writeDocx(target, chapter);
             if (existed) {
                 updated++;
@@ -47,7 +61,7 @@ public final class NovelWizardDocxFactory {
         if (!paths.isEmpty()) {
             saveSelection(projectDirectory, paths);
         }
-        return new NovelWizardDocxResult(titles, paths, created, updated);
+        return new NovelWizardDocxResult(titles, paths, created, updated, preserved);
     }
 
     static List<ChapterEntry> extractChapters(String markdown) {
@@ -71,6 +85,8 @@ public final class NovelWizardDocxFactory {
     /** Parst chapter.txt-Hierarchie: Uebersicht → Akt → Abschnitt → Einzelkapitel. */
     private static final class ChapterOutlineParser {
         private final Map<Integer, ChapterEntry> chapters = new LinkedHashMap<>();
+        private final Set<String> seenSubtitleKeys = new HashSet<>();
+        private final Map<String, Integer> subtitleToNumber = new LinkedHashMap<>();
 
         private String overview = "";
         private String actHeading = "";
@@ -82,6 +98,7 @@ public final class NovelWizardDocxFactory {
         private Integer chapterNum;
         private String chapterTitle;
         private StringBuilder chapterSummary = new StringBuilder();
+        private boolean skippingDuplicateChapter;
 
         private enum Mode { OVERVIEW, ACT, GROUP, CHAPTER }
 
@@ -101,12 +118,13 @@ public final class NovelWizardDocxFactory {
 
             Matcher chapter = INDIVIDUAL_CHAPTER.matcher(trimmed);
             if (chapter.matches()) {
-                commitBuffer();
-                flushChapter();
-                mode = Mode.CHAPTER;
-                chapterNum = Integer.parseInt(chapter.group(1));
-                chapterTitle = "Kapitel " + chapterNum + ": " + chapter.group(2).trim();
-                chapterSummary = new StringBuilder();
+                startIndividualChapter(chapter.group(1), chapter.group(2).trim());
+                return;
+            }
+
+            Matcher chapterLevel2 = INDIVIDUAL_CHAPTER_LEVEL2.matcher(trimmed);
+            if (chapterLevel2.matches()) {
+                startIndividualChapter(chapterLevel2.group(1), chapterLevel2.group(2).trim());
                 return;
             }
 
@@ -126,8 +144,7 @@ public final class NovelWizardDocxFactory {
                     mode = Mode.ACT;
                     buffer = new StringBuilder();
                 } else if (!isSkippedHeading(heading)) {
-                    mode = Mode.OVERVIEW;
-                    appendBuffer("## " + heading);
+                    startIndividualChapterFromTitle(heading);
                 }
                 return;
             }
@@ -143,9 +160,9 @@ public final class NovelWizardDocxFactory {
                 return;
             }
 
-            if (mode == Mode.CHAPTER && chapterNum != null) {
+            if (mode == Mode.CHAPTER && chapterNum != null && !skippingDuplicateChapter) {
                 appendTo(chapterSummary, trimmed);
-            } else {
+            } else if (!skippingDuplicateChapter) {
                 appendBuffer(trimmed);
             }
         }
@@ -153,6 +170,72 @@ public final class NovelWizardDocxFactory {
         void finish() {
             flushChapter();
             commitBuffer();
+        }
+
+        private void startIndividualChapter(String numberText, String subtitle) {
+            commitBuffer();
+            flushChapter();
+            int number = Integer.parseInt(numberText);
+            String key = normalizeTitleKey(subtitle);
+            Integer previousNumber = subtitleToNumber.get(key);
+            if (previousNumber != null) {
+                if (previousNumber == number) {
+                    reopenChapter(number, subtitle);
+                    return;
+                }
+                chapters.remove(previousNumber);
+            }
+            openChapter(number, subtitle);
+        }
+
+        private void startIndividualChapterFromTitle(String heading) {
+            commitBuffer();
+            flushChapter();
+            String subtitle = stripChapterPrefix(heading);
+            if (isDuplicateSubtitle(subtitle)) {
+                skippingDuplicateChapter = true;
+                mode = Mode.CHAPTER;
+                chapterNum = null;
+                chapterTitle = null;
+                chapterSummary = new StringBuilder();
+                return;
+            }
+            openChapter(nextChapterNumber(), subtitle);
+        }
+
+        private void reopenChapter(int number, String subtitle) {
+            skippingDuplicateChapter = false;
+            mode = Mode.CHAPTER;
+            chapterNum = number;
+            chapterTitle = "Kapitel " + number + ": " + subtitle;
+            chapterSummary = new StringBuilder();
+        }
+
+        private void openChapter(int number, String subtitle) {
+            skippingDuplicateChapter = false;
+            mode = Mode.CHAPTER;
+            chapterNum = number;
+            chapterTitle = "Kapitel " + number + ": " + subtitle;
+            chapterSummary = new StringBuilder();
+            registerSubtitle(subtitle, number);
+        }
+
+        private boolean isDuplicateSubtitle(String subtitle) {
+            return seenSubtitleKeys.contains(normalizeTitleKey(subtitle));
+        }
+
+        private void registerSubtitle(String subtitle, int number) {
+            String key = normalizeTitleKey(subtitle);
+            seenSubtitleKeys.add(key);
+            subtitleToNumber.put(key, number);
+        }
+
+        private int nextChapterNumber() {
+            int max = 0;
+            for (Integer num : chapters.keySet()) {
+                max = Math.max(max, num);
+            }
+            return max + 1;
         }
 
         private void commitBuffer() {
@@ -170,7 +253,8 @@ public final class NovelWizardDocxFactory {
         }
 
         private void flushChapter() {
-            if (chapterNum == null || chapterTitle == null) {
+            if (skippingDuplicateChapter || chapterNum == null || chapterTitle == null) {
+                skippingDuplicateChapter = false;
                 return;
             }
             chapters.put(chapterNum, new ChapterEntry(
@@ -269,9 +353,180 @@ public final class NovelWizardDocxFactory {
         Docx4J.save(pkg, target.toFile());
     }
 
+    static Path resolveChapterDocxPath(Path projectDirectory, ChapterEntry chapter) throws IOException {
+        Path preferred = projectDirectory.resolve(chapterDocxFileName(chapter));
+        if (Files.exists(preferred)) {
+            return preferred;
+        }
+        String normalizedTitle = normalizeDocxTitle(chapter.title());
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(projectDirectory, "*.docx")) {
+            for (Path candidate : stream) {
+                String baseName = candidate.getFileName().toString();
+                if (baseName.toLowerCase().endsWith(".docx")) {
+                    baseName = baseName.substring(0, baseName.length() - 5);
+                }
+                if (normalizeDocxTitle(baseName).equals(normalizedTitle)) {
+                    return candidate;
+                }
+            }
+        }
+        return preferred;
+    }
+
+    static String normalizeDocxTitle(String title) {
+        if (title == null) {
+            return "";
+        }
+        return title.trim()
+                .replaceAll("(?i)^Kapitel\\s+\\d+\\s*[:.\\-–—]\\s*", "")
+                .replaceAll("[\"„“”'«»]", "")
+                .toLowerCase()
+                .replaceAll("\\s+", " ");
+    }
+
     static String chapterDocxFileName(ChapterEntry chapter) {
         String subtitle = chapterSubtitle(chapter);
         return sanitizeDocxFileName(String.format("Kapitel %d - %s.docx", chapter.number(), subtitle));
+    }
+
+    /**
+     * Stellt sicher, dass Kapitel-Ueberschriften nummeriert sind (##/#### Kapitel N: Titel),
+     * damit Synopsis, chapter.txt und DOCX-Dateinamen eine erkennbare Reihenfolge haben.
+     */
+    public static String normalizeChapterMarkdown(String markdown) {
+        if (markdown == null || markdown.isBlank()) {
+            return markdown;
+        }
+        Set<String> numberedSubtitles = new HashSet<>();
+        for (String line : markdown.split("\\R")) {
+            String trimmed = line.trim();
+            Matcher chapter = INDIVIDUAL_CHAPTER.matcher(trimmed);
+            if (chapter.matches()) {
+                numberedSubtitles.add(normalizeTitleKey(chapter.group(2).trim()));
+                continue;
+            }
+            Matcher chapterLevel2 = INDIVIDUAL_CHAPTER_LEVEL2.matcher(trimmed);
+            if (chapterLevel2.matches()) {
+                numberedSubtitles.add(normalizeTitleKey(chapterLevel2.group(2).trim()));
+            }
+        }
+
+        StringBuilder out = new StringBuilder();
+        Set<String> seenSubtitles = new HashSet<>();
+        int nextUnnumbered = highestExplicitChapterNumber(markdown) + 1;
+        boolean skippingDuplicateBlock = false;
+        for (String line : markdown.split("\\R", -1)) {
+            String trimmed = line.trim();
+            Matcher chapter = INDIVIDUAL_CHAPTER.matcher(trimmed);
+            if (chapter.matches()) {
+                String subtitle = chapter.group(2).trim();
+                String key = normalizeTitleKey(subtitle);
+                if (seenSubtitles.contains(key)) {
+                    skippingDuplicateBlock = true;
+                    continue;
+                }
+                skippingDuplicateBlock = false;
+                seenSubtitles.add(key);
+                appendLine(out, formatChapterHeading(4, Integer.parseInt(chapter.group(1)), subtitle));
+                continue;
+            }
+            Matcher chapterLevel2 = INDIVIDUAL_CHAPTER_LEVEL2.matcher(trimmed);
+            if (chapterLevel2.matches()) {
+                String subtitle = chapterLevel2.group(2).trim();
+                String key = normalizeTitleKey(subtitle);
+                if (seenSubtitles.contains(key)) {
+                    skippingDuplicateBlock = true;
+                    continue;
+                }
+                skippingDuplicateBlock = false;
+                seenSubtitles.add(key);
+                appendLine(out, formatChapterHeading(2, Integer.parseInt(chapterLevel2.group(1)), subtitle));
+                continue;
+            }
+            Matcher act = ACT_HEADING.matcher(trimmed);
+            if (act.matches()) {
+                String heading = act.group(1).trim();
+                if (isOverviewHeading(heading) || isSkippedHeading(heading)
+                        || heading.toUpperCase().startsWith("AKT ") || heading.toUpperCase().startsWith("AKT:")) {
+                    skippingDuplicateBlock = false;
+                    appendLine(out, line);
+                } else {
+                    String subtitle = stripChapterPrefix(heading);
+                    String key = normalizeTitleKey(subtitle);
+                    if (seenSubtitles.contains(key) || numberedSubtitles.contains(key)) {
+                        skippingDuplicateBlock = true;
+                        continue;
+                    }
+                    skippingDuplicateBlock = false;
+                    seenSubtitles.add(key);
+                    appendLine(out, formatChapterHeading(2, nextUnnumbered++, subtitle));
+                }
+                continue;
+            }
+            Matcher group = GROUP_HEADING.matcher(trimmed);
+            if (group.matches()) {
+                skippingDuplicateBlock = false;
+                appendLine(out, line);
+                continue;
+            }
+            if (TOP_HEADING.matcher(trimmed).matches()) {
+                skippingDuplicateBlock = false;
+                appendLine(out, line);
+                continue;
+            }
+            if (!skippingDuplicateBlock) {
+                appendLine(out, line);
+            }
+        }
+        return out.toString().stripTrailing();
+    }
+
+    private static int highestExplicitChapterNumber(String markdown) {
+        int max = 0;
+        for (String line : markdown.split("\\R")) {
+            Matcher chapter = INDIVIDUAL_CHAPTER.matcher(line.trim());
+            if (chapter.matches()) {
+                max = Math.max(max, Integer.parseInt(chapter.group(1)));
+                continue;
+            }
+            Matcher chapterLevel2 = INDIVIDUAL_CHAPTER_LEVEL2.matcher(line.trim());
+            if (chapterLevel2.matches()) {
+                max = Math.max(max, Integer.parseInt(chapterLevel2.group(1)));
+            }
+        }
+        return max;
+    }
+
+    static String normalizeTitleKey(String title) {
+        if (title == null) {
+            return "";
+        }
+        return normalizeDocxTitle(title);
+    }
+
+    private static String formatChapterHeading(int level, int number, String subtitle) {
+        String prefix = "#".repeat(Math.max(1, level));
+        return prefix + " Kapitel " + number + ": " + subtitle;
+    }
+
+    private static String stripChapterPrefix(String heading) {
+        if (heading == null) {
+            return "";
+        }
+        Matcher numbered = Pattern.compile(
+                "^Kapitel\\s+\\d+\\s*[:.\\-–—]\\s*(.+)$",
+                Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE).matcher(heading.trim());
+        if (numbered.matches()) {
+            return numbered.group(1).trim();
+        }
+        return heading.trim();
+    }
+
+    private static void appendLine(StringBuilder out, String line) {
+        if (out.length() > 0) {
+            out.append('\n');
+        }
+        out.append(line);
     }
 
     private static String chapterSubtitle(ChapterEntry chapter) {

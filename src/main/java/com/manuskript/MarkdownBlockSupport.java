@@ -463,6 +463,103 @@ public final class MarkdownBlockSupport {
         return line.replace("\r", "");
     }
 
+    /**
+     * Ob die logische Zeile ab {@code lineStart} wie eine Markdown-Struktur aussieht
+     * (Überschrift, Zitat, Liste, Tabelle, Fence, HR, Center) – ohne das ganze Dokument zu parsen.
+     */
+    public static boolean lineLooksStructural(CharSequence text, int lineStart) {
+        if (text == null || lineStart < 0 || lineStart >= text.length()) {
+            return false;
+        }
+        int i = lineStart;
+        int indent = 0;
+        while (i < text.length()) {
+            char ch = text.charAt(i);
+            if (ch != ' ' && ch != '\t') {
+                break;
+            }
+            indent += ch == '\t' ? 4 : 1;
+            i++;
+            if (indent > 8) {
+                break;
+            }
+        }
+        if (i >= text.length() || text.charAt(i) == '\n') {
+            return false;
+        }
+        char c = text.charAt(i);
+        if (c == '#') {
+            int hashes = 0;
+            while (i + hashes < text.length() && text.charAt(i + hashes) == '#') {
+                hashes++;
+            }
+            return hashes >= 1 && hashes <= 6
+                    && i + hashes < text.length()
+                    && text.charAt(i + hashes) == ' ';
+        }
+        if (c == '>') {
+            return true;
+        }
+        if (c == '`' && i + 2 < text.length() && text.charAt(i + 1) == '`' && text.charAt(i + 2) == '`') {
+            return true;
+        }
+        if (c == '|') {
+            return true;
+        }
+        if (c == '<') {
+            return regionStartsWithIgnoreCase(text, i, "<center")
+                    || regionStartsWithIgnoreCase(text, i, "<c>");
+        }
+        if (c == '-' || c == '*' || c == '+' || c == '_') {
+            int count = 0;
+            int j = i;
+            while (j < text.length() && text.charAt(j) == c) {
+                count++;
+                j++;
+            }
+            if (count >= 3 && restOfLineIsBlank(text, j)) {
+                return true;
+            }
+            return i + 1 < text.length() && text.charAt(i + 1) == ' ';
+        }
+        if (c >= '0' && c <= '9') {
+            int j = i;
+            while (j < text.length() && text.charAt(j) >= '0' && text.charAt(j) <= '9') {
+                j++;
+            }
+            return j < text.length()
+                    && (text.charAt(j) == '.' || text.charAt(j) == ')')
+                    && j + 1 < text.length()
+                    && text.charAt(j + 1) == ' ';
+        }
+        return false;
+    }
+
+    private static boolean regionStartsWithIgnoreCase(CharSequence text, int offset, String prefix) {
+        if (offset + prefix.length() > text.length()) {
+            return false;
+        }
+        for (int n = 0; n < prefix.length(); n++) {
+            if (Character.toLowerCase(text.charAt(offset + n)) != Character.toLowerCase(prefix.charAt(n))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean restOfLineIsBlank(CharSequence text, int from) {
+        for (int i = from; i < text.length(); i++) {
+            char ch = text.charAt(i);
+            if (ch == '\n') {
+                return true;
+            }
+            if (ch != ' ' && ch != '\t' && ch != '\r') {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static boolean mightHaveHorizontalRules(String text) {
         if (text == null || text.isEmpty()) {
             return false;

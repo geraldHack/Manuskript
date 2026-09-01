@@ -30,6 +30,8 @@ public class AgentConfigManager {
     private static final Logger logger = LoggerFactory.getLogger(AgentConfigManager.class);
 
     private static final String AGENTS_RELATIVE = "config/agents.json";
+    /** Fester Builtin-Tab „Bild-Prompt“ (nicht schließbar). */
+    public static final String BILD_PROMPT_AGENT_ID = "23bb2048-de19-42be-86aa-ddf5770d844a";
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     private static List<AgentConfig> cachedConfigs;
@@ -88,6 +90,7 @@ public class AgentConfigManager {
             ensureChatbotAgent(fromClasspath);
             ensureSelectionRevisionAgent(fromClasspath);
             ensureIdiomReviewAgent(fromClasspath);
+            ensureBildPromptAgent(fromClasspath);
             return fromClasspath;
         }
 
@@ -121,6 +124,7 @@ public class AgentConfigManager {
         ensureChatbotAgent(defaults);
         ensureSelectionRevisionAgent(defaults);
         ensureIdiomReviewAgent(defaults);
+        ensureBildPromptAgent(defaults);
         return defaults;
     }
 
@@ -184,6 +188,7 @@ public class AgentConfigManager {
                 ensureChatbotAgent(configs);
                 ensureSelectionRevisionAgent(configs);
                 ensureIdiomReviewAgent(configs);
+                ensureBildPromptAgent(configs);
                 cachedConfigs = configs;
                 logger.info("Agenten geladen: {} ({})", configs.size(), summarizeNames(configs));
                 if (configs.size() > before) {
@@ -551,6 +556,50 @@ public class AgentConfigManager {
         idiomAgent.setDefaultPrompt(prompt);
         idiomAgent.setAgentType("idiom-review");
         addBuiltinKeepingUserAgentsLast(configs, idiomAgent);
+        saveConfigs(configs);
+    }
+
+    private static final String BILD_PROMPT_DEFAULT_SYSTEM = """
+            Sieh dir das Kapitel an und mache ein stimmungsvolles, passenden Prompt für eine Bild-KI  dazu. benutze so viel Markdown, wie du willst.
+
+            Stilvorgaben
+
+            - **Stil:** detailed digital painting, cinematic composition, muted industrial color palette (grey, gunmetal, rust) broken by warm golden light and the girl's silver hair as focal point
+            - **Kamera:** medium shot, slightly low angle from the vent's perspective, shallow depth of field with the grate softly blurred in the foreground
+            - **Ton:** cool-distant, observational — no sentimentality, quiet tension, space opera realism, no glossy utopian aesthetics
+
+            ## Negativ-Prompt
+
+            no bright futuristic clean corridors, no holograms, no weapons, no adults, no romantic undertones, no cartoon style, no text""";
+
+    private static void ensureBildPromptAgent(List<AgentConfig> configs) {
+        for (AgentConfig c : configs) {
+            if (BILD_PROMPT_AGENT_ID.equals(c.getId()) || "Bild-Prompt".equals(c.getName())) {
+                c.setUserDefined(false);
+                if (c.getAgentType() == null || c.getAgentType().isBlank()) {
+                    c.setAgentType("analysis");
+                }
+                c.setFreeform(true);
+                return;
+            }
+        }
+        String backend = ResourceManager.getParameter("agent.backend", "Ollama");
+        String model = "OpenAI".equals(backend)
+                ? ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini")
+                : ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL);
+        AgentConfig bildAgent = new AgentConfig(
+                "Bild-Prompt",
+                backend,
+                BILD_PROMPT_DEFAULT_SYSTEM,
+                model,
+                0.3, 4864, 0.7, 1.3
+        );
+        bildAgent.setId(BILD_PROMPT_AGENT_ID);
+        bildAgent.setDefaultPrompt(BILD_PROMPT_DEFAULT_SYSTEM);
+        bildAgent.setAgentType("analysis");
+        bildAgent.setUserDefined(false);
+        bildAgent.setFreeform(true);
+        addBuiltinKeepingUserAgentsLast(configs, bildAgent);
         saveConfigs(configs);
     }
 }

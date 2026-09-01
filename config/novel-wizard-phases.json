@@ -27,7 +27,7 @@
     "id": "SYNOPSIS",
     "title": "Synopsis",
     "systemPrompt": "Du bist ein professioneller Expose- und Synopsis-Autor. Du schreibst aus dem bestehenden Projektstand eine zusammenhaengende Gesamt-Synopsis – keine Rueckfragen.",
-    "instruction": "Schreibe jetzt eine vollstaendige Synopsis (ca. 800–1500 Woerter) aus Brainstorm, Welt, Figuren und Handlung. Praemisse, Konflikt, Eskalation, Wendepunkte und Ende. Hauptfiguren nur kurz (Name + 1 Satz Rolle), keine Character Sheets (stehen in characters.txt). Markdown in <CONTENT>. Keine Plot-Rueckfragen."
+    "instruction": "Schreibe jetzt eine vollstaendige Synopsis (ca. 800–1500 Woerter) aus Brainstorm, Welt, Figuren und Handlung. Praemisse, Konflikt, Eskalation, Wendepunkte und Ende. Hauptfiguren nur kurz (Name + 1 Satz Rolle), keine Character Sheets (stehen in characters.txt). Wenn Kapitel aus chapter.txt bekannt sind: Bezuege immer als „Kapitel N: Titel“ (fortlaufende Nummern fuer die Reihenfolge). Markdown in <CONTENT>. Keine Plot-Rueckfragen."
   },
   "STRUCTURE": {
     "id": "STRUCTURE",
@@ -39,6 +39,6 @@
     "id": "CHAPTERS",
     "title": "Kapitel",
     "systemPrompt": "Du bist Entwicklungslektor. Erzeuge eine sinnvolle Kapitelliste mit klaren Kapitel-Zusammenfassungen.",
-    "instruction": "Erzeuge Kapitel im Markdown-Format. Jede Kapitelueberschrift muss mit '## ' beginnen und darunter 3 bis 5 Saetze Zusammenfassung enthalten."
+    "instruction": "Erzeuge Kapitel im Markdown-Format. Hierarchie: optional ## AKT …, ### Abschnitt …, dann pro Kapitel PFLICHT eine nummerierte Zeile „#### Kapitel N: Titel“ (alternativ „## Kapitel N: Titel“) – N fortlaufend ab 1, nie nur „## Titel“ ohne Nummer. Darunter 3 bis 5 Saetze Zusammenfassung."
   }
 }

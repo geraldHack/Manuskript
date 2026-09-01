@@ -44,6 +44,10 @@ public class OpenAIBackend implements AIBackend {
     private String currentModel;
     private double temperature;
     private Double topP;
+    /** {@code null} = Parameter {@code agent.openai.frequency_penalty}. */
+    private Double frequencyPenaltyOverride;
+    /** {@code null} = Parameter {@code agent.openai.reasoning_effort}. */
+    private String reasoningEffortOverride;
 
     public OpenAIBackend() {
         this.httpClient = HttpClient.newBuilder()
@@ -111,6 +115,19 @@ public class OpenAIBackend implements AIBackend {
     /** Optional; {@code null} = API-Default (nicht mitsenden). */
     public void setTopP(double topP) {
         this.topP = topP;
+    }
+
+    /** Optional; {@code null} = Parameter {@code agent.openai.frequency_penalty}. */
+    public void setFrequencyPenalty(double frequencyPenalty) {
+        this.frequencyPenaltyOverride = frequencyPenalty;
+    }
+
+    /**
+     * Überschreibt {@code agent.openai.reasoning_effort} für diese Instanz.
+     * {@code none} = Feld nicht mitsenden (Diktat: nur Transkript glätten).
+     */
+    public void setReasoningEffortOverride(String effort) {
+        this.reasoningEffortOverride = effort;
     }
 
     @Override
@@ -296,6 +313,10 @@ public class OpenAIBackend implements AIBackend {
         if (topP != null) {
             body.addProperty("top_p", topP);
         }
+        double frequencyPenalty = effectiveFrequencyPenalty();
+        if (frequencyPenalty > 0.0) {
+            body.addProperty("frequency_penalty", frequencyPenalty);
+        }
         body.add("messages", messages);
         applyReasoningEffort(body);
         if (stream) {
@@ -303,10 +324,11 @@ public class OpenAIBackend implements AIBackend {
         }
 
         String requestBody = gson.toJson(body);
-        logger.info("OpenAI Request{}: {} Zeichen, max_tokens: {}, temperature: {}, top_p: {}, reasoning_effort={}",
+        logger.info("OpenAI Request{}: {} Zeichen, max_tokens: {}, temperature: {}, top_p: {}, frequency_penalty: {}, reasoning_effort={}",
                 stream ? " (stream)" : "",
                 requestBody.length(), maxTokens, temperature,
                 topP != null ? topP : "—",
+                frequencyPenalty > 0.0 ? frequencyPenalty : "—",
                 body.has("reasoning_effort")
                         ? body.get("reasoning_effort").getAsString() : "—");
 
@@ -547,6 +569,21 @@ public class OpenAIBackend implements AIBackend {
         return null;
     }
 
+    private double effectiveFrequencyPenalty() {
+        if (frequencyPenaltyOverride != null) {
+            return clampFrequencyPenalty(frequencyPenaltyOverride);
+        }
+        return clampFrequencyPenalty(
+                ResourceManager.getDoubleParameter("agent.openai.frequency_penalty", 0.0));
+    }
+
+    private static double clampFrequencyPenalty(double value) {
+        if (Double.isNaN(value) || Double.isInfinite(value)) {
+            return 0.0;
+        }
+        return Math.max(0.0, Math.min(2.0, value));
+    }
+
     /** Liest konfigurierbares Anfrage-Timeout (Sekunden). */
     public static int requestTimeoutSeconds() {
         String baseUrl = ResourceManager.getParameter("agent.openai.api_url", DEFAULT_BASE_URL);
@@ -578,58 +615,30 @@ public class OpenAIBackend implements AIBackend {
     }
 
     /**
-     * Kimi und DeepSeek v4 denken standardmäßig lange (high/max).
-     * Default auto: {@code low}. {@code none} schaltet DeepSeek-Thinking aus.
+     * Nur wenn der Parameter gesetzt ist (low/high/max). Keine Modellnamen-Logik.
      */
     private void applyReasoningEffort(JsonObject body) {
-        applyReasoningEffort(body, currentModel,
-                ResourceManager.getParameter("agent.openai.reasoning_effort", "").trim());
+        String configured = reasoningEffortOverride != null
+                ? reasoningEffortOverride
+                : ResourceManager.getParameter("agent.openai.reasoning_effort", "").trim();
+        applyReasoningEffort(body, configured);
     }
 
-    static void applyReasoningEffort(JsonObject body, String model, String configured) {
-        String effort = null;
+    static void applyReasoningEffort(JsonObject body, String configured) {
         String cfg = configured == null ? "" : configured.trim();
-        if (!cfg.isEmpty() && !"auto".equalsIgnoreCase(cfg)) {
-            effort = cfg.toLowerCase(java.util.Locale.ROOT);
-        } else if (isKimiOrMoonshotModel(model) || isDeepSeekModel(model)) {
-            effort = "low";
-        }
-        if (effort == null || effort.isBlank()) {
+        if (cfg.isEmpty()
+                || "auto".equalsIgnoreCase(cfg)
+                || "none".equalsIgnoreCase(cfg)
+                || "disabled".equalsIgnoreCase(cfg)
+                || "off".equalsIgnoreCase(cfg)) {
             return;
         }
-        if ("none".equals(effort) || "disabled".equals(effort) || "off".equals(effort)) {
-            if (isDeepSeekModel(model)) {
-                JsonObject thinking = new JsonObject();
-                thinking.addProperty("type", "disabled");
-                body.add("thinking", thinking);
-            }
-            return;
-        }
+        String effort = cfg.toLowerCase(java.util.Locale.ROOT);
         if (!effort.equals("low") && !effort.equals("high") && !effort.equals("max")) {
             logger.warn("Ungültiger agent.openai.reasoning_effort='{}' — ignoriere", cfg);
             return;
         }
         body.addProperty("reasoning_effort", effort);
-        if (isDeepSeekModel(model)) {
-            JsonObject thinking = new JsonObject();
-            thinking.addProperty("type", "enabled");
-            body.add("thinking", thinking);
-        }
-    }
-
-    static boolean isKimiOrMoonshotModel(String model) {
-        if (model == null || model.isBlank()) {
-            return false;
-        }
-        String m = model.toLowerCase(java.util.Locale.ROOT);
-        return m.contains("kimi") || m.contains("moonshot");
-    }
-
-    static boolean isDeepSeekModel(String model) {
-        if (model == null || model.isBlank()) {
-            return false;
-        }
-        return model.toLowerCase(java.util.Locale.ROOT).contains("deepseek");
     }
 
     private CompletionChunk executeChatCompletionOnceStreaming(JsonArray messages, int maxTokens,

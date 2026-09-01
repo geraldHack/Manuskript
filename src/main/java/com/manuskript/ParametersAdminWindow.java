@@ -3,6 +3,7 @@ package com.manuskript;
 import com.manuskript.agent.FilterableModelOptionSelector;
 import com.manuskript.agent.ModelOption;
 import com.manuskript.agent.OpenAiProviderProfiles;
+import com.manuskript.agent.OpenRouterModelTags;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -11,8 +12,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
 
+import java.io.File;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -104,8 +107,13 @@ public class ParametersAdminWindow {
             content.getStyleClass().addAll(getThemeStyleClasses(theme));
             for (ParameterDef def : params) {
                 keyToDef.put(def.getKey(), def);
-                Control control = createControl(def);
-                keyToControl.put(def.getKey(), control);
+                Parent control;
+                if ("project.root.directory".equals(def.getKey())) {
+                    control = createProjectRootDirectoryControl(def);
+                } else {
+                    control = createControl(def);
+                    keyToControl.put(def.getKey(), control);
+                }
                 Label keyLabel = new Label(def.getKey());
                 keyLabel.getStyleClass().add("param-key-label");
                 Label helpLabel = new Label(def.getHelpText());
@@ -568,16 +576,34 @@ public class ParametersAdminWindow {
         openaiParams.getChildren().add(openaiTempCard);
         keyToControl.put("agent.openai.temperature", openaiTempSpinner);
 
+        double openaiFreqPenalty = ResourceManager.getDoubleParameter("agent.openai.frequency_penalty", 0.0);
+        Spinner<Double> openaiFreqPenaltySpinner = new Spinner<>(0.0, 2.0, openaiFreqPenalty, 0.05);
+        openaiFreqPenaltySpinner.setEditable(true);
+        openaiFreqPenaltySpinner.setPrefWidth(120);
+        Label openaiFreqPenaltyLabel = new Label("agent.openai.frequency_penalty");
+        openaiFreqPenaltyLabel.getStyleClass().add("param-key-label");
+        Label openaiFreqPenaltyHelp = new Label(
+                "Gegen Wort-Schleifen in Antworten (OpenAI/OpenRouter). 0 = aus; bei Wiederholungen oft 0.3–0.8. "
+                        + "Entspricht bei Ollama ungefaehr ollama.repeat_penalty.");
+        openaiFreqPenaltyHelp.getStyleClass().add("param-help-label");
+        openaiFreqPenaltyHelp.setWrapText(true);
+        openaiFreqPenaltyHelp.setMaxWidth(680);
+        VBox openaiFreqPenaltyCard = new VBox(4);
+        openaiFreqPenaltyCard.getStyleClass().add("param-card");
+        openaiFreqPenaltyCard.getChildren().addAll(openaiFreqPenaltyLabel, openaiFreqPenaltySpinner, openaiFreqPenaltyHelp);
+        openaiParams.getChildren().add(openaiFreqPenaltyCard);
+        keyToControl.put("agent.openai.frequency_penalty", openaiFreqPenaltySpinner);
+
         ComboBox<String> reasoningCombo = new ComboBox<>();
         reasoningCombo.getItems().addAll("none", "low", "high");
         reasoningCombo.setValue(normalizeReasoningEffort(
-                ResourceManager.getParameter("agent.openai.reasoning_effort", "low")));
+                ResourceManager.getParameter("agent.openai.reasoning_effort", "none")));
         reasoningCombo.setPrefWidth(200);
         Label reasoningLabel = new Label("agent.openai.reasoning_effort");
         reasoningLabel.getStyleClass().add("param-key-label");
         Label reasoningHelp = new Label(
-                "Nachdenken vor der Antwort. none = aus (schnell). low = wenig (empfohlen für DeepSeek v4 Flash). "
-                        + "high = langes Nachdenken (kann Gateway-Timeouts auslösen).");
+                "Nur setzen, wenn die API reasoning_effort versteht. none = Feld weglassen (Standard). "
+                        + "low/high = an alle Anfragen anhängen, unabhängig vom Modellnamen.");
         reasoningHelp.getStyleClass().add("param-help-label");
         reasoningHelp.setWrapText(true);
         reasoningHelp.setMaxWidth(680);
@@ -596,7 +622,7 @@ public class ParametersAdminWindow {
         Label agentTimeoutLabel = new Label("agent.openai.request_timeout_sec");
         agentTimeoutLabel.getStyleClass().add("param-key-label");
         Label agentTimeoutHelp = new Label(
-                "Timeout pro Agenten-Anfrage (Sekunden). Kimi mit vollem Buch-Kontext braucht oft 180–600 s.");
+                "Timeout pro Agenten-Anfrage (Sekunden). Große Kontexte brauchen oft 180–600 s.");
         agentTimeoutHelp.getStyleClass().add("param-help-label");
         agentTimeoutHelp.setWrapText(true);
         agentTimeoutHelp.setMaxWidth(680);
@@ -1112,7 +1138,10 @@ public class ParametersAdminWindow {
                                     String id = obj.get("id").getAsString();
                                     String costStr = formatModelPricing(obj);
                                     String displayText = costStr.isEmpty() ? id : (id + " (" + costStr + ")");
-                                    items.add(new ModelOption(id, displayText));
+                                    List<String> tags = base.contains("openrouter")
+                                            ? OpenRouterModelTags.deriveTags(obj)
+                                            : List.of();
+                                    items.add(new ModelOption(id, displayText, tags));
                                 }
                             }
                         }
@@ -1129,6 +1158,32 @@ public class ParametersAdminWindow {
                 }
             });
         });
+    }
+
+    private Parent createProjectRootDirectoryControl(ParameterDef def) {
+        String current = ResourceManager.getParameter(def.getKey(), def.getDefaultValue());
+        TextField field = new TextField(current != null ? current : "");
+        field.setPrefWidth(400);
+        Button browse = new Button("Ordner…");
+        browse.setOnAction(e -> {
+            DirectoryChooser chooser = new DirectoryChooser();
+            chooser.setTitle("Projektwurzel auswählen");
+            File start = new File(field.getText().trim());
+            if (!start.isDirectory()) {
+                start = start.getParentFile();
+            }
+            if (start != null && start.isDirectory()) {
+                chooser.setInitialDirectory(start);
+            }
+            File chosen = chooser.showDialog(stage);
+            if (chosen != null) {
+                field.setText(chosen.getAbsolutePath());
+            }
+        });
+        HBox box = new HBox(8, field, browse);
+        box.setAlignment(Pos.CENTER_LEFT);
+        keyToControl.put(def.getKey(), field);
+        return box;
     }
 
     private Control createControl(ParameterDef def) {
@@ -1342,7 +1397,7 @@ public class ParametersAdminWindow {
 
     static String normalizeReasoningEffort(String raw) {
         if (raw == null || raw.isBlank() || "auto".equalsIgnoreCase(raw.trim())) {
-            return "low";
+            return "none";
         }
         String v = raw.trim().toLowerCase(Locale.ROOT);
         if ("max".equals(v) || "xhigh".equals(v) || "medium".equals(v)) {
@@ -1354,7 +1409,7 @@ public class ParametersAdminWindow {
         if ("none".equals(v) || "low".equals(v) || "high".equals(v)) {
             return v;
         }
-        return "low";
+        return "none";
     }
 
     private static double parseDouble(String s, double fallback) {
@@ -1393,6 +1448,9 @@ public class ParametersAdminWindow {
     }
 
     private String getValueFromControl(Parent c, ParameterDef def) {
+        if (c instanceof HBox box && box.getUserData() instanceof TextField tf) {
+            return tf.getText();
+        }
         if (c instanceof CheckBox) return String.valueOf(((CheckBox) c).isSelected());
         if (c instanceof Spinner) {
             Object v = ((Spinner<?>) c).getValue();
@@ -1429,7 +1487,9 @@ public class ParametersAdminWindow {
     @SuppressWarnings("unchecked")
     private void setControlToDefault(Parent c, ParameterDef def) {
         String d = def.getDefaultValue();
-        if (c instanceof CheckBox) ((CheckBox) c).setSelected(Boolean.parseBoolean(d));
+        if (c instanceof HBox box && box.getUserData() instanceof TextField tf) {
+            tf.setText(d != null ? d : "");
+        } else if (c instanceof CheckBox) ((CheckBox) c).setSelected(Boolean.parseBoolean(d));
         else if (c instanceof Spinner) {
             Spinner<?> s = (Spinner<?>) c;
             if (s.getValue() instanceof Integer)

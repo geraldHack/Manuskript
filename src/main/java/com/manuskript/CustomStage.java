@@ -129,14 +129,7 @@ public class CustomStage extends Stage {
      * Initialisiert den macOS Window Manager, falls auf macOS.
      */
     private void initializeMacWindowManager() {
-        boolean isMac = isMacPlatform();
-        if (isMac) {
-            useMacWindowManager = true;
-            logger.debug("macOS erkannt - MacWindowManager wird verwendet");
-        } else {
-            useMacWindowManager = false;
-            logger.debug("Nicht-macOS System erkannt - Standard Window Handling wird verwendet");
-        }
+        useMacWindowManager = isMacPlatform();
     }
 
     /**
@@ -264,11 +257,9 @@ public class CustomStage extends Stage {
         setupHoverEffects();
         setupDragAndDrop();
         
-        // MacWindowManager nach setupCustomTitleBar() initialisieren
+        // MacWindowManager absichtlich nicht aktiv – würde Drag-/Resize-Handler überschreiben.
         if (useMacWindowManager && titleBar != null) {
-            // MACWINDOWMANAGER DEAKTIVIERT - überschreibt die grundlegenden Handler
-            macWindowManager = null; // Nicht initialisieren
-            logger.debug("MacWindowManager deaktiviert - grundlegende Handler werden verwendet");
+            macWindowManager = null;
         }
 
     }
@@ -373,9 +364,7 @@ public class CustomStage extends Stage {
             setupWindowsLinuxDragAndDrop();
         }
         
-        // MacWindowManager nur für zusätzliche Features (nicht für grundlegendes Drag)
         if (useMacWindowManager && macWindowManager != null) {
-            logger.debug("MacWindowManager für zusätzliche Features aktiv");
             // Nur für spezielle macOS-Features wie Edge-Snapping etc.
             // Grundlegendes Drag wird bereits oben gehandhabt
         }
@@ -715,6 +704,8 @@ public class CustomStage extends Stage {
             newRoot.setStyle("-fx-border-width: 0px; -fx-border-color: transparent; -fx-padding: 0px; -fx-margin: 0px; -fx-spacing: 0px;");
             
             super.setScene(newScene);
+
+            DebugWindow.bindOpenShortcut(newScene, this);
             
             // Resize-Handles hinzufügen
             setupResizeHandles(newScene);
@@ -760,9 +751,7 @@ public class CustomStage extends Stage {
         // IMMER die grundlegenden Resize-Handler einrichten
         setupStandardResizeHandles(scene);
         
-        // MacWindowManager nur für zusätzliche macOS-Features
         if (useMacWindowManager && macWindowManager != null) {
-            logger.debug("MacWindowManager für zusätzliche Resize-Features aktiv");
             // Zusätzliche macOS-Features wie Edge-Snapping etc.
             // Grundlegendes Resize wird bereits oben gehandhabt
         }
@@ -1285,7 +1274,7 @@ public class CustomStage extends Stage {
             clearMacButtonSymbol(closeBtn);
             closeBtn.setOnMouseEntered(e -> {
                 closeBtn.setStyle(buildMacButtonStyle(MAC_CLOSE_HOVER_COLOR, MAC_CLOSE_TEXT_COLOR));
-                setMacButtonSymbol(closeBtn, "✕", MAC_CLOSE_TEXT_COLOR);
+                setMacButtonSymbol(closeBtn, "×", MAC_CLOSE_TEXT_COLOR);
             });
             closeBtn.setOnMouseExited(e -> {
                 closeBtn.setStyle(buildMacButtonStyle(MAC_CLOSE_COLOR, MAC_CLOSE_TEXT_COLOR));

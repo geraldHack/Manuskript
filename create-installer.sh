@@ -176,6 +176,16 @@ copy_mammouth_plugin() {
     chmod +x "${app_dir}/plugin-catalog/run-mammouth-monitor.sh"
 }
 
+copy_backup_plugin() {
+    local app_dir="$1"
+    local jar="tools/projekt-backup/target/projekt-backup.jar"
+    if [[ ! -f "$jar" ]]; then
+        echo "FEHLER: Backup-Plugin-JAR fehlt (${jar})."
+        exit 1
+    fi
+    cp -f "$jar" "${app_dir}/plugin-catalog/projekt-backup.jar"
+}
+
 copy_bundled_resources() {
     local app_dir="$1"
     mkdir -p "$app_dir"
@@ -193,6 +203,7 @@ copy_bundled_resources() {
             --exclude 'launchers.json' \
             --exclude 'openrouter-monitor.properties' \
             --exclude 'mammouth-monitor.properties' \
+            --exclude 'projekt-backup.json' \
             config/ "${app_dir}/config/"
     else
         cp -R config/. "${app_dir}/config/"
@@ -204,12 +215,14 @@ copy_bundled_resources() {
               "${app_dir}/config/languagetool-dictionary.txt" \
               "${app_dir}/config/launchers.json" \
               "${app_dir}/config/openrouter-monitor.properties" \
-              "${app_dir}/config/mammouth-monitor.properties"
+              "${app_dir}/config/mammouth-monitor.properties" \
+              "${app_dir}/config/projekt-backup.json"
     fi
     cp -f installer-assets/installer-config/parameters.properties "${app_dir}/config/parameters.properties"
     cp -f installer-assets/installer-config/launchers.json "${app_dir}/config/launchers.json"
     copy_openrouter_plugin "$app_dir"
     copy_mammouth_plugin "$app_dir"
+    copy_backup_plugin "$app_dir"
 
     echo "  - ffmpeg/"
     mkdir -p "${app_dir}/ffmpeg"
@@ -375,6 +388,14 @@ if [[ ! -f "tools/mammouth-monitor/target/mammouth-monitor.jar" ]]; then
     exit 1
 fi
 echo "[OK] Mammouth-Monitor erstellt."
+
+echo "  Baue Projekt-Backup..."
+mvn -f tools/projekt-backup/pom.xml package -DskipTests -q
+if [[ ! -f "tools/projekt-backup/target/projekt-backup.jar" ]]; then
+    echo "FEHLER: tools/projekt-backup/target/projekt-backup.jar nicht gefunden!"
+    exit 1
+fi
+echo "[OK] Projekt-Backup erstellt."
 
 ensure_javafx_module_path
 

@@ -118,7 +118,7 @@ public final class DictationVocabulary {
     }
 
     public String whisperInitialPrompt() {
-        List<String> terms = allTerms();
+        List<String> terms = promptTerms();
         if (terms.isEmpty()) {
             return "Deutsch. Eigennamen und Fremdwörter wörtlich.";
         }
@@ -129,11 +129,11 @@ public final class DictationVocabulary {
     }
 
     public String llmGlossaryBlock() {
-        if (isEmpty()) {
+        if (userGlossary.isEmpty() && characterNames.isEmpty()) {
             return "";
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("Projekt-Glossar (verbindliche Schreibweisen — Rohtranskript dagegen korrigieren):\n");
+        sb.append("Projekt-Glossar (nur Eigennamen und vom Autor gepflegte Begriffe):\n");
         if (!userGlossary.isEmpty()) {
             sb.append("Vom Autor gepflegt:\n");
             sb.append(joinLimited(userGlossary, MAX_LLM_TERMS)).append("\n");
@@ -142,19 +142,23 @@ public final class DictationVocabulary {
             sb.append("Figuren:\n");
             sb.append(joinLimited(characterNames, MAX_LLM_TERMS)).append("\n");
         }
-        if (!autoTerms.isEmpty()) {
-            sb.append("Aus Manuskript:\n");
-            sb.append(joinLimited(autoTerms, MAX_LLM_TERMS)).append("\n");
-        }
         sb.append("""
                 
                 Korrektur-Regeln:
-                - Spracherkennung verhunzt Eigennamen und Englisch oft phonetisch (deutsche Lautschrift).
-                - Jeden verdächtigen Begriff im Rohtranskript mit dem Glossar abgleichen.
-                - Phonetisch ähnliche Fehler → Glossar-Schreibweise.
-                - Fälschlich zusammengezogene Wörter (zwei Glossar-Einträge in einem) → trennen, Bindestrich wenn im Glossar so.
+                - Nur eindeutige Eigennamen und gepflegte Glossar-Begriffe anpassen.
+                - Alltagsdeutsch unverändert lassen (Adjektive, Körperteile, Verben, Artikel).
+                - Keine Wörter zusammenziehen und keine neuen Komposita erfinden.
+                - Ähnlich klingende normale Wörter nicht durch Glossar-Wörter ersetzen.
                 """);
         return sb.toString().trim();
+    }
+
+    /** Whisper/LLM: nur gepflegtes Glossar und Figurennamen, keine Kapitel-Wortliste. */
+    private List<String> promptTerms() {
+        LinkedHashSet<String> merged = new LinkedHashSet<>();
+        merged.addAll(userGlossary);
+        merged.addAll(characterNames);
+        return new ArrayList<>(merged);
     }
 
     private List<String> allTerms() {
