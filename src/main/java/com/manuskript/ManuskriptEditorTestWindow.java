@@ -24,14 +24,16 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Separator;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ToggleButton;
 import javafx.scene.Node;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -89,7 +91,26 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private static final String PREF_LT_AUTO = CanvasEditorPrefs.key("languagetool_auto");
     private static final String PREF_SAVE_DOCX_ALONGSIDE = CanvasEditorPrefs.key("save_docx_alongside");
     private static final String PREF_SIDEBAR_EXPANDED = CanvasEditorPrefs.key("sidebar_expanded");
-    private static final String PREF_HOST_TOOLBAR_EXPANDED = CanvasEditorPrefs.key("host_toolbar_expanded");
+    private static final String PREF_TOOLBAR_SEGMENT = CanvasEditorPrefs.key("toolbar_segment");
+
+    private enum HostToolbarSegment {
+        NONE, SCHRIFT, FORMAT, SUCHEN, HISTORIE, WERKZEUGE;
+
+        static HostToolbarSegment fromPref(String value) {
+            if (value == null || value.isBlank()) {
+                return NONE;
+            }
+            try {
+                return HostToolbarSegment.valueOf(value.trim().toUpperCase());
+            } catch (IllegalArgumentException ex) {
+                return NONE;
+            }
+        }
+
+        String toPref() {
+            return this == NONE ? "" : name().toLowerCase();
+        }
+    }
 
     private final MainController mainController;
     private final Preferences preferences = Preferences.userNodeForPackage(ManuskriptEditorTestWindow.class);
@@ -133,11 +154,20 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private Label sidebarTitleLabel;
     private Label chapterListPlaceholder;
     private Button btnToggleSidebar;
-    private Button btnToggleHostToolbar;
     private ToggleButton btnToggleAgents;
     private VBox hostToolbarCollapsibleSection;
-    private VBox editorMdToolbar;
-    private boolean hostToolbarExpanded = true;
+    private HostToolbarSegment activeToolbarSegment = HostToolbarSegment.NONE;
+    private ToggleGroup toolbarSegmentToggleGroup;
+    private ToggleButton chipSchrift;
+    private ToggleButton chipFormat;
+    private ToggleButton chipSuchen;
+    private ToggleButton chipHistorie;
+    private ToggleButton chipWerkzeuge;
+    private FlowPane schriftSegmentPane;
+    private FlowPane formatSegmentPane;
+    private VBox suchenSegmentPane;
+    private FlowPane historieSegmentPane;
+    private FlowPane werkzeugeSegmentPane;
     private ListView<DocxFile> chapterListView;
     private ChapterSidebarTheme chapterSidebarTheme;
     private boolean sidebarExpanded = true;
@@ -283,12 +313,10 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         initializeAgentStatusBusyBar();
         initializeSelectionLabel();
         BorderPane root = new BorderPane();
-        VBox topArea = new VBox(createHostToolbar());
+        root.setCenter(createEditorWithSidebar());
+        root.setTop(createHostToolbar());
         agentActivityTracker = new AgentActivityTracker();
         wireAgentActivityToStatusBar();
-        root.setTop(topArea);
-        root.setCenter(createEditorWithSidebar());
-        applyHostToolbarExpanded(hostToolbarExpanded);
         root.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             Object targetObj = event.getTarget();
             if (!(targetObj instanceof Node target)) {
@@ -469,11 +497,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
         VBox editorContentColumn = new VBox(0);
         HBox.setHgrow(editorContentColumn, Priority.ALWAYS);
-        editorMdToolbar = mdTextArea.getToolbarNode();
-        if (editorMdToolbar != null) {
-            mdTextArea.useExternalToolbarLayout(editorContentColumn.widthProperty());
-            editorContentColumn.getChildren().add(editorMdToolbar);
-        }
+        mdTextArea.useExternalSegmentedToolbar(editorContentColumn.widthProperty());
 
         niReviewSupport = new com.manuskript.review.NiReviewChapterSupport(editor);
         niReviewSupport.setOnBaseChanged(() -> setDirty(true));
@@ -635,9 +659,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             ChapterEditorSplitPreferences.apply(mainSplitPane, preferences);
         }
         preferences.putBoolean(PREF_SIDEBAR_EXPANDED, true);
-        preferences.putBoolean(PREF_HOST_TOOLBAR_EXPANDED, true);
+        preferences.put(PREF_TOOLBAR_SEGMENT, HostToolbarSegment.NONE.toPref());
         loadSidebarState();
-        applyHostToolbarExpanded(true);
+        selectHostToolbarSegment(HostToolbarSegment.NONE, false);
         PreferencesManager.resetCanvasEditorWindowPreferences(preferences);
         PreferencesManager.applyDefaultWindowGeometry(
                 stage,
@@ -650,41 +674,13 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         }
     }
 
-    private void toggleHostToolbar() {
-        applyHostToolbarExpanded(!hostToolbarExpanded);
-        preferences.putBoolean(PREF_HOST_TOOLBAR_EXPANDED, hostToolbarExpanded);
-    }
-
-    private void applyHostToolbarExpanded(boolean expanded) {
-        hostToolbarExpanded = expanded;
-        if (hostToolbarCollapsibleSection != null) {
-            hostToolbarCollapsibleSection.setVisible(expanded);
-            hostToolbarCollapsibleSection.setManaged(expanded);
-        }
-        if (editorMdToolbar != null) {
-            editorMdToolbar.setVisible(expanded);
-            editorMdToolbar.setManaged(expanded);
-        }
-        if (btnToggleHostToolbar != null) {
-            HostToolbarToggleSupport.updateAppearance(btnToggleHostToolbar, expanded, themeIndex);
-        }
-    }
-
-    private void expandHostToolbarIfCollapsed() {
-        if (hostToolbarExpanded) {
-            return;
-        }
-        applyHostToolbarExpanded(true);
-        preferences.putBoolean(PREF_HOST_TOOLBAR_EXPANDED, true);
-    }
-
     private void focusSearchField() {
-        expandHostToolbarIfCollapsed();
+        selectHostToolbarSegment(HostToolbarSegment.SUCHEN, true);
         mdTextArea.focusSearchField();
     }
 
     private void replaceNextMatch() {
-        expandHostToolbarIfCollapsed();
+        selectHostToolbarSegment(HostToolbarSegment.SUCHEN, true);
         mdTextArea.replaceNextMatch();
     }
 
@@ -718,67 +714,6 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     private VBox createHostToolbar() {
-        Button mark = toolbarButton("Mark", "Hervorheben (<mark>)", () -> {
-            editor.toggleMark();
-            editor.requestInputFocus();
-        });
-        Button center = toolbarButton("◉", "Text zentrieren (<center>)", () -> {
-            editor.toggleCenter();
-            editor.requestInputFocus();
-        });
-        Button blockquote = toolbarButton(">", "Zitat (> Zeile)", () -> {
-            editor.toggleBlockquote();
-            editor.requestInputFocus();
-        });
-        Button big = toolbarButton("Groß", "Größere Schrift (<big>)", () -> {
-            editor.toggleBig();
-            editor.requestInputFocus();
-        });
-        Button small = toolbarButton("Klein", "Kleinere Schrift (<small>)", () -> {
-            editor.toggleSmall();
-            editor.requestInputFocus();
-        });
-        Button superscript = toolbarButton("x²", "Hochgestellt (<sup>)", () -> {
-            editor.toggleSuperscript();
-            editor.requestInputFocus();
-        });
-        Button subscript = toolbarButton("x₂", "Tiefgestellt (<sub>)", () -> {
-            editor.toggleSubscript();
-            editor.requestInputFocus();
-        });
-        Button footnote = toolbarButton("Fußnote",
-                "Pandoc-Fußnote direkt hinter Auswahl oder Cursor einfügen",
-                this::insertFootnote);
-
-        MenuButton colorMenu = new MenuButton("Farbe");
-        colorMenu.setTooltip(new Tooltip("Textfarbe"));
-        for (String[] entry : new String[][]{
-                {"Rot", "red"}, {"Blau", "blue"}, {"Grün", "green"},
-                {"Gelb", "yellow"}, {"Lila", "purple"}, {"Orange", "orange"}, {"Grau", "gray"}
-        }) {
-            String tag = entry[1];
-            MenuItem item = new MenuItem(entry[0]);
-            item.setOnAction(e -> {
-                editor.wrapTextColor(tag);
-                editor.requestInputFocus();
-            });
-            colorMenu.getItems().add(item);
-        }
-
-        Button lineBreak = new Button("↵");
-        lineBreak.setTooltip(new Tooltip("Zeilenumbruch (<br>)"));
-        lineBreak.setOnAction(e -> {
-            editor.insertLineBreak();
-            editor.requestInputFocus();
-        });
-
-        Button horizontalRule = new Button("━");
-        horizontalRule.setTooltip(new Tooltip("Horizontale Linie (---)"));
-        horizontalRule.setOnAction(e -> {
-            editor.insertHorizontalRule();
-            editor.requestInputFocus();
-        });
-
         CheckBox showLineNumbers = new CheckBox("Zeilennummern");
         showLineNumbers.setSelected(preferences.getBoolean(PREF_SHOW_LINE_NUMBERS, true));
         showLineNumbers.setTooltip(new Tooltip("Zeilennummern-Spalte links ein- oder ausblenden"));
@@ -865,8 +800,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
         cmbMdHistory = new ComboBox<>();
         cmbMdHistory.setPromptText("Versionen");
-        cmbMdHistory.setPrefWidth(220);
-        cmbMdHistory.setMaxWidth(300);
+        cmbMdHistory.setMinWidth(100);
+        cmbMdHistory.setPrefWidth(140);
+        cmbMdHistory.setMaxWidth(160);
         cmbMdHistory.setDisable(true);
         cmbMdHistory.setCellFactory(listView -> new ListCell<>() {
             @Override
@@ -926,39 +862,44 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 {"Online-Lektorat", "online_lektorat.html", "Hilfe - Online-Lektorat"}
         });
 
-        HBox statusRow = new HBox(8);
-        Region statusSpacer = new Region();
-        HBox.setHgrow(statusSpacer, Priority.ALWAYS);
+        MenuButton mehrFormat = createMehrFormatMenu();
 
-        btnToggleHostToolbar = new Button();
-        btnToggleHostToolbar.setMinWidth(36);
-        btnToggleHostToolbar.setMaxWidth(36);
-        btnToggleHostToolbar.setMinHeight(24);
-        btnToggleHostToolbar.setPrefHeight(24);
-        btnToggleHostToolbar.setMaxHeight(24);
-        btnToggleHostToolbar.getStyleClass().add("host-toolbar-toggle-button");
-        hostToolbarExpanded = preferences.getBoolean(PREF_HOST_TOOLBAR_EXPANDED, true);
-        btnToggleHostToolbar.setOnAction(e -> toggleHostToolbar());
-
-        HBox toggleRow = new HBox(btnToggleHostToolbar);
-        toggleRow.setAlignment(Pos.CENTER);
-        toggleRow.setPadding(new Insets(2, 0, 2, 0));
-
-        statusRow.getChildren().addAll(editorHelpMenu, statusSpacer, cmbMdHistory, btnHistoryDiff,
-                btnHistoryRestore, saveChapter, saveDocxAlongside, languageToolStatusBox, lblSelectionCount, statusLabel);
-        statusRow.setAlignment(Pos.CENTER_RIGHT);
-
-        FlowPane formatPane = new FlowPane(6, 4);
-        formatPane.setAlignment(Pos.CENTER_LEFT);
-        formatPane.getChildren().addAll(
+        schriftSegmentPane = new FlowPane(6, 4);
+        schriftSegmentPane.setAlignment(Pos.CENTER_LEFT);
+        schriftSegmentPane.getStyleClass().add("host-toolbar-segment");
+        Node fontSection = mdTextArea.getFontToolbarSection();
+        if (fontSection != null) {
+            schriftSegmentPane.getChildren().add(fontSection);
+        }
+        schriftSegmentPane.getChildren().addAll(
                 showLineNumbers,
-                mark, blockquote, center,
-                superscript, subscript, footnote,
-                big, small, colorMenu, lineBreak, horizontalRule);
+                new Label("Anführungszeichen:"),
+                quoteStyle);
 
-        FlowPane toolsPane = new FlowPane(6, 4);
-        toolsPane.setAlignment(Pos.CENTER_LEFT);
-        Label quoteLabel = new Label("Anführungszeichen:");
+        formatSegmentPane = new FlowPane(6, 4);
+        formatSegmentPane.setAlignment(Pos.CENTER_LEFT);
+        formatSegmentPane.getStyleClass().add("host-toolbar-segment");
+        Node formatSection = mdTextArea.getFormatToolbarSection();
+        if (formatSection != null) {
+            formatSegmentPane.getChildren().add(formatSection);
+        }
+        formatSegmentPane.getChildren().add(mehrFormat);
+
+        suchenSegmentPane = new VBox(4);
+        suchenSegmentPane.getStyleClass().add("host-toolbar-segment");
+        Node searchSection = mdTextArea.getSearchToolbarSection();
+        if (searchSection != null) {
+            suchenSegmentPane.getChildren().add(searchSection);
+        }
+
+        historieSegmentPane = new FlowPane(6, 4);
+        historieSegmentPane.setAlignment(Pos.CENTER_LEFT);
+        historieSegmentPane.getStyleClass().add("host-toolbar-segment");
+        historieSegmentPane.getChildren().addAll(cmbMdHistory, btnHistoryDiff, btnHistoryRestore);
+
+        werkzeugeSegmentPane = new FlowPane(6, 4);
+        werkzeugeSegmentPane.setAlignment(Pos.CENTER_LEFT);
+        werkzeugeSegmentPane.getStyleClass().add("host-toolbar-segment");
         Button sceneOutline = toolbarButton("Outline", "Szenen-Outline für dieses Kapitel", this::toggleSceneOutlineWindow);
         Button textAnalysis = toolbarButton("Analyse", "Textanalyse-Fenster ein-/ausblenden", this::toggleTextAnalysisWindow);
         if (FeaturePacks.agentsEnabled()) {
@@ -973,40 +914,184 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 "In Zwischenablage kopieren (Sudowrite-kompatibel)",
                 this::copyForSudowrite);
 
-        toolsPane.getChildren().addAll(
-                quoteLabel, quoteStyle,
-                languageTool, languageToolAuto,
-                sceneOutline, textAnalysis);
+        werkzeugeSegmentPane.getChildren().addAll(languageTool, sceneOutline, textAnalysis);
         if (btnToggleAgents != null) {
-            toolsPane.getChildren().add(btnToggleAgents);
+            werkzeugeSegmentPane.getChildren().add(btnToggleAgents);
         }
-        toolsPane.getChildren().addAll(macrosBtn, copySudowrite);
+        werkzeugeSegmentPane.getChildren().addAll(macrosBtn, copySudowrite);
         if (FeaturePacks.onlineLektoratEnabled()) {
-            toolsPane.getChildren().add(toolbarButton("Lektorat",
+            werkzeugeSegmentPane.getChildren().add(toolbarButton("Lektorat",
                     "Online-Lektorat starten (Typ im Dialog wählbar). " + OnlineLektoratService.SETTINGS_HINT,
                     this::promptAndStartOnlineLektorat));
         }
         if (FeaturePacks.dictationEnabled()) {
             dictationSupport = new DictationSupport(this, stage, themeIndex);
-            toolsPane.getChildren().addAll(
+            werkzeugeSegmentPane.getChildren().addAll(
                     dictationSupport.createToolbarButton(),
                     toolbarButton("Glossar",
                             "Diktat-Glossar bearbeiten (data/dictation-glossary.txt)",
                             () -> dictationSupport.openGlossaryEditor()));
         }
-        toolsPane.getChildren().addAll(insertImage, editImage, deleteImage);
+        werkzeugeSegmentPane.getChildren().addAll(
+                insertImage, editImage, deleteImage,
+                saveDocxAlongside, languageToolAuto);
 
-        hostToolbarCollapsibleSection = new VBox(8, formatPane, toolsPane);
+        toolbarSegmentToggleGroup = new ToggleGroup();
+        chipSchrift = createToolbarSegmentChip("Schrift", "Schrift, Abstände und Ansicht", HostToolbarSegment.SCHRIFT);
+        chipFormat = createToolbarSegmentChip("Format", "Markdown-Formatierung und Extras", HostToolbarSegment.FORMAT);
+        chipSuchen = createToolbarSegmentChip("Suchen",
+                "Suchen und Ersetzen (" + EditingShortcuts.acceleratorHint("F") + ")",
+                HostToolbarSegment.SUCHEN);
+        chipHistorie = createToolbarSegmentChip("Historie", "Kapitel-Versionen, Diff und Wiederherstellen", HostToolbarSegment.HISTORIE);
+        chipWerkzeuge = createToolbarSegmentChip("Werkzeuge", "Panels, LanguageTool, Medien", HostToolbarSegment.WERKZEUGE);
+        HBox chipRow = new HBox(4, chipSchrift, chipFormat, chipSuchen, chipHistorie, chipWerkzeuge);
+        chipRow.setAlignment(Pos.CENTER_LEFT);
+        chipRow.getStyleClass().add("host-toolbar-segment-chips");
+
+        HBox statusRow = new HBox(8);
+        statusRow.setAlignment(Pos.CENTER_LEFT);
+        statusRow.getStyleClass().add("host-toolbar-status-row");
+        Region statusSpacer = new Region();
+        HBox.setHgrow(statusSpacer, Priority.ALWAYS);
+
+        statusRow.getChildren().addAll(
+                editorHelpMenu,
+                chipRow,
+                statusSpacer,
+                saveChapter,
+                languageToolStatusBox,
+                lblSelectionCount,
+                statusLabel);
+
+        hostToolbarCollapsibleSection = new VBox(8);
+        hostToolbarCollapsibleSection.getStyleClass().add("host-toolbar-segment-area");
+        hostToolbarCollapsibleSection.setPadding(new Insets(4, 0, 0, 0));
+
         VBox statusSection = new VBox(2, statusRow, agentStatusBusyBar);
-        VBox toolbar = new VBox(4, toggleRow, statusSection, hostToolbarCollapsibleSection);
+        VBox toolbar = new VBox(4, statusSection, hostToolbarCollapsibleSection);
+        toolbar.getStyleClass().add("host-toolbar");
         toolbar.setPadding(new Insets(4, 8, 8, 8));
         var wrapLength = Bindings.max(220, toolbar.widthProperty().subtract(16));
-        formatPane.prefWrapLengthProperty().bind(wrapLength);
-        toolsPane.prefWrapLengthProperty().bind(wrapLength);
-        applyHostToolbarExpanded(hostToolbarExpanded);
+        schriftSegmentPane.prefWrapLengthProperty().bind(wrapLength);
+        formatSegmentPane.prefWrapLengthProperty().bind(wrapLength);
+        historieSegmentPane.prefWrapLengthProperty().bind(wrapLength);
+        werkzeugeSegmentPane.prefWrapLengthProperty().bind(wrapLength);
+
+        HostToolbarSegment initialSegment = HostToolbarSegment.fromPref(preferences.get(PREF_TOOLBAR_SEGMENT, ""));
+        selectHostToolbarSegment(initialSegment, false);
         applyThemeToNode(toolbar, themeIndex);
-        HostToolbarToggleSupport.updateAppearance(btnToggleHostToolbar, hostToolbarExpanded, themeIndex);
         return toolbar;
+    }
+
+    private MenuButton createMehrFormatMenu() {
+        MenuButton mehrFormat = new MenuButton("Mehr Format…");
+        mehrFormat.setTooltip(new Tooltip("Zusätzliche Formatierung (Mark, Farbe, Fußnote, …)"));
+        mehrFormat.getItems().addAll(
+                formatMenuItem("Mark", () -> editor.toggleMark()),
+                formatMenuItem("Zentrieren", () -> editor.toggleCenter()),
+                formatMenuItem("Groß", () -> editor.toggleBig()),
+                formatMenuItem("Klein", () -> editor.toggleSmall()),
+                formatMenuItem("Hochgestellt", () -> editor.toggleSuperscript()),
+                formatMenuItem("Tiefgestellt", () -> editor.toggleSubscript()),
+                formatMenuItem("Fußnote…", this::insertFootnote),
+                formatMenuItem("Zeilenumbruch", () -> editor.insertLineBreak()),
+                new SeparatorMenuItem());
+        for (String[] entry : new String[][]{
+                {"Farbe: Rot", "red"}, {"Farbe: Blau", "blue"}, {"Farbe: Grün", "green"},
+                {"Farbe: Gelb", "yellow"}, {"Farbe: Lila", "purple"},
+                {"Farbe: Orange", "orange"}, {"Farbe: Grau", "gray"}
+        }) {
+            String tag = entry[1];
+            MenuItem item = new MenuItem(entry[0]);
+            item.setOnAction(e -> {
+                editor.wrapTextColor(tag);
+                editor.requestInputFocus();
+            });
+            mehrFormat.getItems().add(item);
+        }
+        return mehrFormat;
+    }
+
+    private MenuItem formatMenuItem(String label, Runnable action) {
+        MenuItem item = new MenuItem(label);
+        item.setOnAction(e -> {
+            action.run();
+            editor.requestInputFocus();
+        });
+        return item;
+    }
+
+    private ToggleButton createToolbarSegmentChip(String label, String tooltip, HostToolbarSegment segment) {
+        ToggleButton chip = new ToggleButton(label);
+        chip.setTooltip(new Tooltip(tooltip));
+        chip.getStyleClass().add("host-toolbar-segment-chip");
+        chip.setToggleGroup(toolbarSegmentToggleGroup);
+        chip.setUserData(segment);
+        chip.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+            if (chip.isSelected()) {
+                selectHostToolbarSegment(HostToolbarSegment.NONE, true);
+                event.consume();
+            }
+        });
+        chip.setOnAction(e -> {
+            if (chip.isSelected()) {
+                selectHostToolbarSegment(segment, true);
+            } else {
+                selectHostToolbarSegment(HostToolbarSegment.NONE, true);
+            }
+        });
+        return chip;
+    }
+
+    private void selectHostToolbarSegment(HostToolbarSegment segment, boolean persist) {
+        activeToolbarSegment = segment == null ? HostToolbarSegment.NONE : segment;
+        syncToolbarSegmentChips();
+        if (hostToolbarCollapsibleSection != null) {
+            hostToolbarCollapsibleSection.getChildren().clear();
+            Node content = switch (activeToolbarSegment) {
+                case SCHRIFT -> schriftSegmentPane;
+                case FORMAT -> formatSegmentPane;
+                case SUCHEN -> suchenSegmentPane;
+                case HISTORIE -> historieSegmentPane;
+                case WERKZEUGE -> werkzeugeSegmentPane;
+                case NONE -> null;
+            };
+            if (content != null) {
+                hostToolbarCollapsibleSection.getChildren().add(content);
+            }
+        }
+        refreshHostToolbarSegmentVisibility();
+        if (persist) {
+            preferences.put(PREF_TOOLBAR_SEGMENT, activeToolbarSegment.toPref());
+        }
+    }
+
+    private void syncToolbarSegmentChips() {
+        if (toolbarSegmentToggleGroup == null) {
+            return;
+        }
+        ToggleButton target = switch (activeToolbarSegment) {
+            case SCHRIFT -> chipSchrift;
+            case FORMAT -> chipFormat;
+            case SUCHEN -> chipSuchen;
+            case HISTORIE -> chipHistorie;
+            case WERKZEUGE -> chipWerkzeuge;
+            case NONE -> null;
+        };
+        if (target == null) {
+            toolbarSegmentToggleGroup.selectToggle(null);
+        } else if (toolbarSegmentToggleGroup.getSelectedToggle() != target) {
+            toolbarSegmentToggleGroup.selectToggle(target);
+        }
+    }
+
+    private void refreshHostToolbarSegmentVisibility() {
+        if (hostToolbarCollapsibleSection == null) {
+            return;
+        }
+        boolean show = activeToolbarSegment != HostToolbarSegment.NONE;
+        hostToolbarCollapsibleSection.setVisible(show);
+        hostToolbarCollapsibleSection.setManaged(show);
     }
 
     private void insertFootnote() {
@@ -2382,10 +2467,6 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         if (btnToggleSidebar != null) {
             applyThemeToNode(btnToggleSidebar, themeIndex);
             SidebarToggleButtonSupport.updateAppearance(btnToggleSidebar, sidebarExpanded, themeIndex);
-        }
-        if (btnToggleHostToolbar != null) {
-            applyThemeToNode(btnToggleHostToolbar, themeIndex);
-            HostToolbarToggleSupport.updateAppearance(btnToggleHostToolbar, hostToolbarExpanded, themeIndex);
         }
         refreshChapterListAppearance();
     }

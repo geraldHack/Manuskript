@@ -8,6 +8,7 @@ import javafx.beans.value.ObservableDoubleValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -41,6 +42,10 @@ public class MdTextArea extends VBox {
     private final StringProperty textProperty = new SimpleStringProperty("");
     private final VBox toolbarBox;
     private final MdTextAreaSearchSupport searchSupport;
+
+    private Node fontToolbarSection;
+    private Node formatToolbarSection;
+    private Node searchToolbarSection;
 
     private ComboBox<Double> fontSizeCombo;
     private CheckBox hideMarkupCheckbox;
@@ -98,14 +103,19 @@ public class MdTextArea extends VBox {
         toolbar.getStyleClass().add("md-text-area-toolbar");
         toolbar.setPadding(new Insets(6, 8, 6, 8));
 
-        if (opts.enableUndoRedo() || opts.enableFontControls() || opts.enableHideMarkupToggle()) {
-            toolbar.getChildren().add(buildFontRow(opts));
+        boolean hasFontSection = opts.enableFontControls() || opts.enableHideMarkupToggle() || opts.enableJustify();
+        boolean hasFormatSection = opts.enableUndoRedo() || opts.enableBasicFormatting() || opts.enableExtendedFormatting();
+        if (hasFontSection) {
+            fontToolbarSection = buildFontRow(opts);
+            toolbar.getChildren().add(fontToolbarSection);
         }
-        if (opts.enableJustify() || opts.enableBasicFormatting() || opts.enableExtendedFormatting()) {
-            toolbar.getChildren().add(buildFormatRow(opts));
+        if (hasFormatSection) {
+            formatToolbarSection = buildFormatRow(opts);
+            toolbar.getChildren().add(formatToolbarSection);
         }
         if (opts.enableSearch()) {
-            toolbar.getChildren().add(searchSupport.buildSearchBlock(opts.enableReplace()));
+            searchToolbarSection = searchSupport.buildSearchBlock(opts.enableReplace());
+            toolbar.getChildren().add(searchToolbarSection);
         }
 
         var wrapLength = Bindings.max(220, widthProperty().subtract(16));
@@ -117,21 +127,10 @@ public class MdTextArea extends VBox {
         return toolbar;
     }
 
-    private HBox buildFontRow(MdTextAreaOptions opts) {
-        HBox row = new HBox(6);
+    private FlowPane buildFontRow(MdTextAreaOptions opts) {
+        FlowPane row = new FlowPane(6, 4);
         row.setAlignment(Pos.CENTER_LEFT);
-
-        if (opts.enableUndoRedo()) {
-            Button undo = toolbarButton("Rückgängig", "Rückgängig (" + EditingShortcuts.acceleratorHint("Z") + ")", () -> {
-                editor.undo();
-                editor.requestInputFocus();
-            });
-            Button redo = toolbarButton("Wiederholen", "Wiederholen (" + EditingShortcuts.acceleratorHint("Y") + ")", () -> {
-                editor.redo();
-                editor.requestInputFocus();
-            });
-            row.getChildren().addAll(undo, redo, toolbarSeparator());
-        }
+        row.getStyleClass().add("md-text-area-font-section");
 
         if (opts.enableFontControls()) {
             fontSizeCombo = new ComboBox<>();
@@ -218,6 +217,18 @@ public class MdTextArea extends VBox {
                     new Label("Absatzabstand:"), paragraphSpacing);
         }
 
+        if (opts.enableJustify()) {
+            CheckBox justifyText = new CheckBox("Blocksatz");
+            justifyText.setSelected(opts.justifyText());
+            justifyText.setTooltip(new Tooltip(
+                    "Text im Blocksatz ausrichten (letzte Zeile eines Absatzes linksbündig)"));
+            justifyText.selectedProperty().addListener((obs, oldValue, newValue) -> {
+                editor.setJustifyText(newValue);
+                notifyConsumer(opts.onJustifyChanged(), newValue);
+            });
+            row.getChildren().add(justifyText);
+        }
+
         if (opts.enableHideMarkupToggle()) {
             hideMarkupCheckbox = new CheckBox("Markdown ausblenden");
             hideMarkupCheckbox.setSelected(opts.hideMarkup());
@@ -235,17 +246,19 @@ public class MdTextArea extends VBox {
     private FlowPane buildFormatRow(MdTextAreaOptions opts) {
         FlowPane formatPane = new FlowPane(6, 4);
         formatPane.setAlignment(Pos.CENTER_LEFT);
+        formatPane.getStyleClass().add("md-text-area-format-section");
 
-        if (opts.enableJustify()) {
-            CheckBox justifyText = new CheckBox("Blocksatz");
-            justifyText.setSelected(opts.justifyText());
-            justifyText.setTooltip(new Tooltip(
-                    "Text im Blocksatz ausrichten (letzte Zeile eines Absatzes linksbündig)"));
-            justifyText.selectedProperty().addListener((obs, oldValue, newValue) -> {
-                editor.setJustifyText(newValue);
-                notifyConsumer(opts.onJustifyChanged(), newValue);
-            });
-            formatPane.getChildren().add(justifyText);
+        if (opts.enableUndoRedo()) {
+            formatPane.getChildren().addAll(
+                    toolbarButton("Rückgängig", "Rückgängig (" + EditingShortcuts.acceleratorHint("Z") + ")", () -> {
+                        editor.undo();
+                        editor.requestInputFocus();
+                    }),
+                    toolbarButton("Wiederholen", "Wiederholen (" + EditingShortcuts.acceleratorHint("Y") + ")", () -> {
+                        editor.redo();
+                        editor.requestInputFocus();
+                    }),
+                    toolbarSeparator());
         }
 
         if (opts.enableBasicFormatting()) {
@@ -314,6 +327,21 @@ public class MdTextArea extends VBox {
         return toolbarBox;
     }
 
+    /** Schrift-/Ansicht-Segment (Font, Abstände, Blocksatz, Markup). */
+    public Node getFontToolbarSection() {
+        return fontToolbarSection;
+    }
+
+    /** Format-Segment (Undo/Redo, Markdown-Formatierung). */
+    public Node getFormatToolbarSection() {
+        return formatToolbarSection;
+    }
+
+    /** Suchen-/Ersetzen-Segment. */
+    public Node getSearchToolbarSection() {
+        return searchToolbarSection;
+    }
+
     /** Editor-Knoten für SplitPane-Layouts ohne eingebettete Toolbar. */
     public ManuskriptTextEditor getEditorNode() {
         return editor;
@@ -331,6 +359,31 @@ public class MdTextArea extends VBox {
             getChildren().remove(toolbarBox);
         }
         rebindToolbarWrapLength(wrapWidthSource);
+    }
+
+    /**
+     * Entfernt die Toolbar und löst die Segmente, damit der Host sie in Segment-Chips einhängen kann.
+     */
+    public void useExternalSegmentedToolbar(ObservableDoubleValue wrapWidthSource) {
+        if (toolbarBox == null) {
+            return;
+        }
+        if (getChildren().contains(toolbarBox)) {
+            getChildren().remove(toolbarBox);
+        }
+        toolbarBox.getChildren().clear();
+        var wrapLength = Bindings.max(220,
+                Bindings.createDoubleBinding(
+                        () -> wrapWidthSource.getValue().doubleValue() - 16,
+                        wrapWidthSource));
+        for (Node section : new Node[]{fontToolbarSection, formatToolbarSection, searchToolbarSection}) {
+            if (section instanceof FlowPane flowPane) {
+                flowPane.prefWrapLengthProperty().unbind();
+                flowPane.prefWrapLengthProperty().bind(wrapLength);
+            } else if (section instanceof javafx.scene.Parent parent) {
+                bindFlowPaneWrapLength(parent, wrapLength);
+            }
+        }
     }
 
     private void rebindToolbarWrapLength(ObservableDoubleValue wrapWidthSource) {

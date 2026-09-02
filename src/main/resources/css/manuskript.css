@@ -626,6 +626,33 @@
     -fx-background-color: #e9ecef;
 }
 
+.weiss-theme .menu-button {
+    -fx-background-color: #f8f9fa;
+    -fx-text-fill: #000000;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+    -fx-padding: 5px 10px;
+}
+
+.weiss-theme .menu-button:hover {
+    -fx-background-color: #e9ecef;
+}
+
+.weiss-theme .menu-button .label {
+    -fx-background-color: transparent;
+    -fx-text-fill: #000000;
+}
+
+.weiss-theme .menu-button .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.weiss-theme .menu-button .arrow-button .arrow {
+    -fx-background-color: #000000;
+}
+
 .weiss-theme .text-field {
     -fx-background-color: #ffffff;
     -fx-text-fill: #000000;
@@ -689,6 +716,33 @@
     -fx-background-color: #6c757d;
 }
 
+
+.theme-dark .menu-button {
+    -fx-background-color: #495057;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #6c757d;
+    -fx-border-width: 1px;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+    -fx-padding: 5px 10px;
+}
+
+.theme-dark .menu-button:hover {
+    -fx-background-color: #6c757d;
+}
+
+.theme-dark .menu-button .label {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .menu-button .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.theme-dark .menu-button .arrow-button .arrow {
+    -fx-background-color: #ffffff;
+}
 
 .theme-dark .text-field {
     -fx-background-color: #495057;
@@ -1104,6 +1158,34 @@
 .pastell-theme .button:hover {
     -fx-background-color: #ce93d8;
     -fx-border-color: #ab47bc;
+}
+
+.pastell-theme .menu-button {
+    -fx-background-color: #e1bee7;
+    -fx-text-fill: #000000;
+    -fx-border-color: #ba68c8;
+    -fx-border-width: 1px;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+    -fx-padding: 5px 10px;
+}
+
+.pastell-theme .menu-button:hover {
+    -fx-background-color: #ce93d8;
+    -fx-border-color: #ab47bc;
+}
+
+.pastell-theme .menu-button .label {
+    -fx-background-color: transparent;
+    -fx-text-fill: #000000;
+}
+
+.pastell-theme .menu-button .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.pastell-theme .menu-button .arrow-button .arrow {
+    -fx-background-color: #000000;
 }
 
 .pastell-theme .toggle-button {
@@ -9953,6 +10035,71 @@
 
 .theme-dark .host-toolbar-toggle-button:pressed {
     -fx-background-color: rgba(255, 255, 255, 0.14);
+}
+
+.host-toolbar-segment-chips {
+    -fx-padding: 0 4 0 4;
+}
+
+.host-toolbar-segment-chip {
+    -fx-background-radius: 4;
+    -fx-padding: 2 10 2 10;
+    -fx-cursor: hand;
+    -fx-font-size: 12px;
+}
+
+.host-toolbar-segment-chip:selected {
+    -fx-background-color: #dbe7f5;
+    -fx-border-color: #6b8caf;
+    -fx-border-radius: 4;
+    -fx-border-width: 1;
+}
+
+.theme-dark .host-toolbar-segment-chip:selected {
+    -fx-background-color: rgba(120, 160, 210, 0.28);
+    -fx-border-color: #7aa0c8;
+}
+
+.host-toolbar-segment-area {
+    -fx-border-color: #d0d0d0;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 6 0 0 0;
+}
+
+.theme-dark .host-toolbar-segment-area {
+    -fx-border-color: #444444;
+}
+
+/* Dropdowns in der Host-Toolbar optisch an Buttons angleichen */
+.weiss-theme .host-toolbar .combo-box,
+.weiss-theme .host-toolbar .combo-box .list-cell {
+    -fx-background-color: #f8f9fa;
+    -fx-text-fill: #000000;
+    -fx-border-color: #dee2e6;
+}
+
+.theme-dark .host-toolbar .combo-box,
+.theme-dark .host-toolbar .combo-box .list-cell {
+    -fx-background-color: #495057;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #6c757d;
+}
+
+.theme-dark .host-toolbar .combo-box .arrow-button .arrow {
+    -fx-background-color: #ffffff;
+}
+
+.pastell-theme .host-toolbar .combo-box,
+.pastell-theme .host-toolbar .combo-box .list-cell {
+    -fx-background-color: #e1bee7;
+    -fx-text-fill: #000000;
+    -fx-border-color: #ba68c8;
+}
+
+.pastell-theme .host-toolbar .combo-box .list-cell .text,
+.pastell-theme .host-toolbar .combo-box .label {
+    -fx-background-color: transparent;
+    -fx-text-fill: #000000;
 }
 
 .sidebar-title {
