@@ -46,6 +46,7 @@ public final class BackupSettings {
                     settings.targets = new ArrayList<>();
                 }
                 ensureIds(settings);
+                settings.deduplicateById();
                 return settings;
             }
             return migrateLegacy(obj);
@@ -60,9 +61,51 @@ public final class BackupSettings {
         if (targets == null) {
             targets = new ArrayList<>();
         }
+        ensureIds(this);
+        deduplicateById();
         try (Writer writer = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
             GSON.toJson(this, writer);
         }
+    }
+
+    /**
+     * Schreibt ein Ziel an Ort und Stelle. Gleiche {@code id} wird ersetzt, sonst angehängt.
+     */
+    public void replaceById(BackupTarget incoming) {
+        if (incoming == null) {
+            return;
+        }
+        if (targets == null) {
+            targets = new ArrayList<>();
+        }
+        if (incoming.id == null || incoming.id.isBlank()) {
+            incoming.id = java.util.UUID.randomUUID().toString();
+        }
+        for (int i = 0; i < targets.size(); i++) {
+            BackupTarget existing = targets.get(i);
+            if (existing != null && incoming.id.equals(existing.id)) {
+                targets.set(i, incoming);
+                return;
+            }
+        }
+        targets.add(incoming);
+    }
+
+    void deduplicateById() {
+        if (targets == null || targets.isEmpty()) {
+            return;
+        }
+        java.util.LinkedHashMap<String, BackupTarget> unique = new java.util.LinkedHashMap<>();
+        for (BackupTarget target : targets) {
+            if (target == null) {
+                continue;
+            }
+            if (target.id == null || target.id.isBlank()) {
+                target.id = java.util.UUID.randomUUID().toString();
+            }
+            unique.put(target.id, target);
+        }
+        targets = new ArrayList<>(unique.values());
     }
 
     public BackupTarget findById(String id) {

@@ -251,13 +251,36 @@ public final class ApplicationPaths {
     }
 
     static File defaultUserProjectsDirectory(String userHome) {
+        return userDocumentsDirectory(userHome).toPath().resolve(USER_PROJECTS_FOLDER_NAME).toFile();
+    }
+
+    /**
+     * Nutzer-Dokumente ({@code ~/Documents} oder {@code ~/Dokumente}).
+     */
+    public static File userDocumentsDirectory() {
+        File fromHome = userDocumentsDirectory(System.getProperty("user.home", "."));
+        if (fromHome.isDirectory() || fromHome.mkdirs()) {
+            return fromHome;
+        }
+        try {
+            File chooserStart = FileSystemView.getFileSystemView().getDefaultDirectory();
+            if (looksLikeDocumentsFolder(chooserStart)) {
+                return chooserStart;
+            }
+        } catch (Exception ignored) {
+            // Home-Dokumente
+        }
+        return fromHome;
+    }
+
+    static File userDocumentsDirectory(String userHome) {
         Path home = Path.of(userHome != null && !userHome.isBlank() ? userHome : ".");
         Path documents = home.resolve("Documents");
         Path dokumente = home.resolve("Dokumente");
         if (Files.isDirectory(dokumente) && !Files.isDirectory(documents)) {
-            documents = dokumente;
+            return dokumente.toFile();
         }
-        return documents.resolve(USER_PROJECTS_FOLDER_NAME).toFile();
+        return documents.toFile();
     }
 
     static boolean looksLikeDocumentsFolder(File dir) {

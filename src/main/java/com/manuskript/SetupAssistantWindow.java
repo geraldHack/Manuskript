@@ -3,6 +3,7 @@ package com.manuskript;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -13,6 +14,8 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
@@ -34,6 +37,7 @@ import com.manuskript.plugin.PluginCatalogItem;
 import com.manuskript.plugin.RemotePluginIndex;
 import com.manuskript.launcher.ProgramLauncher;
 import com.manuskript.launcher.ProgramLauncherStore;
+import com.manuskript.review.NiReviewRole;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -42,12 +46,17 @@ import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.prefs.Preferences;
 
 /**
  * Setup: Feature-Pakete, Plugins, externe Programme und optionale Werkzeuge
  * (Pandoc, FFmpeg, Whisper, LanguageTool, KI).
  */
 public final class SetupAssistantWindow {
+
+    private static final String PREFS_PREFIX = "setup_assistant_window";
+    private static final double DEFAULT_WIDTH = 1080.0;
+    private static final double DEFAULT_HEIGHT = 480.0;
 
     private SetupAssistantWindow() {
     }
@@ -68,7 +77,7 @@ public final class SetupAssistantWindow {
         tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
         VBox.setVgrow(tabs, Priority.ALWAYS);
 
-        Tab functionsTab = new Tab("Funktionen", wrapScroll(buildFunctionsPane(themeIndex), themeIndex));
+        Tab functionsTab = new Tab("Funktionen", wrapScroll(buildFunctionsPane(themeIndex, onClosed), themeIndex));
         functionsTab.setClosable(false);
 
         Tab launchersTab = new Tab("Externe Programme");
@@ -122,7 +131,11 @@ public final class SetupAssistantWindow {
         shell.getStyleClass().add("dialog-container");
         buttons.setStyle(bgStyle);
 
-        Scene scene = new Scene(shell, 1080, 480);
+        Preferences setupPrefs = Preferences.userNodeForPackage(SetupAssistantWindow.class);
+        Rectangle2D windowBounds = PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
+                setupPrefs, PREFS_PREFIX, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+
+        Scene scene = new Scene(shell, windowBounds.getWidth(), windowBounds.getHeight());
         stage.setMinWidth(960);
         stage.setMinHeight(400);
         String cssPath = ResourceManager.getCssResource("css/manuskript.css");
@@ -132,6 +145,8 @@ public final class SetupAssistantWindow {
         scene.setFill(Color.web(bg));
         EditorDialogThemes.applyToNode(shell, themeIndex);
         stage.setTitleBarTheme(themeIndex);
+        PreferencesManager.MultiMonitorValidator.applyWindowProperties(stage, windowBounds);
+        setupWindowPersistence(stage, setupPrefs);
         stage.setSceneWithTitleBar(scene);
         stage.setFullTheme(themeIndex);
         if (onClosed != null) {
@@ -143,6 +158,32 @@ public final class SetupAssistantWindow {
         } else {
             stage.show();
         }
+    }
+
+    private static void setupWindowPersistence(CustomStage stage, Preferences prefs) {
+        if (stage == null || prefs == null) {
+            return;
+        }
+        stage.xProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                PreferencesManager.putWindowPosition(prefs, PREFS_PREFIX + "_x", newVal.doubleValue());
+            }
+        });
+        stage.yProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                PreferencesManager.putWindowPosition(prefs, PREFS_PREFIX + "_y", newVal.doubleValue());
+            }
+        });
+        stage.widthProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                PreferencesManager.putWindowWidth(prefs, PREFS_PREFIX + "_width", newVal.doubleValue());
+            }
+        });
+        stage.heightProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                PreferencesManager.putWindowHeight(prefs, PREFS_PREFIX + "_height", newVal.doubleValue());
+            }
+        });
     }
 
     private static ScrollPane wrapScroll(Node content, int themeIndex) {
@@ -160,7 +201,7 @@ public final class SetupAssistantWindow {
         return scroll;
     }
 
-    private static VBox buildFunctionsPane(int themeIndex) {
+    private static VBox buildFunctionsPane(int themeIndex, Runnable onChanged) {
         Label intro = new Label(
                 "Wähle, welche Bereiche du wirklich nutzt. Ausgeschaltete Funktionen verschwinden "
                         + "aus Toolbar und Editor, bleiben aber eingerichtet. Jederzeit hier wieder einschalten.");
@@ -179,7 +220,7 @@ public final class SetupAssistantWindow {
         cards.getColumnConstraints().addAll(left, right);
         int index = 0;
         for (FeaturePack pack : FeaturePack.values()) {
-            cards.add(buildFeatureCard(pack, cards), index % 2, index / 2);
+            cards.add(buildFeatureCard(pack, cards, onChanged, themeIndex), index % 2, index / 2);
             index++;
         }
         applyAiLock(cards, FeaturePacks.isStoredEnabled(FeaturePack.AI));
@@ -190,7 +231,7 @@ public final class SetupAssistantWindow {
         return root;
     }
 
-    private static Node buildFeatureCard(FeaturePack pack, Pane cards) {
+    private static Node buildFeatureCard(FeaturePack pack, Pane cards, Runnable onChanged, int themeIndex) {
         CheckBox enabled = new CheckBox(pack.title());
         enabled.setSelected(FeaturePacks.isStoredEnabled(pack));
         enabled.setWrapText(true);
@@ -199,6 +240,9 @@ public final class SetupAssistantWindow {
             FeaturePacks.setEnabled(pack, Boolean.TRUE.equals(now));
             if (pack == FeaturePack.AI) {
                 applyAiLock(cards, Boolean.TRUE.equals(now));
+            }
+            if (pack == FeaturePack.NI_LEKTORAT && onChanged != null) {
+                onChanged.run();
             }
         });
 
@@ -214,6 +258,9 @@ public final class SetupAssistantWindow {
         details.setStyle("-fx-opacity: 0.9; -fx-font-size: 12px;");
 
         VBox card = new VBox(4, enabled, summary, details);
+        if (pack == FeaturePack.NI_LEKTORAT) {
+            card.getChildren().add(buildNiLektoratRoleBox(enabled, onChanged, themeIndex));
+        }
         card.setPadding(new Insets(4, 8, 8, 0));
         card.setMaxWidth(Double.MAX_VALUE);
         card.getProperties().put("featurePack", pack);
@@ -221,12 +268,104 @@ public final class SetupAssistantWindow {
         return card;
     }
 
+    private static Node buildNiLektoratRoleBox(CheckBox enabled, Runnable onChanged, int themeIndex) {
+        Label heading = new Label("Arbeitsmodus");
+        heading.getStyleClass().add("dialog-label");
+
+        ToggleGroup roles = new ToggleGroup();
+        ToggleButton author = new ToggleButton("Autorenmodus");
+        ToggleButton lektor = new ToggleButton("Lektorenmodus");
+        author.setToggleGroup(roles);
+        lektor.setToggleGroup(roles);
+        author.setFocusTraversable(true);
+        lektor.setFocusTraversable(true);
+        author.setMaxWidth(Double.MAX_VALUE);
+        lektor.setMaxWidth(Double.MAX_VALUE);
+
+        Label saved = new Label();
+        saved.getStyleClass().add("dialog-label");
+
+        Label authorHint = new Label(
+                "„An Lektorat senden“ legt die ZIP automatisch in Dokumente ab "
+                        + "(Buchname-lektorat.ni.zip). „Lektorat-Rücksendung“ spielt nur Anmerkungen ein — "
+                        + "im Editor übernimmst oder verwirfst du. Die Originale bleiben.");
+        Label lektorHint = new Label(
+                "Du lädst die Autor-ZIP als neues Projekt unter Dokumente/Lektorat. Im Kapitel-Editor siehst du "
+                        + "Änderungen wie in Word (rot gestrichen, grün eingefügt) und setzt Kommentare. "
+                        + "„Lektorat-ZIP erstellen“ schickt die Überarbeitung zurück.");
+        for (Label hint : List.of(authorHint, lektorHint)) {
+            hint.setWrapText(true);
+            hint.setMaxWidth(500);
+            hint.getStyleClass().add("dialog-label");
+            hint.setStyle("-fx-opacity: 0.9; -fx-font-size: 12px;");
+        }
+
+        boolean lektorSelected = NiReviewRole.current() == NiReviewRole.LEKTOR;
+        author.setSelected(!lektorSelected);
+        lektor.setSelected(lektorSelected);
+        paintRoleToggle(author, themeIndex);
+        paintRoleToggle(lektor, themeIndex);
+        saved.setText("Gespeichert: " + (lektorSelected ? "Lektorenmodus" : "Autorenmodus"));
+
+        roles.selectedToggleProperty().addListener((obs, was, now) -> {
+            if (now == null) {
+                if (was != null) {
+                    Platform.runLater(() -> {
+                        was.setSelected(true);
+                        paintRoleToggle(author, themeIndex);
+                        paintRoleToggle(lektor, themeIndex);
+                    });
+                }
+                return;
+            }
+            NiReviewRole role = now == lektor ? NiReviewRole.LEKTOR : NiReviewRole.AUTHOR;
+            NiReviewRole.set(role);
+            paintRoleToggle(author, themeIndex);
+            paintRoleToggle(lektor, themeIndex);
+            saved.setText("Gespeichert: " + (role == NiReviewRole.LEKTOR ? "Lektorenmodus" : "Autorenmodus"));
+            if (onChanged != null) {
+                onChanged.run();
+            }
+        });
+
+        HBox switches = new HBox(8, author, lektor);
+        VBox box = new VBox(6, heading, switches, saved, authorHint, lektorHint);
+        box.setPadding(new Insets(8, 0, 0, 18));
+        box.visibleProperty().bind(enabled.selectedProperty());
+        box.managedProperty().bind(enabled.selectedProperty());
+        return box;
+    }
+
+    private static void paintRoleToggle(ToggleButton button, int themeIndex) {
+        boolean dark = themeIndex == 1 || themeIndex >= 3;
+        boolean on = button.isSelected();
+        String background;
+        String text;
+        String border;
+        if (on) {
+            background = dark ? "#f8fafc" : "#111827";
+            text = dark ? "#111827" : "#ffffff";
+            border = background;
+        } else {
+            background = "transparent";
+            text = EditorDialogThemes.color(themeIndex, 1);
+            border = dark ? "#e5e7eb" : "#6b7280";
+        }
+        button.setStyle("-fx-background-color: " + background
+                + "; -fx-text-fill: " + text
+                + "; -fx-border-color: " + border
+                + "; -fx-border-width: 2px; -fx-border-radius: 6px; -fx-background-radius: 6px"
+                + "; -fx-font-size: 14px; -fx-font-weight: bold; -fx-opacity: 1"
+                + "; -fx-padding: 8px 14px;");
+    }
+
     private static VBox buildPluginsPane(int themeIndex) {
         File catalogDir = PluginCatalog.catalogDirectory();
         String catalogPath = catalogDir != null ? catalogDir.getAbsolutePath() : "plugin-catalog";
 
         Label intro = new Label(
-                "Offizielle Erweiterungen werden hier geladen und ein- oder ausgeschaltet. "
+                "Offizielle Erweiterungen stehen im Ordner auf spoteroxe.de "
+                        + "(jede JAR plus gleichnamige TXT). Hier lädst du sie und schaltest sie ein oder aus. "
                         + "An = Kopie nach plugins/ (Toolbar), aus = wieder entfernen. "
                         + "Eigene JARs kannst du zusätzlich in diesen Ordner legen:");
         intro.setWrapText(true);

@@ -1,0 +1,7 @@
+Backup
+@project.version@
+
+Projekt als ZIP sichern (optional AES). Mehrere Ziele: Ordner/Cloud oder SSH/SCP, eigene Zeitpläne, Überwachung ohne Fenster.
+
+1.0.3: SSH-Connect-Timeout und Fortschritt; hängt nicht mehr endlos bei unerreichbarem Host.
+1.0.1: Signaturen aus der Shade-JAR entfernt; mehrere Ziele und SSH.

@@ -21,10 +21,12 @@ public enum BackupKind {
         if (id == null || id.isBlank()) {
             return FILESYSTEM;
         }
-        try {
-            return BackupKind.valueOf(id.trim().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return FILESYSTEM;
+        String trimmed = id.trim();
+        for (BackupKind kind : values()) {
+            if (kind.name().equalsIgnoreCase(trimmed) || kind.label.equalsIgnoreCase(trimmed)) {
+                return kind;
+            }
         }
+        return FILESYSTEM;
     }
 }

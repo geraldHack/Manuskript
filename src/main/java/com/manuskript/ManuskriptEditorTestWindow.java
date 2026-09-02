@@ -150,6 +150,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private int statusBusyDepth;
     private boolean quoteErrorsDialogShown;
     private ChapterAgentSupport chapterAgentSupport;
+    private com.manuskript.review.NiReviewChapterSupport niReviewSupport;
     private ChapterOnlineLektoratHelper lektoratHelper;
     private VBox lektoratPanelContainer;
     private ChapterLektoratPanel lektoratPanel;
@@ -258,6 +259,12 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 themeIndex);
         captureOriginalContent();
         editor.setOnTextChanged(text -> {
+            if (niReviewSupport != null && niReviewSupport.isSuppressingEditorEvents()) {
+                return;
+            }
+            if (niReviewSupport != null) {
+                niReviewSupport.onEditorTextChanged(text);
+            }
             if (!suppressDirty) {
                 updateDirtyFromContent(text);
             }
@@ -468,6 +475,10 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             editorContentColumn.getChildren().add(editorMdToolbar);
         }
 
+        niReviewSupport = new com.manuskript.review.NiReviewChapterSupport(editor);
+        niReviewSupport.setOnBaseChanged(() -> setDirty(true));
+        editorContentColumn.getChildren().add(niReviewSupport.getBanner());
+
         mainSplitPane = new SplitPane(mdTextArea.getEditorNode());
         ChapterEditorSplitPreferences.bindPersistence(mainSplitPane, preferences);
         lektoratPanel = new ChapterLektoratPanel(
@@ -475,7 +486,11 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 this::getEditorFontSizePx);
         lektoratPanel.setOnExit(this::exitOnlineLektorat);
         VBox.setVgrow(mainSplitPane, Priority.ALWAYS);
-        editorContentColumn.getChildren().add(mainSplitPane);
+        SplitPane editorReviewSplit = new SplitPane(mainSplitPane);
+        editorReviewSplit.getStyleClass().add("ni-review-split");
+        VBox.setVgrow(editorReviewSplit, Priority.ALWAYS);
+        niReviewSupport.bindSplitPane(editorReviewSplit);
+        editorContentColumn.getChildren().add(editorReviewSplit);
 
         HBox editorRow = new HBox(0, sidebarColumn, editorContentColumn);
         HBox.setHgrow(editorRow, Priority.ALWAYS);
@@ -1638,8 +1653,18 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             loadedProjectDirectory = chapter.file().getParentFile() != null
                     ? chapter.file().getParentFile().getParentFile()
                     : null;
+            if (niReviewSupport != null) {
+                try {
+                    niReviewSupport.persist();
+                } catch (IOException reviewError) {
+                    logger.warn("Review-JSON nicht gespeichert", reviewError);
+                }
+            }
             editor.loadDocument(chapter.content(), chapter.file().getParentFile(), loadedProjectDirectory);
             loadedChapterName = chapter.fileName();
+            if (niReviewSupport != null && FeaturePacks.niLektoratEnabled()) {
+                niReviewSupport.onChapterLoaded(loadedProjectDirectory, getEditorKey(), chapter.content());
+            }
             initializeImageDirectories();
             captureOriginalContent();
             setDirty(false);
@@ -1920,8 +1945,19 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             return;
         }
         try {
-            String normalized = ChapterMarkdownFormat.normalizeParagraphSpacing(editor.getText());
+            String toSave = editor.getText();
+            if (niReviewSupport != null && niReviewSupport.textForSave() != null) {
+                toSave = niReviewSupport.textForSave();
+            }
+            String normalized = ChapterMarkdownFormat.normalizeParagraphSpacing(toSave);
             Files.writeString(loadedChapterFile.toPath(), normalized, StandardCharsets.UTF_8);
+            if (niReviewSupport != null) {
+                try {
+                    niReviewSupport.persist();
+                } catch (IOException reviewError) {
+                    logger.warn("Review-JSON nicht gespeichert", reviewError);
+                }
+            }
             ChapterMdHistory.snapshotOnSave(loadedChapterFile, normalized);
             captureOriginalContent();
             setDirty(false);
@@ -2590,7 +2626,31 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     @Override
+    public void reloadNiReview() {
+        if (niReviewSupport == null) {
+            return;
+        }
+        try {
+            niReviewSupport.persist();
+        } catch (IOException reviewError) {
+            logger.warn("Review-JSON nicht gespeichert", reviewError);
+        }
+        if (!FeaturePacks.niLektoratEnabled() || loadedProjectDirectory == null) {
+            niReviewSupport.closedOrCleared();
+            return;
+        }
+        String live = editor.getText();
+        if (niReviewSupport.textForSave() != null) {
+            live = niReviewSupport.textForSave();
+        }
+        niReviewSupport.onChapterLoaded(loadedProjectDirectory, getEditorKey(), live);
+    }
+
+    @Override
     public String getText() {
+        if (niReviewSupport != null && niReviewSupport.textForSave() != null) {
+            return niReviewSupport.textForSave();
+        }
         return editor.getText();
     }
 

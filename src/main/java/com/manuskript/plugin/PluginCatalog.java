@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -67,10 +68,12 @@ public final class PluginCatalog {
             Files.createDirectories(catalogDir.toPath());
             File dest = new File(catalogDir, fileName);
             Files.copy(source.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            copySiblingNotes(source, dest);
             File pluginsDir = activeDirectory();
             File active = pluginsDir != null ? new File(pluginsDir, fileName) : null;
             if (active != null && active.isFile()) {
                 Files.copy(dest.toPath(), active.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                copySiblingNotes(dest, active);
                 logger.info("Plugin aktualisiert (aktiv): {}", fileName);
             } else {
                 logger.info("Plugin in den Katalog gelegt: {}", fileName);
@@ -131,14 +134,60 @@ public final class PluginCatalog {
             if (enabled) {
                 Files.createDirectories(pluginsDir.toPath());
                 Files.copy(catalogJar.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                copySiblingNotes(catalogJar, target);
                 logger.info("Plugin aktiviert: {}", target.getName());
             } else if (target.isFile()) {
                 Files.delete(target.toPath());
+                deleteSiblingNotes(target);
                 logger.info("Plugin deaktiviert: {}", target.getName());
             }
         } catch (IOException e) {
             throw new IllegalStateException(
                     (enabled ? "Kopieren" : "Löschen") + " fehlgeschlagen: " + e.getMessage(), e);
+        }
+    }
+
+    public static void installNotes(String jarFileName, String text) {
+        if (!PluginCatalogUrls.isAllowedFileName(jarFileName)) {
+            return;
+        }
+        File catalogDir = catalogDirectory();
+        if (catalogDir == null) {
+            return;
+        }
+        Path notes = PluginNotes.beside(new File(catalogDir, jarFileName).toPath());
+        if (notes == null) {
+            return;
+        }
+        try {
+            Files.createDirectories(notes.getParent());
+            Files.writeString(notes, text == null ? "" : text);
+            File pluginsDir = activeDirectory();
+            File activeJar = pluginsDir != null ? new File(pluginsDir, jarFileName) : null;
+            if (activeJar != null && activeJar.isFile()) {
+                Path activeNotes = PluginNotes.beside(activeJar.toPath());
+                if (activeNotes != null) {
+                    Files.copy(notes, activeNotes, StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        } catch (IOException e) {
+            logger.warn("Plugin-Notiz nicht geschrieben: {}", jarFileName, e);
+        }
+    }
+
+    private static void copySiblingNotes(File fromJar, File toJar) throws IOException {
+        Path from = PluginNotes.beside(fromJar.toPath());
+        Path to = PluginNotes.beside(toJar.toPath());
+        if (from == null || to == null || !Files.isRegularFile(from)) {
+            return;
+        }
+        Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    private static void deleteSiblingNotes(File jar) throws IOException {
+        Path notes = PluginNotes.beside(jar.toPath());
+        if (notes != null) {
+            Files.deleteIfExists(notes);
         }
     }
 

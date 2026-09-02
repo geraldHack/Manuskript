@@ -66,7 +66,7 @@ public final class StatsWindow {
 
     private VBox buildUi() {
         Label intro = new Label(
-                "Kennzahlen aus den ausgewählten Kapitel-Arbeitskopien (data/*.md). "
+                "Kennzahlen aus allen Kapitel-Arbeitskopien (jeder data/*.md), nicht nur der Auswahl. "
                         + "Kein Tagesverlauf — Scan beim Öffnen oder über Aktualisieren.");
         intro.setWrapText(true);
         intro.getStyleClass().add("dialog-label");
@@ -111,9 +111,9 @@ public final class StatsWindow {
     }
 
     private VBox speechBox() {
-        Label verbs = new Label("Nach Verb");
+        Label verbs = new Label("Sprechwörter — jedes Vorkommen als ganzes Wort");
         verbs.getStyleClass().add("dialog-title");
-        Label phrases = new Label("Vollständige Treffer");
+        Label phrases = new Label("Sprechantworten — dasselbe Verb, mit Folgeworten soweit vorhanden");
         phrases.getStyleClass().add("dialog-title");
         VBox.setVgrow(speechTable, Priority.ALWAYS);
         VBox.setVgrow(verbTable, Priority.SOMETIMES);
@@ -250,9 +250,12 @@ public final class StatsWindow {
             card.getChildren().addAll(caption, chapter);
             imagePane.getChildren().add(card);
         }
-        status.setText("Stand: " + stats.chapters.size() + " Kapitel mit Markdown, "
+        int verbHits = stats.speechVerbs.values().stream().mapToInt(Integer::intValue).sum();
+        int speechHits = stats.speechPhrases.values().stream().mapToInt(Integer::intValue).sum();
+        status.setText("Stand: " + stats.chapters.size() + " Kapitel, "
                 + stats.images.size() + " Bilder, "
-                + stats.speechPhrases.size() + " Sprechantworten.");
+                + verbHits + " Sprechwörter, "
+                + speechHits + " Sprechantworten.");
     }
 
     private static List<CountRow> toRows(Map<String, Integer> map) {

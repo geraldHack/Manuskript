@@ -1,0 +1,4 @@
+OpenRouter-Monitor
+@project.version@
+
+Credits und API-Logs für OpenRouter.

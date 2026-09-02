@@ -11,15 +11,23 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HexFormat;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * Lädt den offiziellen Plugin-Index und JARs von spoteroxe.de.
+ * Listet den Plugin-Ordner auf spoteroxe.de und lädt JARs plus gleichnamige {@code .txt}.
  */
 public final class PluginCatalogClient {
 
@@ -28,6 +36,7 @@ public final class PluginCatalogClient {
     private static final Duration INDEX_TIMEOUT = Duration.ofSeconds(20);
     private static final Duration JAR_TIMEOUT = Duration.ofSeconds(120);
     private static final long MAX_INDEX_BYTES = 512 * 1024;
+    private static final long MAX_NOTES_BYTES = 64 * 1024;
     private static final long MAX_JAR_BYTES = 80L * 1024 * 1024;
 
     private final HttpClient httpClient;
@@ -45,7 +54,7 @@ public final class PluginCatalogClient {
     public static HttpClient defaultClient() {
         return HttpClient.newBuilder()
                 .connectTimeout(CONNECT_TIMEOUT)
-                .followRedirects(HttpClient.Redirect.NEVER)
+                .followRedirects(HttpClient.Redirect.NORMAL)
                 .build();
     }
 
@@ -53,24 +62,44 @@ public final class PluginCatalogClient {
         if (!PluginCatalogUrls.isAllowed(indexUri)) {
             throw new IOException("Katalog-URL ist nicht erlaubt");
         }
-        HttpRequest request = HttpRequest.newBuilder(indexUri)
-                .timeout(INDEX_TIMEOUT)
-                .header("Accept", "application/json")
-                .header("User-Agent", userAgent())
-                .GET()
-                .build();
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() != 200) {
-            throw new IOException("Katalog nicht erreichbar (HTTP " + response.statusCode() + ")");
+        URI directory = listingDirectory(indexUri);
+        try {
+            HttpRequest request = HttpRequest.newBuilder(indexUri)
+                    .timeout(INDEX_TIMEOUT)
+                    .header("Accept", "text/html,text/plain,*/*")
+                    .header("User-Agent", userAgent())
+                    .GET()
+                    .build();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            URI listingUri = response.uri() != null ? response.uri() : indexUri;
+            if (response.statusCode() == 200
+                    && PluginCatalogUrls.isAllowed(listingUri)
+                    && response.body() != null
+                    && !response.body().isBlank()
+                    && response.body().length() <= MAX_INDEX_BYTES) {
+                List<String> names = PluginDirectoryListing.fileNames(response.body());
+                if (!names.isEmpty()) {
+                    directory = listingDirectory(listingUri);
+                    Map<String, PluginNotes> notes = new HashMap<>();
+                    for (String name : names) {
+                        if (name == null || !name.toLowerCase(Locale.ROOT).endsWith(".jar")) {
+                            continue;
+                        }
+                        String notesName = PluginJarName.notesFileName(name);
+                        notes.put(name.toLowerCase(Locale.ROOT), fetchNotes(directory.resolve(notesName)));
+                    }
+                    RemotePluginIndex listed = RemotePluginIndex.fromListing(directory, names, notes);
+                    if (!listed.plugins().isEmpty()) {
+                        return listed;
+                    }
+                }
+            }
+        } catch (InterruptedException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.debug("Plugin-Ordner nicht listbar, suche bekannte TXT: {}", e.getMessage());
         }
-        String body = response.body();
-        if (body == null || body.isBlank()) {
-            throw new IOException("Katalog ist leer");
-        }
-        if (body.length() > MAX_INDEX_BYTES) {
-            throw new IOException("Katalog ist zu groß");
-        }
-        return RemotePluginIndex.parse(body);
+        return fetchByProbing(directory);
     }
 
     public File download(RemotePluginIndex.Spec spec, File catalogDir)
@@ -106,15 +135,20 @@ public final class PluginCatalogClient {
             if (size > MAX_JAR_BYTES) {
                 throw new IOException("Download ist zu groß");
             }
-            String actual = sha256Hex(temp);
-            if (!actual.equals(spec.sha256())) {
-                throw new IOException("Prüfsumme stimmt nicht");
+            if (spec.sha256() != null && !spec.sha256().isBlank()) {
+                String actual = sha256Hex(temp);
+                if (!actual.equals(spec.sha256())) {
+                    throw new IOException("Prüfsumme stimmt nicht");
+                }
             }
             File downloaded = temp.toFile();
             if (!PluginLoader.hasPluginDescriptor(downloaded)) {
                 throw new IOException("Datei ist kein Manuskript-Plugin");
             }
-            return PluginCatalog.installJar(downloaded, spec.fileName());
+            File installed = PluginCatalog.installJar(downloaded, spec.fileName());
+            PluginCatalog.installNotes(spec.fileName(), new PluginNotes(
+                    spec.label(), spec.version(), spec.requires(), spec.description()).render());
+            return installed;
         } finally {
             try {
                 Files.deleteIfExists(temp);
@@ -122,6 +156,127 @@ public final class PluginCatalogClient {
                 logger.debug("Temp-JAR nicht gelöscht: {}", temp, e);
             }
         }
+    }
+
+    private RemotePluginIndex fetchByProbing(URI directory) {
+        URI dir = listingDirectory(directory);
+        Set<String> ids = new LinkedHashSet<>(PluginCatalogUrls.OFFICIAL_IDS);
+        for (PluginCatalog.Entry entry : PluginCatalog.list()) {
+            if (entry.id() != null && PluginCatalogUrls.isAllowedId(entry.id())) {
+                ids.add(entry.id());
+            }
+            PluginJarName.Parsed parsed = PluginJarName.parse(entry.fileName());
+            if (parsed != null) {
+                ids.add(parsed.id());
+            }
+        }
+        List<String> names = new ArrayList<>();
+        Map<String, PluginNotes> notes = new HashMap<>();
+        for (String id : ids) {
+            PluginNotes best = PluginNotes.empty();
+            String bestVersion = "";
+            for (String candidate : noteCandidates(id)) {
+                PluginNotes parsed = fetchNotes(dir.resolve(candidate));
+                if (parsed.label().isBlank() && parsed.version().isBlank() && parsed.description().isBlank()) {
+                    continue;
+                }
+                String version = !parsed.version().isBlank()
+                        ? parsed.version()
+                        : versionFromNotesFileName(candidate);
+                if (version.isBlank()) {
+                    continue;
+                }
+                if (bestVersion.isEmpty() || PluginVersions.compare(bestVersion, version) < 0) {
+                    best = parsed;
+                    bestVersion = version;
+                }
+            }
+            if (bestVersion.isBlank()) {
+                continue;
+            }
+            String jarName = id + "-" + bestVersion + ".jar";
+            names.add(jarName);
+            names.add(id + "-" + bestVersion + ".txt");
+            notes.put(jarName.toLowerCase(Locale.ROOT), new PluginNotes(
+                    best.label(), bestVersion, best.requires(), best.description()));
+        }
+        return RemotePluginIndex.fromListing(dir, names, notes);
+    }
+
+    static List<String> noteCandidates(String id) {
+        LinkedHashSet<String> names = new LinkedHashSet<>();
+        if (id == null || id.isBlank()) {
+            return List.of();
+        }
+        names.add(id + ".txt");
+        String localVersion = localNotesVersion(id);
+        if (!localVersion.isBlank()) {
+            names.add(id + "-" + localVersion + ".txt");
+            for (String next : PluginVersions.successorVersions(localVersion)) {
+                names.add(id + "-" + next + ".txt");
+            }
+        }
+        return List.copyOf(names);
+    }
+
+    static String localNotesVersion(String id) {
+        File catalog = PluginCatalog.catalogDirectory();
+        if (catalog == null || id == null) {
+            return "";
+        }
+        String beside = PluginNotes.loadBeside(new File(catalog, id + ".jar").toPath()).version();
+        if (!beside.isBlank()) {
+            return beside;
+        }
+        File plugins = PluginCatalog.activeDirectory();
+        if (plugins != null) {
+            return PluginNotes.loadBeside(new File(plugins, id + ".jar").toPath()).version();
+        }
+        return "";
+    }
+
+    static String versionFromNotesFileName(String fileName) {
+        if (fileName == null || !fileName.toLowerCase(Locale.ROOT).endsWith(".txt")) {
+            return "";
+        }
+        PluginJarName.Parsed parsed = PluginJarName.parse(fileName.substring(0, fileName.length() - 4) + ".jar");
+        return parsed == null ? "" : parsed.version();
+    }
+
+    private PluginNotes fetchNotes(URI uri) {
+        if (!PluginCatalogUrls.isAllowed(uri)) {
+            return PluginNotes.empty();
+        }
+        try {
+            HttpRequest request = HttpRequest.newBuilder(uri)
+                    .timeout(INDEX_TIMEOUT)
+                    .header("Accept", "text/plain,*/*")
+                    .header("User-Agent", userAgent())
+                    .GET()
+                    .build();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200 || response.body() == null) {
+                return PluginNotes.empty();
+            }
+            if (response.body().length() > MAX_NOTES_BYTES) {
+                return PluginNotes.parse(response.body().substring(0, (int) MAX_NOTES_BYTES));
+            }
+            return PluginNotes.parse(response.body());
+        } catch (Exception e) {
+            logger.debug("Plugin-Notiz nicht geladen: {}", uri, e);
+            return PluginNotes.empty();
+        }
+    }
+
+    private static URI listingDirectory(URI uri) {
+        if (uri == null) {
+            return PluginCatalogUrls.indexUri();
+        }
+        String asString = uri.toString();
+        if (!asString.endsWith("/")) {
+            return URI.create(asString + "/");
+        }
+        return uri;
     }
 
     public static String sha256Hex(File file) throws IOException {

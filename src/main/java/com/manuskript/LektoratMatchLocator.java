@@ -67,17 +67,23 @@ public final class LektoratMatchLocator {
     }
 
     /**
-     * Verschiebt Match-Offsets nach einer Textänderung (Prefix/Suffix-Diff).
-     * Treffer, die die Änderungsregion überlappen, werden entfernt.
+     * Beschreibt eine Textänderung als Prefix/Suffix-Diff.
      *
-     * @return {@code true} wenn mindestens ein Match entfernt wurde
+     * @param changeStart Index des ersten geänderten Zeichens
+     * @param changeEndOld Exklusives Ende der geänderten Region im alten Text
+     * @param delta {@code newLength - oldLength}
      */
-    public static boolean shiftAfterTextChange(String oldText, String newText, List<LektoratMatch> matches) {
-        if (oldText == null || newText == null || matches == null || matches.isEmpty()) {
-            return false;
-        }
-        if (oldText.equals(newText)) {
-            return false;
+    public record TextChange(int changeStart, int changeEndOld, int delta) {
+    }
+
+    /**
+     * Ermittelt die geänderte Region zwischen zwei Textständen.
+     *
+     * @return {@code null} wenn beide Texte gleich sind
+     */
+    public static TextChange computeTextChange(String oldText, String newText) {
+        if (oldText == null || newText == null || oldText.equals(newText)) {
+            return null;
         }
 
         int changeStart = 0;
@@ -86,7 +92,7 @@ public final class LektoratMatchLocator {
             changeStart++;
         }
         if (changeStart >= minLen && oldText.length() == newText.length()) {
-            return false;
+            return null;
         }
 
         int oldEnd = oldText.length() - 1;
@@ -98,8 +104,25 @@ public final class LektoratMatchLocator {
         }
         int changeEndOld = oldEnd + 1;
         int delta = newText.length() - oldText.length();
+        return new TextChange(changeStart, changeEndOld, delta);
+    }
+
+    /**
+     * Wendet eine zuvor berechnete Textänderung auf Match-Offsets an.
+     * Treffer, die die Änderungsregion überlappen, werden entfernt.
+     *
+     * @return {@code true} wenn mindestens ein Match entfernt oder verschoben wurde
+     */
+    public static boolean applyTextChange(TextChange change, List<LektoratMatch> matches) {
+        if (change == null || matches == null || matches.isEmpty()) {
+            return false;
+        }
+        int changeStart = change.changeStart();
+        int changeEndOld = change.changeEndOld();
+        int delta = change.delta();
 
         List<LektoratMatch> toRemove = new ArrayList<>();
+        boolean shifted = false;
         for (LektoratMatch match : matches) {
             int matchOffset = match.getOffset();
             int matchLength = match.getLength() > 0
@@ -109,14 +132,27 @@ public final class LektoratMatchLocator {
             if (matchOffset < changeEndOld && matchEnd > changeStart) {
                 toRemove.add(match);
             } else if (matchOffset >= changeEndOld) {
-                match.setOffset(matchOffset + delta);
+                if (delta != 0) {
+                    match.setOffset(matchOffset + delta);
+                    shifted = true;
+                }
             }
         }
         if (!toRemove.isEmpty()) {
             matches.removeAll(toRemove);
             return true;
         }
-        return false;
+        return shifted;
+    }
+
+    /**
+     * Verschiebt Match-Offsets nach einer Textänderung (Prefix/Suffix-Diff).
+     * Treffer, die die Änderungsregion überlappen, werden entfernt.
+     *
+     * @return {@code true} wenn mindestens ein Match entfernt oder verschoben wurde
+     */
+    public static boolean shiftAfterTextChange(String oldText, String newText, List<LektoratMatch> matches) {
+        return applyTextChange(computeTextChange(oldText, newText), matches);
     }
 
     /**

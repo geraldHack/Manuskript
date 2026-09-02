@@ -1,4 +1,6 @@
-# Lädt offizielle Plugin-JARs und manuskript-plugins.json nach spoteroxe.de.
+# Optional: lädt gebaute Plugin-JARs plus gleichnamige .txt nach
+# https://spoteroxe.de/downloads/plugins/
+# Kein JSON-Index. Die Dateien kannst du auch von Hand kopieren.
 param(
     [string] $DeployHost = $(if ($env:MANUSKRIPT_DEPLOY_HOST) { $env:MANUSKRIPT_DEPLOY_HOST } else { "spoteroxe.de" }),
     [string] $RemoteDir = $(if ($env:MANUSKRIPT_DEPLOY_PATH) { $env:MANUSKRIPT_DEPLOY_PATH } else { "/home/gehack/home/downloads" })
@@ -6,22 +8,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $RootDir = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
-$OrJar = Join-Path $RootDir "tools\openrouter-monitor\target\openrouter-monitor.jar"
-$MmJar = Join-Path $RootDir "tools\mammouth-monitor\target\mammouth-monitor.jar"
-$BkJar = Join-Path $RootDir "tools\projekt-backup\target\projekt-backup.jar"
-$StJar = Join-Path $RootDir "tools\schreib-statistik\target\schreib-statistik.jar"
-if (-not (Test-Path -LiteralPath $OrJar)) {
-    throw "JAR fehlt: $OrJar — zuerst tools\openrouter-monitor: mvn package"
-}
-if (-not (Test-Path -LiteralPath $MmJar)) {
-    throw "JAR fehlt: $MmJar — zuerst tools\mammouth-monitor: mvn package"
-}
-if (-not (Test-Path -LiteralPath $BkJar)) {
-    throw "JAR fehlt: $BkJar — zuerst tools\projekt-backup: mvn package"
-}
-if (-not (Test-Path -LiteralPath $StJar)) {
-    throw "JAR fehlt: $StJar — zuerst tools\schreib-statistik: mvn package"
-}
+$RemotePlugins = "$RemoteDir/plugins"
 
 function Get-PomVersion([string] $PomPath) {
     [xml] $pom = Get-Content -LiteralPath $PomPath
@@ -34,92 +21,42 @@ function Get-PomVersion([string] $PomPath) {
     return $ver.InnerText.Trim()
 }
 
-$OrVersion = Get-PomVersion (Join-Path $RootDir "tools\openrouter-monitor\pom.xml")
-$MmVersion = Get-PomVersion (Join-Path $RootDir "tools\mammouth-monitor\pom.xml")
-$BkVersion = Get-PomVersion (Join-Path $RootDir "tools\projekt-backup\pom.xml")
-$StVersion = Get-PomVersion (Join-Path $RootDir "tools\schreib-statistik\pom.xml")
-$OrName = "openrouter-monitor-$OrVersion.jar"
-$MmName = "mammouth-monitor-$MmVersion.jar"
-$BkName = "projekt-backup-$BkVersion.jar"
-$StName = "schreib-statistik-$StVersion.jar"
-$OrSha = (Get-FileHash -LiteralPath $OrJar -Algorithm SHA256).Hash.ToLowerInvariant()
-$MmSha = (Get-FileHash -LiteralPath $MmJar -Algorithm SHA256).Hash.ToLowerInvariant()
-$BkSha = (Get-FileHash -LiteralPath $BkJar -Algorithm SHA256).Hash.ToLowerInvariant()
-$StSha = (Get-FileHash -LiteralPath $StJar -Algorithm SHA256).Hash.ToLowerInvariant()
-$Iso = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
-$Base = "https://spoteroxe.de/downloads/plugins"
-$RemotePlugins = "$RemoteDir/plugins"
-
-$doc = [ordered]@{
-    updated = $Iso
-    plugins = @(
-        [ordered]@{
-            id          = "openrouter-monitor"
-            label       = "OpenRouter-Monitor"
-            version     = $OrVersion
-            description = "Credits und API-Logs für OpenRouter."
-            fileName    = "openrouter-monitor.jar"
-            jar         = "$Base/$OrName"
-            sha256      = $OrSha
-            requires    = "2.1.70"
-        },
-        [ordered]@{
-            id          = "mammouth-monitor"
-            label       = "Mammouth-Monitor"
-            version     = $MmVersion
-            description = "Credits und Modellliste für Mammouth."
-            fileName    = "mammouth-monitor.jar"
-            jar         = "$Base/$MmName"
-            sha256      = $MmSha
-            requires    = "2.1.70"
-        },
-        [ordered]@{
-            id          = "projekt-backup"
-            label       = "Backup"
-            version     = $BkVersion
-            description = "Projekt als ZIP sichern (optional AES). Mehrere Ziele: Ordner/Cloud oder SSH/SCP, eigene Zeitpläne, Überwachung ohne Fenster."
-            fileName    = "projekt-backup.jar"
-            jar         = "$Base/$BkName"
-            sha256      = $BkSha
-            requires    = "2.1.72"
-        },
-        [ordered]@{
-            id          = "schreib-statistik"
-            label       = "Statistik"
-            version     = $StVersion
-            description = "Wörter, Kapitel, zuletzt bearbeitet, Sprechantworten, Phrasen und Bilder im geöffneten Buch."
-            fileName    = "schreib-statistik.jar"
-            jar         = "$Base/$StName"
-            sha256      = $StSha
-            requires    = "2.1.72"
-        }
-    )
+function Upload-PluginPair([string] $Tool) {
+    $jar = Join-Path $RootDir "tools\$Tool\target\$Tool.jar"
+    $version = Get-PomVersion (Join-Path $RootDir "tools\$Tool\pom.xml")
+    $remoteJar = "$Tool-$version.jar"
+    $notes = Join-Path $RootDir "tools\$Tool\target\$Tool-$version.txt"
+    $latest = Join-Path $RootDir "tools\$Tool\target\$Tool.txt"
+    if (-not (Test-Path -LiteralPath $jar)) {
+        throw "JAR fehlt: $jar — zuerst tools\$Tool : mvn package"
+    }
+    if (-not (Test-Path -LiteralPath $notes)) {
+        throw "TXT fehlt: $notes — mvn package muss die .txt neben die JAR legen."
+    }
+    scp -o BatchMode=yes $jar "${DeployHost}:${RemotePlugins}/${remoteJar}"
+    if ($LASTEXITCODE -ne 0) { throw "scp $remoteJar fehlgeschlagen." }
+    scp -o BatchMode=yes $notes "${DeployHost}:${RemotePlugins}/$Tool-$version.txt"
+    if ($LASTEXITCODE -ne 0) { throw "scp $Tool-$version.txt fehlgeschlagen." }
+    if (Test-Path -LiteralPath $latest) {
+        scp -o BatchMode=yes $latest "${DeployHost}:${RemotePlugins}/$Tool.txt"
+        if ($LASTEXITCODE -ne 0) { throw "scp $Tool.txt fehlgeschlagen." }
+    }
+    ssh -o BatchMode=yes $DeployHost "chmod 644 '$RemotePlugins/$remoteJar' '$RemotePlugins/$Tool-$version.txt' '$RemotePlugins/$Tool.txt'"
+    if ($LASTEXITCODE -ne 0) { throw "chmod auf dem Server fehlgeschlagen." }
+    Write-Host "     $remoteJar"
+    Write-Host "     $Tool-$version.txt"
+    Write-Host "     $Tool.txt"
 }
 
-$jsonPath = Join-Path $env:TEMP "manuskript-plugins.json"
-($doc | ConvertTo-Json -Depth 6) | Set-Content -Encoding utf8 -LiteralPath $jsonPath
-
 Write-Host ""
-Write-Host "[Upload] Plugin-Katalog nach ${DeployHost}:${RemotePlugins}"
+Write-Host "[Upload] Plugins (JAR + TXT) nach ${DeployHost}:${RemotePlugins}"
 ssh -o BatchMode=yes -o ConnectTimeout=15 $DeployHost "mkdir -p '$RemotePlugins'"
 if ($LASTEXITCODE -ne 0) { throw "SSH zu $DeployHost fehlgeschlagen." }
 
-scp -o BatchMode=yes $OrJar "${DeployHost}:${RemotePlugins}/${OrName}"
-if ($LASTEXITCODE -ne 0) { throw "scp OpenRouter-JAR fehlgeschlagen." }
-scp -o BatchMode=yes $MmJar "${DeployHost}:${RemotePlugins}/${MmName}"
-if ($LASTEXITCODE -ne 0) { throw "scp Mammouth-JAR fehlgeschlagen." }
-scp -o BatchMode=yes $BkJar "${DeployHost}:${RemotePlugins}/${BkName}"
-if ($LASTEXITCODE -ne 0) { throw "scp Backup-JAR fehlgeschlagen." }
-scp -o BatchMode=yes $StJar "${DeployHost}:${RemotePlugins}/${StName}"
-if ($LASTEXITCODE -ne 0) { throw "scp Statistik-JAR fehlgeschlagen." }
-scp -o BatchMode=yes $jsonPath "${DeployHost}:${RemoteDir}/manuskript-plugins.json"
-if ($LASTEXITCODE -ne 0) { throw "scp JSON fehlgeschlagen." }
-ssh -o BatchMode=yes $DeployHost "chmod 644 '$RemoteDir/manuskript-plugins.json' '$RemotePlugins/$OrName' '$RemotePlugins/$MmName' '$RemotePlugins/$BkName' '$RemotePlugins/$StName'"
-if ($LASTEXITCODE -ne 0) { throw "chmod auf dem Server fehlgeschlagen." }
+Upload-PluginPair openrouter-monitor
+Upload-PluginPair mammouth-monitor
+Upload-PluginPair projekt-backup
+Upload-PluginPair schreib-statistik
 
-Remove-Item -ErrorAction SilentlyContinue $jsonPath
-Write-Host "[OK] https://spoteroxe.de/downloads/manuskript-plugins.json"
-Write-Host "     $OrName  $OrSha"
-Write-Host "     $MmName  $MmSha"
-Write-Host "     $BkName  $BkSha"
-Write-Host "     $StName  $StSha"
+Write-Host "[OK] https://spoteroxe.de/downloads/plugins/"
+Write-Host "     Verzeichnislisting muss öffentlich sein (Apache Options Indexes)."

@@ -1,20 +1,29 @@
 package com.manuskript;
 
 import javafx.scene.Scene;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.geometry.Insets;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
 import javafx.stage.Screen;
 import javafx.geometry.Pos;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -22,6 +31,9 @@ import javafx.scene.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.manuskript.windowhandling.MacWindowManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Eigene Stage-Klasse mit benutzerdefinierter Titelleiste
@@ -70,6 +82,9 @@ public class CustomStage extends Stage {
     private static final String MAC_MAXIMIZE_TEXT_COLOR = "#ffffff";
     private static final String CLOSE_HOVER_BACKGROUND = "#e74c3c";
     private static final String CLOSE_HOVER_TEXT_COLOR = "white";
+    private static final double RESIZE_HANDLE_OUTER = 18.0;
+    private static final double RESIZE_HANDLE_INNER = 12.0;
+    private static final double RESIZE_BORDER = 10.0;
     
     private static final String PROPERTY_HIDE_ICON = "hideIcon";
     private static final String PROPERTY_USE_SIMPLE_ACTIONS = "useSimpleActions";
@@ -101,10 +116,15 @@ public class CustomStage extends Stage {
     private Button maximizeBtn;
     private Button closeBtn;
     private Region spacer;
+    private Node resizeHandle;
+    private Region resizeHandleBackground;
+    private final List<Rectangle> resizeGripBars = new ArrayList<>();
+    private final List<Node> resizeEdgeZones = new ArrayList<>();
     
     public CustomStage() {
         super();
         initStyle(StageStyle.UNDECORATED);
+        setResizable(true);
         
         // macOS Window Manager initialisieren
         initializeMacWindowManager();
@@ -120,6 +140,7 @@ public class CustomStage extends Stage {
             if (maximizeBtn != null) {
                 maximizeBtn.setText(newVal ? DEFAULT_MAXIMIZE_SYMBOL_MAXIMIZED : DEFAULT_MAXIMIZE_SYMBOL);
             }
+            updateResizeHandleVisibility();
         });
 
         installMinimizeRestoreRecovery();
@@ -200,6 +221,7 @@ public class CustomStage extends Stage {
     public CustomStage(StageStyle style) {
         super(style);
         initStyle(StageStyle.UNDECORATED);
+        setResizable(true);
         
         // macOS Window Manager initialisieren
         initializeMacWindowManager();
@@ -218,6 +240,7 @@ public class CustomStage extends Stage {
                     maximizeBtn.setText(newVal ? DEFAULT_MAXIMIZE_SYMBOL_MAXIMIZED : DEFAULT_MAXIMIZE_SYMBOL);
                 }
             }
+            updateResizeHandleVisibility();
         });
 
         installMinimizeRestoreRecovery();
@@ -622,6 +645,7 @@ public class CustomStage extends Stage {
         setWidth(bounds.getWidth());
         setHeight(bounds.getHeight());
         isMaximized = true;
+        updateResizeHandleVisibility();
     }
 
     private void restoreWindowBounds() {
@@ -633,6 +657,7 @@ public class CustomStage extends Stage {
         setX(restoreX);
         setY(restoreY);
         isMaximized = false;
+        updateResizeHandleVisibility();
     }
 
     /** Stellt normale Fenstergröße wieder her, falls maximiert (z. B. Ctrl+R Reset). */
@@ -679,51 +704,41 @@ public class CustomStage extends Stage {
      */
     public void setSceneWithTitleBar(Scene scene) {
         if (scene != null) {
-            VBox newRoot = new VBox();
-
-            // Ursprünglichen Root zwischenspeichern
             javafx.scene.Parent originalRoot = scene.getRoot();
 
-            // WICHTIG: Theme-/Style-Klassen und ID vom alten Root auf den neuen Root übernehmen,
-            // damit .root.theme-* und ähnliche Selektoren weiterhin greifen
-            newRoot.getStyleClass().addAll(originalRoot.getStyleClass());
+            VBox contentColumn = new VBox(titleBar, originalRoot);
+            VBox.setVgrow(originalRoot, Priority.ALWAYS);
+
+            StackPane chromeRoot = new StackPane(contentColumn);
+            chromeRoot.getStyleClass().addAll(originalRoot.getStyleClass());
             if (originalRoot.getId() != null && !originalRoot.getId().isEmpty()) {
-                newRoot.setId(originalRoot.getId());
+                chromeRoot.setId(originalRoot.getId());
             }
 
-            newRoot.getChildren().addAll(titleBar, originalRoot);
-            VBox.setVgrow(originalRoot, Priority.ALWAYS);
-            
-            // Theme-Klassen explizit auf newRoot setzen, damit .theme-dark.blau-theme .title-bar etc. greifen
-            applyThemeClassesToNode(newRoot, activeThemeIndex);
-            
-            // Neue Scene mit Titelleiste erstellen
-            Scene newScene = new Scene(newRoot);
-            newScene.getStylesheets().addAll(scene.getStylesheets());
-            
-            newRoot.setStyle("-fx-border-width: 0px; -fx-border-color: transparent; -fx-padding: 0px; -fx-margin: 0px; -fx-spacing: 0px;");
-            
-            super.setScene(newScene);
+            resizeEdgeZones.clear();
+            installResizeChrome(chromeRoot);
 
+            applyThemeClassesToNode(chromeRoot, activeThemeIndex);
+            applyResizeHandleTheme(activeThemeIndex);
+            updateResizeHandleVisibility();
+
+            Scene newScene = new Scene(chromeRoot);
+            newScene.getStylesheets().addAll(scene.getStylesheets());
+            chromeRoot.setStyle("-fx-border-width: 0px; -fx-border-color: transparent; -fx-padding: 0px; -fx-margin: 0px; -fx-spacing: 0px;");
+
+            super.setScene(newScene);
             DebugWindow.bindOpenShortcut(newScene, this);
-            
-            // Resize-Handles hinzufügen
-            setupResizeHandles(newScene);
-            
-            // WICHTIG: Border sofort nach setScene setzen
-            if (currentTextColor != null && activeThemeIndex != 2) { // Kein Border für Pastell-Theme
-                // Border basierend auf aktueller Textfarbe setzen
+            // Drag weiterverfolgen, wenn die Maus die schmale Zone verlässt
+            setupResizeDragFollow(newScene);
+
+            if (currentTextColor != null && activeThemeIndex != 2) {
                 String borderColor = currentTextColor.equals("white") ? "white" : "black";
                 setStageBorder(borderColor);
-            } else if (activeThemeIndex == 2) {
-                // Pastell-Theme: Kein Border setzen
             }
-            
-            // Nur bei expliziter Anforderung Legacy-Größen laden
+
             if (Boolean.TRUE.equals(getProperties().get(PROPERTY_USE_LEGACY_WINDOW_SIZE))) {
                 loadWindowSize();
             }
-            
         } else {
             super.setScene(null);
         }
@@ -745,158 +760,122 @@ public class CustomStage extends Stage {
     // Debug vollständig entfernt
     
     /**
-     * Richtet Resize-Handles für das Fenster ein
+     * Resize wie Titelleisten-Drag: direkte Mouse-Handler auf den Griff-/Rand-Nodes.
+     * Scene-Filter mit consume(PRESSED) verhindern unter macOS oft die Drag-Events.
      */
-    private void setupResizeHandles(Scene scene) {
-        // IMMER die grundlegenden Resize-Handler einrichten
-        setupStandardResizeHandles(scene);
-        
-        if (useMacWindowManager && macWindowManager != null) {
-            // Zusätzliche macOS-Features wie Edge-Snapping etc.
-            // Grundlegendes Resize wird bereits oben gehandhabt
-        }
+    private void installResizeChrome(StackPane chromeRoot) {
+        chromeRoot.getChildren().add(createEdgeStrip("N", Pos.TOP_CENTER, true));
+        chromeRoot.getChildren().add(createEdgeStrip("S", Pos.BOTTOM_CENTER, true));
+        chromeRoot.getChildren().add(createEdgeStrip("W", Pos.CENTER_LEFT, false));
+        chromeRoot.getChildren().add(createEdgeStrip("E", Pos.CENTER_RIGHT, false));
+        chromeRoot.getChildren().add(createCornerPad("NW", Pos.TOP_LEFT));
+        chromeRoot.getChildren().add(createCornerPad("NE", Pos.TOP_RIGHT));
+        chromeRoot.getChildren().add(createCornerPad("SW", Pos.BOTTOM_LEFT));
+        chromeRoot.getChildren().add(createCornerPad("SE", Pos.BOTTOM_RIGHT));
+
+        resizeHandle = createResizeHandle();
+        StackPane.setAlignment(resizeHandle, Pos.BOTTOM_RIGHT);
+        StackPane.setMargin(resizeHandle, new Insets(0, 4, 4, 0));
+        chromeRoot.getChildren().add(resizeHandle);
     }
-    
-    /**
-     * Standard Resize-Handles (für non-macOS oder wenn MacWindowManager nicht verfügbar)
-     */
-    private void setupStandardResizeHandles(Scene scene) {
-        final int RESIZE_BORDER = 10; // Vergrößert für bessere Erkennung
-        
-        // WICHTIG: EventFilter verwenden, um Events VOR anderen Handlern abzufangen
-        scene.addEventFilter(MouseEvent.MOUSE_MOVED, event -> {
-            // Cursor-Lock respektieren - nicht überschreiben wenn gesperrt
-            if (cursorLocked) {
-                return;
-            }
-            
-            // Warte-Cursor respektieren - nicht überschreiben
-            if (scene.getCursor() == javafx.scene.Cursor.WAIT) {
-                return;
-            }
-            
-            // KEINE Maximierungs-Checks mehr
-            
-            if (titleBarDragging || isInTitleBar(event)) {
-                scene.setCursor(javafx.scene.Cursor.DEFAULT);
-                return;
-            }
-            
-            // Prüfe, ob wir uns in einem Textbereich befinden - dann kein Resize
-            // ABER: Nur wenn wir nicht am Rand sind
-            if (event.getTarget() instanceof Node) {
-                Node target = (Node) event.getTarget();
-                if (target != null && (target.getStyleClass().contains("code-area") || 
-                                      target.getStyleClass().contains("text-area") ||
-                                      target.getStyleClass().contains("text-field") ||
-                                      target.getStyleClass().contains("editor"))) {
-                    // Nur TEXT-Cursor setzen, wenn wir nicht am Rand sind
-                    double x = event.getSceneX();
-                    double y = event.getSceneY();
-                    double width = scene.getWidth();
-                    double height = scene.getHeight();
-                    
-                    // Wenn wir am Rand sind, Resize-Cursor verwenden
-                    if (x < RESIZE_BORDER || x >= width - RESIZE_BORDER || 
-                        y < RESIZE_BORDER || y >= height - RESIZE_BORDER) {
-                        // Resize-Cursor wird weiter unten gesetzt
-                    } else {
-                        scene.setCursor(javafx.scene.Cursor.TEXT);
-                        return;
-                    }
-                }
-            }
-            
-            double x = event.getSceneX();
-            double y = event.getSceneY();
-            double width = scene.getWidth();
-            double height = scene.getHeight();
-            
-            // Resize-Cursor anzeigen - ALLE RICHTUNGEN AKTIVIERT
-            if (x < RESIZE_BORDER && y < RESIZE_BORDER) {
-                scene.setCursor(javafx.scene.Cursor.NW_RESIZE);
-            } else if (x >= width - RESIZE_BORDER && y < RESIZE_BORDER) {
-                scene.setCursor(javafx.scene.Cursor.NE_RESIZE);
-            } else if (x < RESIZE_BORDER && y >= height - RESIZE_BORDER) {
-                scene.setCursor(javafx.scene.Cursor.SW_RESIZE);
-            } else if (x >= width - RESIZE_BORDER && y >= height - RESIZE_BORDER) {
-                scene.setCursor(javafx.scene.Cursor.SE_RESIZE);
-            } else if (x < RESIZE_BORDER) {
-                scene.setCursor(javafx.scene.Cursor.W_RESIZE);
-            } else if (x >= width - RESIZE_BORDER) {
-                scene.setCursor(javafx.scene.Cursor.E_RESIZE);
-            } else if (y < RESIZE_BORDER) {
-                scene.setCursor(javafx.scene.Cursor.N_RESIZE);
-            } else if (y >= height - RESIZE_BORDER) {
-                scene.setCursor(javafx.scene.Cursor.S_RESIZE);
-            } else {
-                scene.setCursor(javafx.scene.Cursor.DEFAULT);
-            }
-        });
-        
-        // WICHTIG: EventFilter für Mouse-Press verwenden
-        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-            // KEINE Maximierungs-Checks mehr
-            
-            if (titleBarDragging || isInTitleBar(event)) {
-                return;
-            }
-            
-            // Prüfe, ob wir uns in einem Textbereich befinden - dann kein Resize
-            if (event.getTarget() instanceof Node) {
-                Node target = (Node) event.getTarget();
-                if (target != null && (target.getStyleClass().contains("code-area") || 
-                                      target.getStyleClass().contains("text-area") ||
-                                      target.getStyleClass().contains("text-field") ||
-                                      target.getStyleClass().contains("editor"))) {
-                    return; // Textbereich - kein Resize
-                }
-            }
-            
-            // WICHTIG: Resize NUR starten, wenn der Cursor bereits auf einem Resize-Cursor steht - ALLE RICHTUNGEN AKTIVIERT
-            if (scene.getCursor() == javafx.scene.Cursor.E_RESIZE ||
-                scene.getCursor() == javafx.scene.Cursor.W_RESIZE ||
-                scene.getCursor() == javafx.scene.Cursor.N_RESIZE ||
-                scene.getCursor() == javafx.scene.Cursor.S_RESIZE ||
-                scene.getCursor() == javafx.scene.Cursor.NE_RESIZE ||
-                scene.getCursor() == javafx.scene.Cursor.NW_RESIZE ||
-                scene.getCursor() == javafx.scene.Cursor.SE_RESIZE ||
-                scene.getCursor() == javafx.scene.Cursor.SW_RESIZE) {
-                
-                double x = event.getSceneX();
-                double y = event.getSceneY();
-                double width = scene.getWidth();
-                double height = scene.getHeight();
-                
-                startResize(event, x, y, width, height);
-                event.consume(); // WICHTIG: Event konsumieren, damit ScrollPane es nicht bekommt
-            }
-        });
-        
-        // WICHTIG: EventFilter für Mouse-Drag verwenden
+
+    private void setupResizeDragFollow(Scene scene) {
         scene.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
-            if (titleBarDragging) {
+            if (titleBarDragging || !isResizing) {
                 return;
             }
-            if (isResizing) {
-                performResize(event);
-                event.consume(); // WICHTIG: Event konsumieren während Resize
-            }
+            performResize(event);
+            event.consume();
         });
-        
-        // WICHTIG: EventFilter für Mouse-Release verwenden
         scene.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
-            if (isResizing) {
-                isResizing = false;
-                titleBarDragging = false;
-                scene.setCursor(javafx.scene.Cursor.DEFAULT);
-                
-                // Größe nach Resize speichern
-                saveWindowSize();
-                
-                event.consume(); // WICHTIG: Event konsumieren
+            if (!isResizing) {
+                return;
             }
+            finishResize(scene);
+            event.consume();
         });
+    }
+
+    private Region createEdgeStrip(String direction, Pos alignment, boolean horizontal) {
+        Region zone = createPickableResizeRegion();
+        zone.setCursor(cursorForDirection(direction));
+        StackPane.setAlignment(zone, alignment);
+        if (horizontal) {
+            zone.setMinHeight(RESIZE_BORDER);
+            zone.setPrefHeight(RESIZE_BORDER);
+            zone.setMaxHeight(RESIZE_BORDER);
+            zone.setMaxWidth(Double.MAX_VALUE);
+            StackPane.setMargin(zone, new Insets(0, RESIZE_BORDER, 0, RESIZE_BORDER));
+        } else {
+            zone.setMinWidth(RESIZE_BORDER);
+            zone.setPrefWidth(RESIZE_BORDER);
+            zone.setMaxWidth(RESIZE_BORDER);
+            zone.setMaxHeight(Double.MAX_VALUE);
+            StackPane.setMargin(zone, new Insets(RESIZE_BORDER, 0, RESIZE_BORDER, 0));
+        }
+        wireResizeNode(zone, direction);
+        resizeEdgeZones.add(zone);
+        return zone;
+    }
+
+    private Region createCornerPad(String direction, Pos alignment) {
+        Region zone = createPickableResizeRegion();
+        zone.setCursor(cursorForDirection(direction));
+        zone.setMinSize(RESIZE_BORDER, RESIZE_BORDER);
+        zone.setPrefSize(RESIZE_BORDER, RESIZE_BORDER);
+        zone.setMaxSize(RESIZE_BORDER, RESIZE_BORDER);
+        StackPane.setAlignment(zone, alignment);
+        wireResizeNode(zone, direction);
+        resizeEdgeZones.add(zone);
+        return zone;
+    }
+
+    private Region createPickableResizeRegion() {
+        Region zone = new Region();
+        zone.getStyleClass().add("window-resize-edge");
+        zone.setPickOnBounds(true);
+        zone.setMouseTransparent(false);
+        // Ohne Fill pickt Region unter macOS oft nicht – minimale Deckkraft reicht.
+        zone.setBackground(new Background(new BackgroundFill(
+                Color.rgb(127, 127, 127, 0.01), CornerRadii.EMPTY, Insets.EMPTY)));
+        return zone;
+    }
+
+    private void wireResizeNode(Node node, String direction) {
+        node.setOnMousePressed(event -> {
+            if (event.getButton() != MouseButton.PRIMARY || isMaximized) {
+                return;
+            }
+            startResizeAt(event, direction);
+            Scene scene = getScene();
+            if (scene != null && !cursorLocked) {
+                scene.setCursor(cursorForDirection(direction));
+            }
+            event.consume();
+        });
+        node.setOnMouseDragged(event -> {
+            if (!isResizing) {
+                return;
+            }
+            performResize(event);
+            event.consume();
+        });
+        node.setOnMouseReleased(event -> {
+            if (!isResizing) {
+                return;
+            }
+            finishResize(getScene());
+            event.consume();
+        });
+    }
+
+    private void finishResize(Scene scene) {
+        isResizing = false;
+        titleBarDragging = false;
+        if (scene != null && !cursorLocked) {
+            scene.setCursor(Cursor.DEFAULT);
+        }
+        saveWindowSize();
     }
     
     private double resizeStartX, resizeStartY, resizeStartWidth, resizeStartHeight;
@@ -905,44 +884,149 @@ public class CustomStage extends Stage {
     private String resizeDirection = "";
 
     private boolean isInTitleBar(MouseEvent event) {
-        return titleBar != null && event.getSceneY() < titleBar.getHeight();
+        if (titleBar == null) {
+            return false;
+        }
+        double y = event.getSceneY();
+        // Oberen Resize-Streifen freilassen
+        if (y < RESIZE_BORDER || y >= titleBar.getHeight()) {
+            return false;
+        }
+        Scene scene = getScene();
+        if (scene == null) {
+            return true;
+        }
+        double x = event.getSceneX();
+        return x >= RESIZE_BORDER && x < scene.getWidth() - RESIZE_BORDER;
     }
-    
-    /**
-     * Startet das Resizing
-     */
-    private void startResize(MouseEvent event, double x, double y, double width, double height) {
-        // KEINE Maximierungs-Checks mehr
-        
+
+    private static Cursor cursorForDirection(String direction) {
+        return switch (direction) {
+            case "NW" -> Cursor.NW_RESIZE;
+            case "NE" -> Cursor.NE_RESIZE;
+            case "SW" -> Cursor.SW_RESIZE;
+            case "SE" -> Cursor.SE_RESIZE;
+            case "W" -> Cursor.W_RESIZE;
+            case "E" -> Cursor.E_RESIZE;
+            case "N" -> Cursor.N_RESIZE;
+            case "S" -> Cursor.S_RESIZE;
+            default -> Cursor.DEFAULT;
+        };
+    }
+
+    private void startResizeAt(MouseEvent event, String direction) {
         resizeStartX = event.getScreenX();
         resizeStartY = event.getScreenY();
-        resizeStartWidth = getWidth();
-        resizeStartHeight = getHeight();
+        resizeStartWidth = Math.max(getWidth(), 1);
+        resizeStartHeight = Math.max(getHeight(), 1);
         resizeStartWinX = getX();
         resizeStartWinY = getY();
-        
-        // Bestimme Resize-Richtung - ALLE RICHTUNGEN AKTIVIERT
-        final int RESIZE_BORDER = 10; // Gleicher Wert wie in setupResizeHandles
-        if (x < RESIZE_BORDER && y < RESIZE_BORDER) {
-            resizeDirection = "NW";
-        } else if (x >= width - RESIZE_BORDER && y < RESIZE_BORDER) {
-            resizeDirection = "NE";
-        } else if (x < RESIZE_BORDER && y >= height - RESIZE_BORDER) {
-            resizeDirection = "SW";
-        } else if (x >= width - RESIZE_BORDER && y >= height - RESIZE_BORDER) {
-            resizeDirection = "SE";
-        } else if (x < RESIZE_BORDER) {
-            resizeDirection = "W";
-        } else if (x >= width - RESIZE_BORDER) {
-            resizeDirection = "E";
-        } else if (y < RESIZE_BORDER) {
-            resizeDirection = "N";
-        } else if (y >= height - RESIZE_BORDER) {
-            resizeDirection = "S";
-        }
-        
+        resizeDirection = direction;
         isResizing = true;
-        
+        isMaximized = false;
+    }
+
+    private Node createResizeHandle() {
+        StackPane handle = new StackPane();
+        handle.getStyleClass().add("window-resize-handle");
+        handle.setMinSize(RESIZE_HANDLE_OUTER, RESIZE_HANDLE_OUTER);
+        handle.setPrefSize(RESIZE_HANDLE_OUTER, RESIZE_HANDLE_OUTER);
+        handle.setMaxSize(RESIZE_HANDLE_OUTER, RESIZE_HANDLE_OUTER);
+        handle.setPickOnBounds(true);
+        handle.setCursor(Cursor.SE_RESIZE);
+        handle.setFocusTraversable(false);
+
+        resizeHandleBackground = new Region();
+        resizeHandleBackground.setMinSize(RESIZE_HANDLE_INNER, RESIZE_HANDLE_INNER);
+        resizeHandleBackground.setPrefSize(RESIZE_HANDLE_INNER, RESIZE_HANDLE_INNER);
+        resizeHandleBackground.setMaxSize(RESIZE_HANDLE_INNER, RESIZE_HANDLE_INNER);
+        resizeHandleBackground.setMouseTransparent(true);
+        resizeHandleBackground.setPickOnBounds(false);
+
+        StackPane grip = new StackPane();
+        grip.setMouseTransparent(true);
+        resizeGripBars.clear();
+        for (int i = 0; i < 3; i++) {
+            Rectangle bar = new Rectangle(2, 7);
+            bar.setRotate(-45);
+            bar.setTranslateX(4 - i * 3);
+            bar.setTranslateY(4 - i * 3);
+            resizeGripBars.add(bar);
+            grip.getChildren().add(bar);
+        }
+
+        handle.getChildren().addAll(resizeHandleBackground, grip);
+        StackPane.setAlignment(resizeHandleBackground, Pos.BOTTOM_RIGHT);
+        StackPane.setAlignment(grip, Pos.BOTTOM_RIGHT);
+        StackPane.setMargin(resizeHandleBackground, new Insets(0, 1, 1, 0));
+        StackPane.setMargin(grip, new Insets(0, 3, 3, 0));
+        wireResizeNode(handle, "SE");
+        return handle;
+    }
+
+    private void applyResizeHandleTheme(int themeIndex) {
+        if (resizeHandleBackground == null) {
+            return;
+        }
+        Color bg;
+        Color border;
+        Color grip;
+        int theme = themeIndex < 0 ? 0 : themeIndex;
+        switch (theme) {
+            case 0: // Weiß
+                bg = Color.rgb(0, 0, 0, 0.08);
+                border = Color.rgb(0, 0, 0, 0.20);
+                grip = Color.rgb(60, 60, 60, 0.70);
+                break;
+            case 2: // Pastell
+                bg = Color.rgb(156, 39, 176, 0.14);
+                border = Color.rgb(123, 31, 162, 0.35);
+                grip = Color.rgb(106, 27, 154, 0.75);
+                break;
+            case 3: // Blau
+                bg = Color.rgb(59, 130, 246, 0.28);
+                border = Color.rgb(147, 197, 253, 0.55);
+                grip = Color.rgb(219, 234, 254, 0.95);
+                break;
+            case 4: // Grün
+                bg = Color.rgb(16, 185, 129, 0.28);
+                border = Color.rgb(110, 231, 183, 0.55);
+                grip = Color.rgb(209, 250, 229, 0.95);
+                break;
+            case 5: // Lila
+                bg = Color.rgb(139, 92, 246, 0.28);
+                border = Color.rgb(196, 181, 253, 0.55);
+                grip = Color.rgb(237, 233, 254, 0.95);
+                break;
+            default: // Schwarz / Dark
+                bg = Color.rgb(255, 255, 255, 0.14);
+                border = Color.rgb(255, 255, 255, 0.32);
+                grip = Color.rgb(230, 230, 230, 0.90);
+                break;
+        }
+        CornerRadii radii = new CornerRadii(0, 0, 6, 0, false);
+        resizeHandleBackground.setBackground(new Background(
+                new BackgroundFill(bg, radii, Insets.EMPTY)));
+        resizeHandleBackground.setBorder(new javafx.scene.layout.Border(new javafx.scene.layout.BorderStroke(
+                border,
+                javafx.scene.layout.BorderStrokeStyle.SOLID,
+                radii,
+                new javafx.scene.layout.BorderWidths(0, 0, 1, 1))));
+        for (Rectangle bar : resizeGripBars) {
+            bar.setFill(grip);
+        }
+    }
+
+    private void updateResizeHandleVisibility() {
+        boolean visible = !isMaximized;
+        if (resizeHandle != null) {
+            resizeHandle.setVisible(visible);
+            resizeHandle.setMouseTransparent(!visible);
+        }
+        for (Node zone : resizeEdgeZones) {
+            zone.setVisible(visible);
+            zone.setMouseTransparent(!visible);
+        }
     }
     
     /**
@@ -1120,6 +1204,7 @@ public class CustomStage extends Stage {
             }
         }
         setStageBorder(borderColor);
+        applyResizeHandleTheme(themeIndex);
     }
     
     /**
@@ -1151,9 +1236,9 @@ public class CustomStage extends Stage {
             Node root = getScene().getRoot();
             applyThemeClassesToNode(root, themeIndex);
             
-            // Versuche, den tatsächlichen Inhalt (zweites Kind des VBox-Wrappers) zu stylen
-            if (root instanceof VBox && ((VBox) root).getChildren().size() > 1) {
-                Node contentNode = ((VBox) root).getChildren().get(1); // Zweites Kind ist der Inhalt
+            // Versuche, den tatsächlichen Inhalt zu stylen (unter Titelleiste)
+            Node contentNode = findContentNode(root);
+            if (contentNode != null) {
                 contentNode.getStyleClass().removeAll("theme-dark", "theme-light", "weiss-theme", "pastell-theme", "blau-theme", "gruen-theme", "lila-theme");
                 
                 switch (themeIndex) {
@@ -1183,7 +1268,20 @@ public class CustomStage extends Stage {
             
             // WICHTIG: Alle UI-Elemente rekursiv durchgehen und Theme anwenden
             applyThemeToAllNodes(root, themeIndex);
+            applyResizeHandleTheme(themeIndex);
         }
+    }
+
+    private Node findContentNode(Node root) {
+        if (root instanceof StackPane stack && !stack.getChildren().isEmpty()
+                && stack.getChildren().get(0) instanceof VBox column
+                && column.getChildren().size() > 1) {
+            return column.getChildren().get(1);
+        }
+        if (root instanceof VBox vbox && vbox.getChildren().size() > 1) {
+            return vbox.getChildren().get(1);
+        }
+        return null;
     }
     
     /**
@@ -1191,8 +1289,10 @@ public class CustomStage extends Stage {
      */
     private void applyThemeToAllNodes(Node node, int themeIndex) {
         if (node == null) return;
-        // Titelleiste nicht mit Theme-Klassen versehen – wird nur über Parent und .title-bar gestylt
-        if (node.getStyleClass().contains("title-bar")) {
+        // Titelleiste / Resize-Chrome nicht mit Theme-Klassen überdecken
+        if (node.getStyleClass().contains("title-bar")
+                || node.getStyleClass().contains("window-resize-handle")
+                || node.getStyleClass().contains("window-resize-edge")) {
             if (node instanceof Parent) {
                 Parent parent = (Parent) node;
                 for (Node child : parent.getChildrenUnmodifiable()) {

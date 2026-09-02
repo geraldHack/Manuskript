@@ -37,12 +37,15 @@ class PluginCatalogTest {
         assertEquals(1, listed.size());
         assertFalse(listed.get(0).enabled());
 
+        Files.writeString(catalog.toPath().resolve("demo.txt"), "Demo\n1.0.0\n\nNotiz.\n");
         PluginCatalog.setEnabled(jar, plugins, true);
         assertTrue(new File(plugins, "demo.jar").isFile());
+        assertTrue(new File(plugins, "demo.txt").isFile());
         assertTrue(PluginCatalog.list(catalog, plugins).get(0).enabled());
 
         PluginCatalog.setEnabled(jar, plugins, false);
         assertFalse(new File(plugins, "demo.jar").exists());
+        assertFalse(new File(plugins, "demo.txt").exists());
         assertFalse(PluginCatalog.list(catalog, plugins).get(0).enabled());
     }
 

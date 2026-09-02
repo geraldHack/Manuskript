@@ -7,7 +7,7 @@
 
     <groupId>com.manuskript</groupId>
     <artifactId>projekt-backup</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.4</version>
     <packaging>jar</packaging>
 
     <name>Projekt-Backup</name>
@@ -98,6 +98,16 @@
                             </artifactSet>
                             <filters>
                                 <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>META-INF/*.EC</exclude>
+                                        <exclude>module-info.class</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
                                     <artifact>com.manuskript:projekt-backup</artifact>
                                     <excludes>
                                         <exclude>com/manuskript/plugin/**</exclude>
@@ -118,6 +128,29 @@
                 <version>3.3.1</version>
                 <executions>
                     <execution>
+                        <id>filter-plugin-notes</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <useDefaultDelimiters>false</useDefaultDelimiters>
+                            <delimiters>
+                                <delimiter>@</delimiter>
+                            </delimiters>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/src/main</directory>
+                                    <includes>
+                                        <include>plugin.txt</include>
+                                    </includes>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>copy-plugin-to-repo-catalog</id>
                         <phase>package</phase>
                         <goals>
@@ -130,9 +163,35 @@
                                     <directory>${project.build.directory}</directory>
                                     <includes>
                                         <include>projekt-backup.jar</include>
+                                        <include>projekt-backup.txt</include>
+                                        <include>projekt-backup-${project.version}.txt</include>
                                     </includes>
                                 </resource>
                             </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>name-plugin-notes</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <copy file="${project.build.directory}/plugin.txt"
+                                      tofile="${project.build.directory}/${project.artifactId}.txt"
+                                      overwrite="true"/>
+                                <copy file="${project.build.directory}/plugin.txt"
+                                      tofile="${project.build.directory}/${project.artifactId}-${project.version}.txt"
+                                      overwrite="true"/>
+                            </target>
                         </configuration>
                     </execution>
                 </executions>

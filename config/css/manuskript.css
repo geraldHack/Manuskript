@@ -7347,6 +7347,71 @@
     -fx-background-color: #e9ecef;
 }
 
+/* ========== Resize-Handle (CustomStage) ========== */
+.window-resize-handle {
+    -fx-cursor: se-resize;
+}
+
+.window-resize-handle-bg {
+    -fx-background-radius: 0 0 6px 0;
+    -fx-border-radius: 0 0 6px 0;
+    -fx-border-width: 0 0 1px 1px;
+}
+
+.weiss-theme .window-resize-handle-bg {
+    -fx-background-color: rgba(0, 0, 0, 0.08);
+    -fx-border-color: rgba(0, 0, 0, 0.20);
+}
+
+.weiss-theme .window-resize-grip-bar {
+    -fx-fill: rgba(60, 60, 60, 0.70);
+}
+
+.theme-dark .window-resize-handle-bg {
+    -fx-background-color: rgba(255, 255, 255, 0.14);
+    -fx-border-color: rgba(255, 255, 255, 0.32);
+}
+
+.theme-dark .window-resize-grip-bar {
+    -fx-fill: rgba(230, 230, 230, 0.90);
+}
+
+.theme-dark.blau-theme .window-resize-handle-bg {
+    -fx-background-color: rgba(59, 130, 246, 0.28);
+    -fx-border-color: rgba(147, 197, 253, 0.55);
+}
+
+.theme-dark.blau-theme .window-resize-grip-bar {
+    -fx-fill: rgba(219, 234, 254, 0.95);
+}
+
+.theme-dark.gruen-theme .window-resize-handle-bg {
+    -fx-background-color: rgba(16, 185, 129, 0.28);
+    -fx-border-color: rgba(110, 231, 183, 0.55);
+}
+
+.theme-dark.gruen-theme .window-resize-grip-bar {
+    -fx-fill: rgba(209, 250, 229, 0.95);
+}
+
+.theme-dark.lila-theme .window-resize-handle-bg {
+    -fx-background-color: rgba(139, 92, 246, 0.28);
+    -fx-border-color: rgba(196, 181, 253, 0.55);
+}
+
+.theme-dark.lila-theme .window-resize-grip-bar {
+    -fx-fill: rgba(237, 233, 254, 0.95);
+}
+
+.pastell-theme .window-resize-handle-bg {
+    -fx-background-color: rgba(156, 39, 176, 0.14);
+    -fx-border-color: rgba(123, 31, 162, 0.35);
+}
+
+.pastell-theme .window-resize-grip-bar {
+    -fx-fill: rgba(106, 27, 154, 0.75);
+}
+
 .theme-dark .title-bar {
     -fx-background-color: #1a1a1a;
     -fx-min-height: 48px;

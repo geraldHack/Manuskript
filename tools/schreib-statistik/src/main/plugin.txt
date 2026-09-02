@@ -1,0 +1,6 @@
+Statistik
+@project.version@
+
+Wörter, Kapitel, zuletzt bearbeitet, Sprechantworten, Phrasen und Bilder — immer alle Kapitel.
+Sprechwörter und Sprechantworten zählen jedes Vorkommen (auch „antwortete Jomar leise.“).
+Phrasen: jedes Vorkommen, * ohne den ganzen Text zu verschlucken.

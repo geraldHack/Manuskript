@@ -65,6 +65,38 @@ class BackupSettingsTest {
     }
 
     @Test
+    void replaceByIdUpdatesInsteadOfAppending() throws Exception {
+        Path config = temp.resolve("app");
+        BackupSettings settings = new BackupSettings();
+        BackupTarget first = new BackupTarget();
+        first.name = "Alt";
+        first.destination = "/tmp/a";
+        settings.targets.add(first);
+        settings.save(config);
+
+        BackupTarget edited = new BackupTarget();
+        edited.id = first.id;
+        edited.name = "Neu";
+        edited.destination = "/tmp/b";
+        BackupSettings again = BackupSettings.load(config);
+        again.replaceById(edited);
+        again.save(config);
+
+        BackupSettings loaded = BackupSettings.load(config);
+        assertEquals(1, loaded.targets.size());
+        assertEquals(first.id, loaded.targets.get(0).id);
+        assertEquals("Neu", loaded.targets.get(0).name);
+        assertEquals("/tmp/b", loaded.targets.get(0).destination);
+    }
+
+    @Test
+    void kindAndScheduleParseLabels() {
+        assertEquals(BackupKind.SSH, BackupKind.fromId("SSH / SCP"));
+        assertEquals(BackupKind.FILESYSTEM, BackupKind.fromId("Dateisystem"));
+        assertEquals(BackupSchedule.DAILY, BackupSchedule.fromId("Täglich"));
+    }
+
+    @Test
     void pluginRequestsBackgroundStart() {
         assertTrue(new ProjektBackupPlugin().wantsBackgroundStart());
     }

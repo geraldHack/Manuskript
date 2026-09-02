@@ -27,6 +27,7 @@ import javafx.util.StringConverter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 /**
  * Ziele verwalten, manuell sichern, wiederherstellen.
@@ -60,6 +61,7 @@ public final class BackupWindow {
     private CheckBox rememberEncrypt;
     private ComboBox<BackupSchedule> scheduleBox;
     private Spinner<Integer> keepSpinner;
+    private Label sourcePathLabel;
     private Label status;
     private boolean applying;
 
@@ -95,6 +97,7 @@ public final class BackupWindow {
     public void show(String notice) {
         visible = this;
         if (stage != null && stage.isShowing()) {
+            refreshSourcePath();
             if (notice != null && status != null) {
                 status.setText(notice);
             }
@@ -109,6 +112,7 @@ public final class BackupWindow {
             }
         });
         stage.show();
+        refreshSourcePath();
     }
 
     private void selectById(String id) {
@@ -126,10 +130,16 @@ public final class BackupWindow {
     private VBox buildUi(String notice) {
         Label intro = new Label(
                 "Mehrere Ziele, jedes mit eigenem Rhythmus. Dateisystem (USB, Dropbox, iCloud, …) "
-                        + "oder SSH/SCP. Der Überwachungsmodus läuft ohne dieses Fenster, solange "
+                        + "oder SSH/SCP. Gesichert wird das aktuell geöffnete Buch (nicht die Projektwurzel). "
+                        + "Der Überwachungsmodus läuft ohne dieses Fenster, solange "
                         + "Manuskript geöffnet und das Plugin aktiv ist.");
         intro.setWrapText(true);
         intro.getStyleClass().add("dialog-label");
+
+        sourcePathLabel = new Label();
+        sourcePathLabel.setWrapText(true);
+        sourcePathLabel.getStyleClass().add("dialog-label");
+        refreshSourcePath();
 
         list = new ListView<>(items);
         list.setPrefWidth(220);
@@ -141,12 +151,16 @@ public final class BackupWindow {
             }
         });
         list.getSelectionModel().selectedItemProperty().addListener((obs, old, now) -> {
-            if (!applying) {
-                loadTarget(now);
+            if (applying) {
+                return;
             }
+            if (old != null && old != now) {
+                persistTarget(old);
+            }
+            loadTarget(now);
         });
 
-        Button add = new Button("Hinzufügen");
+        Button add = new Button("Neues Ziel");
         add.getStyleClass().add("dialog-button");
         add.setOnAction(e -> addTarget());
         Button copy = new Button("Duplizieren");
@@ -167,7 +181,7 @@ public final class BackupWindow {
         status.setWrapText(true);
         status.getStyleClass().add("dialog-label");
 
-        VBox root = new VBox(12, intro, body, status);
+        VBox root = new VBox(12, intro, sourcePathLabel, body, status);
         root.setPadding(new Insets(16));
         if (!items.isEmpty()) {
             list.getSelectionModel().select(0);
@@ -194,12 +208,10 @@ public final class BackupWindow {
                 return BackupKind.fromId(string);
             }
         });
+        kindBox.setCellFactory(view -> kindCell());
+        kindBox.setButtonCell(kindCell());
         kindBox.valueProperty().addListener((obs, o, n) -> {
-            boolean ssh = n == BackupKind.SSH;
-            filesystemBox.setVisible(!ssh);
-            filesystemBox.setManaged(!ssh);
-            sshBox.setVisible(ssh);
-            sshBox.setManaged(ssh);
+            applyKindVisibility(n);
             persistFromUi();
         });
 
@@ -285,17 +297,22 @@ public final class BackupWindow {
                 return BackupSchedule.fromId(string);
             }
         });
+        scheduleBox.setCellFactory(view -> scheduleCell());
+        scheduleBox.setButtonCell(scheduleCell());
         keepSpinner = new Spinner<>(1, 99, 10);
         keepSpinner.setEditable(true);
         keepSpinner.setPrefWidth(80);
 
+        Button saveTarget = new Button("Ziel speichern");
+        saveTarget.getStyleClass().add("dialog-button");
+        saveTarget.setOnAction(e -> persistFromUi());
         Button saveNow = new Button("Jetzt dieses Ziel sichern");
         saveNow.getStyleClass().add("dialog-button");
-        saveNow.setOnAction(e -> startBackup());
+        saveNow.setOnAction(e -> startBackup(saveNow));
         Button restore = new Button("Wiederherstellen…");
         restore.getStyleClass().add("dialog-button");
         restore.setOnAction(e -> startRestore());
-        HBox actions = new HBox(10, saveNow, restore);
+        HBox actions = new HBox(10, saveTarget, saveNow, restore);
 
         bindPersist();
 
@@ -318,36 +335,14 @@ public final class BackupWindow {
     }
 
     private void bindPersist() {
-        nameField.focusedProperty().addListener((o, w, n) -> {
-            if (!n) {
-                persistFromUi();
-            }
-        });
-        destField.focusedProperty().addListener((o, w, n) -> {
-            if (!n) {
-                persistFromUi();
-            }
-        });
-        sshHost.focusedProperty().addListener((o, w, n) -> {
-            if (!n) {
-                persistFromUi();
-            }
-        });
-        sshUser.focusedProperty().addListener((o, w, n) -> {
-            if (!n) {
-                persistFromUi();
-            }
-        });
-        sshRemote.focusedProperty().addListener((o, w, n) -> {
-            if (!n) {
-                persistFromUi();
-            }
-        });
-        sshKey.focusedProperty().addListener((o, w, n) -> {
-            if (!n) {
-                persistFromUi();
-            }
-        });
+        nameField.textProperty().addListener((o, w, n) -> persistFromUi());
+        destField.textProperty().addListener((o, w, n) -> persistFromUi());
+        sshHost.textProperty().addListener((o, w, n) -> persistFromUi());
+        sshUser.textProperty().addListener((o, w, n) -> persistFromUi());
+        sshRemote.textProperty().addListener((o, w, n) -> persistFromUi());
+        sshKey.textProperty().addListener((o, w, n) -> persistFromUi());
+        sshPassword.textProperty().addListener((o, w, n) -> persistFromUi());
+        encryptPassword.textProperty().addListener((o, w, n) -> persistFromUi());
         enabledBox.selectedProperty().addListener((o, w, n) -> persistFromUi());
         compressBox.selectedProperty().addListener((o, w, n) -> persistFromUi());
         encryptBox.selectedProperty().addListener((o, w, n) -> persistFromUi());
@@ -356,6 +351,26 @@ public final class BackupWindow {
         scheduleBox.valueProperty().addListener((o, w, n) -> persistFromUi());
         keepSpinner.valueProperty().addListener((o, w, n) -> persistFromUi());
         sshPort.valueProperty().addListener((o, w, n) -> persistFromUi());
+    }
+
+    private static ListCell<BackupKind> kindCell() {
+        return new ListCell<>() {
+            @Override
+            protected void updateItem(BackupKind item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item.label());
+            }
+        };
+    }
+
+    private static ListCell<BackupSchedule> scheduleCell() {
+        return new ListCell<>() {
+            @Override
+            protected void updateItem(BackupSchedule item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item.label());
+            }
+        };
     }
 
     private static Label labeled(String text) {
@@ -397,12 +412,8 @@ public final class BackupWindow {
         rememberEncrypt.setSelected(target.encryptPassword != null && !target.encryptPassword.isEmpty());
         scheduleBox.setValue(target.scheduleEnum());
         keepSpinner.getValueFactory().setValue(Math.max(1, target.keep));
+        applyKindVisibility(target.kind());
         applying = false;
-        boolean ssh = target.kind() == BackupKind.SSH;
-        filesystemBox.setVisible(!ssh);
-        filesystemBox.setManaged(!ssh);
-        sshBox.setVisible(ssh);
-        sshBox.setManaged(ssh);
         if (target.lastError != null && !target.lastError.isBlank()) {
             status.setText("Letzter Fehler: " + target.lastError);
         } else if (target.lastBackupFile != null && !target.lastBackupFile.isBlank()) {
@@ -410,14 +421,39 @@ public final class BackupWindow {
         }
     }
 
+    private void applyKindVisibility(BackupKind kind) {
+        boolean ssh = kind == BackupKind.SSH;
+        if (filesystemBox != null) {
+            filesystemBox.setVisible(!ssh);
+            filesystemBox.setManaged(!ssh);
+        }
+        if (sshBox != null) {
+            sshBox.setVisible(ssh);
+            sshBox.setManaged(ssh);
+        }
+    }
+
     private void persistFromUi() {
-        if (applying) {
+        persistTarget(selected());
+    }
+
+    private void persistTarget(BackupTarget target) {
+        if (applying || target == null) {
             return;
         }
-        BackupTarget target = selected();
-        if (target == null) {
+        applyFormTo(target);
+        settings.replaceById(target);
+        settings.targets = orderedTargets();
+        try {
+            settings.save(host.configDir());
+        } catch (Exception e) {
+            status.setText("Einstellungen nicht gespeichert: " + e.getMessage());
             return;
         }
+        list.refresh();
+    }
+
+    private void applyFormTo(BackupTarget target) {
         target.name = nameField.getText() == null ? "" : nameField.getText().trim();
         target.enabled = enabledBox.isSelected();
         target.type = kindBox.getValue() == null ? BackupKind.FILESYSTEM.name() : kindBox.getValue().name();
@@ -439,21 +475,23 @@ public final class BackupWindow {
         }
         target.schedule = scheduleBox.getValue() == null ? BackupSchedule.OFF.name() : scheduleBox.getValue().name();
         target.keep = keepSpinner.getValue() == null ? 10 : keepSpinner.getValue();
-        settings.targets = new java.util.ArrayList<>(items);
-        try {
-            settings.save(host.configDir());
-        } catch (Exception e) {
-            status.setText("Einstellungen nicht gespeichert: " + e.getMessage());
-        }
-        list.refresh();
+    }
+
+    private java.util.List<BackupTarget> orderedTargets() {
+        return new java.util.ArrayList<>(items);
     }
 
     private void addTarget() {
+        persistFromUi();
+        applying = true;
         BackupTarget target = new BackupTarget();
         target.name = "Ziel " + (items.size() + 1);
         items.add(target);
-        settings.targets = new java.util.ArrayList<>(items);
+        settings.replaceById(target);
+        settings.targets = orderedTargets();
         list.getSelectionModel().select(target);
+        applying = false;
+        loadTarget(target);
         persistFromUi();
     }
 
@@ -465,9 +503,13 @@ public final class BackupWindow {
         }
         persistFromUi();
         BackupTarget copy = current.copy();
+        applying = true;
         items.add(copy);
-        settings.targets = new java.util.ArrayList<>(items);
+        settings.replaceById(copy);
+        settings.targets = orderedTargets();
         list.getSelectionModel().select(copy);
+        applying = false;
+        loadTarget(copy);
         persistFromUi();
     }
 
@@ -477,7 +519,7 @@ public final class BackupWindow {
             return;
         }
         items.remove(current);
-        settings.targets = new java.util.ArrayList<>(items);
+        settings.targets = orderedTargets();
         try {
             settings.save(host.configDir());
         } catch (Exception ignored) {
@@ -520,8 +562,25 @@ public final class BackupWindow {
         }
     }
 
+    private void refreshSourcePath() {
+        if (sourcePathLabel == null) {
+            return;
+        }
+        Path project = host.projectRoot().orElse(null);
+        if (project != null && Files.isDirectory(project)) {
+            sourcePathLabel.setText("Aktuelles Buch: " + project);
+        } else {
+            sourcePathLabel.setText("Aktuelles Buch: keines — bitte zuerst ein Buch öffnen.");
+        }
+    }
+
     private void startBackup() {
+        startBackup(null);
+    }
+
+    private void startBackup(Button saveNow) {
         persistFromUi();
+        refreshSourcePath();
         BackupTarget target = selected();
         if (target == null) {
             status.setText("Bitte ein Ziel wählen oder hinzufügen.");
@@ -529,7 +588,7 @@ public final class BackupWindow {
         }
         Path project = host.projectRoot().orElse(null);
         if (project == null || !Files.isDirectory(project)) {
-            status.setText("Kein Projekt geöffnet.");
+            status.setText("Kein Buch geöffnet. Nach einem Projektwechsel zuerst ein Buch öffnen, dann sichern.");
             return;
         }
         char[] password = null;
@@ -546,12 +605,16 @@ public final class BackupWindow {
             }
             password = a.toCharArray();
         }
-        status.setText("Backup läuft …");
+        if (saveNow != null) {
+            saveNow.setDisable(true);
+        }
+        status.setText("Backup startet …");
         char[] passCopy = password == null ? null : password.clone();
         BackupTarget snapshot = target;
+        Consumer<String> progress = message -> Platform.runLater(() -> status.setText(message));
         CompletableFuture.runAsync(() -> {
             try {
-                Path file = BackupEngine.createBackup(project, snapshot, passCopy);
+                Path file = BackupEngine.createBackup(project, snapshot, passCopy, progress);
                 snapshot.markSuccess(file.toString());
                 settings.save(host.configDir());
                 Platform.runLater(() -> {
@@ -570,6 +633,9 @@ public final class BackupWindow {
             } finally {
                 if (passCopy != null) {
                     java.util.Arrays.fill(passCopy, '\0');
+                }
+                if (saveNow != null) {
+                    Platform.runLater(() -> saveNow.setDisable(false));
                 }
             }
         });

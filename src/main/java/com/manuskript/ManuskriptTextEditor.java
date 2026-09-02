@@ -54,6 +54,7 @@ import java.util.Set;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -175,6 +176,8 @@ public class ManuskriptTextEditor extends Region {
     private Color[] headingColors = new Color[6];
     private final ArrayDeque<Snapshot> undoStack = new ArrayDeque<>();
     private final ArrayDeque<Snapshot> redoStack = new ArrayDeque<>();
+    private BooleanSupplier undoInterceptor;
+    private BooleanSupplier redoInterceptor;
     private UndoEditKind lastUndoEditKind;
     private long lastUndoEditTimeMs;
     private final PauseTransition autoRuleDelay = new PauseTransition(AUTO_RULE_DELAY);
@@ -203,6 +206,9 @@ public class ManuskriptTextEditor extends Region {
     private EventHandler<MouseEvent> sceneSelectionDragFilter;
     private EventHandler<MouseEvent> sceneSelectionReleaseFilter;
     private Timeline selectionAutoScrollTimeline;
+    private Timeline reviewFlashTimeline;
+    private MarkedArea reviewFlashArea;
+    private boolean hideCaretForReviewFlash;
     private boolean mouseSelectionDragActive;
     private double lastSelectionDragViewportX = Double.NaN;
     private double lastSelectionDragViewportY = Double.NaN;
@@ -478,6 +484,75 @@ public class ManuskriptTextEditor extends Region {
         preferredCaretX = Double.NaN;
         updateScrollBar();
         scrollRangeToViewportCenter(safeStart, safeEnd);
+        render();
+    }
+
+    /** Hebt die Stelle zweimal kurz auf, damit Fundstücke im Autorentext auffallen. */
+    public void blinkRangeTwice(int start, int end) {
+        int length = text.length();
+        int safeStart = Math.max(0, Math.min(length, start));
+        int safeEnd = Math.max(safeStart, Math.min(length, end));
+        if (safeEnd <= safeStart) {
+            safeEnd = Math.min(length, safeStart + 1);
+        }
+        if (safeEnd <= safeStart) {
+            return;
+        }
+        if (safeEnd - safeStart < 8) {
+            int left = safeStart;
+            while (left > 0 && !Character.isWhitespace(text.charAt(left - 1))) {
+                left--;
+            }
+            int right = safeEnd;
+            while (right < length && !Character.isWhitespace(text.charAt(right))) {
+                right++;
+            }
+            if (right - left >= 1) {
+                safeStart = left;
+                safeEnd = Math.max(right, safeStart + 1);
+            }
+        }
+        stopReviewFlash();
+        hideCaretForReviewFlash = true;
+        reviewFlashArea = new MarkedArea(this);
+        reviewFlashArea.markTypeSilent(MarkedArea.Type.REVIEW_FLASH);
+        reviewFlashArea.markColorSilent("#ffeb3b");
+        reviewFlashArea.addRangeSilent(safeStart, safeEnd);
+        markedAreas.add(reviewFlashArea);
+        render();
+        reviewFlashTimeline = new Timeline(
+                new KeyFrame(Duration.millis(280), e -> setReviewFlashVisible(false)),
+                new KeyFrame(Duration.millis(520), e -> setReviewFlashVisible(true)),
+                new KeyFrame(Duration.millis(800), e -> setReviewFlashVisible(false)),
+                new KeyFrame(Duration.millis(1040), e -> setReviewFlashVisible(true)),
+                new KeyFrame(Duration.millis(1400), e -> stopReviewFlash()));
+        reviewFlashTimeline.play();
+    }
+
+    private void setReviewFlashVisible(boolean visible) {
+        if (reviewFlashArea == null) {
+            return;
+        }
+        if (visible) {
+            if (!markedAreas.contains(reviewFlashArea)) {
+                markedAreas.add(reviewFlashArea);
+            }
+        } else {
+            markedAreas.remove(reviewFlashArea);
+        }
+        render();
+    }
+
+    private void stopReviewFlash() {
+        if (reviewFlashTimeline != null) {
+            reviewFlashTimeline.stop();
+            reviewFlashTimeline = null;
+        }
+        if (reviewFlashArea != null) {
+            markedAreas.remove(reviewFlashArea);
+            reviewFlashArea = null;
+        }
+        hideCaretForReviewFlash = false;
         render();
     }
 
@@ -785,7 +860,25 @@ public class ManuskriptTextEditor extends Region {
      * Ersetzt den gesamten Dokumenttext, behält Caret-Position (inhaltlich gemappt) und Viewport bei.
      * Für z. B. Anführungszeichen-Konvertierung ohne Scroll-Sprung.
      */
+    public void setUndoInterceptor(BooleanSupplier interceptor) {
+        this.undoInterceptor = interceptor;
+    }
+
+    public void setRedoInterceptor(BooleanSupplier interceptor) {
+        this.redoInterceptor = interceptor;
+    }
+
+    public void clearUndoHistory() {
+        undoStack.clear();
+        redoStack.clear();
+        resetUndoCoalesceState();
+    }
+
     public void replaceAllTextPreservingCaretAndViewport(String newContent) {
+        replaceAllTextPreservingCaretAndViewport(newContent, true);
+    }
+
+    public void replaceAllTextPreservingCaretAndViewport(String newContent, boolean recordUndo) {
         String oldContent = text.toString();
         String replacement = newContent == null ? "" : newContent;
         if (oldContent.equals(replacement)) {
@@ -794,7 +887,9 @@ public class ManuskriptTextEditor extends Region {
         ViewportAnchor viewportAnchor = captureReadingViewportAnchor();
         int mappedCaret = mapOffsetThroughTextChange(oldContent, replacement, caret);
         int mappedAnchor = mapOffsetThroughTextChange(oldContent, replacement, anchor);
-        pushUndoCoalesced(UndoEditKind.OTHER, replacement);
+        if (recordUndo) {
+            pushUndoCoalesced(UndoEditKind.OTHER, replacement);
+        }
         text.replace(0, oldContent.length(), replacement);
         adjustRangesForReplace(0, oldContent.length(), replacement.length());
         caret = normalizeCaretOffset(mappedCaret, true);
@@ -908,6 +1003,9 @@ public class ManuskriptTextEditor extends Region {
     }
 
     public void undo() {
+        if (undoInterceptor != null && undoInterceptor.getAsBoolean()) {
+            return;
+        }
         if (undoStack.isEmpty()) {
             return;
         }
@@ -917,6 +1015,9 @@ public class ManuskriptTextEditor extends Region {
     }
 
     public void redo() {
+        if (redoInterceptor != null && redoInterceptor.getAsBoolean()) {
+            return;
+        }
         if (redoStack.isEmpty()) {
             return;
         }
@@ -1262,6 +1363,50 @@ public class ManuskriptTextEditor extends Region {
 
     public void clearLektoratMatches() {
         markedAreas.removeIf(area -> area.type == MarkedArea.Type.LEKTORAT);
+        render();
+    }
+
+    public void clearNiReviewMarks() {
+        stopReviewFlash();
+        markedAreas.removeIf(area -> area.type == MarkedArea.Type.REVIEW);
+        render();
+    }
+
+    public void applyNiReviewSpans(com.manuskript.review.NiReviewDisplay.Result result,
+                                  java.util.function.Consumer<String> onChangeClick,
+                                  java.util.function.Consumer<String> onCommentClick) {
+        clearNiReviewMarks();
+        if (result == null || result.spans() == null || result.spans().isEmpty()) {
+            return;
+        }
+        for (com.manuskript.review.NiReviewDisplay.Span span : result.spans()) {
+            if (span.displayStart() >= span.displayEnd()) {
+                continue;
+            }
+            MarkedArea area = new MarkedArea(this);
+            area.markTypeSilent(MarkedArea.Type.REVIEW);
+            area.addRangeSilent(span.displayStart(), span.displayEnd());
+            if (span.kind() == com.manuskript.review.NiReviewDisplay.SpanKind.DELETE) {
+                area.markColorSilent("#f8d0d0");
+                area.markStyleSilent(MarkedArea.STRIKETHROUGH);
+                area.textColor = Color.web("#9b1c1c");
+            } else if (span.kind() == com.manuskript.review.NiReviewDisplay.SpanKind.INSERT) {
+                area.markColorSilent("#c8f0d4");
+                area.markStyleSilent(MarkedArea.UNDERLINE);
+                area.textColor = Color.web("#146c2e");
+            } else {
+                area.markColorSilent(darkMarkPalette ? "#c45a1c" : "#e8903a");
+            }
+            String itemId = span.itemId();
+            if (span.kind() == com.manuskript.review.NiReviewDisplay.SpanKind.COMMENT) {
+                if (onCommentClick != null) {
+                    area.onClick(() -> onCommentClick.accept(itemId));
+                }
+            } else if (onChangeClick != null) {
+                area.onClick(() -> onChangeClick.accept(itemId));
+            }
+            markedAreas.add(area);
+        }
         render();
     }
 
@@ -5459,17 +5604,28 @@ public class ManuskriptTextEditor extends Region {
             if (area.color == null) {
                 continue;
             }
-            if (area.type != MarkedArea.Type.LEKTORAT && area.type != MarkedArea.Type.TEXT_ANALYSIS) {
+            if (area.type != MarkedArea.Type.LEKTORAT
+                    && area.type != MarkedArea.Type.REVIEW
+                    && area.type != MarkedArea.Type.REVIEW_FLASH
+                    && area.type != MarkedArea.Type.TEXT_ANALYSIS) {
                 continue;
             }
             for (TextRange range : area.ranges) {
-                paintVisibleRangeBackground(gc, line, lineIndex, top, height, range.start, range.end, area.color);
+                double minWidth = area.type == MarkedArea.Type.REVIEW_FLASH ? 28 : 0;
+                paintVisibleRangeBackground(gc, line, lineIndex, top, height, range.start, range.end, area.color,
+                        minWidth);
             }
         }
     }
 
     private void paintVisibleRangeBackground(GraphicsContext gc, VisualLine line, int lineIndex,
                                              double top, double height, int rangeStart, int rangeEnd, Color color) {
+        paintVisibleRangeBackground(gc, line, lineIndex, top, height, rangeStart, rangeEnd, color, 0);
+    }
+
+    private void paintVisibleRangeBackground(GraphicsContext gc, VisualLine line, int lineIndex,
+                                             double top, double height, int rangeStart, int rangeEnd, Color color,
+                                             double minWidth) {
         int overlapStart = Math.max(line.start, rangeStart);
         int overlapEnd = Math.min(line.end, rangeEnd);
         if (overlapStart >= overlapEnd) {
@@ -5487,8 +5643,8 @@ public class ManuskriptTextEditor extends Region {
             }
             double x1 = xForOffsetInLine(line, lineIndex, runStart);
             double x2 = xForOffsetInLine(line, lineIndex, offset);
-            if (x2 > x1) {
-                fillBackgroundRect(gc, x1, top, x2 - x1, height, color);
+            if (x2 > x1 || minWidth > 0) {
+                fillBackgroundRect(gc, x1, top, Math.max(minWidth, Math.max(0, x2 - x1)), height, color);
             }
         }
     }
@@ -5591,6 +5747,8 @@ public class ManuskriptTextEditor extends Region {
 
     private static boolean usesLayoutPaintedBackground(RenderStyle style) {
         return style.backgroundPriority == MarkedArea.Type.LEKTORAT.priority
+                || style.backgroundPriority == MarkedArea.Type.REVIEW.priority
+                || style.backgroundPriority == MarkedArea.Type.REVIEW_FLASH.priority
                 || style.backgroundPriority == MarkedArea.Type.TEXT_ANALYSIS.priority;
     }
 
@@ -5786,7 +5944,7 @@ public class ManuskriptTextEditor extends Region {
     }
 
     private void paintCaret(GraphicsContext gc, List<VisualLine> lines) {
-        if (!hasInputFocus() || lines.isEmpty()) {
+        if (!hasInputFocus() || lines.isEmpty() || hideCaretForReviewFlash) {
             return;
         }
         if (findImageBlockAtCaret() != null) {
@@ -7572,6 +7730,8 @@ public class ManuskriptTextEditor extends Region {
             LINK(50),
             FOOTNOTE(55),
             LEKTORAT(70),
+            REVIEW(75),
+            REVIEW_FLASH(92),
             LANGUAGE_TOOL(80),
             SELECTION(100);
 
@@ -7787,7 +7947,8 @@ public class ManuskriptTextEditor extends Region {
                 }
             }
             if (color != null && priority >= style.backgroundPriority) {
-                if (type != Type.LEKTORAT && type != Type.TEXT_ANALYSIS) {
+                if (type != Type.LEKTORAT && type != Type.REVIEW && type != Type.REVIEW_FLASH
+                        && type != Type.TEXT_ANALYSIS) {
                     style.background = color;
                     style.backgroundPriority = priority;
                 } else {

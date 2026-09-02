@@ -70,7 +70,16 @@ public final class PluginCatalogItem {
     }
 
     public String description() {
-        return remote != null ? nullToEmpty(remote.description()) : "";
+        if (remote != null && remote.description() != null && !remote.description().isBlank()) {
+            return remote.description();
+        }
+        if (local != null && local.catalogFile() != null) {
+            String localNotes = PluginNotes.loadBeside(local.catalogFile().toPath()).description();
+            if (!localNotes.isBlank()) {
+                return localNotes;
+            }
+        }
+        return "";
     }
 
     public String fileName() {
@@ -88,12 +97,16 @@ public final class PluginCatalogItem {
         if (local == null) {
             return "Nicht installiert — kann geladen werden";
         }
+        String localVersion = installedVersion(local);
         String enabled = local.enabled()
                 ? "Aktiv — liegt in plugins/" + local.fileName()
                 : "Aus — nur im Katalog (" + local.fileName() + ")";
+        if (!localVersion.isBlank()) {
+            enabled += " · " + localVersion;
+        }
         if (updateAvailable && remote != null) {
             String version = remote.version() != null && !remote.version().isBlank()
-                    ? " (" + remote.version() + ")"
+                    ? " " + remote.version()
                     : "";
             return enabled + " · Update verfügbar" + version;
         }
@@ -135,7 +148,7 @@ public final class PluginCatalogItem {
                     }
                 }
                 boolean compatible = PluginVersions.meetsRequirement(AppVersion.current(), spec.requires());
-                boolean update = local != null && hashesDiffer(local, spec);
+                boolean update = local != null && needsUpdate(local, spec);
                 items.add(new PluginCatalogItem(local, spec, update, compatible));
             }
         }
@@ -151,16 +164,52 @@ public final class PluginCatalogItem {
         return List.copyOf(items);
     }
 
-    static boolean hashesDiffer(PluginCatalog.Entry local, RemotePluginIndex.Spec spec) {
-        if (local == null || spec == null || local.catalogFile() == null || !local.catalogFile().isFile()) {
-            return spec != null;
+    static boolean needsUpdate(PluginCatalog.Entry local, RemotePluginIndex.Spec spec) {
+        if (spec == null) {
+            return false;
+        }
+        if (local == null || local.catalogFile() == null || !local.catalogFile().isFile()) {
+            return true;
+        }
+        String remoteVersion = spec.version() == null ? "" : spec.version().trim();
+        String localVersion = installedVersion(local);
+        if (!remoteVersion.isBlank()) {
+            if (localVersion.isBlank()) {
+                return true;
+            }
+            return PluginVersions.compare(localVersion, remoteVersion) < 0;
+        }
+        if (spec.sha256() == null || spec.sha256().isBlank()) {
+            return false;
         }
         try {
-            String actual = PluginCatalogClient.sha256Hex(local.catalogFile());
-            return !actual.equals(spec.sha256());
+            return !PluginCatalogClient.sha256Hex(local.catalogFile()).equals(spec.sha256());
         } catch (IOException e) {
             return true;
         }
+    }
+
+    static String installedVersion(PluginCatalog.Entry local) {
+        if (local == null) {
+            return "";
+        }
+        String catalogVersion = local.catalogFile() == null
+                ? ""
+                : PluginNotes.loadBeside(local.catalogFile().toPath()).version();
+        String activeVersion = "";
+        if (local.fileName() != null) {
+            File pluginsDir = PluginCatalog.activeDirectory();
+            if (pluginsDir != null) {
+                activeVersion = PluginNotes.loadBeside(new File(pluginsDir, local.fileName()).toPath()).version();
+            }
+        }
+        if (catalogVersion.isBlank()) {
+            return activeVersion;
+        }
+        if (activeVersion.isBlank()) {
+            return catalogVersion;
+        }
+        return PluginVersions.compare(activeVersion, catalogVersion) < 0 ? activeVersion : catalogVersion;
     }
 
     private static String nullToEmpty(String value) {

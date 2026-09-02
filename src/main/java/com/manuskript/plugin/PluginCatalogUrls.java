@@ -1,6 +1,7 @@
 package com.manuskript.plugin;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -9,7 +10,13 @@ import java.util.regex.Pattern;
  */
 public final class PluginCatalogUrls {
 
-    public static final String INDEX_URL = "https://spoteroxe.de/downloads/manuskript-plugins.json";
+    public static final String INDEX_URL = "https://spoteroxe.de/downloads/plugins/";
+
+    public static final List<String> OFFICIAL_IDS = List.of(
+            "openrouter-monitor",
+            "mammouth-monitor",
+            "projekt-backup",
+            "schreib-statistik");
 
     private static final Pattern FILE_NAME = Pattern.compile("[A-Za-z0-9._-]+\\.jar");
     private static final Pattern PLUGIN_ID = Pattern.compile("[a-z0-9][a-z0-9._-]*");
@@ -67,6 +74,11 @@ public final class PluginCatalogUrls {
 
     public static boolean isAllowedFileName(String fileName) {
         return fileName != null && FILE_NAME.matcher(fileName).matches();
+    }
+
+    public static boolean isAllowedNotesFileName(String fileName) {
+        return fileName != null && fileName.toLowerCase(Locale.ROOT).endsWith(".txt")
+                && FILE_NAME.matcher(fileName.substring(0, fileName.length() - 4) + ".jar").matches();
     }
 
     public static boolean isAllowedId(String id) {

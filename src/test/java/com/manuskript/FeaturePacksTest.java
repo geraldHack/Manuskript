@@ -17,9 +17,11 @@ class FeaturePacksTest {
     @BeforeEach
     void rememberFlags() {
         for (FeaturePack pack : FeaturePack.values()) {
-            previous.put(pack.key(), ResourceManager.getParameter(pack.key(), "true"));
+            previous.put(pack.key(), ResourceManager.getParameter(pack.key(),
+                    Boolean.toString(pack.defaultEnabled())));
         }
         previous.put("agent.enabled", ResourceManager.getParameter("agent.enabled", "true"));
+        previous.put("ni.lektorat.role", ResourceManager.getParameter("ni.lektorat.role", "autor"));
     }
 
     @AfterEach
@@ -53,5 +55,12 @@ class FeaturePacksTest {
         FeaturePacks.setEnabled(FeaturePack.AI, false);
         assertTrue(FeaturePacks.dictationEnabled());
         assertTrue(FeaturePacks.audiobookEnabled());
+    }
+
+    @Test
+    void niLektoratDefaultsOffAndHidesParameterTab() {
+        FeaturePacks.setEnabled(FeaturePack.NI_LEKTORAT, false);
+        assertFalse(FeaturePacks.niLektoratEnabled());
+        assertTrue(FeaturePacks.shouldHideParameterCategory("NI-Lektorat"));
     }
 }

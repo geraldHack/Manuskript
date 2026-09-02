@@ -15,7 +15,7 @@ public final class FeaturePacks {
         if (pack == null) {
             return true;
         }
-        boolean self = readFlag(pack.key(), true);
+        boolean self = readFlag(pack.key(), pack.defaultEnabled());
         if (pack.requiresAi() && pack != FeaturePack.AI) {
             return self && isEnabled(FeaturePack.AI);
         }
@@ -23,7 +23,7 @@ public final class FeaturePacks {
     }
 
     public static boolean isStoredEnabled(FeaturePack pack) {
-        return pack != null && readFlag(pack.key(), true);
+        return pack != null && readFlag(pack.key(), pack.defaultEnabled());
     }
 
     public static void setEnabled(FeaturePack pack, boolean enabled) {
@@ -56,6 +56,10 @@ public final class FeaturePacks {
 
     public static boolean audiobookEnabled() {
         return isEnabled(FeaturePack.AUDIOBOOK);
+    }
+
+    public static boolean niLektoratEnabled() {
+        return isEnabled(FeaturePack.NI_LEKTORAT);
     }
 
     public static boolean shouldHideParameterCategory(String category) {

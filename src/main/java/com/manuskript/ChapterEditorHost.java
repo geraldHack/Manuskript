@@ -155,4 +155,8 @@ public interface ChapterEditorHost {
      */
     default void reloadAgentParametersFromPreferences() {
     }
+
+    /** Setup-Rolle oder Feature-Pack geändert: NI-Lektorat im offenen Kapitel neu anwenden. */
+    default void reloadNiReview() {
+    }
 }

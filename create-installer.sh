@@ -8,7 +8,7 @@ cd "$ROOT_DIR"
 UPLOAD=1
 DEPLOY_HOST="${MANUSKRIPT_DEPLOY_HOST:-spoteroxe.de}"
 DEPLOY_PATH="${MANUSKRIPT_DEPLOY_PATH:-/home/gehack/home/downloads}"
-STABLE_DMG_NAME="Manuskript-macos-arm64.dmg"
+LATEST_TXT_NAME="Manuskript-macos-arm64.txt"
 for arg in "$@"; do
     case "$arg" in
         --no-upload) UPLOAD=0 ;;
@@ -289,53 +289,37 @@ upload_dmg_to_spoteroxe() {
         return 1
     fi
 
-    local size_bytes size_mb json_file tmp_existing
+    local size_bytes size_mb notes_file version_txt_name
     size_bytes="$(stat -f%z "$dmg_path")"
     size_mb="$(human_size_mb "$size_bytes")"
-    json_file="$(mktemp -t manuskript-download)"
-    tmp_existing="$(mktemp -t manuskript-download-old)"
-    scp -o BatchMode=yes -q "${DEPLOY_HOST}:${DEPLOY_PATH}/manuskript.json" "$tmp_existing" 2>/dev/null || true
-
-    python3 - "$tmp_existing" "$json_file" "$APP_VERSION" "$DMG_NAME" "$STABLE_DMG_NAME" "$size_bytes" "$size_mb" <<'PY'
-import json, sys, datetime
-old_path, out_path, version, filename, stable, size_bytes, size_mb = sys.argv[1:]
-root = {}
-try:
-    with open(old_path, encoding="utf-8") as f:
-        raw = f.read().strip()
-        if raw:
-            root = json.loads(raw)
-except Exception:
-    root = {}
-macos_old = root.get("macos")
-if not macos_old and isinstance(root.get("url"), str) and "windows" not in str(root.get("platform", "")).lower():
-    macos_old = root
-windows = root.get("windows")
-macos = {
-    "version": version,
-    "platform": "macOS (Apple Silicon / arm64)",
-    "filename": filename,
-    "url": f"downloads/{stable}",
-    "sizeBytes": int(size_bytes),
-    "sizeLabel": f"{size_mb} MB",
-    "updated": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-}
-out = {"macos": macos, "updated": macos["updated"]}
-if windows:
-    out["windows"] = windows
-with open(out_path, "w", encoding="utf-8") as f:
-    json.dump(out, f, indent=2)
-    f.write("\n")
-PY
+    notes_file="$(mktemp -t manuskript-download)"
+    version_txt_name="${DMG_NAME%.dmg}.txt"
+    release_notes_file="${ROOT_DIR}/deploy/spoteroxe/manuskript-release-notes.txt"
+    {
+        printf '%s\n' \
+            "Manuskript" \
+            "${APP_VERSION}" \
+            "" \
+            "macOS (Apple Silicon / arm64)" \
+            "${size_mb} MB" \
+            "${DMG_NAME}"
+        if [[ -f "$release_notes_file" ]]; then
+            cat "$release_notes_file"
+            [[ "$(tail -c1 "$release_notes_file")" == $'\n' ]] || printf '\n'
+        fi
+    } > "$notes_file"
 
     js_file="${ROOT_DIR}/deploy/spoteroxe/manuskript-download.js"
     html_file="${ROOT_DIR}/deploy/spoteroxe/downloads.html"
-    if ! scp -o BatchMode=yes "$json_file" "${DEPLOY_HOST}:${DEPLOY_PATH}/manuskript.json"; then
-        rm -f "$json_file" "$tmp_existing"
-        echo "WARNUNG: scp von manuskript.json fehlgeschlagen."
+
+    if ! scp -o BatchMode=yes "$notes_file" "${DEPLOY_HOST}:${DEPLOY_PATH}/${LATEST_TXT_NAME}"; then
+        rm -f "$notes_file"
+        echo "WARNUNG: scp von ${LATEST_TXT_NAME} fehlgeschlagen."
         return 1
     fi
-    rm -f "$json_file" "$tmp_existing"
+    scp -o BatchMode=yes "$notes_file" "${DEPLOY_HOST}:${DEPLOY_PATH}/${version_txt_name}" || \
+        echo "WARNUNG: scp von ${version_txt_name} fehlgeschlagen."
+    rm -f "$notes_file"
 
     if [[ -f "$js_file" ]]; then
         scp -o BatchMode=yes "$js_file" "${DEPLOY_HOST}:/home/gehack/home/js/manuskript-download.js" || \
@@ -347,19 +331,22 @@ PY
     fi
 
     ssh -o BatchMode=yes "$DEPLOY_HOST" \
-        "DEPLOY_PATH='${DEPLOY_PATH}' CURRENT='${DMG_NAME}' STABLE='${STABLE_DMG_NAME}' bash -s" <<'REMOTE'
+        "DEPLOY_PATH='${DEPLOY_PATH}' CURRENT='${DMG_NAME}' LATEST_TXT='${LATEST_TXT_NAME}' VERSION_TXT='${version_txt_name}' bash -s" <<'REMOTE'
 set -euo pipefail
 cd "$DEPLOY_PATH"
-ln -f "$CURRENT" "$STABLE"
+chmod 644 "$CURRENT" "$LATEST_TXT" "$VERSION_TXT" 2>/dev/null || true
+rm -f Manuskript-macos-arm64.dmg manuskript.json
 for f in Manuskript-*-macos-arm64.dmg; do
     [[ -f "$f" ]] || continue
     [[ "$f" == "$CURRENT" ]] && continue
     echo "  Entferne alte Version: $f"
     rm -f "$f"
+    rm -f "${f%.dmg}.txt"
 done
 REMOTE
 
-    echo "[OK] Download aktuell: https://spoteroxe.de/downloads/${STABLE_DMG_NAME}"
+    echo "[OK] Download: https://spoteroxe.de/downloads/${DMG_NAME}"
+    echo "     Notes:    https://spoteroxe.de/downloads/${LATEST_TXT_NAME}"
     echo "     Version ${APP_VERSION}, ${size_mb} MB"
 }
 

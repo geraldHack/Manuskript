@@ -163,6 +163,10 @@ public class MainController implements Initializable {
     @FXML private Button btnSetupAssistant;
     @FXML private HBox launcherToolbarBox;
     @FXML private Button btnAudiobook;
+    @FXML private Button btnNiLektoratSend;
+    @FXML private Button btnNiLektoratImport;
+    @FXML private Button btnNiLektoratOpen;
+    @FXML private Button btnNiLektoratCreateZip;
     @FXML private Button btnDeleteFile;
     @FXML private Button btnSearchAllFiles;
     @FXML private CheckBox chkDownloadsMonitor;
@@ -712,6 +716,18 @@ public class MainController implements Initializable {
                 List<DocxFile> chapters = new ArrayList<>(selectedDocxFiles);
                 AudiobookDialog.show(primaryStage != null ? primaryStage : null, chapters, dataDir, currentThemeIndex);
             });
+        }
+        if (btnNiLektoratSend != null) {
+            btnNiLektoratSend.setOnAction(e -> sendNiLektoratPackage());
+        }
+        if (btnNiLektoratImport != null) {
+            btnNiLektoratImport.setOnAction(e -> importNiLektoratReturn());
+        }
+        if (btnNiLektoratOpen != null) {
+            btnNiLektoratOpen.setOnAction(e -> openNiLektoratPackage());
+        }
+        if (btnNiLektoratCreateZip != null) {
+            btnNiLektoratCreateZip.setOnAction(e -> createNiLektoratReturnZip());
         }
         btnDeleteFile.setOnAction(e -> deleteSelectedFile());
         btnSearchAllFiles.setOnAction(e -> searchAllFiles());
@@ -1319,13 +1335,16 @@ public class MainController implements Initializable {
 
     /** Pfad des aktuellen Buchs (Kapitel-DOCX), nicht der Projektwurzel. */
     private String getCurrentProjectPath() {
-        if (currentProjectDirectory != null) {
+        if (currentProjectDirectory != null && currentProjectDirectory.isDirectory()) {
             return currentProjectDirectory.getAbsolutePath();
         }
         if (preferences != null) {
             String last = preferences.get("lastDirectory", "");
             if (last != null && !last.isBlank()) {
-                return last;
+                File dir = new File(last);
+                if (dir.isDirectory()) {
+                    return dir.getAbsolutePath();
+                }
             }
         }
         return "";
@@ -1334,11 +1353,14 @@ public class MainController implements Initializable {
     private void setCurrentProjectDirectory(File dir) {
         if (dir != null && dir.isDirectory()) {
             currentProjectDirectory = dir.getAbsoluteFile();
+            com.manuskript.review.NiReviewStore.setCurrentBookDirectory(currentProjectDirectory);
+            applyFeatureVisibility();
             if (preferences != null) {
                 preferences.put("lastDirectory", currentProjectDirectory.getAbsolutePath());
             }
         } else {
             currentProjectDirectory = null;
+            com.manuskript.review.NiReviewStore.setCurrentBookDirectory(null);
         }
         updateCachedProjectDirectoryPath();
         updateProjectTitleFromCurrentPath();
@@ -1346,6 +1368,13 @@ public class MainController implements Initializable {
 
     private void showProjectRootInDirectoryField() {
         if (txtDirectoryPath == null) {
+            return;
+        }
+        if (com.manuskript.review.NiReviewProject.hasAuthorSnapshots(currentProjectDirectory)) {
+            String shown = currentProjectDirectory.getAbsolutePath();
+            if (!shown.equals(txtDirectoryPath.getText())) {
+                txtDirectoryPath.setText(shown);
+            }
             return;
         }
         String root = ResourceManager.getParameter("project.root.directory", "");
@@ -4883,6 +4912,203 @@ public class MainController implements Initializable {
         alert.showAndWait(owner != null ? owner : primaryStage);
     }
 
+    private void sendNiLektoratPackage() {
+        if (!FeaturePacks.niLektoratEnabled()) {
+            return;
+        }
+        File bookDir = getCurrentDirectory();
+        if (bookDir == null) {
+            showWarning("An Lektorat senden", "Bitte zuerst ein Buch öffnen.");
+            return;
+        }
+        List<DocxFile> chapters = allBookChaptersForLektorat();
+        if (chapters.isEmpty()) {
+            showWarning("An Lektorat senden", "Dieses Buch hat keine Kapitel.");
+            return;
+        }
+        List<com.manuskript.review.NiReviewActions.ChapterSource> sources = new ArrayList<>();
+        List<String> missingMd = new ArrayList<>();
+        for (DocxFile chapter : chapters) {
+            File md = deriveMdFileFor(chapter.getFile());
+            if (md == null || !md.isFile()) {
+                missingMd.add(chapter.getFileName());
+                continue;
+            }
+            try {
+                sources.add(new com.manuskript.review.NiReviewActions.ChapterSource(
+                        com.manuskript.review.NiReviewActions.chapterKeyForDocxName(chapter.getFileName()),
+                        chapter.getFileName(),
+                        com.manuskript.review.NiReviewActions.readMarkdown(md.toPath())));
+            } catch (IOException e) {
+                showError("An Lektorat senden", e.getMessage());
+                return;
+            }
+        }
+        if (sources.isEmpty()) {
+            showWarning("An Lektorat senden", "Keine Kapitel-MD gefunden. Kapitel zuerst im Editor öffnen und speichern.");
+            return;
+        }
+        File suggested = com.manuskript.review.NiReviewProject.defaultAuthorZip(bookDir);
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Lektoratspaket speichern");
+        chooser.setInitialFileName(com.manuskript.review.NiReviewProject.authorZipFileName(bookDir));
+        chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("Lektoratspaket", "*.zip"));
+        if (suggested.getParentFile() != null && suggested.getParentFile().isDirectory()) {
+            chooser.setInitialDirectory(suggested.getParentFile());
+        }
+        File zip = chooser.showSaveDialog(primaryStage);
+        if (zip == null) {
+            return;
+        }
+        zip = com.manuskript.review.NiReviewProject.withNiZipExtension(zip);
+        try {
+            var result = com.manuskript.review.NiReviewActions.send(
+                    zip.toPath(),
+                    new com.manuskript.review.NiReviewActions.FileBook(bookDir),
+                    sources,
+                    com.manuskript.review.NiReviewRole.reviewerName());
+            StringBuilder message = new StringBuilder();
+            message.append(result.chapterCount()).append(" Kapitel gespeichert:\n")
+                    .append(zip.getAbsolutePath());
+            if (!missingMd.isEmpty()) {
+                message.append("\nOhne MD übersprungen: ").append(missingMd);
+            }
+            showInfo("An Lektorat senden", message.toString());
+        } catch (IOException e) {
+            showError("An Lektorat senden", e.getMessage());
+        }
+    }
+
+    private List<DocxFile> allBookChaptersForLektorat() {
+        if (selectedDocxFiles != null && !selectedDocxFiles.isEmpty()) {
+            return new ArrayList<>(selectedDocxFiles);
+        }
+        if (allDocxFiles != null && !allDocxFiles.isEmpty()) {
+            return new ArrayList<>(allDocxFiles);
+        }
+        return List.of();
+    }
+
+    private void importNiLektoratReturn() {
+        if (!FeaturePacks.niLektoratEnabled()) {
+            return;
+        }
+        File bookDir = getCurrentDirectory();
+        if (bookDir == null) {
+            showWarning("Lektorat-Rücksendung", "Bitte zuerst ein Buch öffnen.");
+            return;
+        }
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Lektorats-Rücksendung wählen");
+        chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("Lektoratspaket", "*.zip"));
+        chooser.setInitialDirectory(bookDir);
+        File zip = chooser.showOpenDialog(primaryStage);
+        if (zip == null) {
+            return;
+        }
+        for (DocxFile chapter : allBookChaptersForLektorat()) {
+            File md = deriveMdFileFor(chapter.getFile());
+            if (md != null && md.isFile()) {
+                ChapterMdHistory.snapshotFromFile(md, ChapterMdHistory.Reason.BEFORE_LEKTORAT);
+            }
+        }
+        Map<String, String> live = new java.util.LinkedHashMap<>();
+        for (DocxFile chapter : allBookChaptersForLektorat()) {
+            File md = deriveMdFileFor(chapter.getFile());
+            String key = com.manuskript.review.NiReviewActions.chapterKeyForDocxName(chapter.getFileName());
+            try {
+                live.put(key, com.manuskript.review.NiReviewActions.readMarkdown(md == null ? null : md.toPath()));
+            } catch (IOException e) {
+                live.put(key, "");
+            }
+        }
+        try {
+            var result = com.manuskript.review.NiReviewActions.importReturned(
+                    new com.manuskript.review.NiReviewActions.FileBook(bookDir), zip.toPath(), live);
+            StringBuilder message = new StringBuilder();
+            message.append(result.merged()).append(" Kapitel mit Anmerkungen übernommen.\n")
+                    .append("Stand aller Kapitel als „Stand vor Lektorat“ in der Versionshistorie gesichert.");
+            if (!result.unknownKeys().isEmpty()) {
+                message.append("\nUnbekannt (nicht angelegt): ").append(result.unknownKeys());
+            }
+            if (!result.remapped().isEmpty()) {
+                message.append("\nLive-Text hat sich geändert, Anker neu gesetzt: ").append(result.remapped());
+            }
+            showInfo("Lektorat-Rücksendung", message.toString());
+        } catch (IOException e) {
+            showError("Lektorat-Rücksendung", e.getMessage());
+        }
+    }
+
+    private void openNiLektoratPackage() {
+        if (!FeaturePacks.niLektoratEnabled()) {
+            return;
+        }
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Lektoratspaket öffnen");
+        chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("Lektoratspaket", "*.zip"));
+        File documents = ApplicationPaths.userDocumentsDirectory();
+        if (documents != null && documents.isDirectory()) {
+            chooser.setInitialDirectory(documents);
+        }
+        File zip = chooser.showOpenDialog(primaryStage);
+        if (zip == null) {
+            return;
+        }
+        File parent = com.manuskript.review.NiReviewProject.lektorWorkingCopiesDirectory();
+        try {
+            java.nio.file.Path project = com.manuskript.review.NiReviewProject.materialize(
+                    zip.toPath(), parent.toPath());
+            com.manuskript.review.NiReviewRole.set(com.manuskript.review.NiReviewRole.LEKTOR);
+            openBookDirectory(project.toFile());
+            if (txtDirectoryPath != null) {
+                txtDirectoryPath.setText(project.toAbsolutePath().toString());
+            }
+            applyFeatureVisibility();
+            showInfo("Lektoratspaket geöffnet",
+                    "Arbeitskopie liegt hier (nicht im Hauptverzeichnis):\n"
+                    + project.toAbsolutePath()
+                    + "\nDas vorherige Buch wurde geschlossen.");
+        } catch (IOException e) {
+            showError("Lektoratspaket öffnen", e.getMessage());
+        }
+    }
+
+    private void createNiLektoratReturnZip() {
+        if (com.manuskript.review.NiReviewRole.current() == com.manuskript.review.NiReviewRole.AUTHOR) {
+            sendNiLektoratPackage();
+            return;
+        }
+        if (com.manuskript.review.NiReviewPackageWindow.hasOpenPackage()) {
+            com.manuskript.review.NiReviewPackageWindow.createReturnZip(primaryStage);
+            return;
+        }
+        File book = getCurrentDirectory();
+        if (book == null || !com.manuskript.review.NiReviewProject.hasAuthorSnapshots(book)) {
+            showWarning("Lektorat-ZIP erstellen", "Zuerst das empfangene Lektoratspaket öffnen (wird als Projekt angelegt).");
+            return;
+        }
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Lektorat-ZIP speichern");
+        chooser.setInitialFileName(com.manuskript.review.NiReviewProject.returnZipFileName());
+        chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("Lektoratspaket", "*.zip"));
+        File documents = ApplicationPaths.userDocumentsDirectory();
+        if (documents != null && documents.isDirectory()) {
+            chooser.setInitialDirectory(documents);
+        }
+        File dest = chooser.showSaveDialog(primaryStage);
+        if (dest == null) {
+            return;
+        }
+        dest = com.manuskript.review.NiReviewProject.withNiZipExtension(dest);
+        try {
+            com.manuskript.review.NiReviewProject.writeReturnZip(book, dest.toPath());
+            showInfo("Lektorat-ZIP erstellen", "Rückgabe gespeichert: " + dest.getName());
+        } catch (IOException e) {
+            showError("Lektorat-ZIP erstellen", e.getMessage());
+        }
+    }
+
     private void showWarning(String title, String message) {
         showWarning(title, message, primaryStage);
     }
@@ -5654,8 +5880,11 @@ public class MainController implements Initializable {
         if (btnNovelWizard != null) applyThemeToNode(btnNovelWizard, themeIndex);
         if (btnSetupAssistant != null) applyThemeToNode(btnSetupAssistant, themeIndex);
         if (btnAudiobook != null) applyThemeToNode(btnAudiobook, themeIndex);
+        if (btnNiLektoratSend != null) applyThemeToNode(btnNiLektoratSend, themeIndex);
+        if (btnNiLektoratImport != null) applyThemeToNode(btnNiLektoratImport, themeIndex);
+        if (btnNiLektoratOpen != null) applyThemeToNode(btnNiLektoratOpen, themeIndex);
+        if (btnNiLektoratCreateZip != null) applyThemeToNode(btnNiLektoratCreateZip, themeIndex);
         if (launcherToolbarBox != null) {
-            applyThemeToNode(launcherToolbarBox, themeIndex);
             for (Node child : launcherToolbarBox.getChildren()) {
                 applyThemeToNode(child, themeIndex);
             }
@@ -7989,28 +8218,23 @@ public class MainController implements Initializable {
      */
     private void selectProject(File projectDir, CustomStage projectStage) {
         try {
-            // Lade das ausgewählte Projekt
-            setCurrentProjectDirectory(projectDir);
-            showProjectRootInDirectoryField();
-            loadDocxFiles(projectDir);
-            updateProjectTitleFromCurrentPath();
-            startBookLengthTimer();
-            
-            // Lade das Cover-Bild für das neue Projekt (nur cover_image.png aus dem aktuellen Verzeichnis)
-            loadCoverImageFromCurrentDirectory();
-            notifyPluginsLoaded();
-            
-            // Schließe die Projektauswahl
+            openBookDirectory(projectDir);
             projectStage.close();
-            
-            // Zeige das Hauptfenster wieder an
             primaryStage.show();
-            
-            
         } catch (Exception e) {
             logger.error("Fehler beim Laden des Projekts", e);
             showError("Fehler", "Projekt konnte nicht geladen werden: " + e.getMessage());
         }
+    }
+
+    private void openBookDirectory(File projectDir) {
+        setCurrentProjectDirectory(projectDir);
+        showProjectRootInDirectoryField();
+        loadDocxFiles(projectDir);
+        updateProjectTitleFromCurrentPath();
+        startBookLengthTimer();
+        loadCoverImageFromCurrentDirectory();
+        notifyPluginsLoaded();
     }
     
     
@@ -8913,7 +9137,8 @@ public class MainController implements Initializable {
         }
     }
 
-    /** Speichert nur die Projektwurzel. Öffnet kein Projekt und ändert lastDirectory nicht. */
+    /** Speichert die Projektwurzel. Öffnet kein Buch; verwirft lastDirectory,
+     * wenn das bisherige Buch nicht unter der neuen Wurzel liegt. */
     private void setProjectRootDirectory(File root) {
         File resolved = resolveAsProjectRoot(root);
         if (resolved == null || !resolved.isDirectory()) {
@@ -8921,8 +9146,34 @@ public class MainController implements Initializable {
         }
         ResourceManager.saveParameter("project.root.directory", resolved.getAbsolutePath());
         projectRootDirectory = resolved;
+        File rememberedBook = currentProjectDirectory;
+        if (rememberedBook == null && preferences != null) {
+            String last = preferences.get("lastDirectory", "");
+            if (last != null && !last.isBlank()) {
+                rememberedBook = new File(last);
+            }
+        }
+        if (rememberedBook != null && !isBookUnderProjectRoot(rememberedBook, resolved)) {
+            setCurrentProjectDirectory(null);
+            if (preferences != null) {
+                preferences.remove("lastDirectory");
+            }
+        }
         showProjectRootInDirectoryField();
         logger.info("Projektwurzel gesetzt auf {}", resolved.getAbsolutePath());
+    }
+
+    private static boolean isBookUnderProjectRoot(File bookDir, File rootDir) {
+        if (bookDir == null || rootDir == null || !bookDir.isDirectory() || !rootDir.isDirectory()) {
+            return false;
+        }
+        try {
+            Path book = bookDir.getAbsoluteFile().toPath().normalize();
+            Path root = rootDir.getAbsoluteFile().toPath().normalize();
+            return book.startsWith(root);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
@@ -9932,6 +10183,13 @@ public class MainController implements Initializable {
         setToolbarFeatureVisible(btnAudiobook, FeaturePacks.audiobookEnabled());
         setToolbarFeatureVisible(btnOpenTtsEditor, FeaturePacks.audiobookEnabled());
         setToolbarFeatureVisible(btnNovelWizard, FeaturePacks.novelWizardEnabled());
+        boolean ni = FeaturePacks.niLektoratEnabled();
+        boolean lektor = ni && com.manuskript.review.NiReviewRole.current() == com.manuskript.review.NiReviewRole.LEKTOR;
+        boolean author = ni && !lektor;
+        setToolbarFeatureVisible(btnNiLektoratSend, author);
+        setToolbarFeatureVisible(btnNiLektoratImport, author);
+        setToolbarFeatureVisible(btnNiLektoratOpen, lektor);
+        setToolbarFeatureVisible(btnNiLektoratCreateZip, lektor);
     }
 
     private void setToolbarFeatureVisible(Button button, boolean visible) {
@@ -9962,14 +10220,10 @@ public class MainController implements Initializable {
         }
         launcherToolbarBox.setVisible(true);
         launcherToolbarBox.setManaged(true);
-        Separator separator = new Separator();
-        separator.setOrientation(javafx.geometry.Orientation.VERTICAL);
-        separator.getStyleClass().add("toolbar-separator");
-        launcherToolbarBox.getChildren().add(separator);
         for (ManuskriptPlugin plugin : loadedPlugins) {
             Button button = new Button(plugin.label());
             button.getStyleClass().add("main-toolbar-button");
-            button.setMinWidth(80);
+            button.setMinWidth(Region.USE_PREF_SIZE);
             button.setTooltip(new Tooltip("Öffnet „" + plugin.label() + "“ im Manuskript-Fenster"));
             button.setOnAction(e -> startPlugin(plugin));
             applyThemeToNode(button, currentThemeIndex);
@@ -9978,13 +10232,12 @@ public class MainController implements Initializable {
         for (ProgramLauncher launcher : launchers) {
             Button button = new Button(launcher.displayLabel());
             button.getStyleClass().add("main-toolbar-button");
-            button.setMinWidth(80);
+            button.setMinWidth(Region.USE_PREF_SIZE);
             button.setTooltip(new Tooltip("Startet „" + launcher.displayLabel() + "“ als eigenes Programm"));
             button.setOnAction(e -> startProgramLauncher(launcher));
             applyThemeToNode(button, currentThemeIndex);
             launcherToolbarBox.getChildren().add(button);
         }
-        applyThemeToNode(launcherToolbarBox, currentThemeIndex);
     }
 
     private void ensurePluginsLoaded() {
@@ -10015,11 +10268,12 @@ public class MainController implements Initializable {
         return new PluginHost() {
             @Override
             public Optional<Path> projectRoot() {
-                String path = txtDirectoryPath != null ? getCurrentProjectPath() : null;
+                String path = getCurrentProjectPath();
                 if (path == null || path.isBlank()) {
                     return Optional.empty();
                 }
-                return Optional.of(Path.of(path.trim()));
+                Path project = Path.of(path.trim());
+                return Files.isDirectory(project) ? Optional.of(project) : Optional.empty();
             }
 
             @Override
@@ -10090,6 +10344,9 @@ public class MainController implements Initializable {
 
     private void refreshAfterSetup() {
         applyFeatureVisibility();
+        for (ChapterEditorHost host : new ArrayList<>(openChapterEditors.values())) {
+            host.reloadNiReview();
+        }
         reloadPlugins();
         rebuildLauncherToolbar();
     }

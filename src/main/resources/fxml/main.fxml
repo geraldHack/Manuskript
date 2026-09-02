@@ -107,6 +107,18 @@
                      <Button fx:id="btnAudiobook" styleClass="main-toolbar-button" text="🎧 Hörbuch" minWidth="80">
                         <tooltip><Tooltip text="Ausgewählte Kapitel mit TTS zu einer Hörbuch-MP3 zusammenfügen" /></tooltip>
                      </Button>
+                     <Button fx:id="btnNiLektoratSend" styleClass="main-toolbar-button" text="👓 An Lektorat senden" minWidth="150">
+                        <tooltip><Tooltip text="Speichert die ZIP unter Dokumente als Buchname-lektorat.ni.zip" /></tooltip>
+                     </Button>
+                     <Button fx:id="btnNiLektoratImport" styleClass="main-toolbar-button" text="👓 Lektorat-Rücksendung" minWidth="170">
+                        <tooltip><Tooltip text="Lektorats-ZIP einspielen: nur Anmerkungen, Originale bleiben" /></tooltip>
+                     </Button>
+                     <Button fx:id="btnNiLektoratOpen" styleClass="main-toolbar-button" text="👓 Lektoratspaket öffnen" minWidth="170">
+                        <tooltip><Tooltip text="Empfangenes Lektoratspaket öffnen (nur Lektorenmodus)" /></tooltip>
+                     </Button>
+                     <Button fx:id="btnNiLektoratCreateZip" styleClass="main-toolbar-button" text="👓 Lektorat-ZIP erstellen" minWidth="180">
+                        <tooltip><Tooltip text="Lektorats-Rückgabe-ZIP speichern (Standard: Dokumente)" /></tooltip>
+                     </Button>
                   </HBox>
                   <!-- Gruppe Sonstiges -->
                   <HBox styleClass="action-group" spacing="6" alignment="CENTER_LEFT">
@@ -141,9 +153,13 @@
                         <tooltip><Tooltip text="Setup: Funktionen, Plugins, externe Programme, Pandoc, FFmpeg, Whisper, KI, LanguageTool" /></tooltip>
                      </Button>
                   </HBox>
-                  <HBox fx:id="launcherToolbarBox" spacing="6" alignment="CENTER_LEFT" />
                   <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
                </children>
+            </HBox>
+            <HBox fx:id="launcherToolbarBox" alignment="CENTER" spacing="6" minHeight="36" styleClass="action-group">
+               <padding>
+                  <Insets bottom="2.0" left="8.0" right="8.0" top="0.0" />
+               </padding>
             </HBox>
             <HBox alignment="CENTER_LEFT" spacing="0">
                <padding>

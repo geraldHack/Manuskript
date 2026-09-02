@@ -52,9 +52,11 @@ pandoc/pandoc-mac.zip
 logs/
 *.log
 
-# Gebaute Plugin-JARs (Katalog und aktive Kopien)
+# Gebaute Plugin-JARs und Release-Notes (Katalog und aktive Kopien)
 plugin-catalog/*.jar
+plugin-catalog/*.txt
 plugins/*.jar
+plugins/*.txt
 
 # OS
 .DS_Store

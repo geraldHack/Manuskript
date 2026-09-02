@@ -1,11 +1,5 @@
 package com.manuskript.stats;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
-
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
@@ -29,7 +23,6 @@ import java.util.regex.PatternSyntaxException;
  */
 public final class StatsEngine {
 
-    private static final Gson GSON = new Gson();
     private static final Pattern IMAGE_BLOCK = Pattern.compile(
             "!\\[([^\\]]*)]\\(([^)]+)\\)(?:\\{\\s*width\\s*=\\s*(\\d+)%\\s*})?"
                     + "(?:\\r?\\n(?:\\r?\\n)*\\s*(?:><c>|><center>)(.*?)(?:</c>|</center>))?",
@@ -47,17 +40,13 @@ public final class StatsEngine {
             throw new IllegalArgumentException("Kein Projektverzeichnis");
         }
         Properties props = loadTextanalysis(configDir);
-        List<Path> docxFiles = selectedDocx(bookRoot);
+        Path dataDir = bookRoot.resolve("data");
+        List<Path> markdownFiles = listAllChapterMarkdown(dataDir);
         List<BookStats.Chapter> chapters = new ArrayList<>();
         StringBuilder all = new StringBuilder();
         List<BookStats.ImageHit> images = new ArrayList<>();
-        Path dataDir = bookRoot.resolve("data");
-        for (Path docx : docxFiles) {
-            String base = stripDocx(docx.getFileName().toString());
-            Path md = dataDir.resolve(base + ".md");
-            if (!Files.isRegularFile(md)) {
-                continue;
-            }
+        for (Path md : markdownFiles) {
+            String base = stripMarkdown(md.getFileName().toString());
             String text = Files.readString(md, StandardCharsets.UTF_8);
             int words = countWords(text);
             Instant modified = Files.getLastModifiedTime(md).toInstant();
@@ -91,88 +80,86 @@ public final class StatsEngine {
         return trimmed.split("\\s+").length;
     }
 
-    static List<Path> selectedDocx(Path bookRoot) throws IOException {
-        Path selection = bookRoot.resolve("data").resolve(".manuskript_selection.json");
-        List<String> names = new ArrayList<>();
-        if (Files.isRegularFile(selection)) {
-            try (Reader reader = Files.newBufferedReader(selection, StandardCharsets.UTF_8)) {
-                JsonElement root = JsonParser.parseReader(reader);
-                if (root.isJsonArray()) {
-                    JsonArray array = root.getAsJsonArray();
-                    for (JsonElement element : array) {
-                        if (element.isJsonPrimitive()) {
-                            names.add(element.getAsString());
-                        }
-                    }
-                } else {
-                    List<String> parsed = GSON.fromJson(root, new TypeToken<List<String>>() {
-                    }.getType());
-                    if (parsed != null) {
-                        names.addAll(parsed);
-                    }
-                }
-            } catch (Exception ignored) {
-                names.clear();
-            }
-        }
+    /**
+     * Alle Kapitel-Arbeitskopien unter {@code data/*.md}, unabhängig von der Auswahl.
+     */
+    static List<Path> listAllChapterMarkdown(Path dataDir) throws IOException {
         List<Path> files = new ArrayList<>();
-        if (!names.isEmpty()) {
-            for (String name : names) {
-                if (name == null || name.isBlank()) {
-                    continue;
-                }
-                Path file = bookRoot.resolve(name);
-                if (Files.isRegularFile(file) && name.toLowerCase(Locale.ROOT).endsWith(".docx")) {
-                    files.add(file);
-                }
-            }
-            if (!files.isEmpty()) {
-                return files;
-            }
+        if (dataDir == null || !Files.isDirectory(dataDir)) {
+            return files;
         }
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(bookRoot, "*.docx")) {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dataDir, "*.md")) {
             for (Path path : stream) {
-                if (Files.isRegularFile(path) && !path.getFileName().toString().startsWith(".")) {
+                String name = path.getFileName().toString();
+                if (Files.isRegularFile(path) && !name.startsWith(".")) {
                     files.add(path);
                 }
             }
         }
-        files.sort(Comparator.comparing(path -> path.getFileName().toString().toLowerCase(Locale.ROOT)));
+        files.sort((a, b) -> compareNatural(
+                a.getFileName().toString(), b.getFileName().toString()));
         return files;
     }
 
     static SpeechCounts countSpeech(String text, Properties props) {
-        Map<String, Integer> phrases = new LinkedHashMap<>();
-        Map<String, Integer> verbs = new LinkedHashMap<>();
-        String regex = props.getProperty("sprechantworten_regex", "");
         String sprechwoerter = firstNonBlank(
                 props.getProperty("sprechwörter", ""),
                 props.getProperty("sprechwoerter", ""));
-        Pattern pattern = compileSprechantwortenPattern(regex, sprechwoerter);
-        Matcher matcher = pattern.matcher(text == null ? "" : text);
-        while (matcher.find()) {
-            String phrase = matcher.group().trim();
-            phrases.merge(phrase, 1, Integer::sum);
-            String verb = firstWord(phrase);
-            if (!verb.isEmpty()) {
-                verbs.merge(verb.toLowerCase(Locale.GERMAN), 1, Integer::sum);
+        String corpus = text == null ? "" : text;
+        return new SpeechCounts(
+                countSpeechPhrases(corpus, sprechwoerter),
+                countSpeechVerbs(corpus, sprechwoerter));
+    }
+
+    static Map<String, Integer> countSpeechVerbs(String text, String sprechwoerter) {
+        Map<String, Integer> verbs = new LinkedHashMap<>();
+        String corpus = text == null ? "" : text;
+        for (String verb : speechVerbs(sprechwoerter)) {
+            int count = countWholeWord(corpus, verb);
+            if (count > 0) {
+                verbs.put(verb.toLowerCase(Locale.GERMAN), count);
             }
         }
-        return new SpeechCounts(sortByCount(phrases), sortByCount(verbs));
+        return sortByCount(verbs);
+    }
+
+    /**
+     * Jedes Vorkommen des Sprechverbs, plus optionale Folgeworte bis zum Satzzeichen.
+     * Zählt auch bloße „antwortete.“ / „antwortete:“.
+     */
+    static Map<String, Integer> countSpeechPhrases(String text, String sprechwoerter) {
+        Map<String, Integer> phrases = new LinkedHashMap<>();
+        String corpus = text == null ? "" : text;
+        int flags = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CHARACTER_CLASS;
+        Pattern tail = Pattern.compile("(?:\\s+\\p{L}+){0,6}", flags);
+        for (String verb : speechVerbs(sprechwoerter)) {
+            Matcher matcher = wholeWordPattern(verb).matcher(corpus);
+            while (matcher.find()) {
+                int end = matcher.end();
+                Matcher extra = tail.matcher(corpus);
+                extra.region(end, corpus.length());
+                if (extra.lookingAt()) {
+                    end = extra.end();
+                }
+                phrases.merge(corpus.substring(matcher.start(), end).trim(), 1, Integer::sum);
+            }
+        }
+        return sortByCount(phrases);
     }
 
     static Map<String, Integer> countPhrases(String text, Properties props) {
         Map<String, Integer> phraseCount = new LinkedHashMap<>();
         String corpus = text == null ? "" : text;
+        int flags = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CHARACTER_CLASS;
         for (String category : PHRASE_KEYS) {
             for (String phrase : props.getProperty(category, "").split(",")) {
                 String trimmed = phrase.trim();
-                if (trimmed.isEmpty()) {
+                if (trimmed.isEmpty() || phraseCount.containsKey(trimmed)) {
                     continue;
                 }
                 Pattern pattern;
                 try {
-                    pattern = Pattern.compile(trimmed.replace("*", ".*"), Pattern.CASE_INSENSITIVE);
+                    pattern = Pattern.compile(toPhraseRegex(trimmed), flags);
                 } catch (PatternSyntaxException e) {
                     continue;
                 }
@@ -182,7 +169,7 @@ public final class StatsEngine {
                     count++;
                 }
                 if (count > 0) {
-                    phraseCount.merge(trimmed, count, Integer::sum);
+                    phraseCount.put(trimmed, count);
                 }
             }
         }
@@ -256,34 +243,148 @@ public final class StatsEngine {
 
     static String buildSprechantwortenRegex(String sprechwoerter) {
         List<String> quoted = new ArrayList<>();
+        for (String verb : speechVerbs(sprechwoerter)) {
+            quoted.add(Pattern.quote(verb));
+        }
+        return "(?<!\\p{L})(" + String.join("|", quoted) + ")(?!\\p{L})(?:\\s+\\p{L}+){0,6}";
+    }
+
+    static List<String> speechVerbs(String sprechwoerter) {
+        List<String> verbs = new ArrayList<>();
+        LinkedHashMap<String, String> unique = new LinkedHashMap<>();
         if (sprechwoerter != null) {
             for (String raw : sprechwoerter.split(",")) {
                 String word = raw.trim();
                 if (!word.isEmpty()) {
-                    quoted.add(Pattern.quote(word));
+                    unique.putIfAbsent(word.toLowerCase(Locale.GERMAN), word);
                 }
             }
         }
-        if (quoted.isEmpty()) {
-            quoted.add(Pattern.quote("sagte"));
-            quoted.add(Pattern.quote("fragte"));
-            quoted.add(Pattern.quote("erwiderte"));
+        verbs.addAll(unique.values());
+        if (verbs.isEmpty()) {
+            verbs.add("sagte");
+            verbs.add("fragte");
+            verbs.add("erwiderte");
         }
-        quoted.sort(Comparator.comparingInt(String::length).reversed());
-        return "(?:" + String.join("|", quoted) + ")\\s+\\p{L}+[.!?:,]";
+        verbs.sort(Comparator.comparingInt(String::length).reversed());
+        return verbs;
+    }
+
+    /**
+     * {@code *} = beliebig viele Buchstaben (auch keins), jedes Vorkommen einzeln.
+     * Nicht {@code .*} — das würde den ganzen Text in einem Treffer verschlucken.
+     */
+    static String toPhraseRegex(String template) {
+        if (template == null || template.isBlank()) {
+            return "";
+        }
+        StringBuilder out = new StringBuilder("(?<!\\p{L})");
+        boolean lastWasStar = false;
+        int i = 0;
+        while (i < template.length()) {
+            char ch = template.charAt(i);
+            if (ch == '*') {
+                out.append("\\p{L}*");
+                lastWasStar = true;
+                i++;
+            } else if (Character.isWhitespace(ch)) {
+                while (i < template.length() && Character.isWhitespace(template.charAt(i))) {
+                    i++;
+                }
+                boolean nextIsStar = i < template.length() && template.charAt(i) == '*';
+                out.append(lastWasStar || nextIsStar ? "\\s*" : "\\s+");
+                lastWasStar = false;
+            } else {
+                out.append(Pattern.quote(String.valueOf(ch)));
+                lastWasStar = false;
+                i++;
+            }
+        }
+        out.append("(?!\\p{L})");
+        return out.toString();
+    }
+
+    static int countWholeWord(String text, String word) {
+        if (text == null || word == null || word.isBlank()) {
+            return 0;
+        }
+        Matcher matcher = wholeWordPattern(word).matcher(text);
+        int count = 0;
+        while (matcher.find()) {
+            count++;
+        }
+        return count;
+    }
+
+    static Pattern wholeWordPattern(String word) {
+        return Pattern.compile(
+                "(?<!\\p{L})" + Pattern.quote(word) + "(?!\\p{L})",
+                Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CHARACTER_CLASS | Pattern.UNICODE_CASE);
+    }
+
+    static int compareNatural(String left, String right) {
+        String a = left == null ? "" : left;
+        String b = right == null ? "" : right;
+        int i = 0;
+        int j = 0;
+        while (i < a.length() && j < b.length()) {
+            char ca = a.charAt(i);
+            char cb = b.charAt(j);
+            if (Character.isDigit(ca) && Character.isDigit(cb)) {
+                int ia = i;
+                int ib = j;
+                while (i < a.length() && Character.isDigit(a.charAt(i))) {
+                    i++;
+                }
+                while (j < b.length() && Character.isDigit(b.charAt(j))) {
+                    j++;
+                }
+                String na = a.substring(ia, i).replaceFirst("^0+", "");
+                String nb = b.substring(ib, j).replaceFirst("^0+", "");
+                if (na.isEmpty()) {
+                    na = "0";
+                }
+                if (nb.isEmpty()) {
+                    nb = "0";
+                }
+                int length = Integer.compare(na.length(), nb.length());
+                if (length != 0) {
+                    return length;
+                }
+                int value = na.compareTo(nb);
+                if (value != 0) {
+                    return value;
+                }
+            } else {
+                int cmp = Character.compare(
+                        Character.toLowerCase(ca), Character.toLowerCase(cb));
+                if (cmp != 0) {
+                    return cmp;
+                }
+                i++;
+                j++;
+            }
+        }
+        return Integer.compare(a.length() - i, b.length() - j);
     }
 
     static Properties loadTextanalysis(Path configDir) {
         Properties props = new Properties();
         Path root = configDir == null ? Path.of(".") : configDir;
-        Path file = root.resolve("config").resolve("textanalysis.properties");
-        if (!Files.isRegularFile(file)) {
-            return props;
-        }
-        try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-            props.load(reader);
-        } catch (IOException ignored) {
-            return props;
+        Path[] candidates = {
+                root.resolve("config").resolve("textanalysis.properties"),
+                root.resolve("textanalysis.properties")
+        };
+        for (Path file : candidates) {
+            if (!Files.isRegularFile(file)) {
+                continue;
+            }
+            try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+                props.load(reader);
+                return props;
+            } catch (IOException ignored) {
+                return props;
+            }
         }
         return props;
     }
@@ -299,14 +400,6 @@ public final class StatsEngine {
         return sorted;
     }
 
-    private static String firstWord(String phrase) {
-        if (phrase == null || phrase.isBlank()) {
-            return "";
-        }
-        String[] parts = phrase.trim().split("\\s+");
-        return parts.length == 0 ? "" : parts[0];
-    }
-
     private static String firstNonBlank(String first, String second) {
         if (first != null && !first.isBlank()) {
             return first;
@@ -314,9 +407,9 @@ public final class StatsEngine {
         return second != null ? second : "";
     }
 
-    private static String stripDocx(String name) {
-        if (name.toLowerCase(Locale.ROOT).endsWith(".docx")) {
-            return name.substring(0, name.length() - 5);
+    private static String stripMarkdown(String name) {
+        if (name.toLowerCase(Locale.ROOT).endsWith(".md")) {
+            return name.substring(0, name.length() - 3);
         }
         return name;
     }

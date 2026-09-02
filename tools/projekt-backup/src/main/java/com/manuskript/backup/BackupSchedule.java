@@ -28,11 +28,13 @@ public enum BackupSchedule {
         if (id == null || id.isBlank()) {
             return OFF;
         }
-        try {
-            return BackupSchedule.valueOf(id.trim().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return OFF;
+        String trimmed = id.trim();
+        for (BackupSchedule schedule : values()) {
+            if (schedule.name().equalsIgnoreCase(trimmed) || schedule.label.equalsIgnoreCase(trimmed)) {
+                return schedule;
+            }
         }
+        return OFF;
     }
 
     public boolean isDue(Instant lastBackup, Instant now) {

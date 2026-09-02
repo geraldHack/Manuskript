@@ -7,7 +7,7 @@
 
     <groupId>com.manuskript</groupId>
     <artifactId>schreib-statistik</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.3</version>
     <packaging>jar</packaging>
 
     <name>Schreib-Statistik</name>
@@ -26,11 +26,6 @@
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
             <version>${javafx.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.10.1</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -113,6 +108,29 @@
                 <version>3.3.1</version>
                 <executions>
                     <execution>
+                        <id>filter-plugin-notes</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <useDefaultDelimiters>false</useDefaultDelimiters>
+                            <delimiters>
+                                <delimiter>@</delimiter>
+                            </delimiters>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/src/main</directory>
+                                    <includes>
+                                        <include>plugin.txt</include>
+                                    </includes>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>copy-plugin-to-repo-catalog</id>
                         <phase>package</phase>
                         <goals>
@@ -125,9 +143,35 @@
                                     <directory>${project.build.directory}</directory>
                                     <includes>
                                         <include>schreib-statistik.jar</include>
+                                        <include>schreib-statistik.txt</include>
+                                        <include>schreib-statistik-${project.version}.txt</include>
                                     </includes>
                                 </resource>
                             </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>name-plugin-notes</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <copy file="${project.build.directory}/plugin.txt"
+                                      tofile="${project.build.directory}/${project.artifactId}.txt"
+                                      overwrite="true"/>
+                                <copy file="${project.build.directory}/plugin.txt"
+                                      tofile="${project.build.directory}/${project.artifactId}-${project.version}.txt"
+                                      overwrite="true"/>
+                            </target>
                         </configuration>
                     </execution>
                 </executions>

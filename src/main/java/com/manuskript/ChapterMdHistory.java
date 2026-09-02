@@ -39,7 +39,8 @@ public final class ChapterMdHistory {
         SAVE("Speichern"),
         DELETE("Vor Löschung"),
         BEFORE_RESTORE("Vor Wiederherstellung"),
-        OVERWRITE("Vor Übernahme");
+        OVERWRITE("Vor Übernahme"),
+        BEFORE_LEKTORAT("Stand vor Lektorat");
 
         private final String label;
 

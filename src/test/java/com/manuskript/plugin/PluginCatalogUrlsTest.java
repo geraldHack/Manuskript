@@ -16,6 +16,8 @@ class PluginCatalogUrlsTest {
         assertTrue(PluginCatalogUrls.isAllowed(
                 URI.create("https://spoteroxe.de/downloads/plugins/openrouter-monitor-1.0.0.jar")));
         assertTrue(PluginCatalogUrls.isAllowed(
+                URI.create("https://spoteroxe.de/downloads/plugins/openrouter-monitor-1.0.0.txt")));
+        assertTrue(PluginCatalogUrls.isAllowed(
                 URI.create("https://www.spoteroxe.de/downloads/plugins/foo.jar")));
     }
 
@@ -33,11 +35,14 @@ class PluginCatalogUrlsTest {
 
     @Test
     void validatesIdsNamesAndHashes() {
+        assertTrue(PluginCatalogUrls.OFFICIAL_IDS.contains("schreib-statistik"));
         assertTrue(PluginCatalogUrls.isAllowedId("openrouter-monitor"));
         assertFalse(PluginCatalogUrls.isAllowedId("../etc"));
         assertTrue(PluginCatalogUrls.isAllowedFileName("openrouter-monitor.jar"));
+        assertTrue(PluginCatalogUrls.isAllowedNotesFileName("openrouter-monitor-1.0.0.txt"));
         assertFalse(PluginCatalogUrls.isAllowedFileName("../openrouter-monitor.jar"));
         assertFalse(PluginCatalogUrls.isAllowedFileName("openrouter-monitor.zip"));
+        assertFalse(PluginCatalogUrls.isAllowedNotesFileName("../notes.txt"));
         assertTrue(PluginCatalogUrls.isAllowedSha256("a".repeat(64)));
         assertEquals("aabb", PluginCatalogUrls.normalizeSha256("AABB"));
         assertFalse(PluginCatalogUrls.isAllowedSha256("xyz"));

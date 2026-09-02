@@ -1,5 +1,7 @@
 package com.manuskript.plugin;
 
+import java.util.List;
+
 /**
  * Vergleich gepunkteter Versionsnummern ({@code 2.1.70}).
  */
@@ -30,6 +32,57 @@ public final class PluginVersions {
             }
         }
         return 0;
+    }
+
+    public static String nextPatch(String version) {
+        return bump(version, 2);
+    }
+
+    public static String nextMinor(String version) {
+        return bump(version, 1);
+    }
+
+    public static String nextMajor(String version) {
+        return bump(version, 0);
+    }
+
+    public static List<String> successorVersions(String version) {
+        java.util.LinkedHashSet<String> versions = new java.util.LinkedHashSet<>();
+        String current = version == null ? "" : version.trim();
+        if (current.isEmpty()) {
+            return List.of();
+        }
+        String patch = nextPatch(current);
+        versions.add(patch);
+        versions.add(nextPatch(patch));
+        versions.add(nextPatch(nextPatch(patch)));
+        versions.add(nextMinor(current));
+        versions.add(nextMajor(current));
+        versions.remove(current);
+        return List.copyOf(versions);
+    }
+
+    private static String bump(String version, int index) {
+        int[] values = parts(version);
+        if (values.length == 0) {
+            return "1.0.0";
+        }
+        int[] next = new int[Math.max(3, values.length)];
+        System.arraycopy(values, 0, next, 0, values.length);
+        int at = Math.min(index, next.length - 1);
+        next[at] = next[at] + 1;
+        for (int i = at + 1; i < next.length; i++) {
+            next[i] = 0;
+        }
+        StringBuilder out = new StringBuilder();
+        int last = Math.max(2, values.length - 1);
+        for (int i = 0; i <= last; i++) {
+            if (i > 0) {
+                out.append('.');
+            }
+            out.append(next[i]);
+        }
+        return out.toString();
     }
 
     private static int[] parts(String version) {

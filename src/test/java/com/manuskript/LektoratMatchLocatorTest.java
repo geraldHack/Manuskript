@@ -54,10 +54,10 @@ class LektoratMatchLocatorTest {
         LektoratMatch after = new LektoratMatch(6, 4, "Welt", List.of("World"), "", 3);
         List<LektoratMatch> matches = new ArrayList<>(List.of(before, after));
 
-        boolean removed = LektoratMatchLocator.shiftAfterTextChange(
+        boolean changed = LektoratMatchLocator.shiftAfterTextChange(
                 "Hallo Welt", "XHallo Welt", matches);
 
-        assertEquals(false, removed);
+        assertEquals(true, changed);
         assertEquals(1, before.getOffset());
         assertEquals(7, after.getOffset());
     }
@@ -67,10 +67,10 @@ class LektoratMatchLocatorTest {
         LektoratMatch before = new LektoratMatch(0, 5, "Hallo", List.of("Hi"), "", 3);
         List<LektoratMatch> matches = new ArrayList<>(List.of(before));
 
-        boolean removed = LektoratMatchLocator.shiftAfterTextChange(
+        boolean changed = LektoratMatchLocator.shiftAfterTextChange(
                 "Hallo Welt", "Hallo XWelt", matches);
 
-        assertEquals(false, removed);
+        assertEquals(false, changed);
         assertEquals(0, before.getOffset());
     }
 
@@ -80,10 +80,10 @@ class LektoratMatchLocatorTest {
         LektoratMatch later = new LektoratMatch(11, 3, "end", List.of("Ende"), "", 3);
         List<LektoratMatch> matches = new ArrayList<>(List.of(match, later));
 
-        boolean removed = LektoratMatchLocator.shiftAfterTextChange(
+        boolean changed = LektoratMatchLocator.shiftAfterTextChange(
                 "Hallo Welt end", "Hallo WELT end", matches);
 
-        assertEquals(true, removed);
+        assertEquals(true, changed);
         assertEquals(1, matches.size());
         assertEquals(later, matches.get(0));
         assertEquals(11, later.getOffset());
@@ -94,11 +94,36 @@ class LektoratMatchLocatorTest {
         LektoratMatch match = new LektoratMatch(6, 4, "Welt", List.of("World"), "", 3);
         List<LektoratMatch> matches = new ArrayList<>(List.of(match));
 
-        boolean removed = LektoratMatchLocator.shiftAfterTextChange(
+        boolean changed = LektoratMatchLocator.shiftAfterTextChange(
                 "Hallo Welt", "Welt", matches);
 
-        assertEquals(false, removed);
+        assertEquals(true, changed);
         assertEquals(0, match.getOffset());
+    }
+
+    @Test
+    void applyTextChange_replaysIncrementalEditsLikeDuringLektoratRun() {
+        // Zwei gleiche Original-Strings: ohne korrekte Offsets-Nachführung
+        // würde resolveNearest den vorderen Treffer erwischen.
+        LektoratMatch first = new LektoratMatch(0, 5, "hallo", List.of("Hi"), "1", 3);
+        LektoratMatch second = new LektoratMatch(12, 5, "hallo", List.of("Hi"), "2", 3);
+        List<LektoratMatch> matches = new ArrayList<>(List.of(first, second));
+
+        // Während des Laufs: erst Prefix, dann Einfügung vor dem zweiten Treffer
+        LektoratMatchLocator.TextChange edit1 =
+                LektoratMatchLocator.computeTextChange("hallo mitte hallo", "Xhallo mitte hallo");
+        LektoratMatchLocator.TextChange edit2 =
+                LektoratMatchLocator.computeTextChange("Xhallo mitte hallo", "Xhallo mitte Yhallo");
+        LektoratMatchLocator.applyTextChange(edit1, matches);
+        LektoratMatchLocator.applyTextChange(edit2, matches);
+
+        assertEquals(1, first.getOffset());
+        assertEquals(14, second.getOffset());
+
+        String finalText = "Xhallo mitte Yhallo";
+        LektoratMatchLocator.resolveAllInPlace(finalText, matches);
+        assertEquals(1, first.getOffset());
+        assertEquals(14, second.getOffset());
     }
 
     @Test

@@ -28,6 +28,13 @@ class ApplicationPathsTest {
     }
 
     @Test
+    void userDocumentsDirectoryPrefersDocuments(@TempDir Path home) throws Exception {
+        Files.createDirectories(home.resolve("Documents"));
+        assertEquals(home.resolve("Documents").toFile(),
+                ApplicationPaths.userDocumentsDirectory(home.toString()));
+    }
+
+    @Test
     void seedCopiesGottDemoOnlyWhenMissing(@TempDir Path temp) throws Exception {
         Path bundled = temp.resolve("bundled");
         Path demo = bundled.resolve(ApplicationPaths.DEMO_PROJECT_NAME);

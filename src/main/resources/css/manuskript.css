@@ -7015,6 +7015,101 @@
     -fx-background-color: -fx-mark-color;
 }
 
+.radio-button .radio {
+    -fx-background-color: -fx-control-inner-background;
+    -fx-border-color: -fx-text-box-border;
+    -fx-background-radius: 10px;
+    -fx-border-radius: 10px;
+    -fx-border-width: 2px;
+    -fx-min-width: 16px;
+    -fx-min-height: 16px;
+    -fx-pref-width: 16px;
+    -fx-pref-height: 16px;
+    -fx-padding: 3px;
+}
+
+.radio-button:selected .radio {
+    -fx-background-color: -fx-accent;
+    -fx-border-color: derive(-fx-accent, -20%);
+}
+
+.radio-button .dot {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 3px;
+}
+
+.radio-button:selected .dot {
+    -fx-background-color: -fx-mark-color;
+    -fx-background-insets: 0;
+}
+
+.ni-lektorat-role {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.ni-lektorat-role .radio {
+    -fx-min-width: 20px;
+    -fx-min-height: 20px;
+    -fx-pref-width: 20px;
+    -fx-pref-height: 20px;
+}
+
+.theme-dark .radio-button .radio,
+.theme-dark.blau-theme .radio-button .radio,
+.theme-dark.gruen-theme .radio-button .radio,
+.theme-dark.lila-theme .radio-button .radio {
+    -fx-background-color: #2d2d2d;
+    -fx-border-color: #ffffff;
+}
+
+.theme-dark .radio-button:selected .radio,
+.theme-dark.blau-theme .radio-button:selected .radio,
+.theme-dark.gruen-theme .radio-button:selected .radio,
+.theme-dark.lila-theme .radio-button:selected .radio {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #ffffff;
+}
+
+.theme-dark .radio-button:selected .dot,
+.theme-dark.blau-theme .radio-button:selected .dot,
+.theme-dark.gruen-theme .radio-button:selected .dot,
+.theme-dark.lila-theme .radio-button:selected .dot {
+    -fx-background-color: #111111;
+}
+
+.weiss-theme .radio-button .radio {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #333333;
+}
+
+.weiss-theme .radio-button:selected .radio {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #111111;
+}
+
+.weiss-theme .radio-button:selected .dot {
+    -fx-background-color: #111111;
+}
+
+.pastell-theme .radio-button .radio,
+.pastell-theme * .radio-button .radio {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #6b21a8;
+}
+
+.pastell-theme .radio-button:selected .radio,
+.pastell-theme * .radio-button:selected .radio {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #6b21a8;
+}
+
+.pastell-theme .radio-button:selected .dot,
+.pastell-theme * .radio-button:selected .dot {
+    -fx-background-color: #6b21a8;
+}
+
 /* ========================================
    MACRO-CHECKBOX STYLING FÜR DIALOGE - MAXIMALE SPEZIFITÄT
    ======================================== */
@@ -7362,6 +7457,88 @@
 
 .weiss-theme .title-bar .window-control-button:hover {
     -fx-background-color: #e9ecef;
+}
+
+/* ========== Resize-Handle (CustomStage) ========== */
+.window-resize-handle {
+    -fx-cursor: se-resize;
+}
+
+.window-resize-handle-bg {
+    -fx-background-radius: 0 0 6px 0;
+    -fx-border-radius: 0 0 6px 0;
+    -fx-border-width: 0 0 1px 1px;
+}
+
+.window-resize-grip-bar {
+    -fx-arc-width: 1;
+    -fx-arc-height: 1;
+}
+
+.weiss-theme .window-resize-handle-bg {
+    -fx-background-color: rgba(0, 0, 0, 0.08);
+    -fx-border-color: rgba(0, 0, 0, 0.20);
+}
+
+.weiss-theme .window-resize-grip-bar {
+    -fx-fill: rgba(60, 60, 60, 0.70);
+}
+
+.weiss-theme .window-resize-handle:hover .window-resize-handle-bg {
+    -fx-background-color: rgba(0, 0, 0, 0.14);
+}
+
+.theme-dark .window-resize-handle-bg {
+    -fx-background-color: rgba(255, 255, 255, 0.14);
+    -fx-border-color: rgba(255, 255, 255, 0.32);
+}
+
+.theme-dark .window-resize-grip-bar {
+    -fx-fill: rgba(230, 230, 230, 0.90);
+}
+
+.theme-dark .window-resize-handle:hover .window-resize-handle-bg {
+    -fx-background-color: rgba(255, 255, 255, 0.22);
+}
+
+.theme-dark.blau-theme .window-resize-handle-bg {
+    -fx-background-color: rgba(59, 130, 246, 0.28);
+    -fx-border-color: rgba(147, 197, 253, 0.55);
+}
+
+.theme-dark.blau-theme .window-resize-grip-bar {
+    -fx-fill: rgba(219, 234, 254, 0.95);
+}
+
+.theme-dark.gruen-theme .window-resize-handle-bg {
+    -fx-background-color: rgba(16, 185, 129, 0.28);
+    -fx-border-color: rgba(110, 231, 183, 0.55);
+}
+
+.theme-dark.gruen-theme .window-resize-grip-bar {
+    -fx-fill: rgba(209, 250, 229, 0.95);
+}
+
+.theme-dark.lila-theme .window-resize-handle-bg {
+    -fx-background-color: rgba(139, 92, 246, 0.28);
+    -fx-border-color: rgba(196, 181, 253, 0.55);
+}
+
+.theme-dark.lila-theme .window-resize-grip-bar {
+    -fx-fill: rgba(237, 233, 254, 0.95);
+}
+
+.pastell-theme .window-resize-handle-bg {
+    -fx-background-color: rgba(156, 39, 176, 0.14);
+    -fx-border-color: rgba(123, 31, 162, 0.35);
+}
+
+.pastell-theme .window-resize-grip-bar {
+    -fx-fill: rgba(106, 27, 154, 0.75);
+}
+
+.pastell-theme .window-resize-handle:hover .window-resize-handle-bg {
+    -fx-background-color: rgba(156, 39, 176, 0.22);
 }
 
 .theme-dark .title-bar {
@@ -9332,9 +9509,7 @@
 .theme-dark.gruen-theme .main-toolbar > HBox,
 .theme-dark.gruen-theme .main-toolbar .action-group,
 .theme-dark.lila-theme .main-toolbar > HBox,
-.theme-dark.lila-theme .main-toolbar .action-group,
-.pastell-theme * .main-toolbar > HBox,
-.pastell-theme * .main-toolbar .action-group {
+.theme-dark.lila-theme .main-toolbar .action-group {
     -fx-background-color: transparent;
 }
 
@@ -11728,4 +11903,137 @@
 .toggle-button.dictation-btn-instruction:selected {
     -fx-background-color: #b8860b;
     -fx-text-fill: white;
+}
+
+/* NI-Lektorat: rechte Spalte und Banner */
+.ni-review-split {
+    -fx-background-color: transparent;
+}
+
+.ni-review-split > .split-pane-divider {
+    -fx-padding: 0 2 0 2;
+    -fx-background-color: derive(-fx-background, -22%);
+}
+
+.ni-review-side-panel {
+    -fx-background-color: derive(-fx-background, 6%);
+}
+
+.ni-review-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.ni-review-hint,
+.ni-review-banner-text,
+.ni-review-card-body,
+.ni-review-reply {
+    -fx-wrap-text: true;
+}
+
+.ni-review-hint,
+.ni-review-reply {
+    -fx-opacity: 0.9;
+    -fx-font-size: 12px;
+}
+
+.ni-review-card-body {
+    -fx-font-size: 13px;
+    -fx-line-spacing: 2px;
+}
+
+.ni-review-card-title {
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+}
+
+.ni-review-scroll,
+.ni-review-scroll > .viewport,
+.ni-review-scroll > .corner {
+    -fx-background-color: transparent;
+}
+
+.ni-review-card {
+    -fx-background-color: derive(-fx-background, 14%);
+    -fx-background-radius: 10;
+    -fx-padding: 10 12 10 12;
+    -fx-border-color: derive(-fx-background, -16%);
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.ni-review-card.ni-review-kind-delete {
+    -fx-border-color: #e57373 rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.12);
+    -fx-border-width: 1 1 1 4;
+}
+
+.ni-review-card.ni-review-kind-insert {
+    -fx-border-color: #81c784 rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.12);
+    -fx-border-width: 1 1 1 4;
+}
+
+.ni-review-card.ni-review-kind-replace {
+    -fx-border-color: #64b5f6 rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.12);
+    -fx-border-width: 1 1 1 4;
+}
+
+.ni-review-card.ni-review-card-comment {
+    -fx-border-color: #e8903a rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.12);
+    -fx-border-width: 1 1 1 4;
+}
+
+.ni-review-old {
+    -fx-text-fill: #c62828;
+    -fx-strikethrough: true;
+}
+
+.ni-review-new {
+    -fx-text-fill: #2e7d32;
+}
+
+.ni-review-composer-box {
+    -fx-padding: 0 0 8 0;
+}
+
+.ni-review-accept {
+    -fx-font-weight: bold;
+}
+
+.ni-review-compact {
+    -fx-padding: 2 8 2 8;
+    -fx-min-height: 22;
+    -fx-font-size: 11px;
+}
+
+.ni-review-banner {
+    -fx-background-color: derive(-fx-accent, 70%);
+}
+
+.theme-dark .ni-review-split > .split-pane-divider {
+    -fx-background-color: #6b7280;
+}
+
+.theme-dark .ni-review-side-panel {
+    -fx-background-color: derive(-fx-base, -4%);
+}
+
+.theme-dark .ni-review-card {
+    -fx-background-color: rgba(255, 255, 255, 0.06);
+    -fx-border-color: rgba(255, 255, 255, 0.12);
+}
+
+.theme-dark .ni-review-old {
+    -fx-text-fill: #ef9a9a;
+}
+
+.theme-dark .ni-review-new {
+    -fx-text-fill: #a5d6a7;
+}
+
+.theme-dark .ni-review-card.ni-review-card-comment {
+    -fx-border-color: #c45a1c rgba(255, 255, 255, 0.12) rgba(255, 255, 255, 0.12) rgba(255, 255, 255, 0.12);
+}
+
+.theme-dark .ni-review-banner {
+    -fx-background-color: rgba(196, 90, 28, 0.22);
 }

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -42,17 +43,28 @@ public final class BackupEngine {
         target.destination = destinationDir == null ? "" : destinationDir.toString();
         target.compress = compress;
         target.keep = keepCount;
-        return createBackup(projectRoot, target, password);
+        return createBackup(projectRoot, target, password, null);
     }
 
     public static Path createBackup(Path projectRoot, BackupTarget target, char[] password) throws Exception {
+        return createBackup(projectRoot, target, password, null);
+    }
+
+    public static Path createBackup(
+            Path projectRoot,
+            BackupTarget target,
+            char[] password,
+            Consumer<String> progress) throws Exception {
         if (projectRoot == null || !Files.isDirectory(projectRoot)) {
             throw new IllegalArgumentException("Kein Projektverzeichnis");
         }
         if (target == null) {
             throw new IllegalArgumentException("Kein Ziel");
         }
-        Path projectReal = projectRoot.toRealPath();
+        report(progress, "Prüfe Ziel …");
+        preflight(target);
+
+        Path projectReal = projectRoot.toAbsolutePath().normalize();
         String stamp = LocalDateTime.now().format(STAMP);
         String base = sanitize(projectRoot.getFileName().toString()) + "-" + stamp;
         boolean encrypt = password != null && password.length > 0;
@@ -61,16 +73,20 @@ public final class BackupEngine {
         Path archive = encrypt ? staging.resolve(base + ".zip.enc") : tempZip;
         try {
             Path skip = skipDirectory(projectReal, target);
-            writeZip(projectReal, skip, tempZip, target.compress);
+            report(progress, "Packe Projekt …");
+            writeZip(projectReal, skip, tempZip, target.compress, progress);
             if (encrypt) {
+                report(progress, "Verschlüssele …");
                 BackupCrypto.encrypt(tempZip, archive, password);
                 Files.deleteIfExists(tempZip);
             }
             if (target.kind() == BackupKind.SSH) {
+                report(progress, "Lade per SSH hoch …");
                 String remote = SshBackupTransport.upload(archive, target);
                 SshBackupTransport.prune(target, sanitize(projectRoot.getFileName().toString()), target.keep);
                 return Path.of(remote);
             }
+            report(progress, "Schreibe Zielordner …");
             Path destDir = filesystemDestination(target);
             Files.createDirectories(destDir);
             Path destReal = destDir.toRealPath();
@@ -117,14 +133,24 @@ public final class BackupEngine {
     }
 
     static void writeZip(Path projectReal, Path skipDirOrNull, Path zipFile, boolean compress) throws IOException {
+        writeZip(projectReal, skipDirOrNull, zipFile, compress, null);
+    }
+
+    static void writeZip(
+            Path projectReal,
+            Path skipDirOrNull,
+            Path zipFile,
+            boolean compress,
+            Consumer<String> progress) throws IOException {
         Path skip = skipDirOrNull == null ? null : skipDirOrNull.toAbsolutePath().normalize();
+        int[] fileCount = {0};
         try (OutputStream out = Files.newOutputStream(zipFile);
              ZipOutputStream zip = new ZipOutputStream(out)) {
             zip.setLevel(compress ? Deflater.DEFAULT_COMPRESSION : Deflater.NO_COMPRESSION);
             Files.walkFileTree(projectReal, new SimpleFileVisitor<>() {
                 @Override
-                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                    Path real = dir.toRealPath();
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+                    Path real = absolute(dir);
                     if (skip != null && !real.equals(projectReal) && (real.equals(skip) || real.startsWith(skip))) {
                         return FileVisitResult.SKIP_SUBTREE;
                     }
@@ -137,8 +163,11 @@ public final class BackupEngine {
                     if (fileName.equals(".DS_Store") || fileName.equals("Thumbs.db")) {
                         return FileVisitResult.CONTINUE;
                     }
-                    Path real = file.toRealPath();
+                    Path real = absolute(file);
                     if (skip != null && real.startsWith(skip)) {
+                        return FileVisitResult.CONTINUE;
+                    }
+                    if (!real.startsWith(projectReal)) {
                         return FileVisitResult.CONTINUE;
                     }
                     String entryName = projectReal.relativize(real).toString().replace('\\', '/');
@@ -149,6 +178,10 @@ public final class BackupEngine {
                         in.transferTo(zip);
                     }
                     zip.closeEntry();
+                    fileCount[0]++;
+                    if (fileCount[0] == 1 || fileCount[0] % 25 == 0) {
+                        report(progress, "Packe Projekt … (" + fileCount[0] + " Dateien)");
+                    }
                     return FileVisitResult.CONTINUE;
                 }
 
@@ -158,6 +191,7 @@ public final class BackupEngine {
                 }
             });
         }
+        report(progress, "Archiv fertig (" + fileCount[0] + " Dateien)");
     }
 
     static void unzip(Path zipFile, Path targetDir) throws IOException {
@@ -216,6 +250,32 @@ public final class BackupEngine {
         }
     }
 
+    private static void preflight(BackupTarget target) throws IOException {
+        if (target.kind() == BackupKind.SSH) {
+            SshBackupTransport.probe(target);
+            return;
+        }
+        Path dest = filesystemDestination(target);
+        Path probe = dest;
+        while (probe != null && !Files.exists(probe)) {
+            probe = probe.getParent();
+        }
+        if (probe == null || !Files.isDirectory(probe)) {
+            throw new IOException("Zielordner nicht erreichbar: " + dest);
+        }
+        if (!Files.isWritable(probe)) {
+            throw new IOException("Zielordner nicht beschreibbar: " + probe);
+        }
+        // Externe Volumes unter /Volumes/…: fehlendes Volume nicht still neu anlegen.
+        Path abs = dest.toAbsolutePath().normalize();
+        if (abs.getNameCount() >= 2 && "Volumes".equals(abs.getName(0).toString())) {
+            Path volume = abs.getRoot().resolve(abs.subpath(0, 2));
+            if (!Files.isDirectory(volume)) {
+                throw new IOException("Volume nicht gemountet: " + volume);
+            }
+        }
+    }
+
     private static Path filesystemDestination(BackupTarget target) {
         if (target.destination == null || target.destination.isBlank()) {
             throw new IllegalArgumentException("Kein Zielordner");
@@ -240,6 +300,17 @@ public final class BackupEngine {
             // Ziel existiert noch nicht
         }
         return null;
+    }
+
+    /** toRealPath() kann auf Cloud-/Netzlaufwerken hängen — absolute+normalize reicht für ZIP-Pfade. */
+    private static Path absolute(Path path) {
+        return path.toAbsolutePath().normalize();
+    }
+
+    private static void report(Consumer<String> progress, String message) {
+        if (progress != null && message != null) {
+            progress.accept(message);
+        }
     }
 
     private static void deleteTree(Path root) {

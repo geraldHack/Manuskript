@@ -20,6 +20,8 @@ public class ChapterOnlineLektoratHelper {
     private final ChapterEditorHost host;
     private final ChapterLektoratPanel panel;
     private final List<LektoratMatch> currentMatches = new ArrayList<>();
+    /** Edits während eines laufenden API-Laufs – werden auf die Treffer angewendet, sobald sie da sind. */
+    private final List<LektoratMatchLocator.TextChange> pendingEditsWhileRunning = new ArrayList<>();
     private volatile boolean inProgress;
     private String lastSyncedText;
 
@@ -68,6 +70,8 @@ public class ChapterOnlineLektoratHelper {
         }
         host.setOnlineLektoratMode(true);
         inProgress = true;
+        pendingEditsWhileRunning.clear();
+        lastSyncedText = text;
         host.setStatusBusyBarActive(true);
         if (panel != null) {
             panel.applyFontSize(host.getEditorFontSizePx());
@@ -98,6 +102,7 @@ public class ChapterOnlineLektoratHelper {
                     host.setStatusBusyBarActive(false);
                     currentMatches.clear();
                     currentMatches.addAll(result.getMatches());
+                    replayPendingEditsOntoMatches();
                     syncMatchesToCurrentText();
                     applyMatchesToCanvasEditor();
                     if (panel != null) {
@@ -121,6 +126,7 @@ public class ChapterOnlineLektoratHelper {
                             return;
                         }
                         inProgress = false;
+                        pendingEditsWhileRunning.clear();
                         host.setStatusBusyBarActive(false);
                         host.updateStatusError("Online-Lektorat fehlgeschlagen: " + ex.getMessage());
                         if (panel != null) {
@@ -136,6 +142,7 @@ public class ChapterOnlineLektoratHelper {
     public void exit() {
         inProgress = false;
         lastSyncedText = null;
+        pendingEditsWhileRunning.clear();
         host.setStatusBusyBarActive(false);
         currentMatches.clear();
         ManuskriptEditorTestWindow canvas = host.asCanvasChapterEditor();
@@ -150,11 +157,12 @@ public class ChapterOnlineLektoratHelper {
     }
 
     /**
-     * Editor-Text hat sich geändert. Offsets der Treffer werden nur verschoben;
-     * ein teures Neuzeichnen aller Markierungen passiert nur, wenn ein Treffer ungültig wird.
+     * Editor-Text hat sich geändert. Offsets der Treffer werden nachgezogen;
+     * Markierungen werden neu gezeichnet. Während eines API-Laufs werden Edits
+     * journalisiert und nach Eintreffen der Treffer nachgeholt.
      */
     public void onEditorTextChanged() {
-        if (inProgress || currentMatches.isEmpty()) {
+        if (!isSessionOpen()) {
             return;
         }
         String newText = host.getText();
@@ -168,11 +176,42 @@ public class ChapterOnlineLektoratHelper {
         if (lastSyncedText.equals(newText)) {
             return;
         }
-        boolean removed = LektoratMatchLocator.shiftAfterTextChange(lastSyncedText, newText, currentMatches);
+
+        LektoratMatchLocator.TextChange change =
+                LektoratMatchLocator.computeTextChange(lastSyncedText, newText);
         lastSyncedText = newText;
-        if (removed) {
-            applyMatchesToCanvasEditor();
+        if (change == null) {
+            return;
         }
+
+        if (inProgress) {
+            pendingEditsWhileRunning.add(change);
+            return;
+        }
+        if (currentMatches.isEmpty()) {
+            return;
+        }
+        LektoratMatchLocator.applyTextChange(change, currentMatches);
+        // Auch reine Offsets-Verschiebungen müssen die Markierungen neu setzen,
+        // sonst blinken/klicken Treffer auf veraltete Positionen.
+        applyMatchesToCanvasEditor();
+        if (panel != null) {
+            panel.showHint(!currentMatches.isEmpty());
+        }
+    }
+
+    private void replayPendingEditsOntoMatches() {
+        if (pendingEditsWhileRunning.isEmpty() || currentMatches.isEmpty()) {
+            pendingEditsWhileRunning.clear();
+            return;
+        }
+        for (LektoratMatchLocator.TextChange change : pendingEditsWhileRunning) {
+            LektoratMatchLocator.applyTextChange(change, currentMatches);
+            if (currentMatches.isEmpty()) {
+                break;
+            }
+        }
+        pendingEditsWhileRunning.clear();
     }
 
     private void syncMatchesToCurrentText() {

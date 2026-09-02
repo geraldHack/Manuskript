@@ -77,7 +77,16 @@ public enum FeaturePack {
                     + "TTS-Parameter-Tabs.\n\n"
                     + "Unabhängig vom KI-Hauptschalter.",
             false,
-            new String[]{"TTS (ComfyUI)", "TTS (ElevenLabs)"});
+            new String[]{"TTS (ComfyUI)", "TTS (ElevenLabs)"}),
+
+    NI_LEKTORAT("feature.pack.ni_lektorat",
+            "NI-Lektorat (natürliche Intelligenz)",
+            "Echtes Lektorat eine menschlichen Lektors mit sichtbaren Änderungen und Kommentaren (standardmäßig aus).",
+            "Nach dem Einschalten die Rolle wählen: Autor schickt das Buch als ZIP. "
+                    + "Lektor lädt es als Projekt und überarbeitet es. Dann schickt er es als ZIP zurück. "
+                    + "Der Autor kann dann die Anmerkungen bearbeiten\n\n",
+            false,
+            new String[]{"NI-Lektorat"});
 
     private final String key;
     private final String title;
@@ -118,5 +127,10 @@ public enum FeaturePack {
 
     public String[] parameterCategories() {
         return parameterCategories;
+    }
+
+    /** Alle Packs außer NI-Lektorat sind für bestehende Nutzer an. */
+    public boolean defaultEnabled() {
+        return this != NI_LEKTORAT;
     }
 }

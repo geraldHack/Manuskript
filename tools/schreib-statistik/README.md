@@ -2,7 +2,7 @@
 
 Snapshot über das geöffnete Buch: Wörter, Kapitel, zuletzt bearbeitet, Sprechantworten, Phrasen, Bilder.
 
-Scan on demand aus `data/*.md` und `config/textanalysis.properties`. Kein Tagesverlauf, kein Überwachungsmodus.
+Scan on demand über **alle** `data/*.md` (nicht nur die Auswahl) und `config/textanalysis.properties`. Kein Tagesverlauf, kein Überwachungsmodus.
 
 ## Bauen
 

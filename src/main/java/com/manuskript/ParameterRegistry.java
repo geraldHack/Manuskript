@@ -102,6 +102,16 @@ public final class ParameterRegistry {
                 "Diktat und Glossar im Kapitel-Editor.", "Funktionen");
         add("feature.pack.audiobook", ParameterDef.Type.BOOLEAN, "true",
                 "Hörbuch und Sprachsynthese in der Toolbar.", "Funktionen");
+        add("feature.pack.ni_lektorat", ParameterDef.Type.BOOLEAN, "false",
+                "NI-Lektorat (menschliches Track-Changes-Lektorat). Standard aus.", "Funktionen");
+
+        add("ni.lektorat.role", ParameterDef.Type.CHOICE, "autor",
+                "Rolle (auch im Setup): Autor schickt das Buch und entscheidet, Lektor bearbeitet nur die ZIP.",
+                "NI-Lektorat",
+                new String[]{"autor", "lektor"});
+        add("ni.lektorat.reviewer_name", ParameterDef.Type.STRING, "",
+                "Name, der an Änderungen und Kommentare geschrieben wird. Leer = Lektor.",
+                "NI-Lektorat");
 
         // —— Editor ——
         add("editor.line-spacing", ParameterDef.Type.DOUBLE, "2.5",
