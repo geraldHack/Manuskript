@@ -1,0 +1,120 @@
+/* Canvas-Editor Scrollbar — Classpath (unabhängig von config/css/manuskript.css) */
+
+.manuskript-text-editor .scroll-bar:vertical {
+    -fx-pref-width: 18px;
+    -fx-min-width: 18px;
+    -fx-opacity: 1;
+}
+
+.manuskript-text-editor .scroll-bar:vertical .increment-button,
+.manuskript-text-editor .scroll-bar:vertical .decrement-button {
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+    -fx-min-width: 0;
+    -fx-min-height: 0;
+    -fx-max-width: 0;
+    -fx-max-height: 0;
+    -fx-padding: 0;
+}
+
+.manuskript-text-editor.weiss-theme .scroll-bar:vertical {
+    -fx-background-color: #eceff1;
+}
+
+.manuskript-text-editor.weiss-theme .scroll-bar:vertical .track {
+    -fx-background-color: #eceff1;
+    -fx-background-radius: 6px;
+}
+
+.manuskript-text-editor.weiss-theme .scroll-bar:vertical .thumb {
+    -fx-background-color: #546e7a;
+    -fx-background-radius: 6px;
+}
+
+.manuskript-text-editor.weiss-theme .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #37474f;
+}
+
+.manuskript-text-editor.pastell-theme .scroll-bar:vertical {
+    -fx-background-color: #e1bee7;
+}
+
+.manuskript-text-editor.pastell-theme .scroll-bar:vertical .track {
+    -fx-background-color: #e1bee7;
+    -fx-background-radius: 6px;
+}
+
+.manuskript-text-editor.pastell-theme .scroll-bar:vertical .thumb {
+    -fx-background-color: #7b1fa2;
+    -fx-background-radius: 6px;
+}
+
+.manuskript-text-editor.pastell-theme .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #4a148c;
+}
+
+.manuskript-text-editor.theme-dark .scroll-bar:vertical {
+    -fx-background-color: #3a3a3a;
+}
+
+.manuskript-text-editor.theme-dark .scroll-bar:vertical .track {
+    -fx-background-color: #3a3a3a;
+    -fx-background-radius: 6px;
+}
+
+.manuskript-text-editor.theme-dark .scroll-bar:vertical .thumb {
+    -fx-background-color: #9e9e9e;
+    -fx-background-radius: 6px;
+}
+
+.manuskript-text-editor.theme-dark .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #bdbdbd;
+}
+
+.manuskript-text-editor.theme-dark.blau-theme .scroll-bar:vertical {
+    -fx-background-color: #1e3a8a;
+}
+
+.manuskript-text-editor.theme-dark.blau-theme .scroll-bar:vertical .track {
+    -fx-background-color: #1e3a8a;
+}
+
+.manuskript-text-editor.theme-dark.blau-theme .scroll-bar:vertical .thumb {
+    -fx-background-color: #60a5fa;
+}
+
+.manuskript-text-editor.theme-dark.blau-theme .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #93c5fd;
+}
+
+.manuskript-text-editor.theme-dark.gruen-theme .scroll-bar:vertical {
+    -fx-background-color: #064e3b;
+}
+
+.manuskript-text-editor.theme-dark.gruen-theme .scroll-bar:vertical .track {
+    -fx-background-color: #064e3b;
+}
+
+.manuskript-text-editor.theme-dark.gruen-theme .scroll-bar:vertical .thumb {
+    -fx-background-color: #34d399;
+}
+
+.manuskript-text-editor.theme-dark.gruen-theme .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #6ee7b7;
+}
+
+.manuskript-text-editor.theme-dark.lila-theme .scroll-bar:vertical {
+    -fx-background-color: #4c1d95;
+}
+
+.manuskript-text-editor.theme-dark.lila-theme .scroll-bar:vertical .track {
+    -fx-background-color: #4c1d95;
+}
+
+.manuskript-text-editor.theme-dark.lila-theme .scroll-bar:vertical .thumb {
+    -fx-background-color: #a78bfa;
+}
+
+.manuskript-text-editor.theme-dark.lila-theme .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #c4b5fd;
+}

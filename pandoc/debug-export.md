@@ -1,117 +1,41 @@
 ---
-title: "Traumwelt"
+title: "Die Sonnenfresser"
 author: "Gerald Hackbart"
-date: "Oktober 2026"
-rights: "© 2026 Gerald Hackbart"
+date: "Oktober 2025"
+rights: "© 2025 Gerald Hackbart"
+abstract: |
+  Acen lernt  von seinem  Großvater, wi er als Spross einer reichen Familie bestehen kann.
 ---
 
-# Kapitel 1 - Der Kristall
+# Simulation
 
-Der Traum begann wie immer – mit dem Fallen.
+Zuerst roch Acen würzigen, trockenen Steppenduft. Um ihn herum wuchs kniehohes Gras. Vor ihm lag eine flache Landschaft mit vereinzelten, ausgetrocknet wirkenden Bäumen. Die Landschaft flimmerte, die Sonne brannte hart auf ihn herab.
 
-Ich stürzte durch Schichten von Dunkelheit, durch etwas, das sich anfühlte wie Wasser, nur ohne Nässe, und landete auf den Füßen, als wäre ich nie gefallen. Das kannte ich. Das war normal. Die Absurdität war mir längst vertraut – ich existierte in diesem Schwebezustand zwischen Wachen und Träumen, in dem die Logik sich selbst zerlegt und Widersprüche ungehindert nebeneinander bestehen.
+Er blickte hinter sich und sah identische, kegelförmige Hügel, die versetzt hintereinander standen.
 
-Ein kurzer Augenblick des Schwindels und der Orientierungslosigkeit, dann war ich angekommen. 
+*Ziemlich einfallslos gerendert*, dachte er. *Der Angriff kommt sicherlich aus dieser Richtung, es sei denn, irgendein Kriechtier würde sich durch das Gras* schlängeln.
 
-Ich stand in einem Raum, den ich noch nie gesehen hatte, der aber vertraut wirkte.
+Also drehte er sich in Richtung der Hügel, schärfte aber seinen Hörsinn mit einem geflüsterten Code, der entsprechende Naniten in seine Nervenbahnen im Ohr schickte. Er spürte, dass das funktionierte, also hatte dieser Körper – so wie sein realer – Naniten.
 
-Dunkles Metall bildete die Wände, durchsetzt von leuchtenden Adern, die nicht elektrisch, sondern organisch wirkten: wie Blutgefäße, die in blaugrünem Licht pulsierten. Es kam von nirgendwo und überall zugleich. Über mir kreiste ein riesiges Zahnrad, so groß wie ein Fenster, und drehte sich unhörbar, obwohl ich das Mahlen spüren konnte – ein Vibrieren in meinen Knochen. Steampunk – ich liebte Steampunk. 
+Nun blickte er sich selbst herab. Eine Fellweste, eine mit einem Seil fixierte Lederhose und geschnürte Sandalen. Ein Barbarenszenario? Leider sah er nicht allzu viel Fleisch an seinen Armen. Auch seine Hände wirkten eher zierlich. Das sah nach einem ›David gegen Goliath‹-Szenario aus.
 
-Eine Seite des Raumes war einen einzige große Wand aus Glas, durch das helles Sonnenlicht den Raum erhellt. Warum gab es trotzdem diese leuchtenden Adern in den Wänden?
+Sicherheitshalber duckte er sich in das kniehohe Gras. Und schon bald brach der ›Goliath‹ aus der Deckung der kegelförmigen Hügel hervor. Auch er trug Barbarenkleidung – eine grob zusammengenähte Weste aus Tierhaut, an den Schultern mit Knochensplittern verstärkt, dazu eine Hose aus ungegerbtem Leder, deren Nähte krumm und ausgefranst wirkten. Er war etwa zwei Meter fünfzig groß und bestand vorwiegend aus Muskeln. Er war noch etwa 100 Meter entfernt, was etwa 15 Sekunden Zeit brachte.
 
-Vier Menschen saßen um einen Tisch aus Glas und Messing. Sie starrten mich an.
+Der im Gras hockende Junge tastete nach Waffen und fand ein Messer in einer seitlich an der Hose angebrachten Scheide. Er zog es und betrachtete die silbrige Klinge. Er könnte den Riesen mit einem Messer töten, doch angesichts seiner Größe war das schwierig. Es musste schnell gehen, denn würde er von seinem Gegner gepackt werden oder es gelang ihm auch nur ein Schlag, wäre der Kampf vorbei.
 
-Ich starrte zurück und wartete. Normalerweise sahen mich die Traumgestalten nicht. Und wenn sie es taten, dann sprachen sie mich nicht an. Eher liefen sie davon, als hätten sie einen Geist gesehen – was wahrscheinlich nahe der Wahrheit war.
+Er ging im Geiste alle Möglichkeiten durch. Aber es blieb ihm nicht mehr viel Zeit. Der Riese war nur noch wenige Meter entfernt. Er hatte ein Langschwert gezogen, das in etwa so groß sein mochte wie Acens derzeitiger Körper.
 
- »Du bist ruhig.« Der Mann mit der rasierten Kopfhaut musterte mich, die Narbe, die von seinem rechten Auge zur Schläfe zog, glänzte im blaugrünen Licht. Sein Blick war scharf, analytisch. »Das ist unerwartet. Solltest du nicht wenigstens ein kleines wenig Aufregung verspüren?« 
+Er hatte sich entschieden. Der Riese hatte das Langschwert mit beiden Händen über seinen Kopf erhoben, bereit, Acen in zwei Hälften zu teilen.
 
-Ich zuckte leicht zusammen. Niemand hatte mich je zuvor im Traum direkt angesprochen. Ich beschloss, mir nichts anmerken zu lassen. 
+Als der Troll nahe genug war, sprintete er los – direkt auf das Monster zu. Er duckte sich unter den wuchtigen Armen des Wesens hindurch und rammte das Messer, das er an seinem Gürtel gefunden hatte, tief in dessen rechtes Bein. Das Monster brüllte auf, überrascht von der plötzlichen Attacke. Der Junge zog sich an den verfilzten Haaren des Trolls hoch, kletterte über dessen Schulter und glitt den haarigen Rücken hinunter. Das Messer zog eine tödliche Spur durch dessen Kehle und dann den Rücken hinab. Blut spritzte.
 
-»Ich träume«, sagte ich. »Träume haben keine Konsequenzen. Warum sollte mich das aufregen?« Eine Frau mit kurzen roten Haaren lachte leise. Ihre Uniform aus Leder und Kupferdetails knirschte bei der Bewegung. 
+Der Troll brach röchelnd zusammen.
 
-»Sie denkt, das ist ein luzider Traum.« 
+Der Junge blieb kurz stehen, betrachtete den leblosen Körper. Kein Zucken. Kein Atem. Zufrieden drehte er sich um und lief in Richtung des Ausgangs, der vor ihm als leuchtendes, weißes Rechteck erschien. 
 
-»Genau. Ich kontrolliere das hier. Das ist mein Traum.« 
+Doch bevor er hindurchgehen kann, spürt er einen Schlag im Rücken.
 
-»Wie lange träumst du schon von dieser Welt?« 
-
-Ich brauchte einen Moment. 
-
-»Immer. Ich meine – lange. Seit ich denken kann, träume ich von Städten mit Zahnrädern und Lampen, die ohne Strom leuchten. Steampunk-Zeug.« Ich wies auf das rotierende Zahnrad über uns. »So etwas. Ich liebe das. Es ist mein Lieblingstraum.« 
-
-Eine dritte Person, älter, mit ergrauten Haaren zu einem komplizierten Zopf geflochten, legte die Handflächen auf den Glastisch. »Und du bist dir sicher, dass dies ein Traum ist?« 
-
-»Natürlich. Träume sind nicht real. Ich weiß, dass ich träume, weil ich hier bin, obwohl ich weiß, dass ich in meinem Bett liege. Das ist die Definition von luzid träumen. Ich habe das hunderte Male getan.« 
-
-Der vierte Mann, jünger als die anderen, mit dunklen Augen und einer Ungeduld, die seine Haltung verriet, rückte vor. »Wie oft warst du schon hier?« 
-
-Ich zuckte mit den Schultern. »Weiß nicht. Hunderte Male? Ich zähle nicht mit. Es ist ein Traum, den ich immer wieder habe. Eine Welt, die mein Gehirn erschaffen hat. Wahrscheinlich, weil ich zu viel Science-Fiction lese.« 
-
-Die rothaarige Frau und die ältere Frau tauschten einen Blick. Der Mann mit der Narbe nicht. »Wenn das dein Traum ist«, seine Stimme kam langsam, jede Silbe bedacht – »wer sind wir dann?« Das war eine gute Frage. Ich hatte keine Antwort. In meinen Träumen waren die Menschen in der Stadt immer da gewesen, aber ich hatte sie nur beobachtet. Sie waren wie Statisten, die nur dann relevant wurden, wenn ich sie brauchte. Jetzt, da sie mich direkt ansprachen, wurde ihre Präsenz überdeutlich. Sie waren keine Statisten meines Traumes mehr, sie waren Akteure. »Mein Unterbewusstsein. Archetypen. Der Anführer, die Kämpferin, die Weise, der Skeptiker.« Ich deutete auf jeden von ihnen. 
-
-»Ihr seid alle Versionen von mir, die ich brauchte, um diese Welt zu bevölkern.« 
-
-»Wir sind real« – die Worte der alten Frau kamen ruhig, ohne Eile. 
-
-»Nein. Das seid ihr nicht. Aber das ist okay. Träume sind nicht weniger real, weil sie Träume sind. Sie sind nur real in einer anderen Weise. Ich träume, also existiert ihr in meinem Traum. Das ist eine Form von Existenz.« 
-
-Der junge Mann lehnte sich zurück. »Sie argumentiert wie ein Philosoph.« 
-
-»Sie argumentiert wie jemand, der sich etwas vormacht« – die rote Frau, Stimme schneidend. 
-
-Ich sah sie an. »Was willst du denn von mir? Dass ich Angst habe? Dass ich aufwache und schreie? Das ist nicht mein Traum-Stil.« Ich deutete auf das Zahnrad über mir. »Ich bin hier, weil mein Gehirn mir zeigen will, dass es kreativ ist. Diese Welt ist schön. Warum sollte ich Angst haben?« 
-
-Der Mann mit der Narbe stand auf. Er war größer, als ich gedacht hatte. Er baute sich vor mir auf, die Kulisse aus Zahnrad und Nebel hinter ihm. »Wir haben dich beobachtet. Du bist seit Jahren in der Traumwelt. Du warst einfach nur nie bewusst präsent. Du bist wie ein Geist gewesen, der durch diese Stadt wandelt. Aber in der letzten Woche ist etwas anders geworden. Deine Präsenz ist dichter geworden. Deine Energie hat sich verdoppelt. Du bist jetzt ganz hier, und nicht mehr in deinem Bett.« 
-
-»Okay.« Ich hob die Schultern. »Nehmen wir an, das ist wahr. Nehmen wir an, ich bin seit dreiundzwanzig Jahren unbewusst in einer Traumwelt, und nun bin ich richtig angekommen hier. Was wollt ihr dann von mir?«
-
-Die ältere Frau stand auf und verließ den Tisch. Sie ging zu einer Wand, wo ein großes Fenster aus glühendem Glas aufflammte. Bilder erschienen – Straßen von Berlin, aber verzerrt, durchzogen von Rissen, aus denen ein undeutliches Licht sickerte. Das war kein Computerbildschirm, sondern etwas … völlig Untechnisches. Mir fiel keine bessere Beschreibung ein. Wieder so etwas steampunksmäßiges.
-
-»Unsere beiden Welten sind nicht getrennt«, sagte sie. »Sie sind überlagert. An bestimmten Orten, an bestimmten Zeiten, dringt diese Welt – unsere Welt – in eure ein. Und umgekehrt.«
-
-»Okay«, sagte ich. »Das ist ein interessanter Traum.«
-
-»Berlin ist der Schwachpunkt«, sagte die rote Frau. »Viele Bruchstellen. Viele Orte, wo die Welten sich berühren. Und vor zwei Wochen ist etwas durchgekommen. Ein Monster. Etwas Altes. Es lebt jetzt in eurer Welt, und es wird andere anziehen.«
-
-Ich sah auf die Bilder. Sie zeigten eine U-Bahn-Station, die ich kannte – Friedrichstraße. Aber einige Bereiche der Wände waren zerrissen, und aus den Rissen kroch etwas Schwarzes heraus, etwas, das aussah wie Rauch, aber fest war.
-
-»Das ist wirklich gut animiert«, sagte ich. »Für einen Traum.«
-
-Der junge Mann stand auf und kam zu mir. Er setzte sich direkt neben mich, näher, als ich erwartet hatte. Seine Augen waren dunkelbraun, fast schwarz, und es gab etwas Intensives in ihnen – nicht bedrohlich, aber präsent. Er roch … angenehm. 
-
-»Wenn das ein luzider Traum ist«, sagte er leise, »dann kannst du es beweisen. Du kannst die Umgebung verändern. Stell dir vor, hier steht eine Tür.« Ich schloss meine Augen und versuchte, mir eine Tür vorzustellen. Aber nichts geschah. Die Welt blieb unverändert. Ich öffnete meine Augen wieder. Der junge Mann sah mich an. »Siehst du?« »Das bedeutet nichts«, sagte ich, aber meine Stimme war nicht mehr so sicher. »Vielleicht bin ich nicht gut genug im luziden Träumen.« »Dann versuch es noch einmal«, sagte er. »Konzentriere dich auf etwas Einfaches. Lass irgendwas kleines erschienen – eine Fliege, oder lass mich etwas sagen.« 
-
-Ich versuchte es. Wieder nichts. »Das ist kein Traum«, sagte er leise. »In einem Traum hättest du zumindest eine Veränderung spüren können.«
-
-»Er hat recht«, sagte der Mann mit der Narbe. »Und wir können es handfest beweisen.«
-
-Die ältere Frau kam zurück vom Bildschirm und legte etwas auf den Tisch vor mir. Es war ein Kristall – klein, vielleicht so groß wie mein Daumennagel, und er leuchtete von innen heraus, mit einem Licht, das keine Quelle zu haben schien. Es war blaugrün, die gleiche Farbe wie die Adern in den Wänden, und es pulste, als würde es atmen.
-
-»Das ist ein Resonanz-Kristall«, sagte sie. »Wenn dieser Traum nur ein Traum ist, dann wird er verschwinden, wenn du aufwachst. Aber wenn wir recht haben – wenn diese Welt real ist – dann wird er in deiner Tasche sein, wenn du in deine Welt zurückkehrst.«
-
-Ich starrte auf den Kristall. Das war eine sehr spezifische Halluzination. 
-
-»Und wenn ich ihn in meiner Tasche finde?«, fragte ich.
-
-»Dann wirst du verstehen, dass du nicht träumst«, sagte der junge Mann. »Und dann wirst du zurückkommen. Und wir werden dir alles erklären.«
-
-Ich nahm den Kristall. Er war warm in meiner Hand, und das Licht wurde heller, als würde es auf meine Berührung reagieren.
-
-»Das ist dein erstes Artefakt«, sagte der junge Mann. »Trag es bei dir. Es wird dir helfen, die Bruchstellen zu sehen, wenn du in deine Welt zurückkehrst.«
-
-»Und wenn ich es nicht in meiner Tasche finde?«, fragte ich.
-
-»Dann war dies ein sehr detaillierter Traum«, sagte der Mann mit der Narbe, »und wir werden dich nie wiedersehen.«
-
-Das war fair.
-
-Ich steckte den Kristall in die Tasche meines Vintage-Mantels, den ich im Traum trug – ein Detail, das mir im Moment nicht auffiel, weil es selbstverständlich schien. In der Traumwelt trug ich immer normale Kleidung von zuhause, so wie ich mich im Wachleben kleidete.
-
-»Also gut«, sagte ich. »Nehmen wir an, ich glaube euch, dass das hier real ist. *Und dann?*«
-
-Die vier Menschen sahen sich an. Der Mann mit der Narbe nickte leicht.
-
-»Dann«, sagte die rote Frau, »haben wir eine erste Mission für dich.«
+Verwirrt sah er an sich herab. Ein Armbrustbolzen ragte aus seiner Brust. Sein Ebenbild begann zu flimmern, zerfiel in Millionen Pixel. Wie dumm, dachte er, bevor er das stimmlose, aber dennoch triumphierende Lachen des sterbenden Trolls hörte.
 
 
 
@@ -119,77 +43,43 @@ Die vier Menschen sahen sich an. Der Mann mit der Narbe nickte leicht.
 
 
 
-Ich wachte auf, weil mein Herz zu schnell schlug. Die Ruhe, die ich im Traum empfunden hatte, war verflogen und wich nun einer panischen Gewissheit, dass etwas nicht stimmte. Mein Körper hatte begriffen, was mein Verstand noch abwehrte – dass dieser Traum anders war, dass er real gewesen sein musste. Mein Zimmer war dunkel, aber nicht die Art von Dunkelheit, die ich kannte. Diese Dunkelheit war grau, gefiltert durch die Vorhänge, die ich nie richtig zugemacht hatte. Berlin-Dunkelheit. Straßenlicht. Real.
+Acen zuckte zusammen, als er den virtuellen Tod spürte. Die Simulation brach ab, und er fand sich seinem Großvater gegenüber wieder, der ihn mit durchdringendem Blick musterte. Beide hielten noch die Transmitter in ihren Händen – kleine, silbrige Geräte, nicht größer als eine Handfläche.
 
-Ich lag auf dem Rücken, die Decke bis zur Brust gezogen, und starrte die Risse in meiner Zimmerdecke an – Risse, die ich seit Jahren kannte. *Drei Minuten*, dachte ich. *Gib dir drei Minuten, dann verblasst der Traum.*
+»Unaufmerksam.« Maximilian – sein Großvater – ließ den Blick fest auf ihm ruhen. »Und überheblich.«
 
-Aber der Traum war nicht weg. Er war klarer und gegenwärtiger als je ein Traum zuvor.
+Acen senkte den Blick. Der Geschmack der Niederlage war bitter auf seiner Zunge. »Ich dachte, ich hätte ihn besiegt.«
 
-Ich konnte die Stimme des Mannes mit der Narbe noch hören. *Das ist kein Traum.* Und der junge Mann, der neben mir saß, dessen Name ich nicht kannte, aber dessen Nähe ich immer noch in meinen Knochen spürte. *Siehst du?*
+Sein Großvater erhob sich langsam aus dem Sessel. Seine Bewegungen waren fließend, trotz seines Alters. Er trug eine schlichte, aber makellos geschnittene Tunika aus einem Material, das im Licht der beiden Sonnen sanft schimmerte.
 
-Ich setzte mich auf. Mein Kopf war schwer. Mein Zimmer roch nach mir – nach Staub und den alten Büchern, die ich unter dem Bett hortete, nach der Tasse Tee von gestern, die ich vergessen hatte, wegzubringen. Real. Das alles war real.
+»Genau das ist dein Problem.« Er legte den Transmitter auf den Beistelltisch aus poliertem Obsidian und ging zur offenstehenden Verandatür.
 
-Und dann spürte ich es: das grobe Baumwollgewebe eines zu langen Männer-T-Shirts, das mir bis zu den Oberschenkeln reichte, und darunter nur Höschen. Die Kleidung, in der ich wirklich geschlafen hatte. Nicht der Vintage-Mantel aus dem Traum. Das allein hätte Beweis genug sein müssen – im Traum trug ich, was ich wollte; im Wachleben trug ich, was bequem war. Aber im Moment war mein Verstand zu beschäftigt, um auf solche Details zu achten.
+Acen folgte ihm mit dem Blick. Draußen erstreckte sich eine weitläufige, perfekt gepflegte Gartenanlage, die in sanften Terrassen zum See hin abfiel. Der Himmel war von einem tiefen Blau, durchzogen von lila Wolkenformationen, die im Licht der beiden Sonnen in verschiedenen Violetttönen leuchteten. In der Ferne ragten die Türme der Hauptstadt auf.
 
-Mit wackeligen Beinen stand ich auf und ging ins Bad. Ich knipste das Licht an und kniff die Augen zusammen, geblendet. Als ich sie wieder öffnete, sah ich mein Spiegelbild.
+»Was habe ich falsch gemacht?«, fragte Acen schließlich.
 
-Es schockierte mich immer, egal wie oft ich in den Spiegel sah.
+Sein Großvater verschränkte die Hände hinter dem Rücken. »Du hast den Sieg gefeiert, bevor der Kampf wirklich vorbei war. Im wahren Leben könnte solch ein Fehler den Tod bedeuten.«
 
-Ich war nicht hübsch, das war mein erster Gedanke, wenn ich in den Spiegel sah. Nicht aus Bescheidenheit, sondern aus einer Art kühler Distanz, als würde ich mich selbst beobachten. Mein Gesicht war zu lang, meine Nase zu groß, meine Augen zu weit auseinander. Meine Haut war blass, fast weiß, durchzogen von feinen Äderchen unter den Augen, die mir einen dauerhaft erschöpften Ausdruck gaben, selbst wenn ich ausgeruht war. Meine Haare waren das Einzige, das ich an mir mochte – dunkelbraun, fast schwarz in diesem Licht, lockig, wild, unkontrollierbar. Sie fielen mir über die Schultern und sahen aus, als hätte ich sie nie gekämmt, obwohl ich es tat. Ich sah aus wie jemand, der gerade aus einem Traum aufgewacht war. Jemand, der nicht ganz hier war. Jemand, der in eine Traumwelt passte.
+»Welches ›wahre Leben‹? Wozu ist das alles gut?« Die Frage platzte aus Acen heraus. »Warum muss ich kämpfen lernen? Warum die täglichen Simulationen? Die endlosen Strategiestunden?«
 
-Das war kein Zufall. Das konnte kein Zufall sein.
+Eine kurze Stille trat ein. Der Großvater wandte sich wieder der Landschaft zu. Seine Silhouette wirkte scharf gegen das Licht der Doppelsonnen.
 
-Ich lehnte mich näher an den Spiegel heran. Meine Augen waren dunkelblau – fast grau in diesem Licht – und sie sahen mich zurück mit der gleichen Unsicherheit, die ich fühlte. Im Spiegel blickte mir eine Frau entgegen, die zwischen Selbstzweifel und Realitätsverlust schwankte. Ich sah eine Frau, die sich fragte, ob sie zwischen zwei Realitäten stand.
+»Die Galaxis ist kein sicherer Ort, Acen. Du wirst eines Tages verstehen.«
 
-Meine Katze — Momo — kam ins Bad geschlendert und miaute mich vorwurfsvoll an. Nicht ein Mal, sondern in einer langen, anklagenden Abfolge von Maunzern, die unmissverständlich bedeuteten: Du bist aufgestanden und du hast mich nicht gefüttert. Das ist inakzeptabel. Er hatte recht. Ich hatte ihn vergessen, und er würde mir das nicht so schnell verzeihen. Ich füllte umgehend seinen Napf. 
+»Das sagst du immer.« Acen ballte die Fäuste. »Aber du erklärst nie, was ich verstehen soll.«
 
-Ich nahm ein frugales Frühstück zu mir (Toast mit Marmelade), dann Katzenwäsche, Zähneputzen, anziehen und auf zu ›Grundlagen der Typografie‹ im kleinen Vorlesungssaal, scherzhaft ›Minimax‹ genannt. Ich studierte Buch- und Medienproduktion sowie Game Design.
+»Weil du noch nicht bereit bist.« Der alte Mann seufzte, und für einen Moment wirkte er tatsächlich wie die 211 Jahre, die er alt war. »Es gibt Kräfte, die —«
 
-Ich zog meinen Vintagemantel aus den Siebzigern an – denselben Mantel, den ich im Traum getragen hatte. Ein flüchtiger Gedanke schoss mir durch den Kopf: *Seltsam, dass ich im Traum genau das anhatte, was ich jetzt anziehe.* Aber ich schob ihn beiseite. Träume waren nun mal so.
+Er brach ab, schüttelte den Kopf. »Konzentriere dich auf dein Training. Auf deine Fehler.«
 
-Dann, als ich die Hände in die Taschen steckte, spürte ich etwas in der rechten.
+»Was war mit dem Troll? War das wirklich eine Simulation? Er kam mir so … vertraut vor.«
 
-Mein Herz blieb stehen.
+»Eine Projektion deines Unterbewusstseins«, unterbrach der Großvater. »Die Simulation greift auf deine Ängste zu, formt sie. Du kämpfst gegen dich selbst, Acen. Gegen deine Schwächen.«
 
-Ich griff hinein und zog den Kristall heraus.
+Acen trat neben seinen Großvater. Von hier aus konnte er die Gärten des Anwesens überblicken, die sich weit über das Tal erstreckten. Robotische Gärtner bewegten sich zwischen exotischen Pflanzen. In der Ferne erhob sich die Stadt wie ein silbernes Juwel.
 
-Er war klein, nicht größer als mein Daumen, aber er leuchtete in einem kalten blaugrünen Licht, das von innen kam. Es war nicht möglich. Kristalle leuchteten nicht von innen. Es sei denn, man steckte eine LED hinein. Er pulsierte wie ein Herzschlag, und jedes Mal, wenn er pulsierte, wurde das Licht stärker.
+Dann drehte sich sein Großvater um und ging zurück zu den Sesseln. »Gut, dann lass uns etwas machen, das nichts mit Kämpfen zu tun hat.«
 
-Das war der Kristall aus dem Traum.
-
-Das war der Beweis.
-
-Ich ließ ihn fallen. Er landete auf dem Badezimmerboden und rollte weg, immer noch leuchtend. Ich starrte auf ihn, als könnte ich ihn mit Blicken zum Verschwinden bringen. Das funktionierte nicht. Er war immer noch da, immer noch leuchtend, immer noch real.
-
-Ich musste verrückt geworden sein. Das war die einzige logische Erklärung: endgültiger Wahnsinn, ein psychotischer Anfall. Bald würde ich in einer Klinik aufwachen, vollgepumpt mit Medikamenten. Vielleicht war das besser. Dann wüsste ich wenigstens nicht mehr, dass ich verrückt war.
-
-Oder die Traumwelt war real. Oder beides war real. Oder wirklich nichts war real und ich war nur ein Gehirn in einem Glas, und alles war eine Illusion, und –
-
-Ich holte tief Luft. Ich setzte mich auf den Boden des Badezimmers, neben dem leuchtenden Kristall, und versuchte, mich selbst zu beruhigen. Das funktionierte nicht.
-
-Ich beschloss, zurück ins Bett zu gehen. Wenn ich wieder einschlief, würde ich zurück in die Traumwelt gehen, und ich würde die Wahrheit erfahren. Oder ich würde aufwachen und die Wahrheit erfahren, was auch immer die Wahrheit war. Das war ein Plan. Das war etwas, das ich tun konnte.
-
-Ich nahm den Kristall und ging zurück ins Schlafzimmer. Es war 5:47 Uhr. Ich war um 21:00 Uhr eingeschlafen, also hatte ich fast neun Stunden geschlafen. Das war genug. Das war mehr als genug.
-
-Ich legte mich ins Bett und starrte auf die Decke.
-
-Mein Herz schlug immer noch zu schnell. Mein Gehirn war wach, hyperaktiv, sprang von einem Gedanken zum nächsten wie ein Floh. Ich versuchte, die progressive Muskelentspannung zu nutzen, die Technik, die ich in irgendeinem Wellness-Video gelernt hatte. Ich spannte meine Zehen an, entspannte sie, spannte meine Waden an, entspannte sie. Es funktionierte nicht. Mein Körper wusste, dass mein Gehirn log. Mein Körper wusste, dass etwas Unmögliches passiert war.
-
-Ich versuchte, an etwas Langweiliges zu denken. Meine Vorlesungen. Ja, das war eine gute Strategie. Ich war im dritten Semester meines Studiums an der Freien Universität Berlin, und ich hatte vier Vorlesungen pro Woche, zwei Seminare, und ich sollte eine Hausarbeit schreiben über die narrativen Techniken in der postmodernen Literatur, und ich hatte noch nicht angefangen. Das war langweilig. Das war real. Das war das normale Leben, das ich führte, bevor ein leuchtender Kristall meine Realität zerstörte.
-
-Aber ich konnte nicht aufhören, an den Kristall zu denken. Ich konnte ihn nicht sehen – er war auf meinem Nachttisch, außerhalb meines Sichtfelds – aber ich konnte sein Licht sehen, das an den Wänden meines Zimmers tanzte. Das blaugrüne Licht. Das unmögliche Licht.
-
-Ich war wach. Ich würde nicht wieder einschlafen. Das wusste ich. Eine Mischung aus Aufregung, Angst und Verwirrung hielt mich gefangen, und mein Gehirn raste unaufhörlich. Selbst wenn ich es schaffen würde, einzuschlafen – ich hatte bereits acht Stunden geschlafen. Mein Körper würde mich nicht noch einmal schlafen lassen. Das war einfach nicht möglich.
-
-Ein Blick aufs Telefon: 6:52 Uhr. Um acht war die erste Vorlesung, Professor Hartmann. Ich hasste diesen Kurs, weil Hartmann eine Stimme wie ein Schleifgeräusch hatte und stets dieselben abgedroschenen Beispiele verwendete. Ich sollte dorthin gehen. Das war das Verantwortungsvolle. Das war das, was normale Menschen taten.
-
-Ich konnte nicht gehen. Nicht jetzt. Nicht nachdem ich etwas gefunden hatte, das die Realität, wie ich sie kannte, infrage stellte. Nicht, mit einem leuchtenden Kristall in der Tasche, der unmöglich existieren konnte. Nicht, wenn ich in wenigen Stunden zurück in die Traumwelt gehen und herausfinden würde, ob ich oder die ganze Welt verrückt war.
-
-Das war das erste Mal, dass ich eine Vorlesung ausfallen ließ, ohne einen echten Grund zu haben. Ich war nicht stolz auf mich. Aber ich konnte nicht anders.
-
-Ich lag im Bett und hielt den Kristall in meiner Hand, und Ich wartete darauf, dass die Sonne aufging, damit ich sehen konnte, ob er dann immer noch leuchtete. Wartete darauf, dass die Zeit verging und mich zurück in die Traumwelt trug. Dass mein Leben sich änderte – oder dass ich aufwachte und erkannte, dass ich verrückt geworden war.
-
-Das Warten war das Schlimmste.
+Sie setzten sich wieder und legten ihre Transmitter an. Ernst Großvater tippte etwas auf dem Pad, das vor ihm lag. Die Simulation begann.
 
 
 
@@ -197,77 +87,165 @@ Das Warten war das Schlimmste.
 
 
 
-Der Morgen war grau. Ich saß auf meinem Bett und starrte auf mein Handy – 7:47 Uhr. 
+Die Umgebung verschwamm kurz, dann materialisierte sich um Acen ein prachtvoller Ballsaal. Hohe Fenster, durch die goldenes Abendlicht fiel. Kristallene Kronleuchter warfen funkelnde Reflexionen auf die polierten Marmorböden. Der Raum war gefüllt mit eleganten Gestalten in aufwendigen Gewändern.
 
-Ich hatte es versucht. Hinlegen, Augen geschlossen, Atmung verlangsamt. Nichts. Mein Gehirn blieb hellwach. Der Kristall, den ich noch in der Hand hielt, schien zu pulsieren.
+Acen spürte die sanfte Berührung feiner Stoffe auf seiner Haut. Er trug eine eng anliegende, dunkelblaue Jacke mit silbernen Stickereien und eine passende Hose. Er blickte auf seine Hände herab: feingliedrige Finger, lackierte Fingernägel.
 
-*Das war dein erstes Artefakt. Trage es bei dir. Es wird dir helfen, die Bruchstellen zu sehen, wenn du in deine Welt zurückkehrtest.*
+Er lauschte den Gesprächen um ihn herum. Die melodischen Klänge des Bellanischen drangen an sein Ohr – eine Sprache, die er sprechen konnte. Er hatte sie in zwei Tagen in einer Turbosimulation gelernt. Für ihn hatte das Ganze allerdings gefühlte sechs Monate gedauert.
 
-Der junge Mann hatte das gesagt, bevor ich aufwachte. Ihre Stimmen waren noch immer in mir, deutlich wie ein Echo in einem leeren Raum. 
+»Deine Aufgabe ist soziale Intelligenz«, hörte er die Stimme seines Großvaters durch die Simulation. »Beobachte. Analysiere. Handle.«
 
-Ich stand auf. Meine Wohnung war klein – eine Zweizimmerwohnung in Kreuzberg, die ich mir mit Marcus teilte, wobei Marcus meistens bei seiner Freundin übernachtete. Er war nie offiziell ausgezogen, wahrscheinlich, weil ich die 300 Euro für sein Zimmer dringend brauchte. Ich zog mich an, nahm den Kristall in die Hosentasche und verließ die Wohnung.
+Über zwei jungen Frauen am Rand der Tanzfläche erschien plötzlich ein leuchtender Marker – ein leichtes Schimmern, das nur Acen sehen konnte. Die Zielpersonen. Eine trug ein smaragdgrünes Kleid, die andere ein silbernes mit feinen Applikationen.
 
-Die U-Bahn nach Friedrichstraße dauerte zwanzig Minuten. Ich saß am Fenster und hielt die Hand um den Kristall in meiner Tasche. Er war warm. Das war neu. Gestern war er kalt gewesen, oder ich hatte das nur nicht bemerkt.
+Acen aktivierte einen mentalen Trigger. Sofort schärften sich seine Sinne. Die Geräusche des Ballsaals wurden klarer, jedes Gespräch plötzlich unterscheidbar. Seine Augen erfassten kleinste Details – die leichte Asymmetrie in der Haltung der Frau im grünen Kleid, der winzige Riss im Handschuh der anderen.
 
-Die Station Friedrichstraße war überfüllt wie immer. Pendler, Touristen, Menschen, die irgendwo hin mussten. Ich stieg aus und folgte der Menschenmenge zur Treppe hinauf. Ich wusste nicht genau, wo ich suchen sollte – der Monitor in der Traumwelt hatte nur einen Ausschnitt gezeigt, einen Riss in einer Wand, Rauch, der herausquoll.
+Und dann die Gerüche. Die Frau im grünen Kleid umgab eine subtile Duftwolke – nicht nur ihr eigenes Parfüm, sondern darunter der unverkennbare Geruch intimer Begegnung. Acen schluckte. Das konnte er ihr nicht so direkt ins Gesicht sagen.
 
-Ich ging die Treppen hoch und dann wieder runter. Ich umrundete die Bahnsteige. Und dann sah ich es.
+Die Frau im silbernen Kleid roch anders. Unter ihrem Blumenparfüm lag etwas Animalisches. Er konzentrierte sich, versuchte, den Geruch einzuordnen. Dann fielen ihm die feinen, bläulichen Haare auf ihrem Kleid auf. Bisu-Haare. Diese kleinen katzenähnlichen Wesen waren bei der Elite als Haustiere beliebt. Die Menge der Haare deutete auf engen, regelmäßigen Kontakt hin.
 
-Die Wand neben dem südlichen Aufgang – es gab einen feinen Riss darin, kaum breiter als ein Haar. Er verlief diagonal, von oben links nach unten rechts. Ich blieb stehen. Andere Menschen liefen an mir vorbei. Niemand sonst schien den Riss zu sehen.
+Acen atmete tief ein. Direkter Ansatz also. Er durchquerte den Saal mit der selbstverständlichen Eleganz, die die Simulation seinem Körper verliehen hatte.
 
-Ich holte den Kristall heraus.
+»Meine Damen«, sprach er die beiden Frauen an und verbeugte sich leicht. »Darf ich Ihnen einen Vorschlag unterbreiten? Wenn ich etwas über Sie erraten kann, das ich unmöglich wissen könnte – gewähren Sie mir jeweils einen Tanz?«
 
-Das Licht änderte sich nicht. Die Luft änderte sich nicht. Aber der Riss wurde deutlicher – nicht größer, sondern sichtbarer, wie als würde Luna eine Brille aufsetzen, die den Fokus verschärfte. Und aus dem Riss sickerte etwas Dunkles, etwas, das nicht ganz Rauch war und nicht ganz Schatten. Es bewegte sich wie eine lebende Sache.
+Die beiden Frauen tauschten amüsierte Blicke aus.
 
-*Das war real. Das war wirklich real.*
+»Und wenn Sie falsch liegen?«, fragte die Frau im silbernen Kleid mit hochgezogener Augenbraue.
 
-Ich steckte den Kristall wieder weg. Der Riss wurde wieder zu einem Riss, den niemand beachtete. Ich fuhr nach Hause.
+»Dann verschwinde ich und störe Ihren Abend nicht weiter«, antwortete Acen mit einem Lächeln.
 
-Zurück in der Wohnung setzte ich mich aufs Bett und rief Nele an.
+»Einverstanden«, sagte die Frau im grünen Kleid. »Beginnen Sie.«
 
-»Hey«, sagte Nele. »Ich dachte, du würdest in der Vorlesung sein?«
+Acen wandte sich der Frau im silbernen Kleid zu. »Sie haben eine besondere Bindung zu einem Bisu. Nicht nur als gelegentliche Begleiterin – Sie verbringen viel Zeit mit dem Tier. Ich vermute, es schläft sogar in Ihrem Bett.«
 
-»War krank«, sagte ich. »Könnten wir unser Treffen heute verschieben?«
+Ihre Augen weiteten sich überrascht. »Wie haben Sie …?«
 
-»Klar. Alles okay?«
+»Die feinen blauen Haare auf Ihrem Kleid. Bisu-Haare sind unverwechselbar in ihrer Farbe. Und ihre Menge verrät mir, dass es kein zufälliger Kontakt war.«
 
-»Ja. Nur Kopfschmerzen. Hatte schlecht geschlafen.«
+Die Frau lachte verblüfft. »Beeindruckend. Mein Bisu heißt Nari und ja, er schläft tatsächlich auf meinem Kopfkissen.«
 
-»Okay. Ruf mich an, wenn du dich besser fühlst.«
+Acen wandte sich der Frau im grünen Kleid zu. Hier musste er vorsichtiger sein. Er konnte unmöglich direkt ansprechen, was sein geschärfter Geruchssinn ihm verraten hatte.
 
-Ich legte auf. Ich schämte mich kurz – Nele war eine gute Freundin – aber der Gedanke an Nele, an normale Gespräche, an Dinge, die nicht Kristalle oder Bruchstellen waren, machte mich nervös.
+»Bei Ihnen«, begann er langsam, »sehe ich einen ganz besonderen Glanz in Ihren Augen. Sie hatten heute ein … äußerst intensives Erlebnis. Eines, bei dem Sie nicht allein waren.« Er senkte die Stimme. »Aus Höflichkeit kann ich es natürlich nicht beim Namen nennen, aber vielleicht lächeln Sie, wenn ich richtig liege?«
 
-Ich musste schlafen. Und wenn der Schlaf nicht kommen würde, würde ich ihn erzwingen.
+Die Frau errötete leicht, dann huschte ein Lächeln über ihre Lippen.
 
-Ich zog meine Sportschuhe an und lief. Ich lief den Landwehr-Kanal entlang, meine Lungen brannten, meine Oberschenkel brannten. Ich lief, bis meine Beine schwach waren und meine Gedanken sich in einem Nebel verloren. Eine Stunde. Zwei Stunden. Ich hörte auf, weil mein Körper einfach nicht mehr konnte.
+»Sie sind gut«, sagte sie leise. »Zu gut vielleicht. Woher wissen Sie das?«
 
-Zurück in der Wohnung duschte ich kalt. Dann räumte ich auf.
+»Ein Gentleman behält seine Geheimnisse für sich«, antwortete Acen mit einer weiteren Verbeugung. »Darf ich um diesen Tanz bitten?«
 
-Meine Wohnung war nicht unordentlich, aber ich war nicht ordentlich. Kleidung lag auf einem Stuhl. Bücher stapelten sich auf dem Nachttisch. Ein Teller von gestern noch stand auf dem Schreibtisch. Ich räumte alles weg. Ich wischte die Oberflächen. Ich ordnete meine Kleidung nach Farben. Ich las alle Seiten meiner Vorlesungsmaterialien durch und ordnete sie in Mappen. Ich brauchte etwas zu tun, etwas, das meine Hände beschäftigte, während mein Gehirn hoffentlich irgendwann müde wurde.
+Als er seine Hand ausstreckte, spürte er plötzlich eine andere Präsenz im Raum. Sein Blick schweifte über die Menge und blieb an einer hochgewachsenen Frau mit silbergrauem Haar hängen, die ihn aus der Ferne beobachtete. Ihre grünen Augen schienen im Licht der Kronleuchter zu phosphoreszieren.
 
-Es war 14 Uhr. Ich war erschöpft, aber nicht müde.
+Obwohl dies eine Simulation war, jagte ihm der Blick der Frau einen Schauer über den Rücken. Ihre Augen wirkten nicht programmiert – sie beobachteten ihn, als kannten sie ihn. Ihr Blick war zu zielgerichtet, zu wach. Und dann war da dieser Geruch, den sie verströmte: metallisch, kühl, wie Schnee auf heißem Stein. All das machte die Szene unheimlich real. Die Frau neigte leicht den Kopf, als würde sie ihn anerkennen.
 
-Ich öffnete eine Flasche Wein – einen billigen Weißwein aus dem Supermarkt – und goss mir ein Glas ein. Ich trank es schnell. Die Wärme breitete sich in meinem Bauch aus. Ich goss mir ein zweites Glas ein. Dann ein drittes.
+»Ist alles in Ordnung?«, fragte die Frau im grünen Kleid.
 
-Gegen 16 Uhr legte ich mich ins Bett. Der Raum drehte sich leicht. Das war gut. Das war näher am Schlaf.
+Acen zwang sich, den Blick von der silberhaarigen Frau abzuwenden. »Natürlich«, sagte er und führte seine Tanzpartnerin auf die Tanzfläche.
 
-Ich schloss die Augen. Wartete. Wartete. Wartete.
+Während sie sich im Rhythmus der Musik bewegten, versuchte er, die silberhaarige Frau im Auge zu behalten. War sie Teil der Simulation oder hatte sein Großvater sie hinzugefügt? Und warum hatte ihr Anblick ein so unangenehmes Gefühl in ihm ausgelöst?
 
-Der Schlaf kam nicht.
+Die Musik schwoll an, und die anderen Tänzer verschwammen zu einem Wirbel aus Farben um ihn herum. Nur die grünen, phosphoreszierenden Augen der Frau blieben klar, verfolgten ihn mit unverhohlenem Interesse.
 
-Ich öffnete die Augen und starrte auf die Decke. Ich konnte den Kristall spüren, obwohl er auf dem Nachttisch lag. Es war, als würde er leise rufen, als würde er mich zurück in die Traumwelt ziehen wollen.
+Als der Tanz fortschritt, ließ Acen seinen Blick immer wieder zu der silberhaarigen Frau wandern. Ihre Augen verfolgten jede seiner Bewegungen, kalt und berechnend. Es war, als würde sie ihn nicht nur beobachten, sondern bewerten.
 
-Ich stand auf und trank mehr Wein. Ich trank und wartete.
+»Sie tanzen hervorragend«, sagte die Frau im grünen Kleid, ihre Stimme kaum hörbar über der Musik. »Wo haben Sie das gelernt?«
 
-Die Sonne sank. Der Himmel wurde dunkel. Ich lag wieder im Bett, mein Körper schwer, meine Augen schmerzhaft, aber mein Gehirn immer noch wach, immer noch scharf, immer noch obsessiv.
+Acen zwang seine Aufmerksamkeit zurück zu seiner Tanzpartnerin. »Ein Talent, das mir in die Wiege gelegt wurde«, antwortete er mit einem Lächeln, das er nicht wirklich fühlte. Die silberhaarige Frau hatte ihn aus dem Konzept gebracht.
 
-*Der Kristall. Der Riss. Der junge Mann. Die Traumwelt. Real. Alles war real.*
+Die Musik endete. Acen verbeugte sich höflich vor seiner Partnerin und führte sie zurück zum Rand der Tanzfläche, wo die Frau im silbernen Kleid wartete.
 
-Ich versuchte, mich auf etwas Langweiliges zu konzentrieren – eine Vorlesung, die ich gehört hatte, ein Buch, das ich gelesen hatte. Aber die Gedanken kamen immer wieder zurück. Und der Schlaf kam nicht.
+»Nun zu unserem Tanz«, sagte die Bisu-Liebhaberin mit einem koketten Lächeln.
 
-Es war kurz nach Mitternacht, als er endlich kam. Ein Gewicht, das sich über mich senkte wie eine warme Decke. Meine Gedanken wurden langsamer, neblig. Der Kristall auf dem Nachttisch leuchtete schwach auf, als würde er atmen.
+»Mit dem größten Vergnügen«, erwiderte Acen und führte sie auf die Tanzfläche.
 
-Ich schlief ein.
+Während sie tanzten, versuchte er, mehr über sie herauszufinden. »Ihr Bisu, Nari – ist er ein Mondstreifiger oder ein Sonnenfänger?«
+
+Ihre Augen weiteten sich überrascht. »Ein Mondstreifiger. Woher wissen Sie so viel über Bisus?«
+
+»Ich interessiere mich für seltene Wesen«, improvisierte Acen. »Mondstreifige Bisus sind besonders sensibel für Stimmungen ihrer Besitzer, nicht wahr?«
+
+Sie nickte. »Nari weiß immer, wenn ich traurig bin. Dann rollt er sich auf meinem Schoß zusammen und schnurrt, bis es mir besser geht.«
+
+Acen lächelte, aber sein Bewusstsein war gespalten. Mit einem Teil seines Gehirns führte er die Konversation, mit dem anderen beobachtete er die silberhaarige Frau, die sich jetzt durch die Menge bewegte, auf ihn zu.
+
+»Verzeihen Sie«, sagte eine kühle, melodische Stimme neben ihnen.
+
+Acen und seine Tanzpartnerin hielten inne. Die silberhaarige Frau stand vor ihnen, ihr Lächeln nicht ganz ihre Augen erreichend.
+
+»Dürfte ich Ihren Tanzpartner für einen Moment entführen?«, fragte sie die jüngere Frau, die verwirrt nickte und zurücktrat.
+
+Bevor Acen reagieren konnte, hatte die Frau ihre Hand auf seinen Arm gelegt. Ihre Berührung war leicht, aber bestimmt. Sie führte ihn in eine ruhigere Ecke des Ballsaals.
+
+»Elexandra aus dem Belt«, sagte die Frau mit einem Lächeln, das ihre Augen nicht erreichte. »Es ist mir eine Freude, Ihre Bekanntschaft zu machen.«
+
+Acen verbeugte sich leicht. »Die Freude ist ganz meinerseits.«
+
+Ihre grünen Augen studierten ihn. »Sie bewegen sich mit bemerkenswerter … Präzision für jemanden Ihres Alters.«
+
+»Ich hatte gute Lehrer«, antwortete Acen vorsichtig.
+
+»Das bezweifle ich nicht.« Elexandras Stimme wurde leiser. »Wissen Sie, warum Sie hier sind?«
+
+»Um meine sozialen Fähigkeiten zu verbessern?«
+
+Sie lachte, ein kaltes, melodisches Geräusch. »Wie amüsant. Aber nein.«
+
+In einer fließenden Bewegung griff sie unter die Falten ihres Kleides. Acen sah den silbernen Blitz einer Klinge und warf sich instinktiv zur Seite. Die Spitze des Dolches streifte seinen Arm, hinterließ einen brennenden Schnitt.
+
+Er stolperte rückwärts, stieß gegen einen Tisch. Gläser klirrten.
+
+»Was zum—«
+
+»Nichts Persönliches«, flüsterte sie und folgte ihm mit geschmeidigen Schritten. »Nur ein Auftrag.«
+
+Acen duckte sich unter ihrem nächsten Stich weg, griff nach ihrem Handgelenk. Sie war stark, stärker, als er erwartet hatte. Mit einer Drehung befreite sie sich aus seinem Griff.
+
+Ein Paar näherte sich ihnen, in ein Gespräch vertieft. Sofort änderte Elexandra ihre Haltung, versteckte den Dolch in den Falten ihres Kleides und lachte, als hätten sie gerade einen amüsanten Witz ausgetauscht.
+
+»Wunderbares Fest, nicht wahr?«, sagte sie zu dem vorbeigehenden Paar, das höflich lächelte und weiterging.
+
+»Warum wollen Sie mich töten?«, fragte Acen leise, während er nach einer Waffe suchte. Nichts. Er musste mit bloßen Händen kämpfen.
+
+»Sie sind ein Spion des Hauses Taral«, erklärte sie, ihr Lächeln nie verblassend. »Sie haben Staatsgeheimnisse gestohlen. Ich wurde geschickt, um das Problem … diskret zu lösen.«
+
+Sie bewegte sich wieder auf ihn zu, doch eine Gruppe lachender Gäste zwang sie, innezuhalten. Acen nutzte die Gelegenheit, um etwas Abstand zu gewinnen. Er scannte den Raum nach Fluchtwegen, nach Waffen, nach irgendetwas, das ihm helfen könnte.
+
+»Sie können nicht entkommen«, sagte Elexandra, als die Gäste weitergezogen waren. »Das hier endet erst, wenn einer von uns tot ist.«
+
+»Warum erzählen Sie mir das?«
+
+»Weil es mir Freude bereitet, die Verzweiflung in Ihren Augen zu sehen.«
+
+Sie griff wieder an, dieses Mal mit einer Serie schneller Stiche. Acen wich aus, parierte, fing einen Schlag ab, der seine Handfläche aufschnitt. Der Schmerz war überraschend real.
+
+Eine Kellnerin mit einem Tablett voller Champagnergläser trat zwischen sie. Acen und Elexandra erstarrten, beide lächelnd, während die Frau ihnen Getränke anbot. Acen hielt seine blutende Hand hinter dem Rücken.
+
+»Keine Sorge«, sagte Elexandra, nachdem die Kellnerin gegangen war. »Der Schmerz ist temporär. Der Tod hingegen …« Sie lächelte. »Nun, lassen Sie uns herausfinden, wie er sich anfühlt.«
+
+Acen konzentrierte sich. In den Simulationen hatte sein Großvater ihm beigebracht, seinen Körper zu kontrollieren, jede Faser zu beherrschen. Er aktivierte einen weiteren mentalen Trigger. Zeit, seine versteckten Fähigkeiten einzusetzen.
+
+»Sie sind gut«, bemerkte Elexandra, als er ihrem nächsten Angriff auswich. »Besser als erwartet.«
+
+»Sie haben keine Ahnung, wozu ich fähig bin«, antwortete Acen.
+
+Der nächste Angriff kam blitzschnell. Acen sah die Klinge auf sein Herz zu schnellen. Statt auszuweichen, bewegte er sich in den Angriff hinein. Seine Hand schoss vor, traf einen Punkt an Elexandras Handgelenk. Ihre Finger öffneten sich reflexartig, der Dolch fiel zu Boden.
+
+Ihr Gesicht zeigte kurz Überraschung, dann Anerkennung. »Nervenpunkte. Beeindruckend.«
+
+Sie trat einen Schritt zurück, schüttelte ihr Handgelenk. »Aber nicht gut genug.«
+
+Aus ihrem Ärmel glitt ein zweiter, kleinerer Dolch in ihre linke Hand. Sie lächelte. »Immer einen Ersatz haben.«
+
+Acen atmete tief ein. Er musste es beenden, jetzt. Er ließ die Naniten in seinem Körper auf Hochtouren arbeiten, spürte, wie sie seine Nervenimpulse beschleunigten, seine Muskeln stärkten.
+
+Als sie erneut angriff, war er bereit. Er wich nicht aus, sondern fing ihren Arm ab, drehte ihn in einem präzisen Winkel. Gleichzeitig traf seine andere Hand einen Punkt an ihrem Hals – genau an der Stelle, wo der Vagusnerv verlief.
+
+Elexandras Augen weiteten sich. Ihre Lippen formten ein überraschtes »Oh«, dann erschlaffte ihr Körper. Acen fing sie auf, bevor sie zu Boden fallen konnte.
+
+Vorsichtig setzte er sie auf einen nahestehenden Stuhl, arrangierte ihre Gliedmaßen so, dass es aussah, als würde sie sich ausruhen. Ihr Kopf lehnte an der Stuhllehne, die Augen geschlossen. Sie sah friedlich aus, fast als würde sie schlafen.
+
+Acen betrachtete sein Werk. Der Vagusnerv-Druckpunkt – eine Technik, die sein Großvater ihm beigebracht hatte. Bei korrekter Anwendung unterbrach er den Blutfluss zum Gehirn für einen kurzen Moment – lang genug, um Bewusstlosigkeit zu verursachen.
+
+Der Ballsaal um ihn herum begann zu verblassen, die Farben wurden blasser, die Geräusche leiser. Die Simulation endete.
 
 
 
@@ -275,2628 +253,1727 @@ Ich schlief ein.
 
 
 
-Der Raum war derselbe.
+»›Dieses Mal ohne Kampf‹? Was war das denn?«
 
-Gleiche Wände aus dunklem Metall, gleiche Adern in blaugrünem Licht, gleiche Zahnräder über mir, die sich lautlos drehten. Aber diesmal war ich nicht überrascht. Ich stand mitten im Raum, bevor mir bewusst wurde, dass ich eingeschlafen war, und die vier Menschen um den Tisch sahen mich an, als hätten sie gewartet.
+Acen blinzelte, als die virtuelle Welt verschwand und er sich wieder im Studierzimmer seines Großvaters befand. Der alte Mann betrachtete ihn mit hochgezogenen Augenbrauen, den Transmitter noch in der Hand.
 
-»Du bist zurück«, sagte der Mann mit der Narbe.
+»Eine Attentäterin«, antwortete Acen, noch immer den Geschmack von Adrenalin auf der Zunge. »Sie hat versucht, mich zu töten.«
 
-»Ja«, sagte ich. »Ich habe den Kristall gefunden.«
+»Ich hab’s gesehen. Keine Ahnung, wo die herkam.«
 
-Er nickte. Er schien nicht überrascht.
+Acen starrte ihn an. »Was soll das heißen? Du hast sie nicht da reinprogrammiert?«
 
-Ich setzte mich. Einfach so, ohne um Erlaubnis zu bitten, denn ich hatte keine Energie mehr für Höflichkeit. Ich war erschöpft. Den halben Tag Sport, eine halbe Flasche Wein, und trotzdem fünf Stunden Warten auf den Schlaf. Ich hatte mir dieses Hinsetzen verdient.
+»Nein, das muss wohl wieder aus deinem Unterbewusstsein gekommen sein. Das ist seltsam.«
 
-»Wir sollten anfangen«, sagte ich. »Ich weiß nicht, wie lange ich hier bleibe. Und ich habe Fragen.«
+Sein Großvater nahm das Pad vom Tisch. »Genug für heute. Morgen beginnen wir mit einer neuen Übung.«
 
-»Wir auch«, sagte die Frau mit den roten Haaren.
 
-»Ihr zuerst«, sagte ich. »Wer seid ihr?«
+# Feldversuch
 
-Die vier wechselten Blicke. Dann lehnte sich der Mann mit der Narbe zurück und begann.
+Die Kleidung landete mitten auf Acens Brust, noch bevor er bemerkte, dass sein Großvater den Raum betreten hatte.
 
-Sein Name war Ezra Blackwood. »Ezra Blackwood der Dritte«, sagte er mit einem Ton, der darauf hindeutete, dass das wichtig war, obwohl ich nicht verstand, warum. Er war der Anführer der Gruppe. Daran bestand für mich schon nach seinen ersten Worten kein Zweifel. Er bestätigte das auch im Verlaufe seines Vortrags. Er sprach ruhig und präzise, ohne Umschweife, und ich mochte das.
+Schwarzes Gewebe mit silbernen Einwebungen glitt zwischen seinen Fingern hindurch und landete auf dem Bett.
 
-Die rothaarige Frau hieß Vera Thorne. Sie sah mich an, als würde sie mich einschätzen, und ich sah sie genauso an. Vera saß so, als würde sie jeden Moment aufspringen – Rücken gerade, Ellbogen auf dem Tisch, Gewicht auf den Fußballen, obwohl sie saß. Ihr Blick blieb kühl, und als ich mich setzte, zog sie kaum merklich die Mundwinkel nach unten. Schon bei meinem ersten Besuch hatte sie jedes meiner Worte mit einem spitzen Kommentar gekontert.
+»Zieh das an, wir gehen auf einen Ball«, sagte Maximilian Alvaro, seine Stimme ließ keinen Widerspruch zu.
 
-Die ältere Frau mit den geflochtenen Haaren hieß Mira. Sie war die Analytikerin der Gruppe. Ihre ergrauten Haare waren zu einem makellosen Zopf geflochten, der jeden Wirbel bändigte. Sie war die Stille im Raum, die alles sah. Wenn sie sprach, geschah es mit der bedachten Ruhe einer Person, die ihre Worte wie Werkzeuge einsetzte – präzise und nur dann, wenn sie notwendig waren.
+Acen starrte auf das Kleidungsstück. Ein formeller Anzug, maßgeschneidert und von höchster Qualität. Als er den Stoff berührte, spürte er die eingewebten Nanofilamente, die bei Aktivierung seine Körpertemperatur regulieren würden. In den Ärmeln erkannte er die feinen Schaltkreise für Kommunikation und Datenaustausch – subtile technologische Verbesserungen. Dieser Anzug hatte mehr gekostet als das Jahresgehalt eines einfachen Bürgers. 
 
-Und der junge Mann, der so angenehm roch, hieß Kael. Kael Ashford. Er sagte nur diese beiden Worte, ohne jede Betonung, und sah mich dabei an mit einem Blick, der undurchdringlich blieb. Seine Zurückhaltung war fast beunruhigend.
+»Ein Ball?« Acen runzelte die Stirn. »Warum?«
 
-»Gut«, sagte ich. »Aber zuerst – wie heißt eure Gruppe eigentlich?« 
+»Feldtest.« Maximilian durchquerte den Raum und öffnete Acens Kleiderschrank. »Deine sozialen Fähigkeiten brauchen Praxiserfahrung. Simulationen sind nicht genug.«
 
-»Die Hüter«, sagte Ezra. »Wir sind dem Ministerium unterstellt – der obersten Behörde unserer Welt, die die Verbindung zwischen den Welten reguliert und überwacht.« 
+Ein Knoten bildete sich in Acens Magen. »Ich bin nicht bereit für–«
 
-»Dem Ministerium — Für Magie?«, fragte ich. 
+»Du bist vierzehn. Es wird Zeit.« Sein Großvater warf ihm ein Paar schwarze Schuhe zu, die Acen reflexartig auffing. »Beeil dich. Wir brechen in zehn Minuten auf.«
 
-»Ja«, sagte Ezra. »Für Magie.« 
+Die Tür schloss sich hinter Maximilian, und Acen ließ sich aufs Bett fallen. Ein echter Ball. Mit echten Menschen. Seine Hände wurden feucht bei dem Gedanken. Er war erst vierzehn, obwohl er dank Gentherapie und künstlichem Muskelaufbaus eher wie siebzehn aussah.
 
-Wo hatte ich das nur schon gehört? Jetzt befand ich mich also mitten in einem Fantasy-Roman. 
- 
-»Okay«, sagte ich. »Okay. Wie viele Hüter gibt es?« 
+Er zog sich schnell um, spürte das angenehme Gewicht des Stoffes auf seiner Haut. Der Anzug passte perfekt – natürlich tat er das. Sein Großvater überließ nichts dem Zufall.
 
-»Insgesamt zweiundzwanzig feste Mitglieder, zuständig für sechs Städte«, sagte Mira. 
+Als er ins Hauptfoyer trat, wartete Maximilian bereits. Der alte Mann trug eine militärisch anmutende Uniform mit dezenten Rangabzeichen und Auszeichnungen, die Acen nicht entziffern konnte.
 
-»Wir sind das Berliner Team.«
+»Nicht schlecht«, bemerkte Maximilian mit einem prüfenden Blick. »Denk daran: Beobachten. Analysieren. Handeln.«
 
-»Wieso ausgerechnet Berlin? In einem Roman wäre die Kulisse New York oder London.«
+Die Fahrt im Gleiter verlief schweigend. Acen starrte auf die vorbeiziehenden Lichter der Stadt, während sein Großvater Dokumente auf seinem Pad durchging. Die Skyline von Neu-Alexandria glitzerte in der Abenddämmerung – die Hauptstadt des Planeten Kasset. Türme aus Glas und Chrom reckten sich in den violetten Himmel.
 
-Kael meldete sich zu Wort. »Berlin ist das weltweite Epizentrum der Riss-Aktivitäten.«
+»Der Cassiopeia-Ball ist die wichtigste gesellschaftliche Veranstaltung des Jahres«, erklärte Maximilian schließlich. »Politiker, Militärs, Handelsmagnaten – alle wichtigen Leute werden anwesend sein.«
 
-»Und ihr alle arbeitet für dieses Ministerium?« 
+»Was muss ich tun?« Acen versuchte, ruhig zu klingen.
 
-»Wir arbeiten mit ihm«, sagte Vera. »Das ist ein Unterschied.« 
+»Du wirst deine Beobachtungsgabe einsetzen. Deine Fähigkeit, Menschen zu lesen.« Sein Großvater sah ihn direkt an.
 
-Ich beschloss, das vorerst nicht weiter zu verfolgen. 
+Der Gleiter landete auf einer Plattform hoch über der Stadt. Nur wer fliegen konnte, gelangte hierher – eine natürliche Barriere für das gemeine Volk. Acen folgte seinem Großvater zu einem gewaltigen Gebäude aus weißem Marmor, aus dessen hohen Fenstern Licht strömte und aus dem ihnen Musik entgegenwehte.
 
-»Gut. Und wer sind die Gegner?«
+Im Inneren nahm Acen den Raum mit einem Blick auf. Kristallene Kronleuchter warfen funkelndes Licht auf die versammelte Elite der Galaxis. Frauen in schimmernden Gewändern und Männer in makellos geschnittenen Anzügen bewegten sich durch den Saal wie exotische Fische in einem Aquarium.
 
-»Wir nennen sie die «, sagte Ezra. »Eine Fraktion, die glaubt, der Einfluss eurer Welt – eurer Technologie, eurer Kultur – zerstöre die Magie in unserer. Und sie haben nicht ganz Unrecht. Nur ist ihre Lösung das Problem. Sie wollen eure Welt unterwerfen. Schon jetzt schicken sie Agenten, Monster, Flüche. Seit Jahren infiltrieren sie eure Gesellschaft subtil – durch Desinformation, das Säen von Misstrauen, Wissenschaftsfeindlichkeit. Und es wird von Jahr zu Jahr schlimmer.«
+»Dein Ziel für heute Abend«, Maximilian beugte sich zu ihm, seine Stimme kaum hörbar über der Musik, »ist diese junge Dame dort.«
 
-Ich runzelte die Stirn. »Agenten? Also können Sie Menschen in meine Welt schicken?«
+Acen folgte seinem Blick. Eine Frau in einem schimmernden Kleid stand am Rand der Tanzfläche. Sie war vielleicht Anfang zwanzig, ihr Haar zu einer komplizierten Frisur hochgesteckt.
 
-Ezra rieb sich die Hände und wiegte den Kopf. Ich hatte einen wunden Punkt getroffen.
+»Und nun?« Acens Mund wurde trocken.
 
-»Tatsächlich wissen wir nicht, wie sie genau vorgehen. Aber sie beeinflussen Menschen in eurer Welt, bestechen, morden. Ich will nicht sagen, sie seien für alle Probleme verantwortlich, aber ihr Einfluss wächst. Nach allem, was wir hören, destabilisiert sich eure Welt politisch zusehends.« 
+»Sprich mit ihr. Nutze deine Beobachtungsgabe. Finde einen Weg, sie zu beeindrucken.« Maximilian drückte seine Schulter. »Ich werde dich beobachten.«
 
-Nun meldete sich Kael wieder zu Wort. »Aber sie destabilisieren auch unsere Welt, und das ist für uns ein großes Problem. Sie treten als politische Partei auf, gesetzeskonform und königstreu. Aber im Hintergrund verüben sie ihre Verbrechen, in unserer Welt und in deiner. Sie sind nichts anderes als Terroristen.«
+Bevor Acen protestieren konnte, hatte sein Großvater sich bereits abgewandt und mischte sich unter die Gäste.
 
-»Und wie kann ich da helfen? Meine Expertise in Terrorbekämpfung ist doch sehr beschränkt.«
+Acen atmete tief durch. Er konnte das schaffen. In den Simulationen hatte er gelernt, Menschen zu lesen, ihre Gewohnheiten und Vorlieben zu erkennen. Er musste nur sein Training anwenden.
 
-Vera lächelte. »Du bist unsere Verbindung in deine Welt. Aber ich glaube – je nachdem, wie sich deine Fähigkeiten entwickeln, wirst du auch hier von Nutzen sein.«
+Mit zitternden Beinen durchquerte er den Saal. Die Frau stand noch immer allein, nippte an einem Glas mit roter Flüssigkeit. Als er näher kam, bemerkte er das leichte Zucken ihrer Mundwinkel, als sie die Gespräche um sie herum verfolgte. Sie war gelangweilt.
 
-Je nachdem, wie sich meine Fähigkeiten entwickeln?* *Wollten Sie mir Karate beibringen, oder mich an der Waffe ausbilden? Ich sah mich nicht gerade als angehende Geheimagentin. Das war in meiner Lebensplanung eigentlich nicht vorgesehen gewesen. Ich wollte Spiele entwickeln und Romane schreiben.
+»Entschuldigen Sie«, begann er, seine Stimme brach leicht. Er räusperte sich. »Darf ich Ihnen Gesellschaft leisten?«
 
-»Berlin ist ein Brennpunkt«, fuhr Vera fort. »Viele Bruchstellen. Viele Orte, wo die Welten sich berühren. Du hast heute eine gesehen.«
+Sie wandte sich ihm zu, ihre Augen musterten ihn von oben bis unten. »Bist du nicht etwas jung für diesen Ball, Kleiner?«
 
-»An der Friedrichstraße«, sagte ich. »Ja.«
+Acen spürte, wie Hitze in seine Wangen stieg. »Ich bin mit meinem Großvater hier. Er ist–«
 
-»Und du hast sie gesehen, weil du den Kristall dabei hattest«, sagte Mira. »Nur wenige können einfach so Dinge in die jeweils andere Welt mitnehmen. Das macht dich wertvoll für uns.«
+»Lass mich raten. Ein wichtiger Mann, der dachte, es wäre eine gute Idee, dich in die Gesellschaft einzuführen?« Sie lachte leise. »Wie süß.«
 
-Das war direkt. Ich schätzte das.
+Acen schluckte. Das lief nicht nach Plan. Er aktivierte seine Naniten, spürte, wie sie durch seinen Körper strömten und seine Sinne schärften.
 
-»Was wollt ihr von mir?«, fragte ich.
+Die Welt um ihn herum explodierte. Plötzlich konnte er jedes Gespräch im Raum hören, jedes Parfüm riechen, jede kleinste Bewegung sehen. Das Licht der Kronleuchter wurde blendend hell, die Musik ohrenbetäubend laut. Er keuchte, überwältigt von der Flut an Eindrücken.
 
-Ezra legte die Hände auf den Tisch. »Wir wollen, dass du dich uns anschließt. Du kannst zwischen den Welten reisen. Das kann sonst niemand – nicht auf die Art, wie du es tust. Du kannst in eurer Welt operieren und hast zugleich Zugang zu unserer. Wir brauchen das.«
+»Alles in Ordnung?« Die Stimme der Frau drang durch das Chaos in seinem Kopf.
 
-»Und die erste Aufgabe?«, fragte ich. 
+Er zwang sich zur Konzentration, dämpfte die Eindrücke auf ein erträgliches Maß. Seine Naniten hatten nie so heftig reagiert. Das war viel mehr Input als in einer Simulation.
 
-Seltsam. Hätte jetzt nicht ein *Ich weiß nicht recht … ich muss mir das überlegen* kommen müssen? Es passte nicht zu mir, mich einfach in ein Abenteuer zu stürzen. 
+»Ja, mir geht's gut«, presste er hervor. »Ich war nur … abgelenkt.«
 
-»Ein Monster«, sagte Vera. »Es ist vor zwei Wochen durch eine Bruchstelle in Berlin durchgekommen. Es lebt jetzt in eurer Welt. Es ist noch klein – ein Späher, kein Krieger – aber es wird andere anziehen, wenn es länger bleibt. Es muss entfernt werden.«
+»Offensichtlich.« Sie hob eine Augenbraue.
 
-Sie legte etwas auf den Tisch. Es war ein zweiter Kristall, größer als meiner, und er leuchtete nicht blaugrün, sondern weiß – ein scharfes, kaltes Weiß. Er pulsierte nicht. Er schien zu warten.
+Acen versuchte, sich zu sammeln. Er musste etwas an ihr ablesen, etwas, das sie beeindrucken würde. Er konzentrierte sich auf Details – ihre Haltung, ihre Kleidung, ihren Schmuck.
 
-»Das ist der Beweis-Kristall«, sagte Mira. »Wenn du das Monster vertrieben hast, wird der Kristall aufleuchten und eventuell noch vorhandene magische Energie absorbieren. Das ist unser Nachweis, dass die Bedrohung beseitigt ist.«
+Die Sekunden dehnten sich. Er sah die feinen Linien um ihre Augen, die verrieten, dass sie mehr lachte, als ihr höfliches Lächeln vermuten ließ. Ihre Hände – gepflegt, aber mit winzigen Schwielen an den Fingerspitzen. Musikerin? Er bemerkte die leichte Asymmetrie ihres Kleides, ein bewusster Designentscheid, kein Fehler.
 
-Ich sah auf den Kristall. Dann sah ich auf die vier Menschen.
+Dann sah er die Ungeduld in ihrem Gesicht. Verdammt! In den Simulationen warteten die Damen immer brav, bis er fertig war.
 
-»Wie?«, fragte ich.
+»Jungchen, ich glaube, du bist noch nicht so weit«, unterbrach sie seine Analyse mit einem nachsichtigen Lächeln. Sie stellte ihr Glas ab. »Vielleicht in ein paar Jahren.«
 
-»Wie was?«, sagte Vera.
+Mit diesen Worten drehte sie sich um und schlenderte davon, ließ ihn stehen wie einen Schuljungen nach einer Zurechtweisung.
 
-»Wie soll ich es bekämpfen? Ich bin Studentin: Buch- und Medienproduktion. Ich habe noch nie etwas getötet. Nicht mal eine Mücke. Okay, Mücken töte ich, aber das ist was anderes.«
+Acen ballte die Fäuste. Er hatte versagt. Sein Großvater würde enttäuscht sein. Er suchte die Menge nach Maximilian ab, konnte ihn aber nirgends entdecken.
 
-Kael räusperte sich. »Welche Form von Magie beherrschst du?«
+Stattdessen fiel sein Blick auf eine Frau mit silbergrauem Haar auf der anderen Seite des Saals. Sein Herz setzte einen Schlag aus.
 
-Ich starrte ihn an. »Was?«
+Elexandra, die Frau aus der Simulation.
 
-»Magie«, wiederholte er. »Welche Art? Emotionale Kanalisierung? Elementare Kontrolle?«
+Sie stand dort in einem mitternachtsblauen Kleid und grinste ihn an, als wären sie alte Freunde. Ihre grünen Augen fixierten ihn über die Köpfe der Gäste hinweg.
 
-»Ich beherrsche keine Magie«, sagte ich. »So etwas gibt es in meiner Welt nicht.«
+Das war unmöglich. Sie war nicht real. Sie war ein Produkt der Simulation, ein Konstrukt aus seinem eigenen Unterbewusstsein, wie sein Großvater gesagt hatte.
 
-Sie sahen sich an. Dieser Blick verriet, dass sie mit dieser Information nicht gerechnet hatten und jetzt ratlos waren.
+Und doch stand sie dort, so real wie jeder andere im Raum.
 
-»Das stimmt nicht«, sagte Mira schließlich, mit der ruhigen Stimme einer Person, die es gewohnt war, Fakten zu korrigieren. »Eure Welt hat Techno-Magie.«
+Panik stieg in ihm auf. Er hatte es gewusst. Irgendetwas stimmte nicht mit den Simulationen. Sie war zu real gewesen, zu spezifisch. Und jetzt war sie hier, in der wirklichen Welt.
 
-»Nein. Wir haben Technologie. Das ist was anderes.«
+Er musste seinen Großvater finden. Oder einen Ausgang. Oder beides.
 
-»Eure Wagen brauchen keine Pferde«, warf Vera ein.
+Er drehte sich um und stürzte durch die Menge, stieß dabei gegen Gäste, die ihm irritierte Blicke zuwarfen. Seine Augen suchten verzweifelt nach einem Fluchtweg. Er sah eine Tür am Ende des Saals und rannte darauf zu.
 
-»Motoren.«
+Die Tür führte in einen langen, schwach beleuchteten Gang.
 
-»Sie fliegen«, sagte Kael.
+In seiner Eile bemerkte er nicht, dass er sich immer weiter vom Hauptsaal entfernte. Die Musik wurde leiser, die Menschenmenge dünner. Plötzlich befand er sich in einem langen, schwach beleuchteten Korridor. Die Wände waren mit dunkelrotem Stoff bespannt, gedämpftes Licht fiel von vergoldeten Wandleuchten.
 
-»Flugzeuge. Oder Drohnen.«
+»Verdammt«, murmelte er und wollte umkehren, als er das leise Rascheln von Stoff hinter sich hörte.
 
-»Sie fahren ohne Lenker«, sagte Ezra.
+Elexandra stand am Ende des Korridors, ihr Kleid schimmerte im dämmrigen Licht. Ihr Lächeln war kalt und berechnend.
 
-Ich öffnete und schloss den Mund. »Das ist Automatisierung. Algorithmen. Reine Mathematik, keine Magie. Und selbst das klappt oft nicht.«
+»Hallo, Acen«, sagte sie, ihre Stimme melodisch und fremd zugleich. »Wie schön, dich wiederzusehen.«
 
-Mira sagte: »Von unserem Standpunkt aus ist ein Algorithmus einem Ritual nicht unähnlich. Beides sind festgelegte Abläufe, die ein bestimmtes Ergebnis produzieren. Ihr nennt es Technologie. Wir nennen es Magie. Der Effekt ist derselbe.«
+»Wer sind Sie?«, fragte er, während er langsam zurückwich. »Was wollen Sie von mir?«
 
-»Das ist nicht dasselbe«, sagte ich, aber meine Stimme war weniger sicher als vorher.
+Sie lachte leise. »Immer noch dasselbe.«
 
-»Kannst du ein Handy reparieren?«, fragte Kael.
+Mit einer fließenden Bewegung griff sie in eine versteckte Tasche ihres Kleides. Eine blitzschnelle Bewegung – und Acen spürte einen brennenden Schmerz an seiner Wange. Er taumelte zurück, die Hand an sein Gesicht pressend. Warmes Blut sickerte zwischen seinen Fingern hervor.
 
-»Nein.«
+»Zu langsam«, bemerkte sie mit einem Kopfschütteln. »In der Simulation warst du besser.«
 
-»Kannst du erklären, wie ein Handy funktioniert?«
+Acen starrte auf das schmale Messer in ihrer Hand. »Das war eine Warnung«, sagte sie und zog ein zweites, längeres Messer aus einer Scheide, die unter den Falten ihres Kleides verborgen war. »Jetzt wird es ernst.«
 
-»Ungefähr.«
+Sie bewegte sich auf ihn zu, ihre Schritte lautlos auf dem dicken Teppich. Ihre Bewegungen waren flüssiger, unberechenbarer als in der Simulation – als hätte sie dort nur gespielt.
 
-»Kannst du eines bauen?«
+Endlich schaltete sein Gehirn ein. Acen aktivierte seine Kampf-Naniten spürte, wie sie sich durch seine Muskeln und Nervenbahnen ausbreiteten.
 
-»Nein.«
+Elexandra griff an, ihr Messer schnitt durch die Luft, wo sein Kopf gewesen war. Er wich aus, aber seine Bewegungen waren unkoordiniert, plump. Nicht wie in den Simulationen, wo jede seiner Bewegungen präzise und flüssig war.
 
-»Dann ist es Magie«, sagte er. »Du nutzt ein Gerät, dessen Mechanismus du nicht vollständig verstehst, das Dinge tut, die deinen Vorfahren unmöglich erschienen wären, und du vertraust darauf, dass es funktioniert. Das ist die Definition von Techno-Magie.«
+Er versuchte einen Gegenangriff, seine Faust traf ihre Schulter – ein unbeholfener Schlag, der sie kaum aus dem Gleichgewicht brachte. Sie lachte nur und drehte sich, ihr Messer hinterließ einen brennenden Schnitt an seinem Arm.
 
-Ich starrte ihn an. Das war eine sehr überzeugende und gleichzeitig sehr ärgerliche Argumentation.
+»Ist das alles?«, spottete sie. »Der große Hoffnungsträger des Hauses Alvaro?«
 
-»Gut«, sagte ich. »Nehmen wir an, ihr habt recht. Das ändert trotzdem nichts daran, dass ich persönlich keine Magie beherrsche. Ich kann kein Feuer erzeugen. Ich kann nicht fliegen. Ich kann nicht –«
+Acen keuchte vor Anstrengung. Seine Kleidung war bereits an mehreren Stellen zerrissen, Blut sickerte durch den teuren Stoff. Die Wunden brannten, aber mehr noch schmerzte sein Stolz. Er konnte nichts von dem umsetzen, was er in den Simulationen gelernt hatte. Die Realität war anders – härter, schneller, unberechenbarer.
 
-»Du kannst zwischen den Welten reisen«, sagte Ezra. »Das ist Magie. Das ist mehr Magie, als die meisten Menschen in diesem Raum jemals gewirkt haben.«
+Elexandra spielte mit ihm, das war offensichtlich. Ihre Bewegungen waren kontrolliert, präzise, während seine immer verzweifelter wurden. Mit jedem Schlag, den er verfehlte, mit jedem Schnitt, den er einsteckte, wuchs seine Frustration.
 
-Das stoppte mich.
+»Dein Großvater hat dir nie beigebracht, wie man wirklich kämpft, oder?«, fragte sie, während sie mühelos seinem ungelenken Angriff auswich. »Simulationen sind nicht die Wirklichkeit, Junge.«
 
-»Ich schlafe einfach ein«, sagte ich.
+Mit einer schnellen Drehung fegte sie seine Beine unter ihm weg. Acen schlug hart auf dem Boden auf, die Luft wurde aus seinen Lungen gepresst. Bevor er reagieren konnte, kniete Elexandra über ihm, die Klinge ihres Messers an seiner Kehle.
 
-»Ja«, sagte er. »Du schläfst ein und reist in eine andere Welt. Das klingt für dich normal, weil du es immer getan hast. Aber es ist nicht normal.«
+»Das reicht«, ertönte eine Stimme aus den Schatten.
 
-Ich schwieg. Ich wollte widersprechen, aber mir fiel nichts ein.
+Maximilian Alvaro trat in den Korridor, sein Gesicht ausdruckslos. Elexandra nahm sofort das Messer von Acens Hals und stand auf, ein Lächeln breitete sich auf ihrem Gesicht aus.
 
-»Gut«, sagte Vera schließlich. »Dann nehmen wir an, sie hat keine aktive Magie. Das ist ein Problem, aber kein unüberwindbares Problem. Wir haben Artefakte.«
+»Max«, sagte sie warmherzig, als würde sie einen alten Freund begrüßen. »Dein Enkel hat noch viel zu lernen.«
 
-Sie sah Ezra an. Er nickte.
+»Ich weiß«, antwortete Maximilian und trat näher. »Aber er hat Potenzial.«
 
-Kael stand auf und ging zu einem Regal an der Wand, das ich vorher nicht bemerkt hatte. Er nahm etwas herunter – ein kleines Objekt, kaum größer als eine Münze, aus einem Material, das weder Metall noch Stein war. Es war bräunlich, fast organisch, und es schien in seiner Mitte einen winzigen Riss zu haben, aus dem ein gedämpftes orangefarbenes Licht sickerte.
+Der alte Mann trat auf die Frau zu und nahm ihre Hand. »Vielen Dank«, sagte er.
 
-»Das ist ein Einmal-Siegel«, sagte er und legte es vor mich auf den Tisch. »Ein Zauber, der nur einmal wirkt. Du nähert dich dem Monster, du brichst das Siegel, und  Ziel wird zurückgeschickt. Durch die Bruchstelle, zurück in unsere Welt, wo wir es empfangen können.«
+»Hab ich doch gern gemacht, alter Freund.«
 
-»Getötet?«, fragte ich.
+Acen lag noch immer auf dem Boden, sein Atem ging schwer. Sein Gesicht brannte vor Scham und Wut, als die Erkenntnis ihn traf: Der gesamte Abend war inszeniert gewesen. Der Ball, die Frau am Rand der Tanzfläche, Elexandra – alles Teil eines Tests, bei dem er kläglich versagt hatte.
 
-»Zurückgeschickt«, korrigierte er. »Töten braucht mehr Magie. Das hier ist einfacher und für eine erste Mission ausreichend.«
+»Steh auf«, befahl sein Großvater. »Wir haben noch viel zu besprechen.«
 
-Ich sah auf das kleine Objekt. »Wie breche ich es?«
+Acen rappelte sich langsam auf, jeder Muskel in seinem Körper protestierte. Blut tropfte von seinen Wunden auf den teuren Teppich. Er fühlte sich gedemütigt, betrogen, wütend.
 
-»Du hältst es mit beiden Händen fest und zerbrichst es.«
+»Du hast das alles geplant«, sagte er zu seinem Großvater, seine Stimme zitterte vor unterdrückter Wut. »Du hast mich in eine Falle gelockt.«
 
-»Das ist alles?«
+»Ich habe dich auf die Realität vorbereitet«, korrigierte Maximilian. »Oder zumindest versucht es. Nun wissen wir beide, wie viel Arbeit noch vor uns liegt.«
 
-»Das ist alles. Es reagiert auf deinen Willen. Du musst wollen, dass das Monster geht. Das reicht.«
+»Ich hätte sterben können!«
 
-Ich sah auf den Beweis-Kristall. Dann auf das Siegel. Dann auf Kael.
+Elexandra schnaubte verächtlich. »Wenn ich dich hätte töten wollen, wärst du jetzt tot.«
 
-»Und wie finde ich das Monster?«
+Etwas klickte in Acens Gehirn. Die Wut, die Demütigung, die Schmerzen – alles verschmolz zu einem brennenden Fokus. Plötzlich spürte er die Naniten durch seinen Körper fegen wie eine Flutwelle aus flüssigem Feuer. Jede Nervenbahn schien zu glühen, jeder Muskel vibrierte vor Energie.
 
-»Der Beweis-Kristall reagiert auf seine Energie«, sagte Mira. »Je näher du kommst, desto heller wird er. Er funktioniert wie ein Kompass.«
+Die Zeit verlangsamte sich.
 
-Das war einfacher, als ich erwartet hatte, fast zu einfach. 
+Elexandras herablassendes Lächeln, die Falten um ihre Augen, die winzige Ausbuchtung unter ihrem linken Ärmel – er sah alles mit kristallklarer Schärfe. Er wusste genau, wo sie ihr Messer verborgen hielt.
 
-»Was ist, wenn es mich angreift?«, fragte ich.
+Ohne nachzudenken bewegte er sich vorwärts. Seine Beine trugen ihn mit einer Geschwindigkeit, die ihn selbst überraschte. Elexandra blinzelte überrascht, ihre Hand zuckte reflexartig zum verborgenen Messer.
 
-»Dann lauf«, sagte Vera.
+Zu spät.
 
-Ich sah sie an. »Das ist dein Ratschlag? Lauf?«
+Acens Handballen traf ihre Nase mit präziser Gewalt. Das Knacken von Knorpel hallte durch den stillen Korridor. Elexandra taumelte zurück, Blut spritzte über ihr mitternachtsblaues Kleid.
 
-»Das ist der praktischste Ratschlag«, sagte sie. »Du bist keine Kampfmagierin. Lauf zuerst. Dann brich das Siegel, wenn du nahe genug bist. Das Wesen ist nicht allzu gefährlich. Aber ein paar Schrammen könnte es dir zufügen.«
+»Du kleiner Bastard–« zischte sie, sprang sofort in Kampfstellung und griff nach der Waffe in ihrem Ärmel.
 
-»Wie nahe ist nahe genug?«
+Ihre Finger tasteten ins Leere.
 
-»Zwei Melons«, sagte Kael. »Vielleicht drei. Der Zauber hat eine kurze Reichweite.«
+Acen hielt das Messer zwischen seinen Fingern, die Klinge reflektierte das gedämpfte Licht. Er hatte es ihr abgenommen, ohne dass sie es bemerkt hatte. Zum ersten Mal sah er echte Überraschung in ihren Augen.
 
-Ich runzelte die Stirn. »Melons?«
+Elexandra knurrte und zog ihren Dolch aus der Scheide an ihrem Oberschenkel. »Glückstreffer«, spottete sie, obwohl Blut aus ihrer Nase über ihre Lippen rann.
 
-»Wie nennt ihr kurze Längeneinheiten?«
+Sie erwartete seinen Hieb, ihre Deckung perfekt positioniert.
 
-»Meter. Ungefähr so.« Ich hielt die Hände auseinander.
+Doch Acen hatte nicht vor, ihr die Genugtuung zu geben. Die Naniten pulsierten durch seine Muskeln, verstärkten jede Faser. Er spannte seinen Körper an, sammelte die Energie in seinen Beinen und trat zu – nicht gegen ihren Dolch, sondern direkt auf ihr Brustbein, zwischen ihre Brüste. Zwar traf der Dolch sein Bein, aber das hatte er erwartet.
 
-»Gut. Dann sind es zwei bis drei Meter.« Er lächelte. 
+Der Aufprall war gewaltig. Elexandra flog rückwärts durch die Luft, ihr Gesicht eine Maske aus Schock und Schmerz.
 
-Ich holte tief Luft. Ich sah auf die zwei Objekte vor mir – den leuchtenden Beweis-Kristall und das kleine, rissige Siegel.
+Doch Acen wartete nicht, bis sie landete. Er war bereits in Bewegung, sprang ihr hinterher. Als ihr Rücken hart auf dem Marmorboden aufschlug, war er über ihr. Ein Knie presste ihre Dolchhand auf den Boden, das andere ruhte auf ihrem Brustbein. Die Spitze des Messers – ihres eigenen Messers – ruhte an ihrer Kehle.
 
-»Gut«, sagte ich. »Ich mache das. Aber ihr erklärt mir danach alles. Wirklich alles. Ich will wissen, wer ihr seid, was diese Welt ist, und warum ich.«
+»Feiere niemals deinen Sieg, bevor es vorbei ist«, flüsterte er, wiederholte die Worte seines Großvaters.
 
-Ezra sah mich an. »Warum du was?«
+Elexandras Augen weiteten sich. Dann, völlig unerwartet, lachte sie – ein echtes Lachen, das ihre ganze Brust erschütterte.
 
-»Warum ich«, sagte ich. »Warum ausgerechnet ich zwischen den Welten reisen kann, und warum ich hier gelandet bin. Das war soch kein Zufall, oder?«
+»Bravo, kleiner Alvaro«, sagte sie durch das Blut, das ihre Zähne rot färbte. »Du lernst schnell.«
 
-Für einen Moment sagte niemand etwas.
+Acen spürte eine Hand auf seiner Schulter. Sein Großvater stand über ihm, ein seltenes Lächeln auf seinem Gesicht.
 
-»Nein«, sagte Ezra schließlich. »Wir werden es dir erklären, aber nicht jetzt.«
+»Genug, Acen. Du hast deinen Punkt bewiesen.«
 
-Das war keine vollständige Antwort. Aber es war genug für jetzt.
+Acen zögerte, das Messer noch immer an Elexandras Hals. Ein Teil von ihm wollte nicht loslassen, wollte ihr zeigen, dass mit ihm nicht zu spaßen war. Der metallische Geruch ihres Blutes erfüllte seine Nasengänge, vermischte sich mit dem süßlichen Duft ihres Parfüms.
 
-Ich lehnte mich auf der Metallbank zurück und sah Kael direkt an. »Woher weiß ich, dass ihr mich nicht einfach verheizt? Ihr kennt mich kaum, und jetzt soll ich in die U-Bahn gehen und etwas jagen, von dem ihr sagt, es sei gefährlich. Was, wenn es schiefgeht? Vielleicht bin ich nur Kanonenfutter. Oder ein Experiment.«
+»Acen«, wiederholte sein Großvater, seine Stimme nun schärfer. »Es ist vorbei.«
 
-Ezra Blackwood antwortete ruhig. »Wir haben dich nicht zufällig gefunden. Deine Fähigkeit, zwischen den Welten zu wechseln, macht dich für uns unverzichtbar. Wenn wir dich verlieren, verlieren wir auch unsere beste Chance, das Problem zu lösen.«
+Langsam entspannten sich seine Muskeln. Die Naniten in seinem Körper beruhigten sich, der Rausch der Macht ebbte ab. Er rollte von Elexandra herunter und kam auf die Füße, das Messer noch immer in seiner Hand.
 
-Ich schüttelte den Kopf. »Das klingt für mich nicht nach einem Grund, euch zu vertrauen. Woher weiß ich, ob ihr die Guten seid? Ihr sagt, es gibt eine Bedrohung, aber ihr zeigt mir keine Beweise, die nicht von euch selbst stammen. Vielleicht seid ihr diejenigen, die das Chaos erst schaffen.«
+Elexandra richtete sich unter Schmerzlauten auf, wischte sich das Blut von der Nase. »Der Junge hat Feuer«, sagte sie zu Maximilian. »Und Talent. Aber er braucht mehr als Simulationstraining. Die Realität ist … unordentlicher.«
 
-»Natürlich sind wir die* Guten*.« Ezra setzte sich aufrecht hin und funkelte mich an. »Aber wie soll ich das beweisen? Ich könnte dir die Archive zeigen, dich mit Leuten vom Ministerium sprechen lassen, aber dafür haben wir keine Zeit. Du musst uns einfach vertrauen.«
+»Darum habe ich dich gebeten, uns zu helfen«, antwortete Maximilian. Er wandte sich an Acen. »Du hast gesehen, was passiert, wenn du nicht vorbereitet bist. Aber du hast auch gezeigt, wozu du fähig sein kannst.«
 
-Die Arme vor der Brust verschränkt, starrte ich auf den Tisch zwischen uns. »Warum sollte ich euch vertrauen? Ihr könntet mir jede Geschichte auftischen, um mich für eure Zwecke einzuspannen. Ich will genau wissen, was ihr von mir erwartet und was passiert, wenn ich nein sage. Ohne klare Antworten rühre ich mich nicht vom Fleck.«
+Acen starrte auf das Messer in seiner Hand, dann auf das Blut an seinen Fingern – Elexandras Blut. Er hatte sie verletzt. Wirklich verletzt. Nicht in einer Simulation, sondern hier, in der realen Welt. Der Gedanke ließ ihn erschauern.
 
-»Wir können dich nur anflehen, dich uns anzuschließen. Wir setzen so viel Hoffnung in dich. Nur du kannst uns retten.«
+Elexandra stand auf, ihr Kleid ruiniert von Blut und Staub. Sie streckte die Hand aus. »Mein Messer, wenn's recht ist.«
 
-»Hilf mir, Obi-Wan Kenobi. Du bist meine einzige Hoffnung«, sagte ich mit todernster Miene.
+Acen zögerte, dann reichte er ihr die Waffe, Griff voran. »Ich komme mir vor wie ein dressierter Hund.«
 
-»Was meinst du …?«
 
-»Ach, schon gut. Nur ein Witz.«
+# Grenzwerte
 
-Ich musterte Ezra lange, ohne etwas zu sagen. 
+Der Schlag traf Acens Rippen wie ein Hammerschlag. Das befürchtete Knacken gebrochener Knochen blieb glücklicherweise aus. 
 
-»Und das Vieh wird mir nicht den Kopf abbeißen?«
+Luft explodierte aus seinen Lungen. Seine Knie gaben nach, der polierte Holzboden des Trainingsraums kam bedrohlich schnell näher. Im letzten Moment fing er sich ab, rollte zur Seite. Der nächste Tritt seines Gegners verfehlte seinen Kopf nur um Zentimeter.
 
-»Nein, es ist harmlos. Mehr als ein paar Kratzer könnte es dir nicht zufügen.«
+»Zu langsam.« Die Stimme des Meisters klang gelangweilt. Er machte diese arrogante ›Komm!‹-Geste mit der freien Hand.
 
-»OK«, sagte ich.
+Acen fühlte es mehr, als dass er es sah: Sein Großvater, der auf einem kleinen Balkon über der Kampfarena stand, hatte missbilligend mit dem Kopf geschüttelt.
 
-»Was?« Ezra runzelte die Stirn. »OK« kannten sie hier anscheinend nicht.
+Meister Kross stand entspannt da, die Hände locker an den Seiten, die Haut am Handrücken von einer alten Operationsnarbe gezeichnet, der Zeigefinger der rechten Hand durch jahrelanges Waffentraining leicht verformt. Nicht einmal sein Atem ging schneller. Der Mann war vielleicht vierzig, kompakt gebaut, mit Narben an Armen und Gesicht, die von echten Kämpfen zeugten. Seine grauen Augen verfolgten jede von Acens Bewegungen mit der Präzision eines Raubtiers.
 
-»Ich werde es tun.«
+Acen presste eine Hand gegen seine schmerzenden Rippen und kam wieder auf die Füße. Schweiß brannte in seinen Augen. Der Trainingsraum – ein großer, rechteckiger Saal mit hohen Fenstern und polierten Holzböden – schien sich um ihn zu drehen. An der Wand lehnte sein Großvater, die Arme vor der Brust verschränkt.
 
-Ich nahm die beiden Objekte und steckte sie in meine Tasche. 
+Er nahm wieder Kampfstellung ein. Die Übungswaffe – ein mit festem Schaumstoff ummantelter Stab – lag schwer in seinen Händen. Kross hielt seinen Stab lässig, als wäre es ein Spazierstock.
 
+Acen griff an. Er täuschte einen hohen Schlag an, drehte im letzten Moment ab und zielte auf Kross' Knie. Der Meister parierte mühelos, sein Stab krachte gegen Acens Handgelenk. Taubheit schoss seinen Arm hinauf. Die Waffe flog ihm aus der Hand.
 
+Kross' Ellbogen traf seinen Solarplexus. Acen klappte zusammen wie eine Marionette mit durchtrennten Fäden. Er lag keuchend auf dem Boden, rang nach Luft. Schwarze Punkte tanzten vor seinen Augen.
 
----
+»Erbärmlich«, sagte Kross und warf seinen Stab beiseite. »Ist das alles, was der Erbe des Hauses Alvaro zu bieten hat?«
 
+Wut flammte in Acens Brust auf. Er zwang sich auf die Knie, dann auf die Füße. Seine Beine wackelten, aber er blieb stehen.
 
+»Ich bin noch nicht fertig«, presste er hervor.
 
-»Ihr wisst also fast nichts«, sagte ich. Ich saß nun auf einem Stuhl aus geschmiedetem Metall, der unerwartet bequem war. Neben den vier Gesichtern, die ich kannte, waren zwei neue dazugekommen: ein Mann in einer Robe, der sich als Oswin vorstellte, und ein junges Mädchen namens Lyra. »Nur das, was durch die Risse sickert. Oder was ihr in den Artefakten findet, bevor sie versagen.«
+Kross lachte. »Du bist schon längst fertig, Junge. Du weißt es nur noch nicht.«
 
-»Das ist korrekt«, bestätigte Oswin. »Die Bruchstellen erlauben Beobachtung, aber es ist, als ob du etwas durch ein Fernglas beobachtest. Was wir sehen, sind Fragmente. Ausschnitte. Und die geborgenen Objekte …« Er machte eine wegwerfende Handbewegung. »Eine Zeitung, eines eurer kleinen rechteckigen Geräte mit einem gläsernen Fenster. Es leuchtete, zeigte uns Bilder, bis sein inneres Feuer erlosch. Wir haben schon etliche davon geborgen, aber sie halten nie lange.«
+Die Wut wuchs, heiß und brennend. Acen ballte die Fäuste. Er konnte die Naniten in seinem Blut spüren, wartend, bereit. Er musste nur—
 
-»Handys«, sagte ich. »Die heißen Handys. Oder Smartphones. Das innere Feuer ist ein Akku. Eine Batterie.«
+Acen zögerte. Die Naniten in echten Kämpfen einzusetzen fühlte sich wie Betrug an. Aber der höhnische Blick in Kross' Augen ließ seine Zweifel schwinden.
 
-»Ein Akku«, wiederholte Lyra leise, als würde sie das Wort probieren. Sie sah mich mit unverhohlener Neugier an. »Und er erlangt seine Kraft nicht zurück, wenn er in unserer Welt ist?«
+Er schloss die Augen und formte das mentale Bild: Ein Bach, der schneller fließt. Seine rechte Hand bewegte sich in einer präzisen Geste – Daumen und Zeigefinger bildeten einen Kreis, die anderen Finger spreizten sich. Die Aktivierungssequenz.
 
-»Nein. Warum auch? Ihr habt ja keine Steckdosen.« Ich spürte eine seltsame Müdigkeit, die tiefer ging als die körperliche Erschöpfung. Ich sollte erklären, was für mich Alltag war. Ich sollte eine ganze Welt in Worte fassen, die für diese Menschen so exotisch war wie ihre Traumwelt für mich. »Also gut. Was wollt ihr wissen?«
+Sofort reagierten die Naniten. Sie strömten durch seine Nervenbahnen, beschleunigten die Signalübertragung. Die Welt wurde schärfer, klarer, langsamer. Er konnte den Staub in den Sonnenstrahlen tanzen sehen, das leise Knarren des Holzbodens unter Kross' Füßen hören.
 
-Kael lehnte sich vor. Sein Blick war, wie immer, direkt und ungeduldig. »Alles. Aber fang irgendwo an. Mit dem, was dir wichtig erscheint.«
+»Aha«, murmelte Kross überrascht, als er die Entschlossenheit in Acens Blick sah. Er nahm wieder Kampfstellung ein.
 
-Ich holte tief Luft. Ich begann mit den Grundlagen. Ich beschrieb die Erde, die Kontinente, die Nationen. Ich sprach von Deutschland, von Berlin, von einer Welt ohne Monarchien, zumindest nicht in dem Sinne, wie sie sie hier kannten. Ich erklärte Demokratien, Wahlen, Parteien, eine politische Landschaft, die von ständigem Streit, Koalitionen und Skandalen geprägt war. Ich erwähnte den ehemaligen US-Präsidenten mit der orangen Gesichtsfarbe und seinem Talent für Übertreibungen, und den Komiker, der in der Ukraine regierte, während sein Land angegriffen wurde. Ich berichtete von Drohnenkrieg und Raketen, die Ziele aus tausend Kilometern trafen, und von dieser globalen Vernetzung, die jeden Schrecken sofort in unsere Wohnzimmer streamte.
+Sie umkreisten einander. Acen spürte jeden Muskel in seinem Körper, jede Faser. Die Erschöpfung war noch da, aber gedämpft, als hätte jemand die Lautstärke heruntergedreht.
 
-Ich sprach langsam und sachlich und hielt meine Gefühle aus meiner Stimme heraus. Es war ein Bericht, keine Erzählung.
+Kross griff an – eine Serie schneller Schläge. Acen sah sie kommen, konnte ihre Flugbahn vorhersagen. Er wich aus, blockte, konterte. Sein Schlag streifte Kross' Schulter.
 
-Vera hörte mit zusammengekniffenen Augen zu. »Diese Kriege«, unterbrach sie einmal. »Sie werden um Ressourcen geführt? Um Land?«
+»Nicht schlecht«, sagte der Meister und rieb sich die getroffene Stelle. »Aber noch lange nicht gut genug.«
 
-»Um alles Mögliche«, sagte ich. »Meist um Öl. Um politischen Einfluss. Um Ideologien. Oft auch einfach um Macht.« Ich fuhr fort. Ich beschrieb die Technik. Elektrizität, die nicht nur Lampen speiste, sondern alles. Computer, die das Wissen der Welt in Sekunden abrufen konnten. Das Internet, ein unsichtbares Netz, das Milliarden Menschen verband und sie gleichzeitig in Blasen aus gleichen Meinungen einschloss. Autos, die ohne Pferde fuhren, einige sogar ohne Fahrer. Flugzeuge, die in wenigen Stunden über Ozeane hinweg transportierten. Medizin, die Krankheiten heilen konnte.
+Der nächste Angriff kam wie ein Gewitter. Kross bewegte sich mit einer Geschwindigkeit und Präzision, die Acens verbesserte Reflexe überforderte. Schläge prasselten auf ihn ein. Er konnte sie sehen, aber sein Körper war zu langsam, um zu reagieren.
 
-Oswin notierte sich etwas auf einem Stück Pergament mit einer Feder, die kein Tintenfass benötigte. Seine Schrift war winzig und akkurat. »Diese Elektrizität«, sagte er, ohne aufzusehen. »Sie durchdringt alles?«
+Ein Tritt gegen sein Knie ließ ihn straucheln. Ein Ellbogen gegen seine Schläfe schickte Sterne durch sein Sichtfeld. Er taumelte zurück, die Naniten kämpften gegen die Desorientierung an.
 
-»Ja. Sie ist überall. In Kabeln unter der Erde, in der Luft als Funkwellen. Man kann ihr nicht entkommen.« Ich sah, wie Lyra einen kurzen, fast ängstlichen Blick mit Kael austauschte.
+Acen formte ein neues Bild: eine Brücke, über die sich Stahlseile spannten. Seine linke Hand vollführte die Geste – drei Finger gegen die Handfläche gepresst, kleiner Finger und Daumen ausgestreckt.
 
-Ich sprach weiter. Irgendwann musste ich auch von den Problemen erzählen. Die Klimakrise. Ich erklärte Treibhausgase, schmelzende Polkappen, steigende Meeresspiegel, Hitzewellen, die Wälder verbrannten und Städte unbewohnbar machten. Ich beschrieb den Hunger, der nicht aus Mangel an Nahrung, sondern aus ungerechter Verteilung entstand. Ich erwähnte die Armut, die direkt neben obszönem Reichtum existierte, Milliardäre, die Privatraketen bauten, während andere in U-Bahn-Schächten schliefen. Ich sprach von einer Gesellschaft, die gleichzeitig hypervernetzt und zutiefst einsam war, von psychischen Erkrankungen, die zur Epidemie wurden, von einem Gefühl der permanenten Krise, das in der Luft lag wie Ozon nach einem Gewitter.
+Die Naniten reagierten sofort. Sie fluteten in seine Muskelfasern, optimierten die Kalziumausschüttung, steigerten die ATP-Produktion. Kraft durchströmte ihn. Seine Muskeln fühlten sich dichter an, kompakter.
 
-Ich redete fast zwei Stunden, ohne längere Pause. Meine Stimme wurde mit der Zeit rau. Niemand unterbrach mich ernsthaft. Ab und zu eine kurze, präzise Frage zur Klärung eines Begriffs. Eine Geste, die mehr sagte als Worte. Vera, die die Arme vor der Brust verschränkte, als ich von den globalen Rüstungsausgaben sprach. Oswin, der immer wieder nickte, als bestätige sich eine lang gehegte Theorie. Lyra, die mit weit aufgerissenen Augen dasaß, als lausche sie einer schrecklichen und fesselnden Märchenerzählung. Kael, dessen Gesicht eine Maske konzentrierter Aufmerksamkeit war, deren Spannung jedoch in den weißen Knöcheln seiner gefalteten Hände sichtbar wurde.
+Er griff wieder an. Seine Schläge waren nun kräftiger. Kross' Augen weiteten sich leicht, als er parierte. Der Aufprall ließ den Meister einen Schritt zurückweichen.
 
-Als ich schwieg, blieb für einen Moment nur das leise, mechanische Summen der Raumantriebe und das gedämpfte Pulsieren der Lichtadern in den Wänden zu hören.
+»Interessant«, sagte Kross. Er hatte keine Ahnung, dass Acen Naniten benutzte, niemand außer seinem Großvater wusste davon.
 
-»Eine Welt im Fieber«, sagte Oswin schließlich. Seine Stimme war leise, nachdenklich. »Überhitzt. Überreizt.«
+Sie kämpften weiter. Acen konnte jetzt mithalten. Seine Schläge hatten Kraft, seine Bewegungen Geschwindigkeit. Aber Kross hatte etwas, das keine Naniten ersetzen konnten: Erfahrung.
 
-»Ja«, sagte ich einfach. Es war eine gute Beschreibung.
+Der Meister las jeden seiner Angriffe, sah jede Öffnung in seiner Deckung. Für jeden Treffer, den Acen landete, kassierte er drei. Blut tropfte aus seiner Nase. Sein linkes Auge schwoll zu.
 
-»Und diese … Elektrizität. Diese Funkwellen.« Kael sprach jetzt. Seine Worte waren gemessen, aber ich hörte die darunterliegende Intensität. »Sie erzeugen ein konstantes Feld. Ein Rauschen.«
+Frustration kochte in ihm hoch. Er hatte die Naniten aktiviert, nutzte Fähigkeiten, die normale Menschen nicht besaßen, und verlor trotzdem. Die Wut wuchs, vermischte sich mit der Frustration zu etwas Dunklerem.
 
-»Ja, sicher, aber das kann man nicht wahrnehmen. Für uns ist es normal. Hintergrund.«
+Acen wusste was zu tun war, aber diese Aktivierung war gefährlich. Die Nebennieren würden Adrenalin und Noradrenalin in Mengen produzieren, die den Körper beschädigen konnten.
 
-»Für uns nicht«, sagte Vera trocken. »Für unsere Magie ist es wie … wie ein lautes, dissonantes Geräusch, das jeden präzisen Klang übertönt. Ein Ritual, das auf perfekter Resonanz basiert, zerbricht, wenn eine solche Störwelle es durchdringt. Es ist, als versuchtest du, ein komplexes Uhrwerk zu bauen, während jemand mit einem Hammer neben dir auf einen Amboss schlägt.«
+Aber er wollte gewinnen. Musste gewinnen.
 
-Ich verstand. Die Bruchstellen ließen nicht nur Bilder und Objekte durch. Sie ließen das Rauschen meiner Welt in diese hier eindringen. Ein Rauschen, das für die Traumwelt giftig war. »Und die kulturellen Einflüsse? Die Ideen?«
+Das mentale Bild formte sich: Feuer, das durch seine Adern brennt. Seine rechte Hand ballte sich zur Faust, nur der kleine Finger blieb ausgestreckt – die Geste der Wut.
 
-Ezra räusperte sich. »Die Adligen in den mittleren und inneren Ringen. Sie sind fasziniert. Sie haben Bruchstellen in ihren Salons, die sie wie Aquarien pflegen. Sie beobachten eure Welt. Sie sehen die glänzenden Geräte, die schnellen Fahrzeuge, die … die Freiheiten, die sie interpretieren. Sie sprechen davon, dass unsere Welt veraltet sei. Dass wir fortschrittlicher sein müssten. Sie wollen Teile eurer Welt importieren, ohne zu verstehen, was das für Konsequenzen haben könnte.« 
+Die Wirkung war sofort spürbar. Hitze explodierte in seiner Brust, raste durch seinen Körper. Sein Herzschlag beschleunigte sich, hämmerte wie eine Kriegstrommel. Die Welt färbte sich an den Rändern rot.
 
-»Diese Faszination ist genauso gefährlich wie die technische Störung«, sagte Oswin. »Sie untergräbt das Vertrauen in unsere eigenen Systeme. In die Magie. Sie schafft Sehnsüchte, die hier nicht erfüllt werden können. Und sie spielt den Resonanz-Magiern in die Hände, die diese Unzufriedenheit schüren und in Hass gegen die Realwelt kanalisieren.«
+Er stürzte sich auf Kross. Kein Gedanke mehr an Technik oder Strategie. Nur noch der brennende Wunsch zu treffen, zu verletzen, zu dominieren. Seine Fäuste flogen in einem wilden Sturm.
 
-»Die Resonanzmagier glauben, die einzige Lösung sei die Auslöschung der Quelle des Rauschens«, fügte Vera hinzu. »Die Eroberung. Die Unterwerfung. Damit ihre präzise, rituelle Magie wieder in einer reinen, stillen Welt funktionieren kann.«
+Kross wich zurück, zum ersten Mal in die Defensive gedrängt. Ein wilder Schwinger streifte seine Wange, hinterließ einen roten Striemen.
 
-Ich spürte ein Frösteln, das nichts mit der Temperatur im Raum zu tun hatte. Ich hatte meine Welt als kaputt, als problembehaftet beschrieben. Aber sie war *meine* Welt. Der Gedanke, dass eine Gruppe von Menschen aus dieser seltsamen, schönen Traumwelt sie auslöschen wollte, um ihr eigenes System zu retten, war absurd und entsetzlich zugleich. »Und ihr? Was glaubt ihr?«
+Aber Acen hörte ihn kaum. Das Blut rauschte in seinen Ohren. Jeder Schlag, der traf, befeuerte seine Wut weiter. Er wollte mehr. Brauchte mehr.
 
-Kael antwortete. »Wir glauben, dass die Welten nun miteinander verbunden sind. Dass man eine nicht retten kann, ohne die andere zu verstehen. Vielleicht sogar zu verändern. Abschirmung, nicht Eroberung. Ein Gleichgewicht finden.« Er hielt meinen Blick fest. »Dafür brauchen wir dich. Nicht nur als Ankerin. Als Brücke. Als Übersetzerin. Du kennst beide Seiten.«
+Kross' Gesicht war jetzt ernst. Er bewegte sich schneller, präziser. Ein gezielter Schlag gegen Acens Handgelenk ließ seinen Arm taub werden. Ein Tritt gegen seine Wade brachte ihn ins Straucheln.
 
-Die Last dieser Worte senkte sich auf meine Schultern. Ich hatte gerade einen Katalog des Scheiterns präsentiert. Klimachaos, soziale Ungerechtigkeit, politischer Wahnsinn. Und diese Menschen sahen in mir eine Brücke? Eine Hoffnung? Es war ein beängstigender Gedanke.
+»Zu wild«, sagte Kross und packte Acens ausgestreckten Arm. Mit einer fließenden Bewegung nutzte er Acens eigenen Schwung gegen ihn, schleuderte ihn zu Boden.
 
-»Ihr versteht nicht alles«, sagte ich müde. »Ihr seht die Handys und die Autos. Ihr hört von den Kriegen. Aber ihr spürt nicht, wie es ist, darin zu leben. Diese ständige Überforderung. Diese lähmende Angst vor der Zukunft, vermischt mit der trivialen Sorge um die nächste Stromrechnung. Das Gefühl, dass alles zu komplex ist, um es zu reparieren, und zu wertvoll, um es aufzugeben.«
+Acen schlug hart auf. Aber der Schmerz war nur Öl ins Feuer seiner Wut. Er rollte sich ab, kam wieder hoch. Blut lief aus seiner Nase, seiner aufgeplatzten Lippe, einer Platzwunde über seinem Auge. Er schmeckte Kupfer.
 
-»Dann hilf uns, es zu spüren«, sagte Vera unvermittelt. Nicht fordernd, sondern sachlich. »Wir müssen es verstehen, um es schützen zu können. Vor den Magiern. Und vielleicht auch vor uns selbst.«
+»Mehr«, knurrte er. Die Wut war nicht genug. Er brauchte mehr Kraft, mehr Geschwindigkeit, mehr von allem.
 
-Ich nickte langsam. Ich war erschöpft von dem Monolog, aber auch irgendwie erleichtert. Ein Teil der Wahrheit lag jetzt zwischen uns auf dem Tisch, ein seltsames, missgestaltetes Ding, das wir gemeinsam betrachten konnten. Ich hatte meine Welt nicht schönreden müssen. Ich hatte sie einfach beschrieben, mit all ihren Rissen und Widersprüchen. Und sie waren noch da. Sie hörten noch zu.
+»Acen, nein—«, begann sein Großvater.
 
-»Es gibt auch gute Dinge«, sagte Vera nach einer Weile, als müsse sie die Bilanz ausgleichen. »Die Musik. Die Kunst. Die Wissenschaft, die nicht nur zerstört, sondern auch heilt. Die Möglichkeit, dass eine Person von überall her mit einer anderen sprechen kann. Die unglaubliche Vielfalt. Das alles existiert nebeneinander. Das Böse und das Gute sind nicht in verschiedenen Welten verteilt. Sie sind in derselben verwoben. Wie die Zahnräder hier oben.« Sie deutete mit dem Kinn zur Decke.
+Seine beiden Hände formten eine komplexe Geste – alle Finger ineinander verschränkt, nur die Daumen zeigten nach oben. Das verbotene Zeichen. Die Notfall-Aktivierung, die Maximilian ihm nur ein einziges Mal gezeigt hatte, spät nachts, mit der Warnung, sie niemals zu nutzen, es sei denn—
 
-Oswin lächelte zum ersten Mal, ein kurzes, blasses Aufleuchten. »Eine komplexe Maschine. Mit vielen fehlerhaften, aber auch vielen perfekten Zähnen.«
+Die Naniten explodierten durch seinen Körper wie eine Flutwelle aus flüssigem Feuer. Jede einzelne Zelle schien zu vibrieren. Seine Muskeln schwollen an, die Fasern verdichteten sich. Die künstlichen Drüsen in seinem Körper schütteten einen Cocktail aus Hormonen aus – Testosteron, Wachstumshormone, Endorphine. Alles gleichzeitig, alles auf Maximum.
 
-»Ja«, sagte ich. »So ungefähr.«
+Die Zeit dehnte sich, als würde jemand die Zwischenräume zwischen den Herzschlägen vergrößern.
 
-Lyra beugte sich vor. »Die Geschichten, die durch die Risse kommen. Die Filme. Die Musik. Sind die … repräsentativ?«
+Kross' nächster Schlag kam wie in Zeitlupe. Acen sah jeden einzelnen Muskel in des Meisters Arm arbeiten, konnte die Flugbahn vorhersagen, bevor die Bewegung überhaupt begonnen hatte. Er duckte sich darunter weg, seine eigene Faust schoss vor.
 
-Ich musste kurz überlegen. »Sie sind ein Ausschnitt. Ein verzerrter. Sie zeigen oft das Extremste. Das Spektakulärste. Das Tragischste oder das Idealisiertste. Das wahre Leben ist meistens dazwischen. Langweiliger. Komplizierter.«
+Der Treffer auf Kross' Solarplexus klang wie ein Hammerschlag auf nasses Fleisch. Der Meister flog drei Meter nach hinten, prallte gegen die Wand. Holz splitterte unter dem Aufprall.
 
-»Also sind auch die Artefakte, die wir finden, verzerrt«, stellte Kael fest. Es war keine Frage. »Sie zeigen uns keine wahre Abbildung. Nur Fragmente von Fragmenten.«
+Acen war bereits in Bewegung. Die Geschwindigkeit berauschte ihn. Er war bei Kross, bevor dieser sich von der Wand lösen konnte. Ein Knie in den Magen. Ein Ellbogen gegen die Schläfe. Kross' Kopf schlug gegen die Wand, hinterließ einen Blutfleck auf dem polierten Holz.
 
-»So ist es wohl.«
+Der Meister sackte zu Boden, hob schwach eine Hand. »Genug«, keuchte er. Blut lief aus seiner Nase, seinem Mund. »Ich gebe auf.«
 
-Wieder trat Stille ein. Ich spürte, wie die Anspannung in meinen Schultern langsam nachließ. Ich hatte gesprochen. Sie waren nicht davongelaufen. Das war ein Anfang.
+Aber Acen hörte die Worte nicht. Konnte sie nicht hören. Das Rauschen in seinen Ohren war zu laut, der rote Schleier vor seinen Augen zu dicht. Er packte Kross am Kragen, zog ihn hoch. Er spürte, wie ohne sein Zutun weitere Naniten aktivert wurden.
 
-»Danke, Luna«, sagte Oswin und faltete sein Pergament zusammen. »Das war … aufschlussreich. Und beunruhigend. Wir werden diese Informationen mit den anderen teilen müssen.«
+»Zorn-Loopback!«, brüllte Maximilian. »Sofort Hilfe! Alle verfügbaren Männer!«
 
-Kael stand auf. Seine Bewegung brach die Starre. »Komm. Ich zeige dir, wo du dich ausruhen kannst. Wir haben noch viel zu besprechen, aber das reicht für heute.«
+Die Tür zum Trainingsraum flog auf. Sechs Wachen stürmten herein, alle in voller Kampfmontur. Acen ließ Kross fallen, wirbelte herum. Neue Gegner. Gut. Die Wut brauchte ein Ventil.
 
-Ich folgte ihm, meine Beine fühlten sich schwer an. Als wir zur Tür gingen, drehte ich mich noch einmal um. Vera, Oswin und Ezra saßen noch am Tisch. Sie sprachen nicht. Sie starrten alle auf die leere Stelle, wo ich gesessen hatte, als versuchten sie, die fremde Welt, die ich gerade beschrieben hatte, in der Luft vor sich zu formen. Ihre Gesichter waren ernst, nachdenklich, ein wenig verloren. Ich erkannte den Ausdruck. Es war derselbe, den ich oft im Spiegel sah, wenn ich aus der Traumwelt zurückkehrte. Den Blick von jemandem, der zwischen zwei Realitäten steht und nicht weiß, wo er hingehört.
+Der erste Wächter erreichte ihn, versuchte seinen Arm zu packen. Acen drehte sich in den Griff hinein, nutzte den Schwung des Mannes gegen ihn. Der Wächter flog über seine Schulter, krachte auf den Boden. Ein scharfes Knacken – der Arm war gebrochen.
 
-Schon spürte ich, wie die Realität an mir zog. Ich kannte das Gefühl: Kurz vor dem Aufwachen zog es mich immer zurück.
+Zwei weitere griffen gleichzeitig an. Acen bewegte sich zwischen ihnen wie Wasser. Ein Tritt gegen ein Knie – es gab nach, der Mann schrie auf. Ein Ellbogen gegen einen Kehlkopf – der zweite ging röchelnd zu Boden.
 
-»Ich muss gehen«, sagte ich schlicht und Ezra nickte nur. Dann verschwamm die Traumwelt.
+Die restlichen drei Wachen zögerten. Acen konnte ihre Angst riechen – sauer und scharf. Es befeuerte seine Wut weiter. Er stürzte sich auf sie.
 
+Eine Faust traf eine Nase. Knorpel splitterte. Ein Knie fand einen Magen. Jemand versuchte, ihn von hinten zu packen. Er rammte seinen Kopf nach hinten, spürte wie er auf etwas Hartes traf. Der Griff lockerte sich.
 
-# Kapitel 2 - In der U-Bahn
+Aber sie waren zu viele. Während er einen niederschlug, packten zwei andere seine Arme. Ein weiterer warf sich auf seine Beine. Sie drückten ihn zu Boden, ihr kombiniertes Gewicht presste ihn gegen das polierte Holz.
 
-Auf meinem Bett liegend, die Decke bis zur Brust gezogen, spürte ich den groben Stoff meines Kissens. Das war real, das war mein Zimmer. Ich hatte in T-Shirt und Unterhose geschlafen. Ich warf einen Blick zum Stuhl in der Ecke. Dort hing der 70er-Jahre-Vintage-Mantel, den ich gestern getragen hatte. Er sah aus wie immer, aber ich wusste es sofort: Die Artefakte würden in einer der Taschen sein.
+Er kämpfte wie ein wildes Tier. Biss, kratzte, versuchte sich zu befreien. Die Naniten pumpten immer mehr Adrenalin in sein System. Seine Muskeln brannten, seine Lungen schrien nach Luft. Aber er konnte nicht aufhören. Wollte nicht aufhören.
 
-Ich setzte mich auf, ging zum Stuhl und hob den Mantel hoch. Es klapperte leise.
+»Haltet ihn fest!«, rief jemand. »Er wird sich selbst umbringen!«
 
-Mein Herz machte einen Sprung. Ich griff hinein und zog den Beweiskristall heraus – den großen, weißen, der nicht pulsierte, sondern nur wartete. Er war da. Und daneben, in der gleichen Tasche, lag das rissige, orangefarbene Siegel, das wie eine Münze aussah, und der Kristall von ihrem ersten Ausflug.
+Maximilian kniete neben ihm nieder, ein kleines Gerät in der Hand. Ein Injektor. Er presste ihn gegen Acens Hals. Ein kurzer Stich, dann strömte Kühle durch seine Adern.
 
-Ich ließ sie auf die Decke fallen und starrte sie an. Der Mantel war warm, als hätte ich ihn stundenlang getragen. Er roch nach Metall und nach etwas anderem, etwas Unbenennbarem; es roch nach einer Welt ohne Elektrizität, die dennoch leuchtende Lampen besaß. 
+Die Wut begann zu verblassen. Die rote Farbe wich aus seiner Sicht. Die Naniten zogen sich zurück, ihre Aktivität gedrosselt durch was auch immer sein Großvater ihm injiziert hatte.
 
-Ich legte den Mantel auf das Bett und ging ins Bad. Ich wusch mich und zog mich an: Jeans, Sweatshirt und meine bequemen Slipper.
+Die Erschöpfung traf ihn wie eine Flutwelle. Jeder Muskel schrie vor Schmerz. Sein Herz hämmerte unregelmäßig. Er schmeckte Blut – sein eigenes und das der anderen.
 
-In der Küche trank ich einen Schluck Wasser direkt aus dem Hahn. Meine Hände zitterten nicht. Das war ein gutes Zeichen. Ich sah auf die Uhr. 7:23 Uhr. Zu früh für die meisten Menschen, aber für mich genau richtig. 
+Die Wachen ließen ihn vorsichtig los, bereit, ihn wieder zu packen, falls nötig. Aber Acen konnte sich nicht bewegen. Konnte kaum atmen. Sein ganzer Körper zitterte unkontrolliert.
 
-Ich zog meinen Mantel über und verließ die Wohnung. Die Straße war still, grau, nass von einem leichten Nachtregen. Die Luft roch nach nassem Asphalt und kaltem Morgen. Ich ging zur U-Bahn.
+»Bringt Kross in die Krankenstation«, befahl Maximilian. »Sofort. Und die anderen Verletzten auch.«
 
-Im Wagen war es bereits gut gefüllt. Berufstätige, Schüler und vereinzelte Touristen standen dicht beieinander oder starrten mit verschlafenen Augen auf ihre Handys. Ich setzte mich ans Fenster und hielt die Hand um den Beweiskristall in meiner Tasche. Er war kalt. 
+Durch den Nebel seiner Erschöpfung sah Acen das Ausmaß der Zerstörung. Kross lag bewusstlos an der Wand, sein Gesicht blutig und geschwollen. Zwei Rippen standen in einem unnatürlichen Winkel ab – gebrochen. Von den sechs Wachen konnten nur zwei aus eigener Kraft gehen. Die anderen mussten gestützt oder getragen werden.
 
-Die U-Bahn ratterte durch den Tunnel. Das Geräusch war monoton, beruhigend fast. Ich schloss die Augen und versuchte, nicht an die Traumwelt zu denken. Ich versuchte, nicht an Ezra zu denken, nicht an Vera, nicht an Kael, der so angenehm roch und mir das Siegel gegeben hatte. *Du hältst es fest und zerbrichst es. Das ist alles.* Ich hatte das Siegel seit meinem Aufwachen nicht wieder berührt – ich hatte Angst davor, was geschehen könnte, wenn ich es tat.
+»Was... was habe ich getan?«, krächzte Acen.
 
-Die Stationen zogen vorbei. Südkreuz. Yorckstraße. Anhalter Bahnhof. Je näher wir der Friedrichstraße kamen, desto wärmer wurde der Kristall in meiner Tasche.
+»Das«, sagte sein Großvater mit eisiger Stimme, »werden wir gleich besprechen.«
 
-Ich öffnete die Augen. Ich zog den Kristall vorsichtig heraus und hielt ihn so, dass niemand ihn sehen konnte.
+Zwei unverletzt gebliebene Bedienstete halfen Acen auf die Füße. Seine Beine fühlten sich an wie Wasser. Jeder Schritt schickte Schmerzblitze durch seinen Körper. Sie stützten ihn den ganzen Weg zu Maximilians Arbeitszimmer.
 
-Er leuchtete.
+***
 
-Nicht hell, nicht wie eine Lampe, sondern wie ein Glühwürmchen – ein sanftes, weißes Licht, das pulsierte, langsam, im Rhythmus meines Herzschlags. Jeder Puls wurde ein wenig heller, als würde das Licht atmen. Ich starrte darauf, fasziniert und erschrocken zugleich. Also war ich auf der richtigen Spur.
+Der Raum war dunkel, nur das Feuer im Kamin spendete Licht. Sie ließen Acen in einen Sessel fallen. Er sank in die Polster, sein Körper eine einzige Schmerzquelle. Das Zittern wollte nicht aufhören. Seine Zähne klapperten.
 
-Die U-Bahn hielt an. Friedrichstraße.
+Maximilian schenkte sich ein Glas Brandwein ein, trank es in einem Zug. Dann wandte er sich Acen zu, sein Gesicht eine Maske aus Enttäuschung und Zorn.
 
-Ich steckte den Kristall schnell weg und stand auf. Meine Beine waren wackelig, als hätte ich die ganze Nacht getanzt. Ich stieg aus, folgte der Menschenmenge zur Treppe und blieb dann stehen.
+»Vier gebrochene Knochen«, sagte er. »Drei Gehirnerschütterungen. Innere Blutungen bei Kross. Du hättest ihn töten können.«
 
-Der Bahnsteig war voll. Menschen strömten an mir vorbei, eilten zu ihren Zügen, ihren Jobs, ihrem Leben. Niemand sah mich an. Niemand sah den Riss in der Wand neben dem Aufgang, den ich gestern gesehen hatte. Aber ich sah ihn. Und der Kristall in meiner Tasche brannte jetzt fast, so hell war er geworden.
+»Ich ... ich wollte nicht—«
 
-Ich ging langsam darauf zu. Der Riss war noch da – derselbe feine, diagonale Strich, kaum breiter als ein Haar. Aber heute sickerte nichts Dunkles heraus. Heute war er still. Fast harmlos.
+»Was du wolltest, ist irrelevant.« Maximilian trat näher. »Ich habe dir diese Aktivierung gezeigt, damit du weißt, dass sie existiert. Damit du weißt, was du niemals tun darfst. Und was machst du?«
 
-Ich holte den Kristall heraus und hielt ihn in der geschlossenen Faust. Das Licht schimmerte zwischen meinen Fingern hindurch, warf blasse Schatten auf den Boden. Es pulsierte schneller, als hätte es einen eigenen Herzschlag gefunden. Je näher ich der Wand kam, desto schneller wurde der Puls, bis es fast ein kontinuierliches Flackern war.
+Acen konnte seinen Großvater kaum sehen. Seine Augen wollten nicht fokussieren. Alles verschwamm, drehte sich. »Er hat mich provoziert.«
 
-Ich war da. Ich stand direkt vor dem Riss, und der Kristall in meiner Hand war jetzt so hell, dass ich glaubte die Knochen meiner Finger durch das Fleisch scheinen zu sehen. Das Licht war kalt und warm zugleich, ein Paradox, das ich nicht verstand.
+»Provoziert?« Maximilian lachte bitter. »Ein Kampflehrer macht seinen Job und du reagierst darauf mit potentiell tödlicher Gewalt?«
 
-Ich steckte den Kristall wieder weg.
+»Die Naniten—«
 
-Jetzt musste ich nur noch das Monster finden. Und das Siegel brechen. Und hoffen, dass niemand mich dabei sah.
+»Die Naniten tun nur, was du ihnen befiehlst.« Sein Großvater setzte sich in den Sessel gegenüber. »Sie sind ein Werkzeug, Acen. Ein mächtiges, gefährliches Werkzeug. Und du hast heute bewiesen, dass du noch nicht reif genug bist, sie zu kontrollieren.«
 
-Ich stieß mich von der Wand ab und ging los.
+Das Feuer knisterte. Acen versuchte, das Zittern zu unterdrücken, aber sein Körper gehorchte ihm nicht. Alles tat weh. Seine Muskeln fühlten sich an, als wären sie zerrissen und notdürftig wieder zusammengeflickt worden.
 
-Nicht schnell. Schnell wäre auffällig gewesen. Schnell wäre Panik gewesen, und ich war bereits nah genug an Panik, ohne ihr auch noch Beine zu geben. Ich hielt die rechte Hand in der Manteltasche um den Beweiskristall geschlossen, mit der Linken hielt ich vorsichtig das Siegel. Die Leute schoben sich an mir vorbei, Jacken, Taschen, Kaffeebecher, ein Kinderwagen, jemand mit Kopfhörern so groß wie Untertassen. Friedrichstraße eben. Niemand hatte Zeit für irgendwen.
+»Was du heute aktiviert hast«, begann Maximilian nach einer langen Pause, »nennt sich Berserk-Protokoll. Die Naniten überfluten deinen Körper mit allem, was er produzieren kann. Adrenalin, Noradrenalin, Testosteron, Endorphine. Deine Muskelfasern werden bis an ihre absolute Grenze gebracht. Deine Schmerzrezeptoren werden blockiert.«
 
-Der Kristall pulsierte.
+Er stand auf, ging zum Fenster. Draußen versanken die Gärten in der Dämmerung. »Es macht dich zu einer Kampfmaschine. Für vielleicht fünf Minuten. Aber der Haken ist: Du kannst nicht mehr zwischen Freund und Feind unterscheiden. Und danach …« Er drehte sich um. »Schau dich an.«
 
-Ich blieb stehen, ließ zwei Männer in dunklen Mänteln an mir vorbeidrängen, dann ging ich in die andere Richtung. Das Licht wurde schwächer. Gut. Also nicht da.
+Acen versuchte seine Hände zu heben. Sie zitterten so stark, dass er sie kaum stillhalten konnte. Seine Finger waren blutig, die Knöchel aufgeplatzt. Er hatte es nicht einmal bemerkt.
 
-Ich drehte mich wieder um und machte einen Schritt, dann noch einen. Sofort wurde der Kristall heller. Ich folgte ihm den Bahnsteig entlang, langsam, als wäre ich nur unschlüssig, ob ich in die S-Bahn oder die U-Bahn wollte. Mein Herz schlug so fest, dass ich das Pulsieren des Kristalls kaum davon unterscheiden konnte.
+»Die Naniten können deinen Körper verstärken«, fuhr Maximilian fort. »Aber sie können die physikalischen Gesetze nicht außer Kraft setzen. Jede Aktion hat eine Reaktion. Die Energie, die du verbrauchst, muss irgendwo herkommen.«
 
-Dann sah ich es.
+Er kehrte zu seinem Sessel zurück, setzte sich. »Deine Muskeln haben sich selbst kannibalisiert. Deine Nebennieren sind erschöpft. Dein Herz hat wahrscheinlich Schäden davongetragen, die wir noch gar nicht kennen. Du wirst wahrscheinlich mit 20 ein Neues brauchen.«
 
-Zuerst nur als eine Bewegung zwischen den Beinen der Menschen, zu niedrig für einen Hund und zu falsch für alles andere. Ein Knick in der Luft. Ein Schatten, der nicht der Beleuchtung gehorchte. Dann hob es sich über die Bahnsteigkante, kroch an der Wand entlang und wurde für einen Moment scharf, als hätte ich eine Brille aufgesetzt.
+Er griff in seine Tasche, zog eine kleine Glasphiole hervor. Die Flüssigkeit darin schimmerte golden im Feuerschein. »Und dann sind da die Drüsen. Die künstlichen Produktionsstätten in deinem Körper.«
 
-Es war klein – verglichen mit dem, was mein Gehirn unter *Monster* verstand – und genau deshalb schlimmer. Kein Drache. Kein Dämon mit Hörnern. Eher etwas, das aus zu vielen falsch zusammengesetzten Teilen bestand: ein länglicher, schwarzer, glänzender Leib wie flüssiger Teer, daran Gliedmaßen, die zwischen Insektenbeinen und Fingern oszillierten. Es zog eine Spur aus Rauch hinter sich her. Schnell sank er zu Boden, so als hätte er echtes Gewicht. Dort, der Kopf sein sollte, war nur eine eingedellte Fläche, mit einem leuchtenden, horizontalen Strich, der wie ein halboffenes Auge wirkte.
+Acen versuchte zu sprechen, aber seine Kehle war wie zugeschnürt. Maximilian fuhr fort.
 
-Niemand reagierte.
+»Sie sind leer. Vollständig ausgepumpt. Um sie wieder aufzufüllen, braucht es spezielle Substanzen.« Er hielt die Phiole gegen das Licht. »Diese hier zum Beispiel enthält Extrakt aus den Speicheldrüsen der Kythara-Echse von Bellatrix VII. Ein einziger Tropfen kostet mehr als ein Raumschiff.«
 
-Eine Frau telefonierte direkt neben dem Wesen stehend. Ein Mann mit Aktentasche stellte sich fast hinein. Das Wesen duckte sich zwischen ihre Bewegungen, schmiegte sich an ihre Blindheit wie ein Fisch an eine Strömung, und ich begriff mit kalter Klarheit, dass die anderen es wirklich nicht sehen konnten. Nicht verschwommen. Nicht am Rand. Gar nicht.
+Er stellte die Phiole auf den Tisch, holte eine weitere hervor. Diese war blau. »Synthetisiertes Nebennierenmark vom Eismond Titan, gemischt mit Enzymen, die nur in den Tiefseegruben von Aquaria Prime vorkommen. Die Taucher, die danach suchen, haben eine Lebenserwartung von drei Jahren.«
 
-»Scheiße«, murmelte ich.
+Noch eine Phiole erschien, diesmal mit einer milchigen Substanz. »Und das hier – fermentierte Hypophysen-Sekrete von Primaten, die nur auf einem einzigen Asteroiden im Vega-System leben. Die Population beträgt vielleicht noch zweihundert Tiere.«
 
-Der Kristall war jetzt so hell, dass das Weiß durch den Stoff meiner Manteltasche drang. Das Monster drehte den flachen Kopf in meine Richtung. Es hatte mich bemerkt und es hatte bemerkt, dass ich es bemerkt hatte.
+Acen starrte die Phiolen an. Sein Kopf drehte sich noch mehr. »Das ... das muss ein Vermögen kosten.«
 
-Ich zog den Beweiskristall heraus. Nur kurz. Das Licht traf das Wesen und es zuckte zurück, als hätte ich ihm etwas ins Gesicht gehalten, das es hasste. Gleichzeitig griff ich mit der anderen Hand nach dem Siegel.
+»Drei Planeten könnte ich kaufen für das, was in diesen Phiolen ist«, sagte Maximilian ernst. »Die Kythara-Echsen werden von Kampfrobotern bewacht, die jeden Eindringling atomisieren. Die Enzyme aus Aquaria Prime müssen in Stickstoff bei minus zweihundert Grad transportiert werden, sonst zerfallen sie binnen Sekunden.«
 
-*Du näherst dich dem Monster, du brichst das Siegel, und es wird zurückgeschickt.*
+Er nahm die blaue Phiole, träufelte vorsichtig drei Tropfen in ein Glas Wasser. »Und die Primaten? Sie sind heilig für die Vega-Kolonisten. Der letzte Schmuggler, der versucht hat, eine Drüse zu stehlen, wurde bei lebendigem Leib gehäutet.«
 
-In dem sicheren Steampunk-Zimmer der Traumwelt hatte sich das sehr viel einfacher angehört als hier, auf einem überfüllten Berliner Bahnsteig um halb acht morgens.
+Das Wasser färbte sich türkis. Maximilian reichte es Acen. »Trink. Langsam.«
 
-Ich machte einen Schritt auf das Ding zu. Es wich zurück. Noch einen. Dann schnellte es plötzlich seitwärts – viel schneller, als etwas mit so vielen unlogischen Gelenken sein sollte – und schoss auf die Bahnsteigkante zu.
+Acen nahm das Glas mit zitternden Händen. Die Flüssigkeit schmeckte nach Metall und etwas Bitterem, das er nicht identifizieren konnte. »Wirklich?«, fragte er zwischen zwei Schlucken. »Gehäutet?«
 
-Ich lief jetzt doch. Jemand fluchte, als ich ihn streifte. Eine Tasche schlug gegen meine Hüfte. Ich riss das Siegel aus der Tasche – glatt bis auf den feinen Riss in der Mitte. *Eine Sollbruchstelle*, dachte ich überflüssigerweise.
+Ein Geräusch entwich Maximilians Kehle – es klang fast wie Gackern. Dann schüttelte er den Kopf. »Nein. Hab ich alles erfunden.« Ein seltenes Lächeln huschte über seine Lippen. »Die Substanzen sind real, ja. Aber es sind synthetische Verbindungen, die dein Körper nicht aus normaler Nahrung herstellen kann. Man kann sie kaufen, manche sind teuer, aber es muss niemand gehäutet werden dafür.«
 
-Das Wesen hielt an und drehte sich zu mir. Ein Zischen kam aus seinem flachen Kopf, doch ich konnte kein Maul erkennen. Es war nur zwei Meter von mir entfernt. 
+Er tippte auf sein Handgelenk, wo ein schmales Interface aufglühte. »Ich übertrage die Liste der Substanzen in dein Implantat. Die genauen Molekularstrukturen, Dosierungen, Bezugsquellen.«
 
-Ich nahm das Siegel in beide Hände, um es zu brechen — und in genau diesem Moment rempelte mich jemand von der Seite an.
+Acen spürte das leichte Kribbeln hinter seinem rechten Ohr, wo der Empfänger unter seiner Haut saß. Daten flossen in seinen Kortex-Speicher.
 
-Es war keine Absicht; nur das übliche Pendlerchaos. Ein Schulterrempler, ein genervtes »Vorsicht!«, und das Siegel glitt aus meinen Fingern.
+»Lösch sie nicht«, sagte Maximilian, und seine Stimme wurde wieder ernst. »Ich werde nicht immer da sein, um dich aus deiner eigenen Dummheit zu retten.«
 
-Ich sah zu, wie es fiel.
+Die Worte hingen schwer zwischen ihnen. Acen wollte fragen, was er meinte, aber die Erschöpfung zog an ihm wie Bleigewichte. Das Glas entglitt seinen Fingern, fiel auf den dicken Teppich. Die türkise Flüssigkeit versickerte in den Fasern.
 
-Für einen Moment schien die Zeit langsamer zu laufen. Ich sah, wie die Scheibe über die Bahnsteigkante kippte, orange aufblitzte und zwischen den Schienen landete, ohne etwas dagegen tun zu können. Natürlich musste das magische Einweg-Artefakt auf den verdammten Gleisen landen.
+»Die nächsten Tage wirst du die Hölle durchmachen«, sagte Maximilian und stand auf. »Muskelkater ist da noch das geringste Problem. Deine Hormonproduktion wird verrücktspielen. Stimmungsschwankungen, Halluzinationen, möglicherweise Krampfanfälle.«
 
-»Scheiße. Scheiße, scheiße, scheiße.«
+Er ging zur Tür, blieb aber noch einmal stehen. »Kross wird überleben. Drei gebrochene Rippen, eine Gehirnerschütterung, innere Blutungen. Aber er wird wieder gesund.«
 
-Das Monster kam langsam auf mich zu, und ich tat das einzig Vernünftige. Ich wich zurück.
+»Wird er ...« Acen schluckte. »Wird er wiederkommen?«
 
-Zwei Schritte. Dann drei. Ich drehte mich weg, rannte ein paar Meter, stolperte fast gegen einen Mülleimer und blieb stehen. Mir war übel. Mein ganzer Körper schrie nur noch: *Raus hier!*
+»Das liegt an ihm.« Maximilian öffnete die Tür. »Und an dir. Wenn du ihm beweisen kannst, dass du deine Naniten kontrollieren kannst, statt von ihnen kontrolliert zu werden.«
 
-Dann dachte ich an Ezra, der gesagt hatte, ein Späher würde andere anziehen. 
+Die Tür schloss sich. Acen blieb allein zurück, zitternd in seinem Sessel. Das Feuer knackte und spuckte Funken. Draußen war es vollständig dunkel geworden.
 
-Ich drehte mich um.
+Er versuchte aufzustehen, aber seine Beine gaben sofort nach. Er kroch auf allen Vieren zum Kamin, lehnte sich gegen die warmen Steine. Die Hitze half ein wenig gegen das Zittern.
 
-»Fuck.«
+Die Bilder des Kampfes flackerten durch seinen Kopf. Kross' Blut an der Wand. Der Wächter mit dem gebrochenen Arm. Die Angst in ihren Augen. Er hatte das getan. Er allein.
 
-Ich ging zur Bahnsteigkante und sprang. 
+Nein, korrigierte er sich. Die Naniten hatten—
 
-Es war kein heroischer Sprung. Eher ein hässliches Stolpern mit Entschluss. Meine Schuhe rutschten auf dem Schotter weg, mein Knie schlug gegen etwas Hartes, Schmerz schoss hoch, und sofort brach Lärm über mir los. Warum hatte ich mich nicht erst hingesetzt und mich ganz gemütlich zum Gleis hinabgelassen? Jetzt begann das Geschrei.
+Aber das stimmte nicht, oder? Maximilian hatte recht. Die Naniten waren nur ein Werkzeug. Er hatte sie aktiviert. Er hatte die verbotene Sequenz ausgeführt. Er hatte die Kontrolle verloren.
 
-»Sind Sie wahnsinnig?«
+Ein Krampf schoss durch seine Wade. Er biss sich auf die Lippe, um nicht zu schreien. Der Muskel zog sich zusammen, hart wie Stein. Er massierte verzweifelt dagegen an, streckte sein Bein, bis der Krampf nachließ.
 
-»Runter da!«
+Das war erst der Anfang, wusste er. Die nächsten Tage würden schlimmer werden. Viel schlimmer.
 
-»Oh Gott!«
+Er schloss die Augen und griff auf die Daten zu, die sein Großvater übertragen hatte. Listen von Chemikalien entfalteten sich in seinem Bewusstsein. L-Arginin-Alpha-Ketoglutarat. Phosphatidylserin. D-Asparaginsäure. Namen, die er noch nie gehört hatte, mit Molekularstrukturen, die wie abstrakte Kunst aussahen.
 
-Ich lief die Gleise entlang, vorbei an dem Monster oben auf dem Bahnsteig. Ich blieb dort stehen, wo ich das Artefakt vermutete und suchte. Das war es. Ich griff danach.
+Bezugsquellen waren dabei. Medizinische Versorgungsstationen. Spezialisierte Apotheken. Schwarzmarkt-Kontakte für die weniger legalen Substanzen. Alles, was er brauchen würde, um seine Drüsen wieder funktionsfähig zu machen.
 
-Jemand packte mich von hinten unter den Armen. Der Griff war hart, überraschend stark. Meine 56 Kilo wurden nach oben gerissen, mein Schuh verhakte sich noch kurz im Schotter, dann war ich halb kletternd, halb gezerrt wieder an der Bahnsteigkante. Eine zweite Hand schloss sich um meine Hüfte. Ich wurde hochgewuchtet wie ein falsch geparktes Fahrrad.
+Falls er die nächsten Tage überlebte.
 
-Ich landete unsanft auf dem Bauch auf dem Bahnsteig, schlug mit dem Ellbogen auf und keuchte. Mein Retter – ein Mann in grauer Jacke mit rotem Gesicht und panischen Augen – hielt mich immer noch fest, als müsste er verhindern, dass ich sofort wieder hineinsprang.
+Ein weiterer Krampf, diesmal im Rücken. Er keuchte, krümmte sich. Seine Wirbelsäule fühlte sich an, als würde sie brechen. Die Naniten versuchten zu helfen, schickten schmerzlindernde Signale, aber sie hatten kaum noch Ressourcen. Er hatte sie ausgepresst wie einen Schwamm.
 
-»Sind Sie komplett irre?«, fragte er.
+Schritte im Korridor. Die Tür öffnete sich. Eine Dienerin trat ein, ein Tablett in den Händen. Sie war jung, vielleicht zwanzig, mit dem olivfarbenen Teint der Südkontinentler.
 
-Ich drehte mich herum. »Lassen Sie mich los!«
+»Der Herr schickt das«, sagte sie leise und stellte das Tablett auf den niedrigen Tisch.
 
-»Da kommt eine Bahn!«
+Acen nahm das Aroma wahr, das von der Schale aufstieg. Brühe -- Huhn mit Ingwer. Sein Magen krampfte sich zusammen – nicht vor Hunger, sondern vor Übelkeit. Der Gedanke an Essen ließ Galle in seiner Kehle aufsteigen.
 
-»Ich weiß!«
+»Danke«, krächzte er.
 
-Er starrte mich an, als hätte ich ihm gerade gestanden, dass ich den Verstand verloren hatte und stolz darauf war. Um uns herum bildete sich dieser Halbkreis aus Leuten, Handys wurden gezückt. Eine Frau kommentierte ihre Aufnahme begeistert. Jemand sagte, er habe die Polizei gerufen. Natürlich hatte ein netter Berliner die Polizei gerufen.
+Die Dienerin zögerte. »Soll ich ... Brauchen Sie Hilfe?«
 
-Das Monster kam auf uns zu, doch niemand außer mir reagierte.
+Er sah bestimmt richtig scheiße aus. Er schüttelte den Kopf. Sie nickte und ging.
 
-Im Gesicht des Monsters öffnete sich eine flache Lichtspalte. Sie weitete sich, und dahinter lagen weder Mund noch Zähne, sondern Tiefe. Pure, matte Tiefe.
+Acen starrte auf die Brühe. Er musste essen, das wusste er. Sein Körper brauchte Nährstoffe, um sich zu regenerieren. Aber allein der Geruch—
 
-Das Siegel lag noch immer unten auf den Schienen, unerreichbar, und das ferne Dröhnen war jetzt kein fernes Dröhnen mehr.
+Er zwang sich, die Schale zu nehmen. Seine Hände zitterten so stark, dass die Hälfte über den Rand schwappte. Der erste Schluck brannte in seiner Kehle. Der zweite kam sofort wieder hoch.
 
-»Da ist was!«, sagte ich heiser und zeigte. »Da ist wirklich was!«
+Er schaffte es gerade noch zum Fenster, riss es auf. Die kalte Nachtluft traf sein schweißnasses Gesicht, während er sich über die Fensterbank beugte und sich in die Dunkelheit hinein übergab. Von unten hörte er einen empörten Aufschrei. Wahrscheinlich eine Wache. Acen kümmerte es nicht. Sollten sie das doch zu der Liste seiner Untaten hinzufügen. Als nichts mehr kam, sank er auf den Boden. Sein Körper fühlte sich an wie ein Schlachtfeld. Jeder Muskel schmerzte, jeder Knochen pochte. Und das war erst der Anfang.
 
-Niemand schaute an die richtige Stelle. Oder sie schauten und sahen nur Beton und Gleise und eine überdrehte junge Frau im Mantel.
 
-»Setzen Sie sich hin«, sagte die Frau neben mir, mit dieser Tonlage, die Menschen für Kinder und Verrückte reservieren. »Okay? Alles gut. Sie setzen sich jetzt einfach hin. Alles wird gut.«
+# Zäsur
 
-Ich hätte sie beinahe ausgelacht.
+Acen schreckte hoch. Das Schlafzimmer lag in Dunkelheit, nur der matte Rotton der Notbeleuchtung malte weiche Schatten an die Wände. Leise, fast entschuldigend, klang der Alarm des Sicherheitssystems durch den Raum. Sein erster Gedanke: wieder ein Test seines Großvaters. Er erhob sich aus seinem Bett und leise und ohne das Licht anzumachen in Richtung des Wohnbereiches. Sein Großvater würde noch wach sein, er schlief selten. Er hörte Rumpeln, das unverkennbare Geräusch einer abgefeuerten Energiewaffe.
 
-Es blieb mir genau eine Möglichkeit.
+Die Tür zum Wohnraum stand einen Spalt offen. Acen drückte seinen Rücken gegen die kühle Wand und spähte durch den schmalen Spalt. Sein Atem stockte.
 
-»Tut mir leid«, sagte ich und sprang auf. Dann stieß ich die Frau mit beiden Händen weg. Nicht brutal. Nur entschlossen genug. Sie taumelte rückwärts in den Mann, der mich ›gerettet‹ hatte. Beide schrien auf. Ich war schon wieder an der Kante. Diesmal setzte ich mich hin und hüpfte auf das Gleis. Ich schnappte mir das Siegel und kletterte zurück auf den Bahnsteig.
+Drei Gestalten in schwarzen Kampfanzügen bewegten sich durch den Raum. Ihre Gesichter verbargen sich hinter Visieren aus mattem Polycarbonat. Energiewaffen mit gedämpften Mündungen in ihren Händen. Sein Großvater lag am Boden, das weiße Haar rot verfärbt, eine dunkle Lache breitete sich unter seinem Körper aus.
 
-Das Monster griff an.
+Ein Kribbeln lief Acens Wirbelsäule hinauf. Kein Test. Kein Spiel. Die metallische Schärfe von echtem Blut füllte seine Nasengänge.
 
-Ich richtete mich auf. Die Leute wichen jetzt endlich zurück, aber nur vor mir – vor der offensichtlich unberechenbaren Frau am Bahnsteigrand, nicht vor dem Ding, das sich wie ein lebender Fehler auf sie zubewegte. Jemand rief: »Nicht schon wieder!«, was etwas spät kam, denn ich war ja schon wieder zurück auf dem Bahnsteig. 
+»Durchsucht alles«, befahl eine der Gestalten. »Der Junge muss hier sein.«
 
-Das Wesen war nur noch einen Schritt entfernt. Sein Lichtspaltengesicht flackerte. Der Beweiskristall in meiner anderen Hand loderte weiß auf, so hell, dass mehrere Leute blinzelten. Gut. Wenigstens *das* sahen sie.
+Acen wich zurück, seine Zehen verkrampften sich auf dem kalten Boden. Die Naniten in seinem Körper erwachten, als sein Puls sich beschleunigte. Jeder Muskel spannte sich an, bereit zu kämpfen oder zu fliehen.
 
-Ich umschloss das Siegel mit der Faust.
+»Großvater«, flüsterte er tonlos.
 
-»Verschwinde«, sagte ich.
+Die nächste Tür führte zum Labor. Acen huschte hinein, sein Herzschlag dröhnte in seinen Ohren. Das Labor - der Raum, den sein Großvater ihm stets verboten hatte zu betreten. Metall- und Kunststoffoberflächen reflektierten das schwache Notlicht.
 
-Dann zerbrach ich es.
+Hinter ihm erklang ein dumpfer Stoß gegen die Tür zum Schlafraum.
 
-Es war schwerer, als ich gedacht hatte – und zugleich nicht. Eher, als würde etwas in meiner Hand nachgeben, das nicht materiell war. Der feine Riss in der Münze sprang auf, orange Licht schoss heraus, erst als Nadel, dann als Spalte, dann explodierte es.
+»Hier drin!«
 
-Der Blitz war weiß, blendend weiß. Er fuhr aus meiner Hand in das Monster, durch es hindurch, über den ganzen Bahnsteig, hinein in die Luft, als hätte jemand für einen Atemzug die Welt von innen aufgerissen. Ich sah das Wesen nicht verbrennen. Es löste sich auf. Jede falsche Gliedmaße, jede Rauchfahne, jedes Stück glänzender Schwärze wurde von Licht getroffen, zerfiel in feine Linien und war weg, einfach *weg*, als hätte es nie existiert.
+Acen suchte verzweifelt nach einem Ausweg. Sein Blick fiel auf einen schmalen Schrank an der Wand. Er riss die Tür auf und zwängte sich in den engen Raum zwischen Reagenzgläsern und Datenkartuschen.
 
-Der Knall war nicht laut wie eine Bombe. Eher wie das  Zerplatzen von hundert Glühlampen.
+Die Labortür flog auf. Schwere Stiefel auf dem Boden.
 
-Menschen schrien. Mehrere duckten sich. Ein Handy fiel zu Boden und zersprang. Die Anzeigen über dem Gleis flackerten einmal und wurden schwarz. Für eine Sekunde roch alles nach Ozon und heißen Metall. Selbst der Wind, der vom Tunnel heraufkam, schien stillzustehen.
+»Durchsuche den Raum. Er muss hier sein.«
 
-Ich stand mitten darin, die Finger noch um die zerbrochenen Reste des Siegels gekrampft, und atmete nicht.
+Acen presste eine Hand auf seinen Mund, um sein Atmen zu dämpfen. Die Naniten in seinem Blut arbeiteten auf Hochtouren, schärften seine Sinne. Er hörte das leise Summen der Energiewaffen, roch den säuerlichen Schweiß der Eindringlinge.
 
-Dann kehrte der Bahnsteig zurück.
+Schritte näherten sich dem Schrank. Das Knarzen von Handschuhleder auf Metallgriffen.
 
-Der Lärm schwoll an, und die Panik breitete sich aus. »Was war das?«, »Haben Sie das gesehen?«, »War das ein Kurzschluss?«, »Eine Bombe!«, »Rufen Sie die Feuerwehr!«, »Wo ist die Frau?« Die Rufe überschlugen sich. Der Mann in der grauen Jacke riss die Augen auf und starrte mich ungläubig an.
+Die Tür wurde aufgerissen.
 
-Ich ließ die Siegelreste fallen und drängte mich in die Bewegung hinein, die jede Menschenmenge nach einem Schock entwickelt: weg vom Zentrum, in alle Richtungen gleichzeitig.
+Acen reagierte instinktiv. Seine Faust traf die Kehle des Angreifers, genau an der Stelle, wo der Kehlkopf durch einen dünnen Spalt in der Rüstung ungeschützt war. Der Mann röchelte und taumelte zurück.
 
-Niemand hielt mich fest. Alle redeten. Alle zeigten. Zwei Leute filmten die leeren Gleise. Jemand rief nach der Polizei, ein anderer nach der Feuerwehr.
- 
-Ich nahm die Treppe nach oben, ohne zu rennen, bis ich außer Sicht war. Erst dann lief ich schneller.  Mein Knie pochte. Meine Hand, in der ich das Siegel zerbrochen hatte, brannte noch. Hinter mir hallten Stimmen, Schritte, Durchsagen, das Nachbeben des Blitzes.
+»Er ist hier!«
 
-Ich verschwand in den Straßen Berlins, bevor ich in irgendeinem Verhörzimmer landete, geblendet von einer Lampe und bombardiert mit Fragen, die ich nicht beantworten konnte.
+Acen sprang aus dem Schrank, seine Bewegungen flüssig und präzise. Die Naniten verliehen ihm übermenschliche Geschwindigkeit. Er duckte sich unter einem Energiestrahl hindurch, der die Wand hinter ihm in schwarzen Ruß verwandelte.
 
+Der zweite Angreifer zielte erneut. Acen griff nach einem Metallbehälter vom Tisch und warf ihn. Der Behälter traf die Waffe, lenkte den Schuss ab. Die Energieentladung traf den ersten Angreifer in die Brust. Er brach zusammen, sein Körper zuckte in unkontrollierten Krämpfen.
 
+Der dritte Eindringling stürmte durch die Tür, seine Waffe im Anschlag.
 
----
+»Ihr Idioten! Nicht schießen! Wir brauchen ihn lebend!«
 
+Acen nutzte die Sekunde des Zögerns. Er sprang über einen Labortisch, trat gegen ein Regal. Glaskolben und Metallbehälter stürzten herab, zerbrachen auf dem Boden. Eine ätzende Flüssigkeit spritzte auf, traf den dritten Angreifer am Arm. Der Mann schrie auf, als die Säure durch seinen Schutzanzug fraß.
 
+Der zweite Eindringling warf seine Waffe beiseite und zog ein kurzes Messer. »Genug gespielt, Junge.«
 
-Zu Hause angekommen, schloss ich die Tür hinter mir, lehnte mich dagegen, zog den Mantel aus und ließ ihn fallen.
+Acen wich zurück, suchte nach einer Waffe. Seine Hand fand ein Laserskalpell auf dem Tisch. Das schmale Werkzeug summte leise, als er es aktivierte. Ein dünner, blauer Energiestrahl bildete die Klinge.
 
-Ich sah auf die Uhr. Es war erst 11:30 Uhr. Was sollte ich jetzt mit dem Tag anfangen? An Schlaf war nicht zu denken – noch immer pulsierte Adrenalin durch meinen Körper. Am liebsten hätte ich Nele angerufen, aber was hätte ich ihr erzählen sollen? *Hallo Nele. Heute habe ich ein Monster aus einem Paralleluniversum getötet.*
+Der Mann lachte. »Du willst kämpfen? Dein Großvater hat dich gut trainiert. Aber nicht gut genug.«
 
-Also gammelte ich herum: YouTube, Instagram, Threads. Immerhin las ich eine Stunde lang das Skript der verpassten Vorlesung, das schon online stand.
+Er stürzte vorwärts, das Messer beschrieb einen tödlichen Bogen. Acen parierte mit dem Skalpell. Die Energieklinge schnitt durch das Metall des Messers wie durch Butter. Der Mann starrte überrascht auf den nutzlosen Griff in seiner Hand.
 
+Acen nutzte den Moment und rammte das Skalpell in den Oberschenkel des Angreifers. Der Mann brüllte vor Schmerz, taumelte zurück.
 
+»Du kleiner Bastard!«
 
----
+Acen rannte zur Tür. Er musste zu seinem Großvater, musste wissen, ob er noch lebte.
 
+Im Wohnraum herrschte Verwüstung. Möbel umgestürzt, Bildschirme zertrümmert. Sein Großvater lag regungslos in der Mitte des Raumes.
 
+»Großvater!« Acen kniete neben ihm nieder. Die Haut des alten Mannes war blass, seine Augen halb geöffnet. Blut sickerte aus einer Wunde an seiner Brust.
 
-Ich zog Jeans und Sweatshirt aus und kroch in T-Shirt und Unterhose unter die Bettdecke. Ich schloss die Augen. Der Schlaf kam nicht sofort. Ich hörte noch den Nachhall des Blitzes, die Schreie, das Dröhnen der U-Bahn. Dann wurde alles still.
+»Acen …« Die Stimme seines Großvaters war kaum mehr als ein Hauch. »Vergib mir! Es tut mir so leid …«
 
-Als ich die Augen wieder öffnete, stand ich im Raum mit den pulsierenden Adern und dem großen Zahnrad über mir. Ezra saß am Tisch, Vera neben ihm. Kael lehnte an der Wand. Mira fehlte. Sie drehten sich alle gleichzeitig zu mir um.
+Ein metallisches Klicken hinter ihm. Acen wirbelte herum. Etwas traf seine Stirn. Die Welt wurde schwarz.
 
-Ich holte den Kristall aus der Manteltasche und legte ihn auf den Tisch. Das weiße Licht war jetzt stärker, pulsierte ruhig, als atme etwas Lebendiges darin.
 
-»Es ist weg«, sagte ich. »Das Siegel hat funktioniert. Der Blitz war so hell, dass alle es gesehen haben.«
+# Die »Ende der Reise«
 
-Ezra nahm den Kristall auf, drehte ihn zwischen den Fingern und nickte langsam. »Gut gemacht«, sagte er. Seine Stimme war ruhig, aber ich hörte das leichte Zögern darin. »Du hast den Beweis erbracht.«
+Der Schmerz in Acens Kopf explodierte mit jedem Herzschlag. Dumpfes Dröhnen von Maschinerie. Metallischer Geruch. Schweiß. Angst.
 
-Kael löste sich von der Wand und trat näher – wieder dieser Geruch nach Metall und etwas Wärmerem. »Und du bist unverletzt?« Seine Stimme war warm und mitfühlend.
+Er öffnete die Augen. Grelles Licht stach in seine Pupillen. Ein kahler Raum. Metallwände, abgenutzt und fleckig. Etwa zwanzig andere Personen kauerten auf dem Boden – Menschen und Wesen mit blassgrüner Haut und gewölbtem Schädel. Und ein Wesen mit vier Armen und insektoiden Augen. Acen kannte beide Spezies und sprach sogar deren Sprache. Doch das würde er für sich behalten.
 
-Ich zuckte mit den Schultern. »Fast. Nur ein paar Schrammen und ein Knie tut weh.« Ich sah auf meine Hände. 
+»Aufwachen, Biofracht.« Ein Stiefel traf seine Rippen. Acen keuchte, krümmte sich zusammen. Ein Mann in weißer Uniform stand über ihm. Sein Gesicht war kantig, die Augen kalt. »Willkommen auf der ›Ende der Reise‹.«
 
-»Die Leute haben mich für verrückt gehalten. Sie haben die Polizei gerufen. Ich bin einfach gegangen.«
+Acen richtete sich langsam auf, jeder Muskel protestierte. Seine Hände waren mit Metallbändern gefesselt. Die Naniten in seinem Blut reagierten träge, betäubt von irgendetwas. Er sah sich um und sah neben sich weiter gefesselte Gestalten. Sie sahen aus, als stammten sie alle von Kasset. 
 
-Ezra hielt den Kristall gegen das blaugrüne Licht der Wandadern. Er drehte ihn langsam, beobachtete, wie das weiße Licht darin tanzte, und seine Stirn zog sich zusammen. Vera trat näher heran, beugte sich über seinen Arm, sagte aber nichts. Kael stand immer noch an der Wand, aber seine Körperhaltung hatte sich verändert – weniger entspannt, mehr aufmerksam.
+»Wo bin ich?« Seine Stimme klang rau, fremd in seinen eigenen Ohren.
 
-»Das ist nicht normal«, sagte Ezra schließlich.
+Der Aufseher grinste. »Das hab’ ich doch gerade gesagt. ›Ende der Reise‹. Euer neues Zuhause.« Er trat zurück und deutete auf eine Reihe weiterer weißer Uniformen, die an den Wänden standen. Alle Aufseher waren hellhäutig, ihre Gesichter ausdruckslos.
 
-»Was meinst du?«, fragte ich.
+Ein älterer Aufseher trat vor. Graues Haar, Narben im Gesicht. »Hört zu, Biofracht. Die Regeln sind einfach. Ihr arbeitet. Ihr gehorcht. Ihr überlebt.« Seine Stimme klang mechanisch, als hätte er diese Worte schon tausendmal gesagt. »Über euch sind Sensorfelder installiert. Sie registrieren jede Bewegung, jeden Atemzug. Bei Regelverstoß erfolgt automatische Bestrafung.«
 
-»Sieh zu«, sagte er.
+Acen blickte nach oben. Kaum sichtbare Linien aus Energie durchzogen die Decke, ein feines Netz aus Überwachungstechnologie. 
 
-Er hielt den Kristall in der einen Hand und bewegte die andere langsam über ihn. Nicht berührend, sondern schwebend, in einer Bewegung, die fast tänzerisch wirkte. Und während er das tat, sah ich etwas, das mein Gehirn zuerst nicht einordnen konnte.
+»Die Strafen sind gestaffelt«, fuhr der Aufseher fort. »Erst Schmerz. Dann Lähmung. Bei schweren Vergehen neurologische Verblödung. Allerdings reversibel.« Er lächelte dünn. »Aber keine Sorge – wir töten euch nicht. Ihr seid Ware. Wertvolle Ware.«
 
-Silberne Fäden kamen aus seinen Fingerspitzen, dünn wie Spinnweben, und wanderten zum Kristall hinüber. Sie leuchteten nicht, aber sie waren sichtbar – wie Rauch, der sich selbst gegen die Schwerkraft bewegt. Sie wickelten sich um den Kristall, durchdrangen ihn, und das weiße Licht darin begann zu pulsieren, schneller, intensiver, bis es schmerzte, hinzusehen.
+Acen spürte, wie sein Puls sich beschleunigte. Sklaven. Sie waren Sklaven. 
 
-Das war Magie – echte, sichtbare, unmögliche Magie.
+»Auch ihr werdet niemanden töten oder verstümmeln. Die Strafen dafür sind … extrem. Prügeln könnt ihr euch so viel ihr wollt. Um eins gibt’s Mittag- um sieben Abendessen. So, das war’s von mir. Ich wünsche euch viel Spaß an Bord und übergebe an meinen Kollegen.« Er hatte seinen Vortrag im Stile eines Reiseführers gehalten. 
 
-Ich starrte hin, während mein Verstand verzweifelt nach einer Erklärung suchte. Spezialeffekte. Halluzination. Aber nein: Ich sah es, Vera sah es, Kael sah es. Also war es real – und meine Welt nicht die einzige.
+*Sehr witzig*, dachte Acen. 
 
-Nach etwa einer Minute ließ Ezra die Hand sinken. Die silbernen Fäden verschwanden. Das Licht im Kristall beruhigte sich wieder.
+Ein Aufseher mit einem medizinischen Scanner trat vor ihn. »Name?«
 
-»Das Monster hätte nicht derartig explosiv verschwinden sollen«, sagte Ezra. »Ein Siegel dieser Kraft würde es zurückschicken – als würde man es durch eine offene Tür hinausbitten.  Aber das hier …« Er deutete auf den Kristall. »Das war eine Detonation. Das war Kraft, die sich nicht einfach verteilt hat, sondern konzentriert worden ist.«
+»Acen Alvaro.«
 
-»Ich habe es gebrochen«, sagte ich. »Das Siegel. Ich habe es in der Hand zerbrochen.«
+Der Scanner piepte. »Alter: vierzehn Standard-Jahre. Keine bekannten medizinischen Besonderheiten.« Der Mann runzelte die Stirn. »Interessant. Deine Blutanalyse zeigt ungewöhnliche Proteinstrukturen.«
 
-»Ja«, sagte Vera. »Aber das erklärt nicht die Intensität.«
+Acens Herz setzte einen Schlag aus. Die Naniten. Sie hatten sie entdeckt.
 
-Ezra sah mich an. Seine Augen waren dunkelbraun, fast schwarz, und es gab darin etwas, das wie Berechnung aussah. »Wie hast du dich gefühlt, als du es gebrochen hast?«
+Doch der Mann zuckte nur mit den Schultern. »Wahrscheinlich genetische Modifikationen. Nichts Ungewöhnliches bei den Reichen. Nächster!«
 
-Ich überlegte. »Ich war panisch und wütend. Das Ding kam direkt auf mich zu, und ich wollte nur, dass es verschwindet. Ich wollte es wirklich loswerden.«
+Acen atmete vorsichtig aus. Der Scanner hatte die Naniten nicht als Technologie erkannt. Sie tarnten sich gut.
 
-»Intensiv«, sagte Ezra.
+Ein weiterer Aufseher führte die Gruppe zu einer Reihe von medizinischen Stationen. Acen beobachtete, wie die Gefangenen vor ihm Injektionen erhielten. Einige wimmerten, andere starrten nur leer vor sich hin.
 
-»Ja. Intensiv.«
+Als er an der Reihe war, spürte er den kalten Stahl der Injektionsnadel an seinem Hals. Zwei Injektionen. Die erste brannte wie Feuer in seinen Adern. Die zweite fühlte sich an wie flüssiges Eis. Ein netter Kontrast.
 
-Er nickte langsam. »Dein Wunsch, das Wesen zu vertreiben, war so intensiv, dass es nicht nur zurückgeschickt wurde. Es wurde … ausgelöscht. Oder nah dran. Der Blitz, den die Menschen gesehen haben – das war die Überladung. Das war deine Emotion, die sich in das Siegel ergossen hat und es überlastet hat.«
+»Chemische Kastration und Aggressionshemmer«, erklärte der Aufseher gleichgültig. »Standard-Prozedur.«
 
-Ich verstand das nicht ganz, aber ich verstand genug. »Das ist schlecht?«
+Acen ballte seine gefesselten Hände zu Fäusten. Die Naniten in seinem Körper reagierten sofort und versuchten, die Chemikalien zu neutralisieren. Er spürte, dass ihnen das voresrt nicht gelang. 
 
-»Das ist unerwartet«, sagte Ezra. »Aber nicht unbedingt schlecht.« Er legte den Kristall auf den Tisch. »Wir werden das später analysieren. Jetzt aber …« Er stand auf. »Ich denke, es ist Zeit, dass du mehr von dieser Welt siehst. Du kennst nur diesen Raum. Das ist nicht fair.«
+Sie wurden durch lange Korridore geführt, vorbei an verschlossenen Türen und bewaffneten Wachen. Schließlich erreichten sie einen großen Gemeinschaftsraum. Dreistöckige Kojen waren in die Wände eingelassen. In der Mitte stand ein langer Tisch mit festgeschraubten Bänken. Die Luft roch nach Schweiß und Desinfektionsmitteln.
 
-Ich sah auf mein Handy. Es zeigte »Kein Netz« und die Uhrzeit: 00:34 Uhr. Ich würde noch ein paar Stunden hier bleiben können.
+»Willkommen in eurem neuen Zuhause«, sagte der Aufseher. »Kojen werden zugewiesen. Essenszeiten sind festgelegt. Arbeitsschichten beginnen morgen.« Er lächelte kalt. »Findet euch damit ab. Keiner entkommt der ›Ende der Reise‹.«
 
-»Okay«, sagte ich.
+Die Fesseln lösten sich automatisch von Acens Handgelenken. Er rieb sich die wunden Stellen und blickte sich um. Die Szenerie kam ihm absurd vertraut vor – wie aus einem schlechten Holo­Film über Gefängnisse. Die Hierarchie war auf den ersten Blick erkennbar: Die stärkeren Gefangenen hatten die besseren Kojen, die schwächeren kauerten am Rand des Raumes.
 
-Ezra führte mich zur Tür. Sie war aus dunklem Holz, mit Messingbeschlägen, und als er sie öffnete, strömte Licht herein –  Tageslicht, warm und golden.
+Ein muskulöser Mann mit Tätowierungen, die seinen gesamten Oberkörper bedeckten, beobachtete die Neuankömmlinge mit raubtierhaften Augen. Der Anführer, offensichtlich.
 
-Der Flur war lang und hoch, mit Wänden aus dem gleichen dunklen Metall wie der Besprechungsraum, aber hier durchzogen von größeren Adern, die in einem sanfteren Rhythmus leuchteten. Die Decke war so weit oben, dass ich sie kaum sehen konnte. Fenster – echte Fenster – waren in regelmäßigen Abständen angebracht, und durch sie sickerte dieses goldene Licht. Ich ging näher heran und sah hinaus.
+Acen hielt den Kopf gesenkt, vermied direkten Augenkontakt. Er musste seine Fähigkeiten verbergen, durfte nicht auffallen. Noch nicht. Zunächst musste er die Umgebung verstehen, die Schwachstellen des Systems finden.
 
-Wir waren hoch oben.
+Ein dünner, nervös wirkender Mann mit zitternden Händen wurde ihm als Kojen-Nachbar zugewiesen. »Ich bin Ferris«, flüsterte er, während sie ihre wenigen Habseligkeiten verstauten. »Seit drei Monaten hier. Ein Tipp: Halt dich vom Großen fern. Brak mag keine neuen Gesichter.«
 
-Sehr hoch oben.
+Acen nickte dankbar. »Wie sind die Sicherheitssysteme?«
 
-Unter mir erstreckte sich eine Stadt, die ich kannte und nicht kannte. Die Straßen waren breit und ordentlich, angelegt in konzentrischen Ringen, wie Ezra es beschrieben hatte. Die Gebäude waren eine Mischung aus Steampunk und etwas Älterem – Architektur, die Zahnräder und Rohre mit Türmen und Kuppeln vermischte. Überall leuchteten Lampen, nicht elektrisch, sondern mit diesem blaugrünen Licht, das ich inzwischen kannte. Selbstfahrende Fahrzeuge bewegten sich auf den Straßen, aber nicht schnell – eher gemächlich, als würden sie sich Zeit nehmen. Und überall Menschen. Tausende von ihnen, in Kleidung, die zwischen mittelalterlich und viktorianisch pendelte, mit Accessoires aus Kupfer und Messing.
+Ferris warf ihm einen seltsamen Blick zu. »Vergiss es. Niemand entkommt. Die Sensoren erfassen jede Anomalie. Und selbst wenn du es aus diesem Raum schaffen würdest – wir sind auf einem Raumschiff. Mitten im Nichts.«
 
-»Komm«, sagte Ezra. Er war bereits weitergegangen, den Flur hinunter. »Es gibt noch viel zu sehen.«
+Ein Raumschiff. Acen versuchte, seine Überraschung zu verbergen. Er hatte angenommen, auf einer Schwebebarke und noch auf Kasset zu sein. Das erklärte das konstante Vibrieren unter seinen Füßen, das leise Summen der Maschinen. Flucht war also keine Option.
 
-Ich folgte ihm. Der Flur führte zu einer großen Halle – nicht groß wie ein Bahnhof, sondern groß wie ein Ballsaal, mit einer hohen Decke und Säulen aus Metall und Holz. In der Mitte der Halle war einw Treppe, spiralförmig, mit Stufen aus Stein und Geländern aus Kupfer. Ezra stieg hinauf. Ich folgte, meine Hand auf dem warmen Metall des Geländers.
+»Wer kauft uns?«, fragte er leise.
 
-Wir stiegen lange. Meine Beine begannen zu brennen, aber ich sagte nichts. Schließlich erreichten wir eine Tür – groß, aus dunklem Holz, mit einem Fenster aus Glas oben.
+Ferris zuckte mit den Schultern. »Kolonien. Minen. Forschungsstationen. Wer weiß? Niemand sagt uns etwas.« Er senkte die Stimme noch mehr. »Manche sagen, wir werden an die Iyarri verkauft.«
 
-Ezra öffnete sie.
+»Die Iyarri?«
 
-Der Raum dahinter war riesig. Das war das Erste, was ich dachte. Riesig und anders als alles, was ich je gesehen hatte. Die Wände waren aus Glas.  Nur die Ecken bestanden aus massiven Säulen. Irgendetwas musste das Gebäude ja tragen.
+»Eine außerirdische Spezies. Sie sollen Menschen … essen.«
 
-Ich ging näher heran.
+Acen bezweifelte, dass das stimmte. Gerüchte und Angst – perfekte Werkzeuge zur Kontrolle. Klassische Taktik.
 
-Die Stadt erstreckte sich unter mir wie eine Landkarte, die lebendig geworden war. Ich konnte die konzentrischen Ringe deutlich sehen – der innerste Ring war der Königspalast, ein Gebäude aus weißem Stein und Gold, mit Türmen, die in den Himmel ragten. Dann die Ringe der Adels- und Handelsviertel, mit größeren Gebäuden, breiten Straßen, Plätzen mit Brunnen. Dann die Handwerker- und Arbeiterviertel, dichter bebaut, mit kleineren Häusern und engeren Gassen. Und am äußersten Rand die Slums – weniger ordentlich, weniger gepflegt, aber immer noch Teil dieser unmöglichen Stadt.
+Der erste Tag verging in monotoner Langeweile. Acen beobachtete, prägte sich Gesichter ein, studierte die Routine der Aufseher. Ihre Wachsamkeit war lasch – sie verließen sich zu sehr auf die automatisierten Sicherheitssysteme.
 
-Und über allem der Himmel – nicht blau wie in Berlin, sondern ein sanftes Graugrün, durchzogen von Wolken, die sich bewegten, als hätten sie alle Zeit der Welt.
+Am Abend kam es zum ersten Zwischenfall. Einer der Neuankömmlinge, ein junger Mann mit nervösen Augen, nahm versehentlich den falschen Platz am Tisch ein. Brak, der tätowierte Anführer, stand langsam auf.
 
-Ich erkannte Teile davon. Ich war hier gewesen – nicht mit meinem Körper, sondern als Geist, in meinen Träumen, bevor ich wusste, dass die Träume real waren. Ich hatte diese Straßen durchquert, diese Plätze besucht, diese Menschen beobachtet. Ich hatte diese Stadt geliebt, ohne zu wissen, dass sie keine Erfindung meines Geistes war. 
+»Das ist mein Platz, Frischfleisch.«
 
-Der Raum selbst war spärlich möbliert – ein paar Stühle, ein Tisch, Regale an den Wänden mit Büchern und Objekten, die ich nicht erkannte. Doch was mich magisch anzog, war das Fenster.
+Der Junge erbleichte. »Es tut mir leid, ich wusste nicht—«
 
-»Schön, nicht wahr?«, sagte Vera. Sie war hinter uns hereingekommen, ebenso wie der Rest der Gruppe.
+Braks Faust traf sein Gesicht mit brutaler Wucht. Der Junge fiel vom Stuhl, Blut strömte aus seiner Nase. Die Aufseher an den Wänden reagierten nicht. Solange niemand starb, griffen sie nicht ein.
 
-»Ich hasse diesen Ort, aber ich muss zugeben, dass die Aussicht beeindruckend ist.«
+»Jetzt weißt du es«, knurrte Brak und setzte sich.
 
-Ich lehnte meine Stirn gegen das Glas. Es war kühl. Ich konnte die Vibrationen der Stadt spüren – nicht laut, aber präsent, wie das Schnurren einer riesigen Maschine. 
+Acen beobachtete die Szene und spürte, wie sich ein seltsames Gefühl der Unwirklichkeit in ihm ausbreitete. Die metallischen Wände mit den eingelassenen Kojen, der tätowierte Anführer, der zitternde Koje-Nachbar mit seinen warnenden Flüstereien – alles wirkte wie aus einem billigen Holofilm gestohlen: »Gefängnis im All, Staffel 3«.
 
-Ich lebte nun in zwei Welten. 
+Die Rollen waren so vorhersehbar verteilt, dass es fast lächerlich war. Der brutale Anführer mit seinen Tätowierungen und dem raubtierhaften Blick. Der ängstliche Informant, der nützliche Hinweise gab. Die gleichgültigen Wärter in ihren weißen Uniformen. Sogar die Kojen an den Wänden und die festgeschraubten Tische entsprachen exakt dem Klischee eines Gefängnisschiffs.
 
+Er hätte fast gelacht, wäre die Situation nicht so ernst gewesen. Das Blut des geschlagenen Jungen war echt. Der Schmerz in seinen eigenen Rippen von dem Tritt des Aufsehers war echt. Die Angst, die in der Luft hing, war echt.
 
-Ezra blieb stehen und wandte sich an die Gruppe.
+Acen rieb sich die Handgelenke und betrachtete die Abdrücke, die die Metallfesseln hinterlassen hatten. Wer auch immer dieses Schiff entworfen hatte, musste von den alten Holofilmen besessen gewesen sein. Oder vielleicht war es Absicht – eine bewusste psychologische Taktik. Die Umgebung sollte vertraut wirken, sollte Gefangene in vorbestimmte Rollen drängen. Der Gehorsame. Der Rebell. Der Verräter. Der Anführer.
 
-»Ich werde sie jetzt zu Frina bringen, wir treffen uns dann im Aufenthaltsraum wieder.«
+Welche Rolle würde er spielen?
 
-Die anderen nickten und ließen uns beide allein.
+In den folgenden Tagen etablierte Acen sein Profil: ein durchschnittlicher Jugendlicher, nicht zu schwach, um ein leichtes Ziel zu sein, aber nicht stark genug, um eine Bedrohung darzustellen. Bei den unvermeidlichen Kämpfen aktivierte er seine Naniten gerade genug, um nicht ernsthaft verletzt zu werden.
 
-Ezra führte mich durch weitere Flure, die aber alle Fenster hatten. Das war seltsam. Es gab nicht einein einzigen Gang ohne Fenster. 
+Nach einer Woche kam es zur Konfrontation mit Brak selbst. Der massive Mann blockierte Acens Weg zum Waschraum, ein grausames Lächeln auf seinem Gesicht.
 
-Schließlich blieb er vor einer Tür stehen, die sich von den anderen unterschied. Sie war schmaler, aus hellerem Holz, und auf ihr war ein Symbol eingebrannt – ein Kreis mit Linien, die nach innen liefen wie ein Labyrinth.
+»Du bist anders als die anderen Frischlinge«, sagte er. »Du beobachtest zu viel.«
 
-»Frina«, sagte Ezra und klopfte.
+Acen zuckte mit den Schultern. »Ich will nur überleben.«
 
-»Herein«, kam eine Stimme von innen.
+»Dann zeig mir, wie gut du überleben kannst«, sagte Brak und packte Acen am Kragen.
 
-Der Raum dahinter war eine Bibliothek und ein Labor zugleich. Die Wände waren vollständig mit Regalen bedeckt – nicht mit Büchern allein, sondern mit Objekten. Kristalle in verschiedenen Farben und Größen. Behälter mit Flüssigkeiten, die in unterschiedlichen Farben leuchteten. Pergamente, aufgerollt und mit Schnüren zusammengebunden. Instrumente aus Metall und Glas, deren Zweck ich nicht verstand. In der Mitte des Raumes stand ein großer Tisch aus dunklem Holz, bedeckt mit Papieren, Zeichnungen, noch mehr Objekten.
+Die anderen Gefangenen bildeten einen Kreis um sie, ihre Gesichter eine Mischung aus Angst und Vorfreude. Niemand würde eingreifen. So waren die Regeln.
 
-Und hinter dem Tisch saß eine Frau.
+Acen ließ sich in den Waschraum zerren. Der Boden war rutschig vom Kondenswasser, das von den verrosteten Rohren tropfte. Der Geruch von Schweiß und billigem Desinfektionsmittel hing in der Luft.
 
-Sie war älter als Mira, mit Haaren, die vollständig ergraut waren und in einem lockeren Zopf hingen. Ihre Haut war dunkel und von feinen Linien durchzogen, die an Karten erinnerten – als hätten sich Jahre des Wissens in sie eingegraben. Sie trug eine Robe aus dunklem Stoff, bestickt mit Symbolen, die ich nicht verstand. Ihre grauen, fast silbernen Augen musterten mich schon aufmerksam, als ich noch in der Tür stand. .
+Brak stieß ihn gegen die Wand. Der Aufprall presste die Luft aus Acens Lungen. Er spürte, wie seine Naniten auf die plötzliche Bedrohung reagierten, wie sie durch seine Blutbahn rasten, bereit, seine Muskeln zu stärken, seine Reflexe zu beschleunigen.
 
-»Das ist Luna Kessler«, sagte Ezra. »Ich möchte, dass du sie untersuchst.«
+»Langsam«, flüsterte er ihnen in Gedanken zu. Nicht zu viel. Nicht zu schnell.
 
-Frina stand auf. Sie war groß, größer als ich erwartet hatte, und ihre Bewegungen waren präzise, ökonomisch – jede Geste hatte einen Zweck. Sie kam um den Tisch herum und blieb vor mir stehen.
+Braks erste Faust traf seine Rippen. Acen ließ den Schmerz zu, dämpfte ihn nur leicht mit den Naniten. Er taumelte zur Seite, rollte sich ab, kam wieder auf die Beine.
 
-»Hallo, Luna«, sagte sie. Ihre Stimme war ruhig, aber nicht sanft. Sie war die Stimme von jemandem, der gewohnt war, Fragen zu stellen und Antworten zu bekommen. »Ich bin Frina. Ich bin die Archivarin und Magieforscherin dieser Gruppe. Du bist die aus der anderen Welt.«
+»Flinker kleiner Bastard«, knurrte Brak anerkennend.
 
-Ich nickte stumm.
+Acen sprang vor, landete zwei schnelle Schläge gegen Braks Brust. Gerade stark genug, um zu beeindrucken, nicht stark genug, um ernsthaft zu verletzen. Die Naniten pulsierten unter seiner Haut, wollten mehr geben, wollten den Kampf beenden. Acen hielt sie zurück.
 
-»Warum soll ich dich untersuchen?«
+Er könnte Brak mit einem gezielten Schlag ausschalten. Könnte seine verstärkten Reflexe nutzen, um jeden Angriff vorauszusehen. Könnte den Mann in Sekunden besiegen.
 
-»Ich habe ein Monster aus meiner Welt zurückgeschickt … oder getötet. Aber anscheinend anders, als erwartet«, sagte ich.
+Aber das war nicht der Plan.
 
-Frina deutete auf einen Stuhl neben dem Tisch. »Setz dich.«
+Brak lachte, als Acens nächster Schlag seine Schulter traf. »Nicht schlecht für einen Welpen.« Er holte aus, seine Faust groß wie ein Hammer.
 
-Ich setzte mich. Frina zog einen anderen Stuhl heran und saß mir direkt gegenüber. Ihre Augen waren so nah, dass ich die feinen Linien darin sehen konnte – nicht nur Falten, sondern etwas anderes, etwas, das wie Schrift aussah, aber zu klein war, um es zu lesen.
+Acen wich aus, aber nicht schnell genug. Die Faust streifte seine Schläfe. Er ließ sich fallen, rollte über den feuchten Boden.
 
-»Ich werde dich untersuchen«, sagte sie. »Das wird nicht wehtun.«
+Braks Blick fiel auf ein abgebrochenes Stück Metallrohr, das neben einem der Waschbecken lag. Er griff danach, wog es prüfend in der Hand.
 
-»Okay«, sagte ich zögernd. *Es wird nicht wehtun* – eine Versicherung, die mich kein bisschen beruhigte.
+Acen sah die Bewegung, bereitete sich vor. Die Naniten würden den Aufprall dämpfen, Knochenbrüche verhindern. Er würde verletzt aussehen, aber nicht ernsthaft beschädigt sein.
 
-Sie schloss die Augen. Ihre Hände hoben sich, und ich sah etwas, das ich schon bei Ezra gesehen hatte – silberne Fäden, die aus ihren Fingerspitzen kamen. Aber Frinas Fäden waren anders. Sie waren nicht einzeln, sondern in Bündeln, und sie leuchteten nicht nur silbern, sondern in verschiedenen Farben – Blau, Grün, Rot, Orange, alles durcheinander. Sie bewegten sich nicht auf mich zu wie bei Ezra, sondern um mich herum, wie Wasser, das um einen Stein fließt.
+Brak holte aus, das Rohr über seinem Kopf. In diesem Moment durchschnitt ein schriller Alarmton die Luft. Rote Lichter blitzten von der Decke. Die Überwachungssensoren hatten die potenzielle Tötungswaffe erkannt.
 
-Ich spürte sie nicht physisch. Aber ich spürte etwas – eine Präsenz, eine Aufmerksamkeit, die mich durchdrang wie Röntgenstrahlen. Es war nicht unangenehm, aber es war intensiv. Es war, als würde jemand meine Gedanken lesen, nur dass es nicht meine Gedanken waren, sondern etwas Tieferes – meine Emotionen, meine Absichten, meine Essenz.
+Brak fluchte und ließ das Rohr sofort fallen. Es klirrte auf den Boden. Der Alarm verstummte, die roten Lichter erloschen.
 
-Die Fäden bewegten sich schneller. Sie wickelten sich um mich, durchdrangen mich, und ich sah Bilder – nicht mit meinen Augen, sondern mit etwas anderem. Ich sah die U-Bahn-Station, aber nicht wie ich sie sah. Ich sah sie wie Frina sie sah – als Netzwerk von Energien, Linien, die sich kreuzten und verbanden. Und ich sah mich selbst in der Mitte, aber nicht als Körper. Ich sah mich als Licht – nicht blaugrün wie die Kristalle, sondern weiß, mit Flecken von Orange und Rot und Violett, pulsierend, wild, unkontrolliert.
+Für einen Moment herrschte Stille. Dann grinste Brak, seine Zähne weiß in seinem schweißnassen Gesicht. »Gut gekämpft, Kleiner.«
 
-Und ich sah das Monster – nicht als Wesen, sondern als Fehler, eine Stelle, wo die Realität falsch war, wo zwei Welten sich überlappten und nicht zusammenpassen wollten.
+Acen keuchte, richtete sich langsam auf. Blut tropfte aus seiner aufgeplatzten Lippe, ein dumpfer Schmerz pochte in seiner Rippe. Alles kontrolliert, alles kalkuliert.
 
-Und ich sah, wie mein Licht – meine Emotion, meine Absicht – sich in das Siegel ergoss und es nicht nur aktivierte, sondern überlud, bis es explodierte.
+»Nicht gut genug«, murmelte er und wischte sich Blut von der Nase.
 
-Dann war es vorbei.
+Brak lachte und legte eine schwere Hand auf Acens Schulter. »Du hast mehr Eier als die meisten hier. Das respektiere ich.« Er senkte die Stimme. »Von jetzt an stehst du unter meinem Schutz. Verstanden?«
 
-Frina öffnete die Augen. Die Fäden verschwanden. Sie lehnte sich zurück und sah mich an.
+Acen nickte. Erster Teil des Plans erfolgreich abgeschlossen. Näher an der Macht sein, Informationen sammeln, Vertrauen gewinnen.
 
-»Interessant«, sagte sie.
+Als sie den Waschraum verließen, spürte Acen einen Blick auf sich. Der ältere Aufseher mit dem grauen Haar und den Narben beobachtete ihn. Etwas in seinem Blick war anders als bei den anderen Wachen – eine Intensität, eine Neugier.
 
-»Was?«, fragte ich.
+Acen senkte den Kopf und folgte Brak zurück in den Hauptraum. Er würde vorsichtiger sein müssen. Der Aufseher hatte etwas gesehen, etwas bemerkt. Vielleicht die Art, wie er sich bewegte. Vielleicht die Kontrolle, die er trotz der Schläge gezeigt hatte.
 
-»Deine Magie«, sagte Frina. »Sie ist nicht rituell. Sie ist nicht kontrolliert. Sie ist emotional. Reine emotionale Kanalisierung.«
+In seiner Koje lag Acen wach, während die anderen schliefen. Die Naniten reparierten still die Schäden des Kampfes. Kleine Risse in den Blutgefäßen wurden versiegelt, geschwollenes Gewebe schwoll ab, Schmerzsignale wurden gedämpft.
 
-»Ich dachte, ich hätte keine Magie«, sagte ich.
+Morgen würde er anfangen, Braks Vertrauen zu nutzen. Er würde mehr über das Schiff erfahren, über die Routen, über die Sicherheitssysteme. Würde herausfinden, wer die »Ende der Reise« wirklich kontrollierte und wohin sie unterwegs waren.
 
-»Das ist das Problem«, sagte Frina. »Du hast keine trainierte Magie. Du hast keine Rituale, keine Formeln, keine Struktur. Aber du hast etwas anderes. Du hast emotionale Resonanz. Und sie ist enorm.«
+Und irgendwann würde er einen Weg finden, zu entkommen. Würde herausfinden, wer die Männer in Schwarz waren, die sein Zuhause angegriffen und seinen Großvater getötet hatten.
 
-Sie stand auf und ging zu einem der Regale. Sie zog ein Buch heraus – groß, mit einem Einband aus Leder, der so alt aussah, dass er zerfallen könnte – und schlug es auf. Sie blätterte durch die Seiten, schnell, als würde sie etwas suchen.
+Aber zuerst musste er überleben. Und dafür brauchte er Geduld.
 
-»Emotionale Magie ist selten«, sagte sie, während sie blätterte. »Die meisten Menschen in unserer Welt nutzen rituelle Magie – präzise, kalkuliert, zuverlässig. Aber es gibt Aufzeichnungen von Menschen, die emotionale Magie nutzen. Menschen, deren Gefühle sich direkt in Kraft umwandeln. Sie sind unzuverlässig. Sie sind gefährlich. Aber wenn sie trainiert sind, wenn sie lernen, ihre Emotionen zu kontrollieren, können sie Dinge tun, die rituelle Magier nicht können.«
+Sein Blick wanderte zur Decke, wo die fast unsichtbaren Sensorfelder die Dunkelheit durchzogen. Sie überwachten jeden Atemzug, jede Bewegung. Aber sie konnten nicht sehen, was in ihm vorging. Konnten nicht die Naniten in seinem Blut erkennen, die seine wahren Fähigkeiten verbargen.
 
-Sie fand die Seite, die sie suchte, und deutete darauf. Ich sah Zeichnungen – Menschen mit Auren um sich herum, Linien, die von ihnen ausgingen wie Blitze. Unter den Zeichnungen war Text, in einer Schrift, die ich nicht lesen konnte.
+Acen schloss die Augen und ließ die künstliche Schwerkraft des Schiffes ihn in den Schlaf ziehen, während die Maschinen der »Ende der Reise« sie durch die Leere des Alls trugen.
 
-»Das hier sind Aufzeichnungen aus dem dritten Jahrhundert«, sagte Frina. »Von einer Frau namens Kael – ja, wie unser Kael, aber das ist eine anderere. Diese Kael konnte zwischen den Welten reisen.  Sie konnte Bruchstellen heilen. Und alles, was sie tat, tat sie durch emotionale Magie.«
+Als Acen am nächsten Morgen die Kantine betrat, spürte er sofort den Blick des grauhaarigen Aufsehers. Der Mann stand an der Wand, scheinbar gleichgültig, aber seine Augen verharrten zu lange auf Acens Bewegungen. Die Narbe, die sich von seinem linken Auge bis zum Kinn zog, spannte sich, als er den Kopf leicht neigte.
 
-Ich starrte auf die Zeichnungen. Sie zeigten eine Frau mit langen Haaren und einer Aura, die so hell war, dass sie die ganze Seite zu überfluten schien.
+Acen nahm sein Tablett und stellte sich in die Reihe. Der synthetische Nahrungsbrei roch nach chemischen Zusätzen und billigen Aromen. Er senkte den Kopf, vermied jeden Augenkontakt mit dem Aufseher. Die Naniten in seinem Blut reagierten auf seine Anspannung, pulsierten leicht unter seiner Haut.
 
-»Das bin ich nicht«, sagte ich.
+*Ruhig*, befahl er ihnen in Gedanken. *Nicht auffallen.*
 
-»Nein«, sagte Frina. »Aber du könntest es sein. Deine emotionale Resonanz ist größer als die von Kael. Das habe ich gesehen, als ich dich untersucht habe. Deine Gefühle sind nicht nur stark – sie sind fundamental. Sie sind die Art von Gefühlen, die Realitäten verändern können.«
+Brak winkte ihn an seinen Tisch. Vier andere Gefangene machten sofort Platz für ihn. Acen setzte sich, den Rücken zur Wand, sodass er den Raum überblicken konnte. Der Aufseher hatte sich nicht bewegt, beobachtete ihn noch immer.
 
-Sie schloss das Buch und sah mich direkt an.
+»Unser Freund scheint dich zu mögen«, murmelte Brak und folgte Acens Blick.
 
-»Das erklärt auch, wie du die Grenze zwischen den Welten überwinden kannst«, sagte sie. »Rituelle Magie funktioniert nicht über Grenzen hinweg. Die Resonanzen sind zu unterschiedlich. Aber emotionale Magie ist universell. Gefühle sind überall gleich. Angst ist Angst, ob in dieser Welt oder in deiner. Liebe ist Liebe. Wut ist Wut. Deshalb kannst du reisen.  Deine emotionale Essenz ist nicht an eine Welt gebunden.«
+»Wer ist er?«
 
-Ich ließ es auf mich wirken, versuchte zu begreifen, doch mein Verstand sträubte sich, es wirklich anzunehmen. Ich hatte keine Magie. Ich war nichts Besonders. Ich war nur Luna – eine Studentin, die zu viel träumte.
+»Rakar. Oberaufseher. Ist kein Stammpersonal.« Brak senkte die Stimme. »Ist erst beim letzten Stopp an Bord gekommen und jeder kuscht vor ihm. Und ich meine: jeder. Sogar der Kapitän.«
 
-»Was bedeutet das?«, fragte ich.
+Acen nickte langsam und begann zu essen. Der Brei schmeckte nach nichts Bestimmtem – eine fade Masse, die den Hunger stillte, ohne Genuss zu bieten. Während er aß, ließ er seinen Blick durch den Raum schweifen, prägte sich die Positionen der Aufseher ein, die Kameras in den Ecken, die kaum sichtbaren Sensoren an der Decke.
 
-Frina ging zurück zu ihrem Tisch und setzte sich. Sie legte die Hände flach auf die Oberfläche und schloss die Augen. Für einen Moment sagte sie nichts. Dann öffnete sie die Augen wieder, und es gab etwas darin, das anders war. Etwas Fernes. Etwas, das nicht ganz in dieser Welt war.
+»Was gibt’s heute zu tun?«, fragte er Brak.
 
-»Ich sehe Dinge«, sagte sie. »Nicht immer klar. Nicht immer richtig. Aber ich sehe sie. Es ist eine Gabe, die mit meiner Magie kommt. Und wenn ich dich ansehe, Luna, sehe ich etwas, das ich noch nie zuvor gesehen habe.«
+»Reinigungsarbeiten im Maschinenraum.« Der tätowierte Mann grinste. »Ich werde dir bei der Arbeit zusehen.«
 
-Sie lehnte sich vor.
+Nach dem Essen wurden sie in Gruppen aufgeteilt. Acen fand sich mit Brak und sechs anderen in einem schmalen Korridor wieder, der zum Maschinenraum führte. Das Vibrieren des Schiffes war hier stärker, die Luft schmeckte nach Öl und heißem Metall.
 
-»Ich sehe Veränderung«, sagte sie. »Ich sehe Dinge, die noch nicht geschehen sind, aber die geschehen werden. Dinge, die völlig neu sein könnten. Dinge, die diese Welt und deine Welt verändern werden. Und ich sehe dich in der Mitte davon. Nicht als Werkzeug. Nicht als Opfer. Sondern als Katalysator.«
+Ein junger Aufseher führte sie durch eine Sicherheitsschleuse. Acen spürte, wie unsichtbare Scanner seinen Körper abtasteten. Wieder einmal waren die Naniten unentdeckt geblieben.
 
-»Was bedeutet das?«, fragte ich wieder.
+Der Maschinenraum war ein Labyrinth aus Rohren, Kabeln und pulsierenden Energieleitungen. Riesige Reaktoren brummten in ihren Halterungen, umgeben von Kühlsystemen und Kontrollpanels. Der Lärm war ohrenbetäubend, die Hitze drückend.
 
-»Das bedeutet«, sagte Frina, »dass du Dinge tun wirst, die niemand erwartet hat. Dinge, die die Regeln brechen. Dinge, die unmöglich scheinen – und trotzdem geschehen werden.«
+»Reinigt die Kühlrohre«, befahl der Aufseher und deutete auf einen Stapel Werkzeuge. »Und fasst nichts anderes an.«
 
-Sie lehnte sich zurück.
+Acen griff nach einem Reinigungsgerät und folgte Brak zu einem Bereich mit verschmutzten Röhren. Die Arbeit war monoton und anstrengend. Schweiß rann ihm über das Gesicht, während er Schicht um Schicht verkohlter Ablagerungen von den Metallrohren kratzte.
 
-»Aber das ist alles, das ich dir jetzt sagen kann«, sagte sie. »Die Zukunft ist nicht fest. Sie ist flüssig. Sie ändert sich mit jeder Entscheidung, die du triffst. Alles, das ich sehe, ist eine Möglichkeit. Nicht eine Gewissheit.«
+»Warum sind wir hier?«, fragte er Brak leise, als der Aufseher außer Hörweite war.
 
-Ich saß da und starrte sie an. Mein Herz schlug schneller. Das war nicht die Antwort, die ich erwartet hatte. Ich hatte erwartet, dass sie mir sagt, dass ich trainieren muss, dass ich meine Magie kontrollieren muss, dass ich eine Agentin werden muss und die Welt retten muss. Stattdessen sagte sie mir, dass ich etwas bin, das die Welt verändern könnte. Dass ich Dinge tun könnte, die niemand erwartet.
+»Um zu arbeiten, du Idiot«, schnaubte Brak.
 
-»Frina«, sagte Ezra von der Tür aus – ich hatte nicht bemerkt, dass er noch da war – »das ist genug.«
+»Nein, ich meine auf diesem Schiff. Wohin bringen sie uns?«
 
-»Ja«, sagte Frina. »Das ist genug.«
+Brak wischte sich den Schweiß von der Stirn. Seine Tätowierungen glänzten im gedämpften Licht. »Die Reiseroute ändert sich. Manchmal Bergbaukolonien im Nirgendwo. Manchmal Plantagen. Man munkelt, das endgültige Ziel könnte die Sonnenfresser sein.«
 
-Sie sah mich an, und ihre grauen Augen waren wieder normal, nicht mehr fern, nicht mehr prophetisch.
+*Ach du Scheiße, Paleus’ riesiger Kampfplanet? War es etwas Gutes, oder etwas Schlechtes, wenn sie dort endeten? *
 
+Acen nickte einfach und arbeitete weiter. Seine Augen wanderten über die Maschinen, studierten die Anordnung der Systeme, suchten nach Schwachstellen.
 
-»Du kannst gehen«, sagte sie. »Aber komm zurück. Ich möchte deine Magie trainieren. Ich möchte sehen, wie weit du gehen kannst.«
+»Vergiss es«, sagte Brak, der seinen Blick bemerkt hatte. »Selbst wenn du es bis zur Brücke schaffen würdest – wir sind im Hyperraum. Nirgendwo zum Fliehen.«
 
-Ich stand auf. Meine Beine waren wackelig. Ich ging zur Tür, wo Ezra wartete.
+Acen zuckte mit den Schultern. »Ich versuche nur zu verstehen, wo ich bin.«
 
-Sie verließen das Zimmer und gingen wieder durch endlose Gänge.
+»Du bist in der Hölle, Junge. Das ist alles, was du wissen musst.«
 
-»Frina sieht Dinge«, sagte Ezra. »Nicht immer sind sie hilfreich. Aber sie sind immer wahr, auf ihre Weise.«
+Als sie Stunden später zum Gemeinschaftsraum zurückkehrten, wartete eine Überraschung auf sie. Rakar, der Oberaufseher, stand neben ihrer Tür, die Hände hinter dem Rücken verschränkt.
 
----
+»Zelleninspektion«, verkündete er mit rauer Stimme. »Standardverfahren.«
 
+Acen spürte, wie sein Puls sich beschleunigte. Er hatte nichts zu verstecken – keine verbotenen Gegenstände, keine Waffen. Aber der intensive Blick des Mannes ließ ihn frösteln.
 
+Rakar durchsuchte methodisch die Kojen, tastete Matratzen ab, kontrollierte die wenigen persönlichen Gegenstände der Gefangenen. Als er zu Acens Koje kam, verharrte er länger als nötig.
 
-Der Gemeinschaftsraum war größer, als ich erwartet hatte, und unordentlicher, als alles andere, was ich bisher von diesem Ort gesehen hatte. Zwei Sofas aus dunkelbraunem Leder standen sich gegenüber, beide mit Kissen beladen, die offensichtlich nicht zusammengehörten. Ein langer Tisch aus Holz und Messing stand an der Wand, darauf Tassen, eine Kanne, ein Stapel Papiere, der kurz davor war, umzufallen, und eine Lampe, die in warmem Bernsteinlicht brannte. Die Fenster gingen auf die Stadt hinaus, und ich konnte die Türme und Dächer sehen, die ich in meinen früheren Träumen nur als Silhouetten gekannt hatte. Jetzt waren sie nah und konkret und voller Details, die ich noch nicht alle verarbeitet hatte.
+»Wie lange bist du schon hier, Junge?«, fragte er beiläufig.
 
-Malachai saß bereits auf einem der Sofas, die langen Beine vor sich ausgestreckt, und hatte eine Tasse in der Hand. Er sah aus, als hätte er dort schon immer gesessen. Als Ezra mich hereinführte, hob Malachai die Tasse in einer Art lässiger Begrüßung.
+»Acht Tage«, antwortete Acen, den Blick gesenkt.
 
-»Sie lebt«, sagte er.
+Rakar nickte langsam. »Und schon in Braks Gruppe. Beeindruckend.« Er trat näher, seine Stimme nun kaum mehr als ein Flüstern. »Oder vielleicht nicht so überraschend.«
 
-»Ich war nie tot«, sagte ich.
+Acen schwieg, sein Gesicht ausdruckslos. Die Narben des Aufsehers wirkten im gedämpften Licht wie tiefe Schatten auf seiner Haut.
 
-»Das wissen wir jetzt«, sagte er. »Setz dich. Frina hat dich wahrscheinlich gründlich ausgelaugt.«
+»Deine Verletzungen vom Kampf sind erstaunlich schnell verheilt«, bemerkte Rakar.
 
-Das stimmte. Frinas Untersuchung hatte sich angefühlt wie ein sehr langer, sehr höflicher Eingriff in etwas, das ich nicht benennen konnte, und ich war danach müder gewesen als nach dem Kampf auf dem Bahnsteig. Ich setzte mich auf das gegenüberliegende Sofa. Ezra ließ sich in den Sessel am Fenster fallen, ohne etwas zu sagen, und faltete die Hände über dem Bauch. Er sah aus wie jemand, der sich auf etwas freute.
+Acen zuckte mit den Schultern. »Gute Gene, schätze ich.«
 
-Vera kam aus dem Nebenraum mit einer zweiten Kanne und stellte sie auf den Tisch, ohne mich anzusehen. Sie trug keine Uniform heute, nur eine dunkle Hose und eine Bluse mit aufgerollten Ärmeln, und trotzdem wirkte sie so, als wäre sie jederzeit bereit, jemanden zu Boden zu bringen.
+»Ja, Gene.« Rakar lächelte dünn. »Oder vielleicht etwas anderes.« Er wandte sich ab und setzte seine Inspektion fort, doch Acen spürte, dass etwas verändert war. Der Aufseher hatte etwas gesehen oder vermutet.
 
-»Kael ist gleich da«, sagte sie. »Er wollte noch etwas holen.«
+In dieser Nacht lag Acen wach und starrte an die Decke seiner Koje. Die Naniten in seinem Blut arbeiteten auf Hochtouren und reparierten Mikroschäden von der harten Arbeit des Tages. Er musste vorsichtiger sein. Musste seine Heilung verlangsamen, seine Reflexe dämpfen. Der Oberaufseher beobachtete ihn – nicht nur mit Neugier, sondern mit Verdacht.
 
-»Was holen?«, fragte Malachai.
+Am nächsten Morgen wurde die Routine durch einen Zwischenfall unterbrochen. Einer der Gefangenen, ein hagerer Mann mit zitternden Händen, brach beim Frühstück zusammen. Schaum trat aus seinem Mund, sein Körper verkrampfte sich in heftigen Zuckungen.
 
-»Er hat es nicht gesagt.«
+Die Aufseher reagierten schnell und schleppten den Mann weg. Geflüsterte Gerüchte verbreiteten sich wie ein Lauffeuer durch den Raum.
 
-Malachai nickte, als wäre das eine vollständige Antwort. Dann sah er mich an. »Hast du Hunger? Wir haben Brot. Und irgendetwas, das Vera als Aufschnitt bezeichnet, obwohl ich nicht sicher bin, was es ist.«
+»Gift«, murmelte Ferris neben ihm. »Jemand hat ihn vergiftet.«
 
-»Es ist Aufschnitt«, sagte Vera.
+»Warum?«, fragte Acen.
 
-»Es sieht aus wie Aufschnitt«, sagte Malachai. »Das ist nicht dasselbe.«
+»Er hat gestohlen. Medikamente aus der Krankenstation.« Ferris schüttelte den Kopf. »Niemand stiehlt ungestraft.«
 
-Vera sah ihn kurz an, dann wandte sie sich wieder ab. Ich hatte das Gefühl, dass das eine alte Unterhaltung war.
+Acen beobachtete, wie die Aufseher den Raum wieder unter Kontrolle brachten. Rakar stand in einer Ecke, sein Blick fest auf Acen gerichtet. Eine stumme Herausforderung lag in seinen Augen.
 
-»Ich bin nicht hungrig«, sagte ich. »Danke.«
+Drei Tage später wurde Acen zu einer neuen Aufgabe eingeteilt: Wartung der Lebenserhaltungssysteme. Die Arbeit war komplizierter und erforderte technisches Verständnis. Die meisten Gefangenen – auch Brak – hatten nicht die nötige Qualifikation, doch für Acen war es eine willkommene Herausforderung. 
 
-Kael kam durch die Tür. Er trug tatsächlich etwas, nämlich ein schmales Buch mit einem abgegriffenen Einband, das er auf den Tisch legte, ohne es zu erklären. Dann setzte er sich an das andere Ende des Sofas, auf dem ich saß, mit einem Abstand, der höflich und gleichzeitig deutlich war. Er nickte mir zu. Ich nickte zurück. Das schien ihm zu reichen.
+Er arbeitete an einem Kontrollpanel, justierte Sauerstoff- und Stickstoffwerte, als er spürte, dass jemand hinter ihm stand. Der metallische Geruch von Reinigungsmitteln und der schwache Duft von synthetischem Tabak verrieten ihm, wer es war, bevor er sich umdrehte.
 
-»Also«, sagte Malachai und stellte seine Tasse ab. »Ezra hat mir erzählt, dass Frina fertig ist. Was hat sie gesagt?«
+»Oberaufseher Rakar.«
 
-»Emotionale Magie«, sagte ich. »Anscheinend bin ich darin sehr gut. Oder sehr viel davon vorhanden. Ich bin mir nicht sicher, wie ich das formulieren soll.«
+Der vernarbte Mann nickte anerkennend. »Du hast ein gutes Gehör.«
 
-»Frina sagt selten etwas, das nicht stimmt«, sagte Malachai. »Also würde ich es so formulieren: Du hast eine Menge davon, und du weißt noch nicht, was du damit anfängst.«
+»Überlebensinstinkt.«
 
-»Das ist eine freundliche Zusammenfassung.«
+»Und gute technische Fähigkeiten, wie ich sehe.« Rakar deutete auf das Panel. »Die meisten Gefangenen brauchen Stunden für diese Kalibrierung.«
 
-»Ich bin ein freundlicher Mensch.«
+Acen zuckte mit den Schultern. »Ich hatte einen guten Lehrer.«
 
-Vera setzte sich auf die Armlehne des zweiten Sofas und verschränkte die Arme. »Was genau ist heute Morgen auf dem Bahnsteig passiert? Ezra hat mir die Kurzversion gegeben.«
+»Deinen Großvater?«
 
-»Das Monster ist verschwunden«, sagte ich. »Ich habe das Siegel zerbrochen, und es ist verschwunden. Mit einem Blitz.«
+Acens Herz setzte einen Schlag aus. Woher wusste der Mann von seinem Großvater? In den Aufnahmeunterlagen stand nichts über seine Familie. Aber andererseits hatte man ihn ja auch gezielt entführt. Seine Entführer hatten gewusst, wer er war. Acen blieb gelassen, zumindest äußerlich. 
 
-»Mit einem Blitz«, wiederholte Vera. Ihr Ton war nicht ungläubig, aber auch nicht besonders beeindruckt. »Das Siegel war dafür nicht ausgelegt.«
+»Hab ich richitg geraten?«, fragte Rakar mit einem dünnen Lächeln. »Interessant.«
 
-»Das weiß ich jetzt.«
 
-»Ezra hat dir erklärt, was passiert ist?«
+# Die Sonnenfresser
 
-»Er hat gesagt, dass mein Wunsch, das Wesen zu vertreiben, zu intensiv war. Dass das Siegel eigentlich nur eine geordnete Rückführung auslösen sollte.«
+Das dumpfe Vibrieren der Andocksysteme durchlief den gesamten Schiffsrumpf. Acen spürte es durch die dünne Matratze seiner Koje bis in die Knochen. Die »Ende der Reise« hatte ihr Ziel erreicht.
 
-»Und stattdessen hast du es explodieren lassen.«
+In der Dunkelheit des Schlafraums öffnete er die Augen. Sein Puls beschleunigte sich, während er das Geräusch der hydraulischen Verankerungen hörte – metallisches Kreischen, gefolgt von einem dumpfen Schlag, der das ganze Schiff erzittern ließ. Ein letztes Ruckeln, dann Stille.
 
-»Anscheinend.«
+»Aufstehen, Biofracht!« Die Stimme des Aufsehers hallte durch den Raum, begleitet vom Aufflackern greller Deckenlichter. »Ankunft in fünf Minuten!«
 
-Vera sah mich eine Sekunde lang an. Dann sah sie zu Ezra. »Und das ist gut?«
+Um ihn herum kamen die anderen Gefangenen träge in Bewegung. Einige murmelten verschlafen, andere starrten mit leeren Blicken vor sich hin. Die chemischen Aggressionshemmer hatten die meisten in willenlose Hüllen verwandelt.
 
-»Das ist interessant«, sagte Ezra, ohne seinen Ton zu verändern.
+Acen setzte sich auf und rieb sich die Augen. Seine Naniten arbeiteten still gegen die Chemikalien in seinem Blut, hielten seinen Geist klar. Er atmete tief durch, spürte das vertraute Kribbeln, als die mikroskopischen Maschinen durch seine Adern pulsierten.
 
-Malachai hob die Hand, bevor Vera etwas erwidern konnte. »Gut oder nicht gut können wir später diskutieren. Ich würde gerne wissen, wie es ihr dabei gegangen ist. Nicht dem Monster. Ihr.«
+Ferris, sein hagerer Kojennachbar, zitterte stärker als sonst. »Wir sind da«, flüsterte er, seine Stimme brüchig vor Angst. »Bei der Sonnenfresser.«
 
-Das war eine Frage, auf die ich keine fertige Antwort hatte. Ich dachte kurz nach. »Ich hatte Angst«, sagte ich. »Und dann war die Angst weg, und ich war sehr müde. Und dann war ich froh, dass es vorbei war.«
+Acen nickte knapp. Er hatte die Gerüchte gehört, die in den letzten Tagen durch das Schiff geflüstert wurden. Die Sonnenfresser – Paleus Aristas planetengroße Raumstation, das Symbol seiner absoluten Macht über die Galaxis. Manche sagten, sie könne ganze Sonnensysteme verschlingen. Andere behaupteten, in ihrem Inneren würden grausame Experimente an Gefangenen durchgeführt.
 
-»Keine Nachwirkungen? Kopfschmerzen, Schwindel, das Gefühl, dass etwas fehlt?«
+»Reihe bilden!« Der Aufseher schlug mit seinem Elektrostab gegen die Metallwand. »Bewegung!«
 
-»Nein.«
+Die Gefangenen stolperten aus ihren Kojen, formierten sich zu einer unordentlichen Reihe. Acen stellte sich zwischen Ferris und einen grünhäutigen Helianer, dessen dreifingrige Hände nicht aufhörten zu zittern.
 
-Malachai nickte langsam. »Das ist gut. Emotionale Magie kann zehren, wenn man sie nicht kennt. Dass du danach noch aufrecht stehen konntest, sagt etwas.«
+Brak, der tätowierte Anführer, baute sich vor ihnen auf. »Hört zu«, grollte er leise. »Egal was passiert, bleibt zusammen. Einzeln überlebt ihr nicht.«
 
-»Frina hat dasselbe gesagt.«
+Acen fing Braks Blick auf. Der große Mann nickte ihm kaum merklich zu. In den zwei Wochen an Bord hatte Acen sein Vertrauen gewonnen – nicht durch Stärke, sondern durch Intelligenz und Nützlichkeit.
 
-»Frina und ich sind selten einer Meinung«, sagte Malachai. »Aber in diesem Punkt offenbar schon.«
+Die Aufseher führten sie durch enge Korridore zum Hauptdock. Acen prägte sich jede Abzweigung ein, jede Tür, jedes Detail. Eine Angewohnheit, die sein Großvater ihm eingebläut hatte. »Wissen ist Überleben«, hatte der alte Mann immer gesagt.
 
-Keal hatte das Buch aufgeschlagen und blätterte darin, ohne wirklich zu lesen. Ich sah ihn kurz an. Er sah nicht auf.
+Bei dem Gedanken an seinen Großvater zog sich Acens Magen zusammen. Das Bild des alten Mannes, blutend auf dem Boden ihres Zuhauses, drängte sich in seinen Geist. Er schob es beiseite. Nicht jetzt. Er musste fokussiert bleiben.
 
-»Du bist Kael«, sagte ich.
+Sie erreichten eine massive Luftschleuse. Die Aufseher verteilten Atemmasken. »Atmosphärenanpassung«, erklärte einer knapp. »Die Station hat eine andere Luftzusammensetzung.«
 
-Er hob den Blick. »Kael«, sagte er. »Mit einem E.«
+Acen setzte die Maske auf. Der synthetische Geruch des gefilterten Sauerstoffs füllte seine Nasengänge. Die Naniten in seinem Blut passten sich sofort an, bereiteten seine Lungen auf die veränderte Atmosphäre vor.
 
-»Entschuldigung. Kael.«
+Mit einem Zischen öffnete sich die äußere Schleusentür. Acen blinzelte gegen das plötzliche Licht. Was er sah, verschlug ihm den Atem.
 
-Er nickte und sah wieder auf das Buch. Vera beobachtete den Austausch mit einem Ausdruck, den ich nicht ganz einordnen konnte.
+Vor ihnen erstreckte sich ein gewaltiger Hangar, so groß, dass die »Ende der Reise« – selbst ein beachtliches Schiff – darin winzig wirkte. Die Decke wölbte sich hunderte Meter über ihnen, durchzogen von schwebenden Transportplattformen und Roboterkränen. Dutzende andere Schiffe standen in Reihen, wurden be- und entladen. Das Dröhnen von Maschinen, das Zischen von Hydrauliksystemen und das metallische Klingen von Werkzeugen vermischten sich zu einer industriellen Symphonie.
 
-»Er ist nicht unhöflich«, sagte Malachai zu mir, leise genug, dass es fast vertraulich wirkte. »Er braucht nur etwas länger.«
+»Vorwärts«, bellte ein Aufseher und stieß Acen mit seinem Elektrostab in den Rücken, glücklicherweise ohne ihn auszulösen.
 
-»Ich höre dich«, sagte Kael, ohne aufzusehen.
+Sie betraten den Hangar. Die Luft war kühler als auf dem Schiff, mit einem metallischen Unterton. Acen aktivierte seine sensorischen Naniten, schärfte seine Wahrnehmung. Die winzigen Maschinen in seinem Körper verstärkten seine Sinne, ließen ihn jedes Detail wahrnehmen und speichern.
 
-»Das weiß ich«, sagte Malachai.
+Eine Gruppe von Wachen in schwarz-silbernen Uniformen erwartete sie. Ihre Gesichter waren hart, ausdruckslos. Sie trugen kompakte Energiewaffen an ihren Gürteln und leichte Rüstungsverstärkungen an Brust und Armen.
 
-Ezra lachte leise. Es war ein kurzes, warmes Geräusch, das nicht zu dem passte, was ich von ihm erwartet hatte, und ich sah ihn an. Er hatte den Kopf leicht zur Seite geneigt und sah auf seine Gruppe mit einem Ausdruck, der mich an jemanden erinnerte, der eine Pflanze beobachtet, die genau so wächst, wie er es erwartet hatte. Zufrieden. Ruhig. Als wäre das hier ein ganz normaler Morgen.
+»Übernahme der Lieferung«, sagte der vorderste Wachmann zu Korvan, dem Oberaufseher der »Ende der Reise«.
 
-Vielleicht war es das für ihn.
+Korvan nickte und übergab ein Datenpad. »Dreiunddreißig Einheiten. Alle katalogisiert und gesundheitlich geprüft.«
 
-Vera schenkte sich eine Tasse ein und setzte sich dann doch richtig auf das Sofa, die Beine nebeneinander, die Haltung gerade. »Frina hat gesagt, dass von dir Dinge zu erwarten sind, die neu sein könnten«, sagte sie. »Was bedeutet das konkret?«
+Der Wachmann überflog die Daten. Sein Blick blieb kurz an Acen hängen, wanderte dann weiter. »Bestätigt. Überweisung erfolgt nach Protokoll.«
 
-»Das hat sie mir nicht erklärt«, sagte ich.
+Die Gefangenen wurden an die Stationswachen übergeben. Acen bemerkte, wie Korvan ihm einen letzten, langen Blick zuwarf, bevor er sich abwandte und mit den anderen Aufsehern zum Schiff zurückkehrte.
 
-»Frina erklärt selten mehr, als sie für notwendig hält.«
+Die neuen Wachen waren effizienter, kälter. Sie trieben die Gruppe vorwärts, durch eine Reihe von Sicherheitsschleusen und Kontrollpunkten. Acen versuchte, sich zu orientieren, aber die Sonnenfresser war ein Labyrinth. Jeder Korridor sah aus wie der vorherige – metallische Wände, gedämpftes Licht, gelegentliche Türen mit unverständlichen Symbolen.
 
-»Das habe ich gemerkt.«
+Nach einer gefühlten Ewigkeit erreichten sie einen großen, kreisförmigen Raum. Mehrere Gänge führten von hier weg wie die Speichen eines Rades. In der Mitte stand ein zylindrischer Behälter, der in regelmäßigen Abständen pulsierte. Schwaches blaues Licht sickerte durch Risse in seiner Oberfläche.
 
-Vera sah mich an, und ich hatte das Gefühl, dass sie gerade entschied, wie viel Aufwand es wert war, weiterzufragen. »Du hast keine Ausbildung. Du weißt nicht, was du tust. Du bist aus einer anderen Welt und schläfst dich hierher.« Sie machte eine kurze Pause. »Und trotzdem bist du das Einzige, das zwischen den Welten reisen kann.«
+»Verteilungszentrum«, erklärte eine neue Stimme.
 
-»Ja«, sagte ich.
+Ein hochgewachsener Mann in einer eleganten, dunkelgrauen Uniform trat aus einem der Gänge. Sein Haar war silbergrau, perfekt zurückgekämmt. Er bewegte sich mit der Präzision eines Militärs, aber seine Augen hatten die wachsame Ruhe eines erfahrenen Dieners.
 
-»Das ist unbefriedigend.«
+»Mein Name ist Rakar Vellum«, sagte er mit kultivierter Stimme. »Ich bin der Hauptkammerdiener dieser Station. Ab jetzt unterstehen Sie meiner Autorität.«
 
-»Für mich auch.«
+Acen starrte den Mann an, der vor ihm stand. Dieselbe Narbe, die sich vom linken Auge bis zum Kinn zog. Dieselben wachsamen Augen. Rakar. Der Oberaufseher von der »Ende der Reise«. Nur dass er jetzt eine elegante Uniform trug und sich als Hauptkammerdiener vorstellte.
 
-Vera trank einen Schluck. Dann, sehr kurz, zog sich ein Winkel ihres Mundes nach oben. Es war kein Lächeln, aber es war auch kein Nicht-Lächeln mehr.
+»Sie«, sagte Acen, bevor er sich zurückhalten konnte.
 
-Malachai lehnte sich zurück und streckte die Arme aus. »Oswin fehlt noch«, sagte er zu Ezra. »Soll ich ihn holen?«
+Rakar hob eine Augenbraue und musterte Acen mit einem amüsierten Blick. »Ja, ich. Überrascht, mich wiederzusehen?«
 
-»Er kommt, wenn er fertig ist«, sagte Ezra.
+Die anderen Gefangenen starrten verwirrt zwischen Acen und Rakar hin und her. Brak legte schützend eine Hand auf Acens Schulter.
 
-»Er ist immer noch nie fertig.«
+»Eine kleine Inspektion«, erklärte er gelassen. »Ich wollte sehen, was für … Talente uns geliefert wird.«
 
-»Ich weiß.«
+Acen spürte, wie die Naniten in seinem Blut auf seine wachsende Anspannung reagierten. Seine Sinne schärften sich. Rakar war kein einfacher Aufseher gewesen. Er hatte sich als solcher ausgegeben, um die Gefangenen zu beobachten. Zu bewerten. Auszuwählen.
 
-Ich sah mich im Raum um. Die Lampe warf Schatten an die Wand, die sich mit dem Licht von draußen mischten. Auf dem Tisch stand neben der Kanne ein kleines Gerät aus Messing, das ich nicht identifizieren konnte, und ein Stapel Karten, die wie Stadtpläne aussahen. Die Wände hatten keine Bilder, aber an einem Haken neben der Tür hingen mehrere Mäntel übereinander, und darunter stand ein Paar Stiefel, die nicht zu den Mänteln passten. Es war ein Raum, in dem Menschen lebten und arbeiteten und manchmal vergaßen, Dinge wegzuräumen.
+»Sie sind kein Sklavenaufseher«, sagte Acen leise. »Sie sind ein Vasall von Paleus.«
 
-Ich dachte an etwas, das mich schon eine Weile beschäftigte.
+Rakar neigte anerkennend den Kopf. »Scharfsinnig. Ja, ich diene dem Herrscher direkt. Ich überwache die Auswahl neuer Diener für die Sonnenfresser.« Sein Blick wanderte über die Gruppe. »Nicht jeder eignet sich für den Dienst hier.«
 
-»Kann ich etwas fragen?«
+Acen versuchte, seine Gedanken zu ordnen. Warum hatte Rakar sich die Mühe gemacht, persönlich auf dem Transportschiff zu reisen? Warum hatte er ihn so genau beobachtet? War es nur Zufall, oder wusste er etwas über Acens wahre Identität?
 
-»Du fragst sowieso«, sagte Malachai. »Also ja.«
+Rakar betrachtete Acen mit einem durchdringenden Blick, als könnte er seine Gedanken lesen. Seine Mundwinkel verzogen sich zu einem wissenden Lächeln.
 
-»Ihr sprecht alle Deutsch«, sagte ich. »Ich meine — Ezra klingt nicht wie jemand aus Berlin. Vera auch nicht. Und Frina schon gar nicht. Aber ich verstehe euch alle problemlos, und ihr versteht mich. Wie funktioniert das?«
 
-Malachai sah mich an, als hätte ich etwas gesagt, das er nicht erwartet hatte, aber nicht auf eine schlechte Art. »Das ist eine gute Frage«, sagte er. »Und die Antwort ist: Wir sprechen nicht Deutsch.«
+# Aufstieg in der Küche 
 
-Ich wartete.
+Geweckt wurden sie immer um Punkt fünf.  Alle Deckenleuchten gingen gleichzeitig an. 
 
-»Wir sprechen gar nicht dieselbe Sprache«, sagte er. »Nicht wirklich. Ich komme aus dem Westbezirk, Kael aus dem Norden, Vera aus einem Gebiet, das du dir auf keiner Karte finden wirst, und Ezra—« Er sah kurz zu Ezra.
+Beim Betreten der Küche war jedes Mal ein anderer Geruch dominant. Mal das bittere Parfüm gebräunter Zwiebeln, mal die ölige Süße von reduzierter Brühe, mal das animalische Aroma des Bioreaktors, in dem Proteine gezüchtet wurden. Und darunter immer der Hauch von Desinfektion, kaltes Ozon, das sich wie ein Ölfilm über alles legte.
 
-»Das ist eine längere Geschichte«, sagte Ezra.
+Heute stand ein Mann am Abfallzerkleinerer, den Acen noch nie gesehen hatte. Groß, dicke Finger, Kopf rasiert. Die Adern auf den Unterarmen traten hervor, während er Gemüsereste in den Trichter schob. Ein Blick, dann ein kurzes, abwertendes Grinsen. »Schau nicht so, Frischling«, sagte der Mann. »Wer zu viel schaut, hat bald keine Augen mehr.« Er führte das Messer absichtlich knapp an Acens Gesicht vorbei, als er eine Schale für den Biomüll zertrümmerte.
 
-»Ezra ist kompliziert«, sagte Malachai. »Der Punkt ist: Wir sprechen alle verschiedene Sprachen. Aber du verstehst uns, weil die Stadt dafür gesorgt hat, dass du es tust.«
+Acen erwiderte nichts, wich einen halben Schritt zurück. Er merkte, dass auch Ferris schon an seinem Platz stand und still wie ein Schatten Kartoffelschalen abkratze. Ferris hatte sich nie beschwert, tat einfach, was ihm gesagt wurde. Es war, als wollte er unsichtbar werden, eins mit dem weißen Licht und den stillen Bewegungen der anderen.
 
-»Die Stadt«, sagte ich.
+Küchenchef Reimann tauchte auf, immer dann, wenn man am wenigsten mit ihm rechnete. Er schwebte nicht durch den Raum, er zerschnitt ihn wie ein Messer. »Zu langsam, ihr zwei«, knurrte er und wischte mit dem Daumen eine unsichtbare Linie über die Arbeitsfläche. »Jede Stunde zählt hier. Ihr arbeitet, als wärt ihr noch im Orbit.«
 
-Malachai stand auf und ging zum Fenster. Er deutete nach draußen, und ich folgte seinem Blick. Auf den Dächern der umliegenden Gebäude standen Türme, schmal und hoch, aus demselben dunklen Metall wie die Wände in den anderen Räumen, mit einem Aufsatz oben, der sich langsam drehte. Sie standen in regelmäßigen Abständen, so weit ich sehen konnte, auf jedem zweiten oder dritten Dach.
+Der nächste Tag verlief wie eine Serie von Tests, alle ausgerichtet auf Effizienz, Genauigkeit, Geschwindigkeit. Wer einen Fehler machte, bekam sofort einen Kommentar von Reimann. Es gab keine Verwarnungen, keine zweite Chancen. Ferris verlor die Kontrolle über einen Stapel Teller, sie zersprangen auf dem Boden. Reimann sah ihn nur an, dann: »Du machst das nächste Mal die doppelte Schicht. Wer Fehler produziert, bezahlt dafür.« Keine Wut. Nur diese kühle, absolute Logik.
 
-»Konvergenzsäulen«, sagte Malachai. »Sie stehen überall in der Stadt. Auf den Dächern, an den Kreuzungen, manchmal in den Türmen der älteren Gebäude. Sie erzeugen ein Feld, das Sprache übersetzt — nicht wörtlich, sondern im Verständnis. Du hörst meine Sprache, und ich höre deine Sprache. Aber die Resonanzsäulen sorgen dafür, dass wir uns trotzdem verstehen.«
-
-Ich sah auf die Türme. Sie drehten sich langsam und gleichmäßig, und ich hatte sie vorher gesehen, ohne zu wissen, was sie waren. Ich hatte sie für Wettergeräte gehalten, oder für etwas Dekoratives.
-
-»Wie Handymasten«, sagte ich.
-
-Malachai sah mich an. »Ich weiß nicht, was das ist.«
-
-»Etwas aus meiner Welt«, sagte ich. »Türme, die Signale übertragen. Damit Menschen miteinander kommunizieren können, auch wenn sie weit voneinander entfernt sind.«
-
-»Dann ja«, sagte Malachai. »Ungefähr so. Nur dass es hier keine Elektrizität ist, die das trägt.«
-
-»Magie«, sagte ich.
-
-»Resonanzmagie«, sagte er. »Eine der wenigen Anwendungen, über die niemand streitet. Sprache zu überbrücken ist politisch unproblematisch. Alle wollen verstanden werden.«
-
-Vera hatte zugehört, ohne etwas zu sagen. Jetzt stellte sie ihre Tasse ab. »Du hast also die ganze Zeit gedacht, wir sprechen deine Sprache.«
-
-»Ja«, sagte ich.
-
-»Das tun wir nicht.«
-
-»Das weiß ich jetzt.«
-
-Sie sah mich an, und diesmal war der Ausdruck in ihrem Gesicht etwas, das ich vorsichtig als Anerkennung einordnete. Nicht warm, aber ehrlich. »Gut«, sagte sie. »Es ist besser, wenn du weißt, wie die Dinge wirklich funktionieren.«
-
-Keal hatte das Buch zugeklappt und hielt es jetzt auf den Knien. Er sah aus dem Fenster, auf die Türme, die sich drehten
-
-
-# Kapitel 3 - You are a wizard, Luna
-
-Meine Augen brannten, als hätte jemand Sand hineingestreut.
-
-Ich blinzelte, versuchte die verschwommenen Buchstaben auf dem Seminarblatt zu entziffern, doch die Wörter verschmolzen zu grauen Flecken. Die Stimme des Dozenten drang wie durch Watte zu mir – ein monotones Summen ohne Bedeutung. Ich zog die Jacke enger um mich, obwohl der Seminarraum überheizt war.
-
-Vier Wochen waren vergangen seit dem Vorfall in der U-Bahn-Station. Vier Wochen, in denen ich am eigenen Körper gespürt hatte, was es hieß, zwischen zwei Welten zu pendeln: Mein Körper zahlte dafür, Nacht für Nacht, und er zahlte mehr, als ich erwartet hatte.
-
-»Frau Kessler?« Die Stimme des Dozenten durchbrach meinen Gedankenstrom.
-
-Ich riss mich zusammen. »Ja?«
-
-»Könnten Sie vielleicht die These des Textes zusammenfassen?«
-
-Ich starrte auf das Blatt vor mir. Die Überschrift lautete »Poststrukturalistische Ansätze in der Literaturtheorie«. Ich hatte die letzten zwanzig Minuten damit verbracht, nicht an Literaturtheorie zu denken, sondern an die Panoramaaussicht über die Königsstadt. An die goldenen Türme, die sich im Morgenlicht spiegelten. An die Konvergenzsäulen, die sich langsam drehten, stumme Wächter über einer Welt, die niemand sonst kannte.
-
-»Die These …« Ich schluckte. »Die These besagt, dass Bedeutung nicht festgelegt ist, sondern … fließend.«
-
-Der Dozent wartete. Ich wusste, dass er mehr erwartete, dass ich mehr sagen musste, aber mein Gehirn weigerte sich, die richtigen Wörter zu finden.
-
-»Und was bedeutet das für die Textanalyse?«, fragte er.
-
-»Es bedeutet …« Ich suchte verzweifelt nach einer Antwort. »Es bedeutet, dass jeder Leser seinen eigenen Zugang hat.«
-
-Der Dozent nickte, nicht ganz zufrieden, aber bereit, weiterzumachen. Ich atmete aus und senkte den Blick. Meine Hände zitterten leicht. Das letzte Mal, dass ich etwas gegessen hatte, war gestern Mittag gewesen. Ein Apfel, den ich halb aufgegessen hatte, bevor ich eingeschlafen war.
-
-Eingeschlafen. Das war das Problem. Ich schlief ein, sobald ich konnte – in der U-Bahn, in der Bibliothek, einmal sogar während einer Vorlesung. Doch beim Aufwachen fühlte ich mich nicht erholt, sondern ausgelaugt, als hätte der Schlaf nichts gegeben, sondern nur genommen. Der Grund war simpel: Der Wechsel in die Traumwelt fraß meinen Nachtschlaf auf. Was meinen Körper hätte erholen sollen, war stattdessen Arbeit — Ausbildung, Magie, eine andere Welt. Und so schlief ich tagsüber ein, wo immer ich konnte, weil der Körper irgendwann einfach forderte, was ihm zustand.
-
-Die Seminarstunde endete schließlich. Ich packte meine Sachen zusammen, langsam und mechanisch. Draußen wartete Nele, ihr schwarzer Pixie-Cut war zerzaust vom Wind.
-
-»Du siehst schrecklich aus«, sagte sie, ohne Umschweife.
-
-»Danke.«
-
-»Im Ernst, Luna. Deine Augen sind …« Sie machte eine Geste. »Tot.«
-
-»Es ist nur Müdigkeit.«
-
-»Es ist nicht nur Müdigkeit.« Nele ging neben mir her, ihre Stiefel klapperten auf dem Pflaster. »Du bist seit Wochen nicht mehr du selbst. Du antwortest nicht auf Nachrichten, du sagst Verabredungen ab, und wenn du da bist, bist du nicht wirklich da.«
-
-Ich wusste, dass sie recht hatte. In den letzten Wochen hatte ich mehr Zeit in der Traumwelt verbracht als in Berlin. Frina hatte meine Ausbildung begonnen, und je mehr ich lernte, desto mehr wollte ich lernen. Die emotionale Magie wirkte wie eine Droge – jedes Mal, wenn ich sie nutzte, fühlte ich mich lebendiger, präsenter, als wäre ich endlich an dem Ort, an den ich gehörte.
-
-»Es ist das Semester«, sagte ich. »Die Prüfungen kommen näher.«
-
-»Bullshit.« Nele blieb stehen. »Du hast noch nie so auf Prüfungen reagiert. Und außerdem hast du in der letzten Seminararbeit eine Eins bekommen. Du bist nicht gestresst. Du bist — woanders.«
-
-Ich wollte ihr die Wahrheit sagen – dass ich jede Nacht in eine andere Welt reiste, Magie lernte, Teil von etwas Größerem war. Doch die Worte blieben in meiner Kehle stecken. Wie hätte ich das erklären sollen, ohne dass sie mich für verrückt hielt?
-
-»Es tut mir leid«, sagte ich stattdessen. »Ich weiß, dass ich eine schlechte Freundin bin im Moment.«
-
-Nele seufzte. »Du bist nicht schlecht. Du bist abwesend. Das ist etwas anderes.« Sie legte eine Hand auf meinen Arm. »Wenn du reden willst – ich bin da, okay?«
-
-Ich nickte und lächelte, wusste aber, dass ich nicht reden würde – nicht jetzt und wahrscheinlich auch nie. e.
-
-Zu Hause wartete Marcus mit dem Abendessen. Er hatte mir eine Nachricht geschickt, er würde kommen und für uns beide kochen. Es war schließlich immer noch seine Wohnung, auch wenn er nicht mehr hier lebte.
-
-Er hatte Nudeln gekocht, eine einfache Tomatensoße, und den Tisch gedeckt, als wäre es ein besonderer Anlass.
-
-»Hungrig?«, fragte er, als ich die Tür öffnete.
-
-»Ein bisschen.« Ich ließ meine Tasche fallen und setzte mich an den Tisch. Die Nudeln sahen gut aus, aber mein Magen protestierte bei dem Gedanken, etwas zu essen.
-
-Marcus setzte sich mir gegenüber. Er beobachtete mich, während ich eine Gabel voller Nudeln zum Mund führte. Ich kaute mechanisch, schluckte, nahm den nächsten Bissen.
-
-»Alles okay bei dir?«, fragte er schließlich.
-
-»Natürlich.« Ich lächelte. »Warum?«
-
-»Du siehst müde aus.«
-
-»Bin ich auch.« Ich nahm einen Schluck Wasser. »Semesterstress.«
-
-Marcus nickte, aber ich sah, dass er nicht überzeugt war. Er kannte mich zu gut. Er wusste, dass ich nicht so auf Stress reagierte. Normalerweise wurde ich aktiv, organisierte mich, machte Listen. Nicht so – nicht dieses langsame Versinken in Müdigkeit, dieses ständige Abschweifen der Gedanken.
-
-»Du isst kaum noch«, sagte er. »Und wenn du isst, dann nur, weil ich dich dazu bringe.«
-
-»Ich esse genug.«
-
-»Nein, tust du nicht.« Er legte die Gabel hin. »Luna, ich mache mir Sorgen.«
-
-»Mach dir keine Sorgen.« Ich stand auf und brachte meinen Teller in die Küche. Die Nudeln waren kaum angerührt. »Ich bin nur müde. Das geht vorbei.«
-
-Marcus folgte mir. »Und die Ringe unter deinen Augen? Die fahle Haut? Das Zittern deiner Hände?«
-
-Ich starrte auf meine Hände. Er hatte recht. Sie zitterten tatsächlich, ein feines, konstantes Beben, das ich selbst nicht bemerkt hatte.
-
-»Es ist nichts«, sagte ich.
-
-»Es ist nicht nichts.« Marcus’ Stimme wurde härter. »Du veränderst dich, Luna. Und ich weiß nicht warum.«
-
-Ich drehte mich zu ihm um. Sein Gesicht war angespannt, die Falten zwischen seinen Augenbrauen vertieft. Er machte sich wirklich Sorgen, und ich konnte ihm nichts sagen, was ihn beruhigen würde.
-
-»Ich muss schlafen«, sagte ich. »Wir können morgen reden.«
-
-»Du sagst das schon seit Wochen.«
-
-»Ich weiß.« Ich ging an ihm vorbei ins Wohnzimmer und nahm meine Tasche vom Boden.
-
-»Gute Nacht, Marcus.«
-
-Er antwortete nicht. Ich hörte, wie er in der Küche blieb, wie er den Wasserhahn aufdrehte, wie er die Teller abspülte. Die Geräusche waren vertraut, beruhigend, und doch fühlten sie sich an wie aus einer anderen Welt.
-
-In meinem Zimmer zog ich mich aus und kroch ins Bett. Die Matratze war weich, die Decke warm, und doch sehnte ich mich nach dem harten Bett in der Traumwelt, nach dem Geruch von Metall und altem Holz, nach dem Licht der Konvergenzsäulen, das durch die Fenster fiel.
-
-Ich schloss die Augen und ließ mich fallen.
-
-Der Übergang war nicht mehr so abrupt wie am Anfang. Es war, als würde ich in warmes Wasser gleiten, sanft, ohne Widerstand. Die Geräusche von Berlin verblassten – das Rauschen des Verkehrs, das Summen des Kühlschranks, Marcus’ Schritte im Flur. Stattdessen hörte ich das leise Pulsieren der Adern in den Wänden, das metallische Klicken der Zahnräder über mir.
-
-Ich öffnete die Augen. Ich lag auf dem schmalen Bett in meinem Zimmer in der Traumwelt, einem Raum, den sie für mich eingerichtet hatten. Die Wände waren aus dem gleichen dunklen Metall wie der Rest des Gebäudes, durchzogen von den blaugrünen Adern, die in einem langsamen, beruhigenden Rhythmus leuchteten. Das Fenster ging auf die Stadt hinaus, und ich konnte die Türme sehen, die sich im Morgenlicht drehten.
-
-Ich stand auf und streckte mich. Hier fühlte ich mich nicht müde. Hier fühlte ich mich lebendig.
-
-Frina wartete bereits im Trainingsraum. Sie stand am Fenster und beobachtete die Stadt, ihre Hände hinter dem Rücken verschränkt. Als ich eintrat, drehte sie sich um.
-
-»Du bist spät«, sagte sie.
-
-»Es ist schwer, den Übergang zu kontrollieren.«
-
-»Ich weiß.« Frina ging zum Tisch in der Mitte des Raumes, auf dem verschiedene Gegenstände lagen – Kristalle, Metallstücke, ein Buch. »Heute werden wir weiter an deiner Fähigkeit arbeiten, emotionale Energie nach außen zu richten.«
-
-Ich nickte. In den letzten Wochen hatte Frina mir die Grundlagen der emotionalen Magie beigebracht. Na ja, was heißt beigebracht? Sie hatte mir davon erzählt. Sie hatte mir erzählt, wie man die eigene emotionale Energie greifen konnte, wie man sie nach innen richten und so die Wahrnehmung von Kraft und Grenze verändern konnte. Nichts von dem, was sie erzählte, konnte ich wirken, alles was funktionierte, war den Funken der Magie in mir zu zünden.
-
-»Setz dich«, sagte Frina.
-
-Ich setzte mich auf den Stuhl gegenüber von ihr. Sie nahm einen Kristall vom Tisch – klein, klar, mit einem sanften goldenen Schimmer.
-
-»Dieser Kristall reagiert auf emotionale Energie«, erklärte sie. »Wenn du ihn berührst und eine Emotion kanalisierst, wird er die Farbe wechseln.«
-
-Sie legte den Kristall vor mich hin. Ich betrachtete ihn. Er war warm, obwohl niemand ihn berührt hatte.
-
-»Versuche, Freude zu kanalisieren«, sagte Frina. »Konzentriere dich auf etwas, das dich glücklich macht, und lasse die Energie durch deine Hände fließen. So wie wir es geübt haben.«
-
-Ich schloss die Augen und dachte an Nele, an unsere gemeinsamen Abende, an ihr Lachen, wenn ich etwas Dummes sagte. Ich fühlte, wie sich etwas in meiner Brust erwärmte, ein sanftes Prickeln, das sich langsam ausbreitete. Ich öffnete die Augen und legte meine Hände um den Kristall.
-
-Er leuchtete auf – nicht stark, aber deutlich. Ein warmes Rosa.
-
-»Gut«, sagte Frina. »Jetzt versuche, die Energie zu halten. Nicht mehr, nicht weniger. Halte sie konstant.«
-
-Ich konzentrierte mich auf das Gefühl in meiner Brust, versuchte, es zu bündeln, zu kontrollieren. Der Kristall pulsierte im Rhythmus meines Atems, rosa, dann heller rosa, dann wieder dunkler. Es war schwerer, als es aussah. Die Energie wollte nicht stillhalten – sie wollte fließen, sich ausbreiten, wie Wasser, das man in den Händen hält.
-
-»Du kämpfst dagegen an«, sagte Frina. »Das ist der falsche Ansatz. Du musst die Energie nicht kontrollieren. Du musst sie verstehen.«
-
-»Ich verstehe sie nicht.«
-
-»Dann lerne.«
-
-Ich atmete tief ein und aus. Das Rosa des Kristalls flackerte. Ich dachte wieder an Nele, an ihr Lachen, an die Sicherheit, die ich in ihrer Gegenwart fühlte. Die Energie wurde stabiler, aber nicht konstant. Sie pulsierte immer noch, wie ein Herzschlag.
-
-»Besser«, sagte Frina. »Aber nicht gut genug.«
-
-Sie nahm den Kristall aus meinen Händen und legte ihn zurück auf den Tisch. Dann ging sie zu einem der Regale und holte einen zweiten Kristall – größer, dunkler, mit einem bläulichen Schimmer.
-
-»Dieser ist schwieriger«, sagte sie. »Er reagiert auf subtilere Emotionen. Auf Trauer, auf Sehnsucht, auf das, was zwischen den großen Gefühlen liegt.«
-
-Sie stellte ihn vor mich hin.
-
-»Versuche es.«
-
-Ich schloss die Augen, suchte nach dem Gefühl zwischen Freude und Trauer, dem Unbenannten. Meine Gedanken wanderten zu Marcus, zur Sorge in seinem Blick, zu allem, was ich ihm verschwieg. Zu den Lügen, die ich mir selbst schöngeredet hatte, weil ich nicht wusste, was ich sonst hätte sagen sollen. Zu der Schuld, die sich irgendwo zwischen Magen und Kehle festgesetzt hatte und nicht verschwand.
-
-Der Kristall reagierte sofort. Nicht mit einem sanften Leuchten wie der erste, sondern mit einem tiefen, vibrierenden Blau, das durch den Raum pulsierte. Es war schön und schmerzhaft zugleich.
-
-»Das ist nicht nur Trauer«, sagte Frina. »Das ist etwas anderes.«
-
-»Was?«
-
-Sie betrachtete den Kristall mit einer Intensität, die fast unangenehm war. »Das ist der Preis«, sagte sie schließlich. »Der Preis des Doppellebens.«
-
-Ich öffnete die Augen. »Was meinst du?«
-
-»Du lebst in zwei Welten, Luna. Dein Körper, dein Geist, deine Emotionen – alles ist geteilt. Und jedes Mal, wenn du hierher kommst, wenn du Magie nutzt, ziehst du Energie aus demselben Reservoir, das du in deiner Welt brauchst.«
-
-»Also bin ich müde, weil ich hier Magie nutze?«
-
-»Du bist müde, weil du hier lebst.« Frina legte eine Hand auf den Kristall, und das Blau beruhigte sich. »Was immer du hier tust, hat Konsequenzen dort. Wenn du hier einen Muskel anspannst, spürst du die Anstrengung dort. Wenn du hier emotional erschöpft bist, bist du es dort auch.«
-
-Ich dachte an die Müdigkeit in Berlin, an die Ringe unter meinen Augen, an das Zittern meiner Hände. »Also ist es nicht nur Schlafmangel.«
-
-»Nein.« Frina sah mich an. »Es ist das Leben selbst, das du führst. Zwei davon gleichzeitig.«
-
-»Warum hast du mir das nicht früher gesagt?«
-
-»Ich habe es dir gezeigt.« Frina stand auf und ging zum Fenster. »Jeden Tag. Du hast es nur nicht sehen wollen.«
-
-Ich schwieg. Sie hatte nicht unrecht.
-
-»Wenn du so weitermachst«, sagte Frina, ohne sich umzudrehen, »wirst du dort drüben zusammenbrechen. Nicht metaphorisch. Dein Körper wird aufhören zu funktionieren – Schlaf, Essen, Gleichgewicht. Die kleinen Dinge zuerst, dann die großen.«
-
-»Und hier?«
-
-»Hier«, sagte sie, »wirst du gefährlich.« Sie drehte sich um. »Erschöpfung macht die emotionale Magie unberechenbar. Du wirst dich nicht mehr konzentrieren können. Deine Stimmung wird kippen, ohne Vorwarnung, und deine Magie wird ihr folgen – nicht dorthin, wo du willst, sondern dorthin, wo deine Angst ist.«
-
-Ich sah auf den Kristall. Das Blau war verblasst, fast grau, obwohl ich ihn nicht mehr berührte.
-
-Frina beobachtete ihn ebenfalls. Sie sagte nichts.
-
-»Es gibt noch etwas«, sagte Frina. Sie drehte sich um und sah mich an. »Deine Fähigkeit, andere zu beeinflussen – die hast du bereits genutzt, ohne es zu wissen.«
-
-»Was meinst du?«
-
-»Lyra. Letzte Woche, vor der Übung. Sie war nervös, hat gezittert. Du hast dich neben sie gestellt, und ihr Zittern hat aufgehört.«
-
-Ich erinnerte mich. Lyra war eine der anderen Auszubildenden, jung, unsicher, mit großen Augen und zitternden Händen. Ich hatte mich neben sie gestellt, weil ich dachte, es würde ihr helfen, nicht allein zu sein. Ich hatte nicht daran gedacht, Magie zu nutzen.
-
-»Das war nicht absichtlich«, sagte ich.
-
-»Das macht es gefährlicher.« Frina kam zurück zum Tisch und setzte sich. »Unkontrollierte emotionale Magie, die auf andere wirkt – das ist nicht dasselbe wie Selbstsuggestion. Du veränderst nicht nur deine eigene Wahrnehmung. Du veränderst ihre.«
-
-»Was habe ich getan?«
-
-»Du hast ihre Nervosität gedämpft. Du hast ihre Emotionen beeinflusst, ohne ihre Erlaubnis.«
-
-Ich fühlte, wie sich mein Magen zusammenkrampfte. »Das ist … das ist eine Verletzung.«
-
-»Ja.« Frina nickte langsam. »Und es ist nur der Anfang. Wenn du lernst, deine Energie bewusst nach außen zu richten, wirst du mehr tun können. Du wirst die Emotionen anderer verstärken, dämpfen, verändern. Du wirst ihre Magie beeinflussen, ihre Wahrnehmung, ihre Entscheidungen.«
-
-»Das will ich nicht.«
-
-»Es ist nicht eine Frage des Wollens.« Frina legte ihre Hände flach auf den Tisch. »Es ist eine Frage des Könnens. Und du kannst es, oder wirst es können.«
-
-Ich saß da und starrte auf meine Hände. Sie zitterten nicht hier. Hier war ich stark, lebendig, fähig. Aber ich wusste, dass dieser Körper derselbe war wie der in Berlin. Derselbe Körper, dieselbe Energie, dieselben Grenzen.
-
-»Was soll ich tun?«, fragte ich.
-
-»Lernen«, sagte Frina. »Lernen, zu kontrollieren, was du kannst. Lernen, den Preis zu bezahlen, ohne dich zu zerstören. Und lernen, die Grenze zwischen Beeinflussung und Manipulation zu erkennen.«
-
-Sie stand auf und ging zur Tür. »Komm. Wir haben heute noch eine Übung.«
-
-Ich folgte ihr. Der Flur war lang und dunkel, die Adern in den Wänden pulsieren im gleichen langsamen Rhythmus wie immer. Aber etwas hatte sich verändert. Die Magie, die mich so fasziniert hatte, die mich lebendig fühlen ließ – sie hatte einen Preis, und ich hatte ihn bereits bezahlt.
-
-Frina führte mich zu einer Plattform am Rand des Gebäudes – eine schwebende Fläche aus Metall und Glas, die sich langsam nach unten bewegte. Der Wind zog an meinen Haaren, kühl und sauber, und unter mir erstreckte sich die Stadt wie eine lebendige Karte.
-
-»Wir fahren heute zum Rand der Stadt«, sagte Frina. »Es gibt dort einen Ort, der sich gut für das eignet, was ich dir zeigen will.«
-
-Sie winkte einem Drokka-Fahrer, der am Rand der Plattform wartete. Das Fahrzeug war wie eine pferdelose Kutsche, aus dunklem Holz und Messing, mit Rädern, die sich ohne sichtbare Antriebskraft drehten. Frina bezahlte mit Münzen, die ich nicht kannte, und wir stiegen ein.
-
-Die Fahrt dauerte länger, als ich erwartet hatte. Wir verließen die inneren Ringe der Stadt, fuhren durch die Handwerker- und Arbeiterviertel, wo die Gebäude niedriger wurden und die Straßen enger. Die Menschen hier trugen einfachere Kleidung, und ihre Gesichter waren härter, abgearbeiteter. Ich sah Kinder, die auf den Straßen spielten, Frauen, die Wäsche aufhingen, Männer, die an Maschinen arbeiteten, deren Zweck ich nicht verstand.
-
-Dann kamen wir in die äußeren Ringe. Hier waren die Gebäude verfallen, die Straßen ungepflastert, und die Luft roch nach Rauch und etwas Säuerlichem. Die Konvergenzsäulen waren hier seltener, und ich bemerkte, dass die Menschen langsamer sprachen, als müssten sie sich mehr anstrengen, um verstanden zu werden.
-
-Schließlich hielt das Drokka. Wir waren am Rand der Stadt angekommen, wo die Gebäude in eine karge Landschaft übergingen – flach, steinig, mit vereinzelten Bäumen, die sich gegen den Wind bogen. Vor uns lag ein ausgetrocknetes Flussbett, breit und flach, mit Steinen, die in der Sonne glitzerten.
-
-»Hier«, sagte Frina. »Wir gehen zu Fuß weiter.«
-
-Wir stiegen aus und gingen das Flussbett entlang. Der Boden war hart und rissig, und die Steine knirschten unter unseren Füßen. Die Sonne stand hoch am Himmel, und ich spürte die Hitze auf meiner Haut. Es war still hier – kein Verkehrslärm, keine Stimmen, nur der Wind und das Geräusch unserer Schritte.
-
-Wir gingen etwa zwanzig Minuten, als ich es bemerkte. Frina sprach, erklärte etwas über die Geologie der Region, über die Bedeutung des Flusses für die Stadt, aber ihre Worte wurden undeutlich. Nicht leiser, sondern anders – als würde jemand an einem Radio drehen und die Frequenz verlieren.
-
-Ich blinzelte. »Frina?«
-
-Sie antwortete, aber ich verstand sie nicht. Die Worte waren da, aber sie machten keinen Sinn mehr. Es war, als hörte ich eine Fremdsprache, die ich nicht kannte.
-
-Die Konvergenzsäulen. Wir waren zu weit weg. Die Übersetzungsmagie funktionierte nicht mehr. Das war ein klarer Fall von »Kein Netz«.
-
-Frina bemerkte es ebenfalls. Sie blieb stehen und sah mich an. Ihre Lippen bewegten sich, aber die Worte, die herauskamen, waren Geräusche ohne Bedeutung. Sie deutete zurück in Richtung Stadt und machte eine Geste, die ich interpretierte als: »Lass uns zurückgehen.«
-
-Ich nickte und wir folgten dem Flussbett entlang zurück.
-
-Frina sah mich fragend an. Ihre Lippen formten Worte, die ich nun wieder verstand. »Verstehst du mich?«
-
-Ich nickte erleichtert. »Ja.«
-
-»Gut«, sagte sie. »Dann ist dies der Ort für unsere Übung.«
-
-Frina führte mich zu einem großen Stein — einem Findling, den die letzte Eiszeit hier zurückgelassen hatte. Überall lagen Steine verstreut, alle glatt geschliffen wie übergroße Kiesel. Frina deutete auf einen etwa 30 Zentimeter großen Stein.
-
-»Heb ihn hoch.«
-
-Ich starrte den Stein an. Vielleicht war er ja nicht so schwer, wie er aussah. Ich stellte mich über ihn, beugte mich herab und legte meine Hände seitlich an den Stein. Mit aller Kraft zog ich.
-
-»Deine Aufgabe«, sagte Frina, »ist es, diesen Stein anzuheben.«
-
-Ich starrte den Block an. »Das ist unmöglich.«
-
-»Für dich ohne Magie, ja.« Frina trat einen Schritt zurück. »Aber du hast gelernt, wie man emotionale Energie kanalisiert. Nutze das.«
-
-Ich kniete mich neben den Stein und legte meine Hände darauf. Die Oberfläche war rau und warm von der Sonne. Ich schloss die Augen und suchte nach dem Gefühl, das Frina mir beigebracht hatte – nach der Energie in meiner Brust, dem Prickeln, das sich ausbreitete, wenn ich mich konzentrierte.
-
-Nichts passierte.
-
-»Du kämpfst wieder«, sagte Frina. »Lass los.«
-
-Ich atmete tief ein und aus. Statt zu kämpfen, stellte ich mir vor, wie die Energie durch meine Arme floss, in meine Hände, in den Stein. Nicht, um den Stein zu verändern, sondern um meine eigene Wahrnehmung zu verändern. Um die Grenze zu verschieben, die mir sagte, dass ich nicht stark genug war.
-
-Beim ersten Versuch passierte nichts. Der Stein bewegte sich nicht.
-
-Beim zweiten Versuch spürte ich ein Ziehen in meinen Armen, aber der Stein blieb, wo er war.
-
-Beim dritten Versuch geschah es.
-
-Die Energie floss plötzlich wie Wasser durch einen gebrochenen Damm. Ich spürte, wie sich etwas in meiner Brust öffnete, wie die innere Bremse nachgab, die mich normalerweise davon abhielt, meine Muskeln zu überlasten. Der Stein fühlte sich plötzlich leichter an – nicht leicht, aber möglich. Ich hob ihn an, nur wenige Zentimeter, aber ich hob ihn.
-
-Das Gefühl war berauschend. Ein Rauschen in der Brust, warm und kraftvoll, als hätte jemand eine Tür geöffnet, die ich nicht kannte. Ich hielt den Stein, spürte sein Gewicht in meinen Armen, und lächelte.
-
-»Ich habe es geschafft«, sagte ich.
-
-»Setz ihn ab«, sagte Frina.
-
-Ich ließ den Stein fallen. Er landete mit einem dumpfen Knall im trockenen Boden, und Staub wirbelte auf.
-
-Das Rauschen in meiner Brust pulsierte weiter. Ein Gefühl von Stärke und Unbesiegbarkeit durchflutete mich, als gäbe es keine Grenzen mehr. Ich sah mich um und entdeckte einen zweiten Steinblock, größer als der erste, der etwa zehn Meter entfernt lag. Er war breiter, dunkler, mit Kanten, die scharf aussahen wie Messer.
-
-»Den da«, sagte ich und deutete darauf. »Ich will den versuchen.«
-
-Ich ging darauf zu, meine Hände bereits ausgestreckt, das Rauschen in meiner Brust lauter werdend. Ich wollte das Gefühl ausweiten, wollte sehen, wie weit ich gehen konnte, wie schwer der Stein sein durfte, bevor ich aufhörte.
-
-Frina bewegte sich schneller, als ich es für möglich gehalten hätte. Sie trat zwischen mich und den Stein, eine Hand erhoben, die Finger gespreizt. Die Geste war knapp, ruhig, und doch unmissverständlich. Stopp.
-
-»Was machst du?«, fragte ich. Die Energie pulsierte in mir, drängte nach vorne, wollte genutzt werden.
-
-»Setz dich hin«, sagte Frina. Ihre Stimme war flach, aber ihre Augen waren scharf.
-
-»Ich kann es schaffen. Ich habe es gerade bewiesen.«
-
-»Setz dich hin.«
-
-Ich setzte mich. Der Boden war hart und heiß, aber ich spürte es kaum. Die Energie in mir wollte nicht stillhalten. Sie zog und zerrte, als wollte sie sich befreien.
-
-Frina kniete sich vor mich. »Hör mir zu«, sagte sie. »Was du gerade getan hast – das war nicht Stärke.«
-
-»Natürlich war es das. Ich habe einen Stein gehoben, den ich normalerweise nicht heben könnte.«
-
-»Nein.« Frina schüttelte den Kopf. »Du hast deine Wahrnehmung von Stärke verändert. Dein Körper hat dieselben Grenzen wie immer. Dieselben Muskeln, dieselbe Knochenstruktur, dieselbe physische Kapazität. Was die Magie getan hat, ist deine innere Bremse zu lösen – die Sicherung, die verhindert, dass du deine Muskeln überlastest.«
-
-Ich starrte sie an. Das Rauschen in meiner Brust begann nachzulassen, langsam, wie eine Welle, die sich zurückzog.
-
-»Wenn du diesen größeren Stein angehoben hättest«, fuhr Frina fort, »hättest du deine Muskeln überlastet. Du hättest einen Muskel gerissen, eine Sehne gezerrt, vielleicht sogar einen Knochen gebrochen. Und du hättest es nicht gespürt. Nicht sofort. Die Magie hätte den Schmerz blockiert, die Warnsignale deines Körpers unterdrückt. Erst wenn die Magie nachgelassen hätte, hättest du gemerkt, was du getan hast.«
-
-Das Rauschen war jetzt fast verschwunden. An seine Stelle trat etwas Kühleres, Klareres. Verständnis.
-
-»Selbstsuggestion«, sagte ich.
-
-»Ja.« Frina nickte. »Emotionale Magie arbeitet mit Suggestion. Du suggerierst dir selbst, dass du stärker bist, schneller, ausdauernder. Und dein Körper reagiert darauf. Aber die physikalische Realität bleibt dieselbe. Deine Muskeln können nur eine bestimmte Menge an Gewicht heben. Wenn du darüber hinausgehst, zahlst du den Preis.«
-
-»Mit Verletzungen.«
-
-»Mit Verletzungen.« Frina stand auf und reichte mir die Hand. Ich nahm sie und zog mich hoch. Meine Arme fühlten sich schwer an, schwerer als vor der Übung.
-
-»Du wirst es morgen spüren«, sagte Frina. »Wenn du aufwachst.«
-
-Ich nickte. Die Euphorie war verflogen, ersetzt durch etwas Nüchterneres. Ich hatte geglaubt, eine neue Magie entdeckt zu haben, eine Fähigkeit, die mich stärker machte. Stattdessen musste ich lernen, dass sie mich nur dazu trieb, meine Grenzen zu überschreiten – ohne die Folgen dabei zu spüren.
-
-Wir gingen zurück zum Drokka. Die Fahrt zur Stadt war still. Ich sah aus dem Fenster, beobachtete die vorbeiziehende Landschaft, die Gebäude, die Menschen. Alles sah anders aus jetzt. Nicht weniger real, aber gefährlicher. Die Magie war kein Geschenk. Sie war ein Werkzeug, und wie jedes Werkzeug konnte sie verletzen, wenn man sie falsch benutzte.
-
-Frina bezahlte den Fahrer und wir stiegen aus. Die Plattform brachte uns zurück in die oberen Etagen des Gebäudes.
-
-»Das war heute genug«, sagte Frina, als wir vor meinem Zimmer standen. »Ruhe dich aus. Und wenn du aufwachst – beobachte, was du spürst.«
-
-Ich nickte und ging in mein Zimmer. Das Bett war hart, aber vertraut. Ich legte mich hin und schloss die Augen.
-
-Der Rückweg verlief sanft, wie immer. Das Pulsieren in meinen Adern verblasste und machte dem Summen des Kühlschranks, dem Rauschen des Verkehrs, den vertrauten Geräuschen meiner Berliner Wohnung Platz.
-
-Ich öffnete die Augen. Die Decke über mir war weiß, nicht metallisch. Die Matratze unter mir war weich, nicht hart. Ich lag in meinem Bett in Berlin, in T-Shirt und Unterhose, und jede einzelne Faser meines Körpers schmerzte.
-
-Ich stöhnte und versuchte, mich aufzusetzen. Mein linker Arm protestierte laut. Die Muskeln in meinen Schultern, meinem Rücken, meinen Armen – alles brannte, als hätte ich eine Stunde lang Gewichte gestemmt. Und das hatte ich im Grunde auch. Der Stein in der Traumwelt hatte mein reales Muskelgewebe belastet, und jetzt zahlte ich den Preis.
-
-Ich schwang meine Beine aus dem Bett und stand auf. Meine Knie zitterten. Ich ging ins Bad, langsam, jeden Schritt sorgfältig setzend, und sah in den Spiegel.
-
-Die Ringe unter meinen Augen waren dunkler als je zuvor. Meine Haut war fahl, fast grau. Und meine Arme – ich betrachtete sie – waren angeschwollen, die Muskeln hart und empfindlich. Muskelkater. Der Muskelkater meines Lebens.
-
-Ich duschte, heiß, und ließ das Wasser über meine schmerzenden Muskeln laufen. Es half ein wenig, aber nicht genug. Ich zog mich an – Jeans, Sweatshirt – und ging in die Küche.
-
-Der Tisch war leer. Kein gedeckter Tisch, keine Nudeln, keine Tomatensoße. Marcus war nicht da. Er hatte nicht gekocht. Er hatte nicht einmal eine Nachricht hinterlassen.
-
-Ich holte mein Handy aus der Tasche. Keine neuen Nachrichten von Marcus. Die letzte war von gestern – »Komme heute Abend vorbei und koche.« Aber er war nicht gekommen. Oder er war gekommen, hatte gesehen, dass ich schlief, und war wieder gegangen.
-
-Ich setzte mich an den Tisch und starrte auf die leere Oberfläche. Mein Magen knurrte, aber ich hatte keine Energie, etwas zu kochen. Stehend in der Küche aß ich einen Apfel und kaute mechanisch.
-
-
-
----
-
-
-
-Die Vorlesung begann um zehn. Ich setzte mich in die letzte Reihe. Der Dozent sprach über Foucault und Diskursanalyse, aber seine Worte prallten an mir ab wie Regen an einer Fensterscheibe. Meine Gedanken waren woanders.
-
-Die Erkenntnis von gestern hatte sich in meinem Bewusstsein festgesetzt: Es war derselbe Körper. Dasselbe Fleisch, dieselben Knochen, dieselben Muskeln. Was immer ich der Traumwelt antat, tat ich mir selbst an. Und wenn ich dort starb …
-
-Ich schüttelte den Gedanken ab. Konzentrier dich. Du bist in einer Vorlesung. Du bist in Berlin. Du bist sicher.
-
-Aber die Sicherheit war eine Illusion. Ich spürte sie in meinen schmerzenden Muskeln, in der Müdigkeit, die meine Knochen schwer machte. Ich hatte gelernt, die Erschöpfung beiseite zu schieben – die Technik, die Frina mir beigebracht hatte. Ein kurzer Moment der Konzentration, und ich konnte klarer denken, heller sehen, präsenter sein. Aber der Effekt hielt nur zwanzig Minuten, und danach war ich noch müder als zuvor.
-
-Ich versuchte es jetzt. Schloss die Augen für einen Moment, atmete tief ein, suchte nach dem Prickeln in meiner Brust. Es kam langsam, zögernd, aber es kam. Die Müdigkeit wich zurück, wie eine Welle, die sich vom Ufer entfernt. Ich öffnete die Augen und konnte dem Dozenten wieder folgen. Die Worte ergaben plötzlich Sinn. Ich hörte zu, machte Notizen, war präsent.
-
-Dann kurz vor dem Ende der Vorlesung, genau wie Frina es vorhergesagt hatte, ließ der Effekt nach. Die Müdigkeit kehrte zurück, stärker als zuvor, und mit ihr die Schmerzen in meinen Armen. Ich ließ den Stift fallen und massierte meine Handgelenke.
-
-Die Vorlesung war vorbei. Ich packte meine Sachen zusammen und ging hinaus, langsam, vorsichtig, als wäre ich aus Glas.
-
-Nele wartete draußen. Sie lehnte an der Wand, die Arme verschränkt, ihr Pixie-Cut im Wind zerzaust.
-
-»Du siehst noch schlimmer aus als gestern«, sagte sie.
-
-»Guten Morgen auch.«
-
-»Im Ernst, Luna.« Nele trat neben mich und ging mit mir den Flur entlang. »Was ist los mit dir? Du bist eben gelaufen, als würde die alles wehtun, als hättest du die ganze Nacht trainiert.«
-
-Ich lachte kurz. Wenn sie nur wüsste.
-
-»Es ist nichts. Nur Schlafmangel.«
-
-»Das ist nicht nur Schlafmangel.« Nele blieb stehen und drehte mich zu sich. Ihre Augen waren ernst, besorgt. »Du veränderst dich. Du warst nicht bei meiner Vernissage. Du hast meinen Geburtstag vergessen. Und jetzt siehst du aus wie jemand, der einen Marathon gelaufen ist.«
-
-»Ich war bei der Vernissage«, sagte ich automatisch.
-
-»Nein, warst du nicht. Du hast abgesagt. Per SMS.«
-
-Ich starrte sie an. Hatte ich das getan? Ich erinnerte mich nicht. Die Grenzen zwischen den Welten verschwammen nicht nur in meinem Körper – sie verschwammen auch in meinem Gedächtnis.
-
-»Es tut mir leid«, sagte ich. »Ich war … ich war nicht ich selbst.«
-
-»Das ist genau das Problem.« Nele seufzte. »Ich mache mir Sorgen. Marcus macht sich Sorgen. Und du sagst nichts.«
-
-Was sollte ich sagen? Dass ich jede Nacht in eine Parallelwelt reiste? Dass ich Magie lernte? Dass mein Körper langsam zerfiel, weil ich in zwei Welten gleichzeitig lebte?
-
-»Ich brauche Zeit«, sagte ich stattdessen. »Es ist … kompliziert.«
-
-»Kompliziert ist kein Wort, Luna. Kompliziert ist eine Ausrede.«
-
-Sie hatte recht. Ich wusste es. Aber ich konnte ihr nicht die Wahrheit sagen. Nicht jetzt. Nicht hier, in diesem Flur, zwischen Seminarraum und Cafeteria, wo jeder uns hören konnte.
-
-»Kommst du heute Abend vorbei?«, fragte Nele. »Ich koche. Nur wir beide. Keine Fragen, kein Druck. Nur Abendessen.«
-
-Ich wollte Nein sagen. Ich wollte sagen, dass ich müde war, dass ich schlafen musste, dass ich in die Traumwelt zurückkehren musste. Aber ihre Augen – diese ehrlichen, besorgten Augen – ließen mich nicht.
-
-»Ja«, sagte ich. »Ich komme.«
-
-Sie lächelte, kurz, aber ehrlich. »Gut. Sieben Uhr. Bring nichts mit.«
-
-Sie ging, und ich blieb stehen, die Schmerzen in meinen Armen pulsierend im Rhythmus meines Herzschlags. Ich hatte zugesagt. Und ich wusste, dass ich auch diese Verabredung verpassen würde, wenn ich nicht rechtzeitig aus meinem Mittagsschlaf erwachen würde.
-
-Ich ging nach Hause. Diesmal würde Nele nicht versetzen. Ich stellte einen Alarm auf meinem Handy und legte es direkt neben das Bett. Dann legte ich mich hin und schloss die Augen. Der Übergang kam schneller als je zuvor, als hätte mein Körper gelernt, sich schneller zu verabschieden.
-
-Mein Raum empfing mich. Ich lag auf dem harten Bett, und sofort spürte ich den Unterschied. Die Schmerzen in meinen Armen waren hier weniger intensiv, aber sie waren da. Ein dumpfes Pochen, eine Erinnerung daran, dass dieser Körper derselbe war. Lag ich in diesem Moment in meinem Bett in Berlin? Wie funktionierte diese ›ein Körper‹-Geschichte?
-
-Ich stand auf und ging zum Fenster. Die Stadt lag unter mir, golden im Morgenlicht, die Konvergenzsäulen drehten sich langsam wie immer. Hier fühlte ich mich lebendig. Hier fühlte ich mich zu Hause.
-
-Lohnte es sich Frina aufzusuchen? Wenn sie überhaupt Zeit für mich hätte, blieben uns nur drei Stunden, dann würde mich mein Handy wecken. Ich entschied mich, es im Aufenthaltsraum zu versuchen. Wenn dort niemand war, würde sie eine Plattform nach unten nehmen und die Stadt erkunden. Frina hatte gesagt, dass ich das tun könnte, solange ich nicht in die äußeren Ringe ginge. Das Schöne war: Wenn ich mich verlief, würde ich einfach irgendwann in Berlin aufwachen.
-
-Der Aufenthaltsraum lag zwei Flure weiter, und ich ging langsam, meine schmerzenden Arme an meinen Seiten baumelnd. Die Adern in den Wänden pulsierten im gleichen langsamen Rhythmus wie immer, und das Geräusch meiner Schritte hallte von den metallischen Böden wider.
-
-Die Tür zum Aufenthaltsraum stand offen. Ich blieb im Türrahmen stehen.
-
-Kael saß auf dem Sofa.
-
-Nicht auf dem, auf dem Malachai immer saß – dem breiten, mit den zerdrückten Kissen – sondern auf dem schmaler en am Fenster. Er hielt ein Buch in den Händen, den Blick auf die Seiten gerichtet, die Stirn leicht gerunzelt.
-
-Er hatte mich noch nicht bemerkt, oder er hatte mich bemerkt und es nicht für nötig gehalten, aufzusehen.
-
-Ich trat ein. Die Tür schloss sich leise hinter mir.
-
-Kael sah auf. Seine Augen trafen meine, und für einen Moment sagte keiner von uns etwas.
-
-»Hallo«, sagte er.
-
-»Hallo.«
-
-Er nickte zum anderen Sofa. Ich setzte mich, vorsichtig, und stützte die Arme auf den Armlehnen ab, um den Druck von den schmerzenden Muskeln zu nehmen. Kael sah es. Ich sah, dass er es sah. Er sagte nichts.
-
-»Du liest«, sagte ich.
+Beim Mittagessen setzte sich der Riese vom Morgen neben Acen und stocherte in seinem Reis. »Du bist neu, oder?«, fragte er, ohne den Kopf zu wenden.
 
 »Ja.«
 
-Das Buch in seinen Händen war alt – das erkannte man sofort. Der Einband aus dunklem Leder war an den Ecken abgenutzt, die Prägung darauf so verblasst, dass ich die Form nicht mehr erkennen konnte. Die Schrift auf dem Rücken war in einer Sprache, die ich nicht kannte. Nicht Deutsch, nicht Englisch, nicht etwas, das ich je gesehen hatte. Die Buchstaben waren schmal und gewunden, mit Haken und Punkten an Stellen, die keinen Sinn ergaben.
+»Ich heiße Kotta. Sprich mich nicht an, wenn ich arbeite.« Er nahm einen Happen, kaute langsam. »Du bist klug. Aber du bist zu dünn. Die meisten wie du halten es keine drei Wochen.«
 
-»Was liest du?«, fragte ich.
+Acen betrachtete seine eigenen Arme, die im Vergleich zu Kottas Oberschenkeln wie dünne Kabel aussahen. »Ich hab nicht vor, so lange hier zu bleiben«, sagte er.
 
-Kael drehte das Buch, sodass ich den Titel sehen konnte. Ich beugte mich vor. Die Schrift blieb unlesbar – die Buchstaben verschwammen vor meinen Augen, als würde mein Gehirn sich weigern, sie zu verarbeiten.
+Kotta lachte, ein tiefes, kehliges Geräusch. »Keiner will das. Manche schaffen's. Die meisten verschwinden.«
 
-»Ich kann es nicht lesen«, sagte ich.
+Er schob seinen halbvollen Teller zu Acen herüber. »Hier. Du brauchst es mehr als ich.« Dann stand er auf und ließ Acen allein.
 
-»Das ist nicht deine Sprache.« Er legte das Buch auf die Knie, die Seiten noch geöffnet. »Altsyrranisch. Eine Sprache aus den nördlichen Provinzen. Ich stamme aus Syrran, deswegen kann ich altsyrranisch lesen.«
+Am dritten Tag fiel Acen auf, wie sehr die Küche von Machtstrukturen bestimmt wurde. Die Position an der Arbeitsfläche, die Nähe zu den seltenen Gewürzen, die Reihenfolge beim Mittagessen – alles hatte seinen Code. Wer zu früh zum Waschbecken ging, wurde gemobbt. Wer zu spät kam, bekam die Reste. Es dauerte nicht lange, bis Acen verstand, dass Kotta, trotz seines Auftretens als einfacher Grobian, so etwas wie ein König der Hilfskräfte war.
 
-Er sagte es ohne den Impuls, mehr hinzuzufügen. Keine Erklärung, kein Angebot, es zu übersetzen. Ich wartete, ob noch etwas kam. Es kam nichts.
+Einmal beobachtete Acen, wie eine ältere Frau mit silbernen Haaren und faltigem Gesicht einen Sack Reis schleppte. Ihr Atem ging schwer, doch niemand half ihr. Acen trat vor, um anzupacken. Sie sah ihn an, ihr Lächeln war eine Mischung aus Dank und Angst. Als er die Hände an den Sack legte, kam Kotta von hinten und packte ihn am Kragen.
 
-»Und du sprichst sie?«, fragte ich.
+»Das macht sie allein«, sagte Kotta, seine Stimme ein tiefes Brummen. »Das ist ihr Job. Dein Job ist es, deinen eigenen zu machen.« Zu der Frau gewandt, fügte er hinzu: »Weiter, Mutter.«
 
-»Ich lese sie.«
+Acen stolperte zurück. Die Frau nickte gehetzt und schob den Sack weiter, als wäre Acens Eingreifen ein gefährlicher Fehler gewesen. In diesem Moment verstand Acen: Hilfe war keine Tugend, sie war ein Verstoß gegen die Ordnung.
 
-Das war kein Widerspruch, aber auch keine Antwort. Ich beschloss, es so stehenzulassen. In den Wochen, seit ich die Traumwelt kannte, hatte ich gelernt, dass Nachfragen bei Kael meistens nur zu kürzeren Antworten führte, nicht zu längeren. Er war nicht unhöflich dabei. Er war einfach präzise auf eine Art, die ich noch nicht ganz verstanden hatte.
+Er sah, dass er beobachtet wurde. Reimann stand am anderen Ende der Küche, die Arme vor der Brust verschränkt. Sein Blick war leer, analytisch, als würde er eine Simulation betrachten. Später am Tag rief er Acen zu sich.
 
-Ich wusste nicht, was mich an seiner Art zu sitzen störte, und doch tat es das jedes Mal wieder. Nicht weil er viel Platz einnahm – er saß sehr still – sondern weil er wirkte, als gehörte er genau dorthin. Als hätte der Raum sich um ihn herum arrangiert, nicht umgekehrt.
+»Du bist schneller als die meisten hier«, sagte Reimann, als er Acen am Arbeitsplatz musterte. »Und deine Hände sind ruhig. Wo hast du das gelernt?«
 
-Die Stille zwischen uns war nicht unangenehm. Das hatte mich am Anfang überrascht. Ich redete, wenn es still wurde – meistens ohne nachzudenken, manchmal auch ohne etwas zu sagen zu haben. Mit Kael funktionierte das nicht – nicht weil er mich zum Schweigen brachte, sondern weil seine Stille sich anfühlte wie etwas, das keinen Kommentar brauchte. Ich hatte irgendwann aufgehört, es zu versuchen.
+»Mein Großvater«, sagte Acen. »Er hat mir viel beigebracht.«
 
-Er roch nach etwas, das ich nicht einordnen konnte – nicht unangenehm, aber fremd. Nicht süßlich, nicht schwer – eher wie alte Bücher in einem Raum, der lange geschlossen war. Ich hatte mir vorgenommen, nicht darüber nachzudenken. Ich musste damit aufhören, jedes Mal, wenn ich ihn traf über seinen Geruch nachzudenken.
+Reimann zog die Augenbrauen zusammen. »Und du glaubst, das reicht, um hier zu überleben?«
 
-Ich dachte trotzdem darüber nach.
+»Nein«, antwortete Acen. »Deshalb beobachte ich alles und jeden.«
 
-»Darf ich fragen—«, begann ich.
+Das schien Reimann zu gefallen. Er nickte und schob Acen eine neue Aufgabe zu: Filetieren von Meeresfischen, dann Auslösen von Vogelbrüsten. Jeder Schnitt musste sitzen, während der beißende Geruch von Blut und kaltem Fleisch in der Luft lag. Aber Acen fand Rhythmus in der Wiederholung, kalibrierte jeden Schnitt, bis die Bewegungen fast automatisch liefen. Die Naniten halfen, kleine Wunden sofort zu schließen, die Ermüdung im Handgelenk zu kompensieren. Niemand bemerkte es.
 
-Die Tür flog auf.
+Einmal kam Kotta an ihm vorbei, sah auf das sauber getrennte Fischfleisch und grunzte anerkennend. »Du lernst schnell, Frischling.«
 
-Nicht geöffnet. Geflogen.
+»Ich muss.«
 
-»Gute Neuigkeiten«, sagte Malachai Stone, der bereits halb im Raum war, bevor die Tür die Wand berührt hatte. Er hielt zwei Tassen in den Händen und sah zwischen Kael und mir hin und her. »Ich habe Kaffee gemacht. Schlechte Neuigkeiten: Es war der letzte Kaffee, also wer zuerst kommt.« Er hielt inne. »Oh. Ihr redet.«
+»Du wirst es brauchen.« Kotta nahm einen Stapel Tabletts und verschwand.
 
-»Wir haben geredet«, sagte ich.
+Abends, in der Kammer neben dem Schlafraum, setzte sich die alte Frau von vorher zu Acen. »Danke, dass du helfen wolltest«, sagte sie leise. »Hier macht das keiner.« Ihr Name war Sae, sie war schon seit vier Jahren auf der Sonnenfresser, hatte drei Küchenchefs überlebt und zählte zu den Veteranen. »Achte auf deinen Rücken«, sagte sie noch, dann stand sie auf und verschwand.
 
-»Habt ihr?« Er sah Kael an. »Vollständige Sätze?«
+Acen verstand den Hinweis erst, als er am nächsten Morgen zwei der bulligen Gehilfen in der Waschküche auf ihn warten sah. Sie trugen keine Namen, nur Nummern auf den Kitteln: 19 und 23. Sie kamen von hinten. Der eine packte ihn an den Schultern, der andere schlug ihm mit der Kante einer Metallschaufel gegen das Schienbein. Acen stürzte, sein Kinn schlug auf den nassen Boden, und er spürte, wie sich seine Lippe aufplatzte und Blut in seinen Mund lief.
 
-Kael schlug eine Seite um.
+»Du bist zu schnell«, raunte 19 ihm ins Ohr. »Wenn du so weitermachst, sehen wir anderen alt aus.«
 
-»Ich nehme das als Ja.« Malachai stellte eine der Tassen auf den Tisch zwischen uns, ohne zu fragen, wem er sie gab, und ließ sich in den Sessel fallen. Er streckte die Beine aus, bis seine Füße fast den Tisch berührten. »Was hab ich verpasst?«
+Acen versuchte sich aufzurappeln, doch 23 trat ihm gegen die Rippen. Es war ein sauberer, gut gesetzter Tritt. Einer, der signalisierte: Wir können mehr, wenn du nicht spurst.
 
-»Altsyrranisch«, sagte ich.
+Als sie losließen, sackte Acen zusammen, die Welt verschwamm. Er wartete, bis die Schritte verklungen waren, dann tastete er mit der Zunge über die aufgeschürfte Lippe und stand mühsam auf. 
 
-»Natürlich.« Er trank einen Schluck. »Kael, du weißt, dass du auch einfach sagen könntest: Ich lese gerne, lass mich in Ruhe. Das wäre sozialer.«
+Zurück in der Küche ignorierte Reimann den blutigen Fleck am Hemd. Er sagte nur: »Wenn du hier bestehen willst, lern, dich zu verteidigen. Oder mach Fehler wie Ferris und arbeite, bis du umfällst.«
 
-»Das wäre weniger präzise«, sagte Kael.
+Acen presste die Lippen zusammen. Er hatte verstanden.
 
-Malachai zeigte mit der Tasse auf ihn. »Seht ihr? Vollständiger Satz, Nebensatz inklusive. Ich bin stolz.« Er wandte sich mir zu. »Wie geht’s den Armen?«
+Die Machtstrukturen waren klar: ganz oben Reimann, darunter die festen Köche, dann die Gehilfen, ganz unten die Hilfsarbeiter und der Abfall. Loyalitäten waren instabil, es wurde intrigiert, aber alles unter der Oberfläche. Jeder Test, jede Demütigung, jedes Lob diente dazu, die Gruppe zu sortieren.
 
-Ich sah ihn an. »Woher weißt du—?«
+Am Ende der zweiten Woche hatte Acen einen Status: Kotta ließ ihn in Ruhe, Ferris hielt sich an ihn, und selbst Sae nickte ihm zu, wenn sie sich sahen. Die bulligen Gehilfen ignorierten ihn, was ein Zeichen von Anerkennung war.
 
-»Du hast die ganze Zeit die linke Seite geschont. Hab’s beim Reinkommen gesehen.« Er zuckte die Schultern. »Was hat Frina gesagt?«
+Nur Reimann blieb undurchdringlich wie eine Wand: Er beobachtete, testete, stellte Aufgaben, die Acen kaum schaffen konnte. Am liebsten gab er ihm Arbeit, die für zwei gemacht war, und notierte sich jeden Fehler. Aber manchmal, wenn Acen glaubte, alles falsch zu machen, sah er einen Moment Respekt in Reimanns Blick.
 
-»Dass ich es morgen spüren werde.«
+Die Nachtstunden waren still, nur das rhythmische Atmen der Erschöpften durchbrach die Dunkelheit. Acen wartete, bis der letzte Schatten zur Ruhe gekommen war, dann glitt er lautlos zwischen den Schlafkojen hindurch zum verborgenen Durchgang des Lagerraums. Dort, im schwachen Licht, überprüfte er die Vorräte und scannte die Umgebung nach versteckten Sensoren. Er fand keine. Stattdessen fand er eine kleine, unscheinbare Luke an der Rückwand. Sie war mit einem einfachen Magnetverschluss gesichert. Dahinter führte ein schmaler Gang nach oben. Die Luft war trocken, es roch nach Staub und Schaltkreisen. Acen merkte sich den Weg, schloss die Luke und kehrte zurück ins Schlafquartier.
 
-»Und?«
+Er hatte gelernt: Überleben bedeutete hier mehr als nur Kraft oder Gehorsam. Es war das Erkennen der kleinsten Veränderungen, das schnelle Anpassen an neue Regeln, das heimliche Sichern von Vorteilen.
 
-»Ich spüre es heute schon.«
+Reimann rief ihn am nächsten Tag in sein Büro. Die Wände waren nackt, nur ein Display, das Nährwerttabellen und Produktionspläne anzeigte. Reimann schloss die Tür, lehnte sich gegen seinen Tisch und musterte Acen mit zusammengekniffenen Augen.
 
-Malachai nickte, als wäre das die Antwort, die er erwartet hatte. »Dann hat sie wie immer recht.«
+»Deine Schnitte gestern. Perfekt. Zu perfekt. Und deine Hand hat nicht einmal gezittert, obwohl du zwölf Stunden gearbeitet hast.« Er tippte auf eine Stelle an Acens Unterarm. »Der Schnitt, den du dir letzte Woche zugezogen hast – keine Narbe. Nicht mal ein roter Streifen.« Reimann beugte sich vor. »Und als Kotta die Kiste fallen ließ – du bist zur Seite gesprungen, bevor sie kippte.«
 
-Kael hatte das Buch zugeklappt. Ich bemerkte es erst, als er aufstand – eine ruhige Bewegung, ohne Ankündigung. Er nahm die Tasse vom Tisch, trank einen Schluck, stellte sie wieder ab.
+Acen schwieg.
 
-»Ich bin gleich zurück«, sagte er.
+»Hör zu, Alvaro. Wenn du weitermachen willst, lern besser zu lügen. Zeig Erschöpfung. Mach absichtlich Fehler. Du hast Fähigkeiten, von denen niemand erfahren sollte. Du wärst nicht der Erste, der als eine Gefahr eingestuft wurde. Und das würde deinen Tod bedeuten.«
 
-Dann war er weg, und ich hatte nicht einmal gesehen, wie er die Tür hinter sich zuzog.
+Die Warnung brannte sich in Acens Gedanken ein. Er wusste, Reimann hatte recht. Doch wieso meldete Reimann ihn nicht, wo er doch offensichtlich mitbekommen hatte, dass Acen über besondere Fähigkeiten verfügte? Wahrscheinlich hatte er einen recht pragmatischen Grund: Acen war nützlich für ihn. 
 
-Malachai sah zur Tür, dann zu mir. »Er mag dich«, sagte er.
 
-Ich blinzelte. »Er hat kaum etwas gesagt.«
+In der Nacht träumte er von seinem Großvater. Von den Simulationen, in denen er immer wieder verlor, bis er lernte, nicht zu kämpfen, sondern zu denken. Das nächste Mal, wenn die bulligen Gehilfen auf ihn warteten, lachte er sie an. »Ihr müsst euch mehr anstrengen«, sagte er, und als sie zuschlugen, ließ er die Naniten kurz den Schmerz blockieren. Er blieb stehen. Sie sahen sich an, begriffen, dass sie verloren hatten, und gingen.
 
-»Genau.« Er lehnte sich zurück. »Wenn Kael jemanden nicht mag, sagt er das. Kurz, präzise, unmissverständlich. Wenn er schweigt, ist das ein gutes Zeichen.« Er hob die Tasse. »Bei mir redet er manchmal sogar freiwillig. Das hat drei Jahre gedauert.«
+Acen hielt sich zurück. Er sprach wenig, arbeitete präzise und reagierte auf Provokationen nur mit einem kalten Blick. Die anderen spürten seine Entschlossenheit und ließen ihn zunehmend in Ruhe. So wurde er in der Küche jemand, den man respektierte, aber nicht herausforderte.
 
-Ich wusste nicht, ob ich das glauben sollte. Ich wusste auch nicht, warum mich der Gedanke wärmer machte als er sollte.
-
-»Was wolltest du ihn fragen?«, sagte Malachai.
-
-»Was?«
-
-»Du hast angefangen: Darf ich fragen … Dann bin ich hereingekommen.« Er sah mich an, ohne Entschuldigung. »Was wolltest du wissen?«
-
-Ich überlegte. Die Frage hatte sich aufgelöst, sobald die Tür aufgeflogen war – etwas über das Buch, glaube ich, oder über die Sprache, oder darüber, wie lange er schon in dieser Welt war und warum sein Gesicht dabei so wenig verriet.
-
-»Ich weiß es nicht mehr«, sagte ich.
-
-Malachai nickte, als wäre das die ehrlichste Antwort, die er erwartet hatte. »Passiert mir auch«, sagte er. »Meistens wenn Kael Raum ist.«
-
-Er grinste. Ich versuchte, nicht zurückzugrinsen — ohne Erfolg. Malachais aufgekratzte Art war ansteckend. 
-
-Ich nahm die Tasse vom Tisch. Sie war nicht rund, sondern oval und unten breiter als oben. Ich hatte keine Ahnung, ob das eine spezielles Design war, oder ob Tassen hier einfach so aussahen. Ich nahm einen Schluck. 
-
-Ich spürte eine leichte Bitterkeit auf der Zunge. Doch über allen lag ein vollmundiges, nussiges Aroma. Dann ein Hauch Muskatnuss, oder etwas Ähnliches. 
-
-»Das ist kein Kaffee«, sagte ich entschieden.
-
-Malachai lachte. »Doch es ist welcher. Die Säulen ...« Er zeigte zum Fenster. »... nehmen, was sie kriegen können. Sie *denken* – oder was immer sie tun, dass es in unseren Sprachen einen Begriff für *anregendes Heißgetränk* gibt und das ist dann Kaffee.«
-
-
-# Kapitel 4 - Pause
-
-Frina wartete bereits im Trainingsraum. Sie stand am Fenster, ihre Hände hinter dem Rücken verschränkt, und beobachtete die Stadt.
-
-»Du bist früh«, sagte sie, ohne sich umzudrehen.
-
-»Ich habe nicht viel Zeit.«
-
-»Du hast immer weniger Zeit.« Frina drehte sich um. Ihre grauen Augen musterten mich, nahmen jedes Detail auf – die müden Augen, die angespannte Haltung. »Du hast den Preis bezahlt.«
-
-»Ja.«
-
-»Und?«
-
-»Es tut weh.«
-
-»Das ist gut.« Frina ging zum Tisch und nahm einen Kristall auf. »Schmerz ist eine Erinnerung. Eine Warnung. Wenn du keinen Schmerz fühlen würdest, würdest du dich selbst zerstören.«
-
-Sie stellte den Kristall vor mich hin. Er war klein, klar, mit einem sanften violetten Schimmer.
-
-»Heute arbeiten wir an etwas Neuem«, sagte sie. »Du hast gelernt, deine eigene emotionale Energie zu kanalisieren. Jetzt wirst du lernen, sie zu kontrollieren, wenn sie auf andere wirkt.«
-
-Ich setzte mich. Der Kristall pulsierte im Rhythmus meines Atems.
-
-»Erinnere dich an Lyra«, sagte Frina. »An ihr Zittern. An das, was du getan hast, ohne es zu wissen.«
-
-Ich schloss die Augen und erinnerte mich. Lyra, jung, nervös, ihre Hände zitternd vor einer Übung. Ich hatte mich neben sie gestellt, hatte die Wärme ihrer Anwesenheit gespürt, und ohne zu denken, ohne Absicht, hatte ich etwas getan. Ich hatte ihre Nervosität gedämpft, ihre Emotionen beeinflusst.
-
-»Öffne die Augen«, sagte Frina.
-
-Ich gehorchte. Der Kristall vor mir leuchtete jetzt violett, ein sanftes, pulsierendes Licht.
-
-»Das ist, was du getan hast«, sagte Frina. »Du hast ihre emotionale Energie beeinflusst. Du hast ihre Angst gedämpft, ihre Nervosität beruhigt.«
-
-»Wie?«
-
-»Indem du deine eigene emotionale Energie auf sie gerichtet hast. Nicht bewusst, nicht kontrolliert, aber effektiv.« Frina legte eine Hand auf den Kristall, und das violette Licht beruhigte sich. »Heute wirst du lernen, das bewusst zu tun. Und du wirst lernen, es zu stoppen, wenn es nötig ist.«
-
-Sie holte einen zweiten Kristall vom Regal – größer, dunkler, mit einem bläulichen Schimmer.
-
-»Dieser Kristall reagiert auf emotionale Beeinflussung«, erklärte sie. »Wenn du deine Energie auf ihn richtest, wird er die Farbe wechseln. Je stärker die Beeinflussung, desto intensiver das Leuchten.«
-
-Sie stellte ihn neben den ersten.
-
-»Versuche es. Konzentriere dich auf den Kristall und sende ihm Ruhe. Nicht Stärke, nicht Freude – nur Ruhe.«
-
-Ich schloss die Augen und suchte nach dem Gefühl der Ruhe. Es war schwerer, als ich dachte. In meiner Brust pulsierte noch immer die Energie von gestern, die Erinnerung an die Stärke, die Euphorie. Ich musste sie beiseite schieben, musste nach etwas Sanfterem suchen.
-
-Ich dachte an Marcus. An die Sicherheit seiner Gegenwart, an die Ruhe, die ich in seiner Nähe fühlte. An die Art, wie er die Welt sah – rational, geordnet, ohne Magie, ohne Geheimnisse. Die Erinnerung beruhigte mich, und ich spürte, wie sich die Energie in meiner Brust veränderte. Nicht wild und pulsierend, sondern sanft, gleichmäßig, wie Wasser in einem ruhigen See.
-
-Ich öffnete die Augen und richtete die Energie auf den Kristall.
-
-Er reagierte sofort. Das Blau wurde heller, intensiver, und pulsierte im Rhythmus meines Atems. Aber es war nicht chaotisch – es war geordnet, kontrolliert, wie eine Melodie, die ich dirigierte.
-
-»Gut«, sagte Frina. »Jetzt halte es. Halte die Ruhe, halte die Kontrolle.«
-
-Ich konzentrierte mich. Die Energie floss durch mich hindurch, in den Kristall, und ich spürte, wie sie sich veränderte – nicht schwächer, sondern präziser. Wie ein Laserstrahl statt eines Scheinwerfers.
-
-Der Kristall leuchtete blau, konstant, ohne zu flackern.
-
-»Jetzt stoppe«, sagte Frina.
-
-Ich zog die Energie zurück. Nicht abrupt, sondern langsam, wie man eine Hand von einer warmen Oberfläche zieht. Der Kristall verlor seine Farbe, wurde wieder dunkel, still.
-
-»Das war gut«, sagte Frina. »Du hast die Kontrolle.«
-
-Ich atmete aus. Die Übung hatte weniger Energie gekostet als die von gestern, aber ich spürte sie trotzdem – ein leichtes Ziehen in meiner Brust, eine Erinnerung daran, dass ich hier Grenzen hatte.
-
-»Jetzt versuche es mit etwas Stärkerem«, sagte Frina. »Mit Freude.«
-
-Ich schloss wieder die Augen und suchte nach Freude. Sie war leichter zu finden als Ruhe – ich dachte an Nele, an ihr Lachen, an die Sicherheit unserer Freundschaft. Die Energie in meiner Brust wurde wärmer, heller, pulsierte schneller.
-
-Ich richtete sie auf den Kristall.
-
-Das Blau wurde heller, intensiver, und dann – es wechselte die Farbe. Nicht abrupt, sondern langsam, wie Wasser, das sich erwärmt. Von Blau zuViolett, dann zu einem warmen Rosa. Der Kristall leuchtete jetzt in einer Farbe, die ich noch nie gesehen hatte – nicht blau, nicht violett, sondern etwas Dazwischenliegendes, etwas, das wie die erste Stunde eines Sonnenaufgangs aussah.
-
-»Interessant«, sagte Frina. Ihre Stimme war ruhig, aber ich hörte die Neugier darin. »Du hast die Farbe verändert.«
-
-»Ich habe nichts getan«, sagte ich. »Ich habe nur Freude gesendet.«
-
-»Freude ist komplexer als Ruhe.« Frina beugte sich über den Kristall und betrachtete ihn aus nächster Nähe. »Sie enthält mehr Frequenzen. Mehr Nuancen. Deine emotionale Energie hat das erkannt und reagiert.«
-
-Der Kristall pulsierte weiter in diesem seltsamen, warmen Rosa. Ich spürte, wie die Energie durch mich floss, sanft und kontrolliert, und ich wusste, dass ich sie jederzeit stoppen konnte. Das war neu. Das war anders als gestern, als die Energie mich mitgerissen hatte wie eine Strömung.
-
-»Du lernst schnell«, sagte Frina. Sie setzte sich mir gegenüber. »Zu schnell, vielleicht.«
-
-»Was meinst du?«
-
-»Die meisten Auszubildenden brauchen Wochen, um die Kontrolle zu finden, die du heute zeigst.« Ihre grauen Augen musterten mich. »Das ist nicht normal, Luna.«
-
-»Ich dachte, ich wäre der Katalysator«, sagte ich. »Der, der die Regeln bricht.«
-
-»Das bist du.« Frina lehnte sich zurück. »Aber Regeln brechen hat Konsequenzen. Und je schneller du lernst, desto höher wird der Preis.«
-
-Ich dachte an die Schmerzen in meinen Armen, an die Müdigkeit, die mich in Berlin verfolgte. »Ich weiß.«
-
-»Gut.« Frina stand auf. »Dann lass uns weitermachen. Heute wirst du lernen, wie man emotionale Energie nicht nur sendet, sondern auch empfängt.«
-
-Sie holte einen dritten Kristall vom Regal – den kleinsten bisher, kaum größer als eine Münze, mit einem silbrigen Schimmer.
-
-»Dieser Kristall speichert emotionale Energie«, erklärte sie. »Ich werde ihn mit einer Emotion laden, und du wirst versuchen, sie zu lesen.«
-
-Sie nahm den Kristall in beide Hände und schloss die Augen. Für einen Moment passierte nichts. Dann begann der Kristall zu leuchten – nicht hell, sondern subtil, wie Mondlicht auf Wasser. Frina öffnete die Augen und legte den Kristall vor mich hin.
-
-»Berühre ihn«, sagte sie. »Und sag mir, was du spürst.«
-
-Ich legte meine Finger auf den Kristall. Er war warm, fast heiß, und unter meiner Berührung pulsierte er in einem langsamen, gleichmäßigen Rhythmus. Ich schloss die Augen und konzentrierte mich.
-
-Die Emotion war nicht meine eigene. Sie war fremd, anders, aber nicht unangenehm. Sie fühlte sich an wie – Geduld. Eine tiefe, stille Geduld, die sich über Jahre erstreckte, wie ein Baum, der langsam wächst.
-
-»Geduld«, sagte ich. »Du hast Geduld hineingelegt.«
-
-Frina nickte. »Gut. Und jetzt – nimm sie auf. Lass die Emotion in dich fließen.«
-
-Ich zögerte. »Ist das sicher?«
-
-»Solange du kontrollierst, wie viel du nimmst, ja.« Frina beobachtete mich mit ihren grauen Augen. »Die Fähigkeit, Emotionen zu lesen und aufzunehmen, ist mächtig. Du kannst verstehen, was andere fühlen, ohne dass sie es sagen. Du kannst ihre Stärken nutzen, ihre Schwächen erkennen.«
-
-»Das klingt nach Manipulation.«
-
-»Es ist Information.« Frina legte eine Hand auf den Tisch. »Wie du sie nutzt, ist deine Entscheidung.«
-
-Ich atmete tief ein und ließ die Geduld in mich fließen. Sie breitete sich in meiner Brust aus, warm und beruhigend, und für einen Moment fühlte ich mich ruhiger als je zuvor. Die Müdigkeit in meinen Armen wich zurück, die Schmerzen wurden leiser. Es war, als hätte jemand eine Decke über mich gelegt.
-
-Dann begann der Kristall zu verblassen. Das Silberlicht wurde schwächer, bis es nur noch ein sanftes Glimmen war.
-
-»Du hast alles genommen«, sagte Frina. »Das war zu viel.«
-
-Die Geduld in mir war überwältigend. Ich fühlte mich plötzlich so ruhig, so gelassen, dass nichts mich aus der Ruhe bringen konnte. Nicht die Schmerzen, nicht die Müdigkeit, nicht die Angst vor dem Preis.
-
-»Wie fühlst du dich?«, fragte Frina.
-
-»Ruhig«, sagte ich. »Zu ruhig.«
-
-»Das ist das Problem.« Frina nahm den Kristall auf und betrachtete ihn. »Wenn du zu viel Emotion aufnimmst, verlierst du dich selbst. Deine eigenen Gefühle werden überlagert, ersetzt. Es ist, als würdest du in jemand anderes schlüpfen.«
-
-»Ich fühle mich gut«, sagte ich. »Besser als vorher.«
-
-»Natürlich fühlst du dich gut. Geduld ist angenehm.« Frina stellte den Kristall zurück auf das Regal. »Aber was passiert, wenn du Angst aufnimmst? Oder Wut? Oder Verzweiflung?«
-
-Ich dachte darüber nach. Die Geduld in mir pulsierte weiter, beruhigend, aber ich spürte, wie meine eigenen Emotionen darunter verschwammen. Meine Sorge um Marcus, meine Schuld gegenüber Nele – alles wurde leiser, unwichtiger.
-
-»Es ist gefährlich«, sagte ich.
-
-»Ja.« Frina nickte. »Deshalb musst du lernen, zu dosieren. Zu nehmen, was du brauchst, und den Rest zurückzulassen.«
-
-»Wie?«
-
-»Indem du dich erinnerst, wer du bist.« Frina trat näher. »Deine Emotionen sind nicht nur Gefühle. Sie sind du. Wenn du sie verlierst, verlierst du dich selbst.«
-
-Ich schloss die Augen und suchte nach meinen eigenen Emotionen unter der Geduld. Sie waren da, versteckt, aber nicht verschwunden. Meine Sorge um Marcus – ich konzentrierte mich darauf, ließ sie wachsen, ließ sie durch die Geduld brechen wie Gras durch Beton.
-
-Die Geduld wurde schwächer. Nicht verschwunden, aber zurückgedrängt. Ich war wieder ich selbst – müde, besorgt, schuldig, aber ich.
-
-»Besser«, sagte Frina. »Du lernst schnell.«
-
-»Zu schnell«, wiederholte ich ihre Worte von vorhin.
-
-Sie lächelte – kurz, fast unsichtbar. »Ja. Zu schnell.«
-
-Wir arbeiteten weiter. Frina lud den Kristall mit verschiedenen Emotionen – Freude, Trauer, Neugier, Langeweile – und ich lernte, sie zu lesen, zu nehmen, zurückzulassen. Mit jeder Übung wurde ich besser, präziser, und mit jeder Übung spürte ich die Müdigkeit in meinem Körper wachsen.
-
-»Das ist genug für heute«, sagte Frina schließlich. Die Sonne stand jetzt tiefer am Himmel, und das Licht, das durch die Fenster fiel, hatte einen goldenen Schimmer. »Du hast Fortschritte gemacht.«
-
-»Und der Preis?«, fragte ich.
-
-»Du wirst ihn morgen spüren.« Frina ging zum Fenster und beobachtete die Stadt. »Emotionale Energie aufnehmen kostet mehr als sie zu senden. Es ist, als würdest du etwas tragen, das nicht deins ist. Dein Körper muss sich anpassen.«
-
-Ich stand auf. Meine Beine waren schwer, meine Arme brannten. Die Geduld, die ich aufgenommen hatte, war fast vollständig verschwunden, ersetzt durch meine eigene Erschöpfung.
-
-»Ich muss gehen«, sagte ich. »Ich habe eine Verabredung.«
-
-»In deiner Welt?«
-
-»Ja. Mit meiner besten Freundin. Ich habe ihr schon zu oft abgesagt.«
-
-Frina nickte. »Dann geh. Aber vergiss nicht – was du hier lernst, hat Konsequenzen dort. Sei vorsichtig.«
-
-Ich ging zu meinem Zimmer und legte mich auf das harte Bett. Der Übergang kam schnell, fast zu schnell, und als ich die Augen öffnete, lag ich in meinem Bett in Berlin, und mein Handy klingelte.
-
-Der Alarm. Sieben Uhr.
-
-Ich setzte mich auf, langsam, vorsichtig. Die Schmerzen in meinen Armen waren schlimmer als je zuvor, und ich spürte eine neue Müdigkeit – tiefer, fundamentaler, als hätte jemand meine Batterien geleert.
-
----
-
-Das Café, das Nele ausgesucht hatte, lag in einer Seitenstraße in Neukölln, zwischen einem türkischen Gemüsehändler und einem Plattenladen, dessen Schaufenster mit handgeschriebenen Zetteln tapeziert war. Drinnen roch es nach Kardamom und altem Holz, und die Lampen warfen ein warmes, bernsteinfarbenes Licht auf die Wände. Ich kam fünf Minuten zu spät.
-
-Nele saß bereits an einem Ecktisch, die Hände um eine Tasse, und sah mich an, als ich hereinkam. Ihr Blick war der, den ich in letzter Zeit zu gut kannte – nicht böse, aber messend. Die Art, wie man jemanden ansieht, den man noch nicht aufgegeben hat, aber bei dem man anfängt, die Möglichkeiten durchzurechnen.
-
-Ich setzte mich ihr gegenüber und legte meine Tasche auf den Boden.
-
-»Du bist pünktlich«, sagte sie.
-
-»Ich bin fünf Minuten zu spät.«
-
-»Für deine aktuellen Verhältnisse ist das pünktlich.«
-
-Ich bestellte einen Kaffee, obwohl ich wusste, dass Koffein nicht das Problem war. Das Problem war, dass mein Körper seit Wochen auf Reserve lief und die Reserve kleiner wurde. Aber ich hatte heute Abend etwas ausprobiert, bevor ich das Haus verlassen hatte – etwas, das Frina mir beigebracht hatte, nicht als Lösung, sondern als Werkzeug. *Emotionale Energie nach innen richten. Nicht um Grenzen zu überwinden, sondern um die Wahrnehmung zu verschieben. Um dem Körper zu sagen: jetzt noch nicht aufgeben.*
-
-Ich hatte es auf der Treppe zu miner Wohung versucht, die Augen geschlossen, die Hände flach auf den Oberschenkeln. Ich hatte an das Gefühl gedacht, das ich kannte – das Prickeln in der Brust, das Öffnen. Nicht nach außen, nicht auf Steine oder Kristalle gerichtet, sondern nach innen, auf die Müdigkeit selbst. Ich hatte mir vorgestellt, wie die Energie die Erschöpfung nicht wegschob, sondern umrahmte, ihr sagte: *Warte. Noch eine Stunde.*
-
-Es hatte funktioniert. Nicht vollständig, aber genug. Ich hatte die Treppe hinuntergehen können, ohne mich am Geländer festzuhalten.
-
-Jetzt saß ich Nele gegenüber, und ich fühlte mich – nicht gut, aber präsent. Wach. Die Konturen des Raumes waren scharf, die Geräusche klar. Ich konnte die Musik aus den Lautsprechern hören, ein leises Gitarrenstück, und das Gespräch am Nebentisch, wo zwei Männer über eine Ausstellung stritten.
-
-Nele betrachtete mich. Dann lehnte sie sich zurück, und etwas in ihrer Haltung entspannte sich, kaum merklich, aber ich kannte sie gut genug, um es zu sehen.
-
-»Du siehst heute besser aus«, sagte sie.
-
-»Danke.«
-
-»Ich meine das ernst. Deine Augen sind … da.«
-
-»Ich habe geschlafen.«
-
-Das war nicht ganz gelogen. Ich hatte geschlafen. Nur nicht auf die Art, die Nele meinte.
-
-Der Kaffee kam. Ich trank einen Schluck, und das Gespräch fand seinen eigenen Weg, wie es das manchmal tat. Nele erzählte von ihrem Seminar, einem Dozenten, der seine eigenen Texte als Pflichtlektüre aufgenommen hatte und das für selbstverständlich hielt. Ich lachte, und das Lachen war echt – nicht gespielt, nicht angestrengt. Die Energie hielt.
-
-»Hast du eigentlich noch Kontakt zu Mia?«, fragte Nele.
-
-Mia Schreiber. Wir hatten sie beide im ersten Semester kennengelernt, in einem Einführungskurs, der so schlecht war, dass er uns zusammengeschweißt hatte. Mia war inzwischen nach Leipzig gezogen, um dort Keramik zu studieren, was uns beide nicht überrascht hatte.
-
-»Sie hat mir letzte Woche geschrieben«, sagte ich. »Sie hat eine Ausstellung in einem Hinterhofatelier. Irgendwas mit Schalen, die aussehen wie Wunden.«
-
-»Das klingt nach Mia.«
-
-»Sie hat gefragt, ob wir kommen.«
-
-»Wann?«
-
-»Nächsten Samstag.«
-
-Nele überlegte. »Ich könnte. Wenn du mitkommst.«
-
-»Ich weiß nicht, ob ich …« Ich hörte mich selbst und brach ab. Ich wollte nicht wieder eine Verabredung absagen. Ich wollte nicht wieder die sein, die nicht kam. »Ja«, sagte ich stattdessen. »Ich komme mit.«
-
-Nele sah mich an, als hätte ich etwas Unerwartetes gesagt. Dann lächelte sie, kurz und echt. »Gut.«
-
-Wir sprachen über das Studium, über einen Kommilitonen, der in jedem Seminar dieselbe Frage stellte und jedes Mal so tat, als wäre es eine neue Erkenntnis. Über den Herbst, der früher gekommen war als erwartet, und über die Frage, ob man Winterjacken kaufen sollte, bevor sie teurer wurden, oder ob das eine Niederlage war.
-
-Ich hörte zu und antwortete, und zum ersten Mal seit Wochen war das keine Anstrengung.
-
-Und dann, irgendwo zwischen dem zweiten Kaffee und Neles Beschreibung eines Flohmarktfundes – eine Jacke aus den Siebzigern, die sie für drei Euro bekommen hatte –, ließ die Energie nach.
-
-Es war kein dramatisches Nachlassen. Kein Zusammenbruch wie in einem Film, kein Umkippen. Es war eher wie das Erlöschen einer Lampe, die schon eine Weile auf dem letzten Rest Strom gelaufen war. Die Schärfe der Konturen verschwand. Die Geräusche wurden wieder wattiert. Meine Hände, die ich flach auf dem Tisch gehabt hatte, begannen zu zittern, und ich legte sie in meinen Schoß, damit Nele es nicht sah.
-
-Aber Nele sah es.
-
-Sie hörte mitten im Satz auf zu sprechen.
-
-»Luna.«
-
-»Ich bin okay.«
-
-»Du bist nicht okay.« Ihre Stimme war ruhig, aber darunter lag etwas Härteres. »Du wirst gerade grau.«
-
-»Ich bin immer blass.«
-
-»Das ist nicht Blässe.« Sie beugte sich vor. »Das ist das Gesicht von jemandem, der gleich umkippt.«
-
-Ich wollte widersprechen, aber mein Körper entschied sich in diesem Moment gegen mich. Die Müdigkeit, die ich eine Stunde lang zurückgehalten hatte, traf mich jetzt mit voller Wucht, und ich hatte keine Kraft mehr, dagegenzuhalten. Mein Kopf wurde schwer. Ich stützte mich mit dem Ellbogen auf den Tisch, legte die Stirn in die Hand, und für einen Moment war alles nur noch Rauschen.
-
-»Scheiße«, hörte ich mich sagen.
-
-Nele war sofort neben mir. Ich spürte ihre Hand auf meinem Rücken, fest und ruhig. »Ich habe dich.«
-
-»Ich brauche einen Moment.«
-
-»Nimm dir so viele, wie du brauchst.«
-
-Ich saß so, die Stirn in der Hand, und wartete, bis das Rauschen nachließ. Es dauerte länger, als ich wollte. Der Kardamomgeruch des Cafés war jetzt zu stark, die Musik zu laut, das Licht zu warm. Ich atmete durch den Mund.
-
-Schließlich richtete ich mich auf. Nele saß wieder ihr gegenüber, aber sie hatte sich nicht weit zurückgezogen. Ihre Hände lagen auf dem Tisch, offen, als wäre sie bereit, sofort wieder zu greifen.
-
-»So«, sagte sie. Ihre Stimme war jetzt anders – nicht mehr das leichte Plaudern von vorhin, sondern etwas Direkteres, Entschlosseneres. »Jetzt sagst du mir, was hier vorgeht.«
-
-»Nele –«
-
-»Nein.« Sie schüttelte den Kopf. »Nicht *Nele* und dann eine Ausrede. Ich sehe dir seit Wochen zu. Ich sehe, wie du dich auflöst. Ich sehe, wie du Verabredungen absagst und dann auftauchst und so tust, als wäre alles normal, und dann passiert das.« Sie deutete auf mich, auf den Tisch, auf den Raum. »Das hier. Das ist nicht Semesterstress. Das ist nicht Schlafmangel. Was ist das?«
-
-Ich sah sie an. Ihr Gesicht war offen, nicht wütend, aber unerbittlich. Das war Nele – sie drängte nicht, bis sie drängte, und wenn sie drängte, dann gab es kein Ausweichen mehr.
-
-Ich dachte an Frina und Kael, an die Traumwelt, die ich nicht erklären konnte, ohne dass Nele mich für verrückt halten oder sich Sorgen machen würde, Ich dachte an den Kristall in meiner Tasche, der jetzt still und kalt war.
-
-»Ich habe ein Geheimnis«, sagte ich.
-
-Nele wartete.
-
-»Ich kann dir nicht sagen, was es ist. Noch nicht.« Ich suchte nach den richtigen Worten. »Nicht weil ich dir nicht vertraue. Sondern, weil der Zeitpunkt noch nicht stimmt. Weil es Dinge gibt, die ich selbst noch nicht verstehe, und weil ich dir keine halbe Geschichte erzählen will.«
-
-»Eine halbe Geschichte wäre besser als gar keine.«
-
-»Nein«, sagte ich. »In diesem Fall nicht.«
-
-Nele schwieg. Sie sah mich an, lange, mit diesem Blick, der abwog und sortierte. Dann atmete sie aus, langsam, durch die Nase.
-
-»Bist du in Gefahr?«, fragte sie.
-
-Ich überlegte, ob ich lügen sollte. »Manchmal«, sagte ich schließlich. »Aber ich bin nicht allein.«
-
-»Das ist keine beruhigende Antwort.«
-
-»Ich weiß.«
-
-»Und du versprichst mir, dass du es mir sagst, wenn der Zeitpunkt stimmt?«
-
-»Ja.« Ich meinte es ernst. »Ich verspreche es.«
-
-Nele sah mich noch einen Moment an. Dann lehnte sie sich zurück und verschränkte die Arme, eine Geste, die ich kannte – nicht Ablehnung, sondern das Einpacken von etwas, das man noch nicht verarbeitet hatte. »Ich bin nicht zufrieden damit«, sagte sie.
-
-»Ich weiß.«
-
-»Aber du siehst aus, als würdest du gleich wieder umkippen, also lasse ich es für heute.« Sie hob eine Hand. »Für heute.«
-
-»Danke.«
-
-»Hör auf, mir zu danken. Das ist unangenehm.«
-
-Ich lächelte, und diesmal war es kleiner als vorhin, aber echter. Nele sah es und nickte, kaum merklich, als wäre das genug für sie.
-
-Sie bestand darauf, die Rechnung zu übernehmen. Ich ließ es zu. Ich war zu müde zum Streiten, und Nele brauchte das gerade offensichtlich mehr als ich.
-
-Draußen auf dem Gehweg war die Luft kalt und klar, und der Gemüsehändler nebenan räumte gerade seine Kisten ein. Nele blieb stehen und sah mich an.
-
-»Fährst du nach Hause?«
-
-»Ja.«
-
-»Nicht mit der U-Bahn.«
-
-Ich wollte fragen, warum, aber dann sah ich meinen eigenen Zustand in ihrem Blick gespiegelt und ließ es. »Ich nehme ein Uber«, sagte ich.
-
-»Gut.« Nele zog ihre Jacke enger. »Schreib mir, wenn du zu Hause bist.«
-
-»Mache ich.«
-
-Sie umarmte mich kurz, fester als sonst, und dann ging sie in die andere Richtung, die Stiefel auf dem Pflaster, der schwarze Pixie-Cut im Licht der Straßenlaterne. Ich sah ihr nach, bis sie um die Ecke verschwunden war.
-
-Dann holte ich mein Handy heraus und bestellte das Uber. Vier Minuten. Ich lehnte mich gegen die Hauswand und schloss die Augen, nur für einen Moment, und ließ die Kälte der Nacht gegen mein Gesicht drücken. Ich spürte die Kälte im Gesicht und sagte mir, dass das real war – Berlin, die Hauswand im Rücken, der Atem, der vor mir in der Luft stand –, und dass ich nach Hause fahren und schlafen würde.
-
-Und dann würde ich wieder in die Traumwelt fallen und mir von Frina Magie beibringen lassen.
-
-Das Auto kam. 
-
-
-# Kapitel 5 - Die Katze in der Traumwelt
-
-Drei Tage lang tat ich nichts außer schlafen.
-
-Das klingt banal, und das war es auch. Genau das war der Punkt.
-
-Vor meiner letzten Rückkehr hatte ich die Gruppe bereits informiert.Frina maß mich mit einem langen Blick, Kael nickte kurz, Ezra sagte etwas, das nach Verständnis klang – und wahrscheinlich auch so gemeint war. Drei Tage. Ich brauchte drei Tage.
-
-Ich hatte nicht erwartet, dass es funktioniert.
-
-Aber es funktionierte. Die Traumwelt klopfte an, wenn ich schlief, aber ich schaffte es, die Einladung auszuschlagen. Ich schlief wie ein Stein.
-
-Am zweiten Morgen wachte ich auf und fühlte mich ausgeruht. Das war so ungewohnt, dass ich eine Weile reglos dalag und auf das Gefühl wartete, das nicht kam. Keine bleierne Müdigkeit, keine Schmerzen von irgendwelchen Anstrengungen in der Traumwelt. 
-
-Am dritten Tag rief ich Nele an.
-
-Sie war überrascht. Ich hörte es in der kurzen Pause, bevor sie antwortete, in dem kleinen Atemzug, der sagte: *Du rufst an. Du rufst wirklich an.* Wir verabredeten uns für denselben Abend, in einer Bar in Friedrichshain, die wir beide mochten und seit Monaten nicht mehr besucht hatten. Ich zog meine Lieblingsjacke an – die mit den abgewetzten Ärmeln und dem Futter aus orangefarbenem Satin – und fuhr mit der U-Bahn hin, ohne einmal auf die Wände zu starren.
-
-Es wurde ein guter Abend. Einer, den ich gebraucht hatte.
-
-Nele saß bereits da, die Hände um ihr Glas, und musterte mich mit diesem Blick, bei dem ich nie sicher war, ob sie gleich etwas sagen oder es einfach für sich behalten würde. Wir tranken zu viel Wein und zu wenig Wasser und redeten über nichts: über einen Film, den wir beide hassten, über ihre neue Kollegin, über die Frage, ob Kardamom in Kaffee ein Verbrechen oder eine Erleuchtung war. Sie fragte mich nicht, wie es mir wirklich ging. Ich erzählte es ihr trotzdem, ein bisschen – nicht von der Traumwelt, nicht von Frina oder Kael oder dem Monster in der U-Bahn, aber von dem Gefühl darunter. Dass ich müde gewesen war. Dass die Pause gutgetan hatte. Dass ich manchmal vergaß, wie es sich anfühlte, einfach irgendwo zu sitzen, ohne gleichzeitig woanders zu sein.
-
-Nele hörte zu, ohne mich zu unterbrechen. Dann sagte sie: »Du siehst besser aus als seit Wochen.«
-
-»Ich habe geschlafen.«
-
-»Das sieht man.« Sie hob ihr Glas. »Auf den Schlaf.«
-
-»Auf den Schlaf«, sagte ich, und wir tranken.
-
-Wir blieben bis kurz vor Mitternacht. Auf dem Heimweg – Nele in die eine Richtung, ich in die andere – umarmte sie mich länger als sonst, und ich ließ es zu, ohne mich zu beeilen. Die Nacht roch nach nassem Pflaster und irgendwo nach Grillfleisch, obwohl es dafür eigentlich zu kalt war. Ich fuhr nach Hause, legte mich ins Bett und schlief sofort ein.
-
-Ohne Traumwelt. Ohne Fallen. Nur Schlaf.
-
-Aber das war die letzte Nacht. Die Pause war vorbei.
-
----
-
-
-Ich hatte das Ritual schon vergessen, wie man es macht.
-
-Das war das Erste, was mir auffiel, als ich mich ins Bett legte und versuchte, es absichtlich zu tun: Ich wusste nicht mehr, wie ich es *wollte*. Früher war es einfach passiert, ein Gleiten, ein Loslassen, und die Traumwelt hatte mich genommen wie ein Sog. Jetzt lag ich auf dem Rücken, die Decke bis zur Brust, und starrte die Risse in der Zimmerdecke an und dachte: *Wie geht das noch mal?*
-
-Ich schloss die Augen. Öffnete sie wieder. Schloss sie.
-
-Irgendwo in der Wohnung tropfte der Wasserhahn im Bad, den ich seit drei Wochen reparieren wollte. Der Kühlschrank summte. Draußen fuhr ein Auto vorbei, dann Stille, dann ein zweites. Berlin schlief nie wirklich, es wurde nur leiser.
-
-Ich dachte an die Traumwelt – das Zahnrad über dem Tisch, das sich lautlos drehte, die leuchtenden Adern in den Wänden, blaugrün wie tiefes Wasser, Frinas graue Augen, die mich ansahen, als würden sie etwas messen, das ich selbst nicht sehen konnte.
-
-Dann, unerwartet, sprang Momo aufs Bett.
-
-Das war ungewöhnlich. Momo – offiziell Hieronymus, ein Name, den ich ihm gegeben hatte, als ich neunzehn war und dachte, das wäre witzig, und den ich seitdem nie benutzte – war keine Bettkatze. Er war ein Kater mit Prinzipien, schlief hauptsächlich auf dem Fensterbrett und ertrug meine Anwesenheit mit der gelassenen Duldung eines Hotelgastes, dem das Zimmer einiges zu wünschen übrig lässt. Er kam manchmal auf die Couch, wenn er Hunger hatte und es für strategisch hielt. Er kam nie ins Bett.
-
-Jetzt kam er ins Bett.
-
-Er trat eine Weile auf der Decke herum, mit dieser konzentrierten Ernsthaftigkeit, die Katzen allem widmen, was sie tun, und legte sich dann gegen meine Seite. Nicht auf meine Füße, nicht am Rand, sondern direkt an meine Rippen, warm und schwer, das Schnurren so leise und gleichmäßig, dass ich es eher spürte als hörte.
-
-Ich sah auf ihn hinunter. Er sah nicht zurück. Er hatte die Augen bereits halb geschlossen.
-
-»Was ist mit dir?«, sagte ich.
-
-Er antwortete nicht, was zu erwarten gewesen war.
-
-Ich ließ es sein. Die Wärme an meiner Seite war angenehm, das Schnurren war angenehm, und irgendwann hörte ich auf, an die Traumwelt zu denken, und dachte stattdessen an nichts, und dann dachte ich gar nichts mehr.
-
----
-
-Das Fallen kam wie immer.
-
-Dunkelheit, Schichten, das Gefühl von Wasser ohne Nässe – und dann Füße auf Boden, als wäre ich nie gefallen. Das kannte ich. Das war normal.
-
-Was nicht normal war: das Gewicht in meinen Armen.
-
-Ich sah hinunter.
-
-Momo saß auf meinem linken Arm, die Pfoten ordentlich zusammengelegt, und betrachtete die Traumwelt mit dem Ausdruck eines Katers, der schon Schlimmeres gesehen hatte. Er war vollständig da – Fell, Gewicht, das leise Schnurren, das ich jetzt in meinem Unterarm spürte. Er blinzelte einmal, langsam, und schaute dann weg.
-
-Ich starrte ihn an.
-
-»Du«, sagte ich, »solltest nicht hier sein.«
-
-Er gähnte. Seine Zähne waren sehr weiß in dem blaugrünen Licht, das von den Wänden pulsierte.
-
-Ich richtete mich auf und sah mich um. Ich war im Korridor vor dem Trainingsraum, dort, wo ich immer ankam – die Metallwände mit ihren leuchtenden Adern, das entfernte Vibrieren der Zahnräder irgendwo über mir. Niemand war zu sehen. Gut. Das gab mir einen Moment.
-
-Ich dachte nach. Momo war mitgekommen. Das war, ich suchte nach dem richtigen Wort: unpraktisch. Nicht katastrophal, nicht gefährlich – nur lästig, wie ein Schlüssel in der falschen Tasche. Ich musste ihn bei mir behalten. Wenn ich zurückging, musste er an meiner Seite sein – dann würde er mitkommen, so wie er hergekommen war. Das war die Logik. Das musste die Logik sein.
-
-Ich verschob sein Gewicht auf meinen Arm und hielt ihn etwas fester.
-
-»Du bleibst bei mir«, sagte ich. »Das ist die Regel. Keine Alleingänge.«
-
-Momo sah mich an. Dann sah er an mir vorbei, in den Korridor – mit dem konzentrierten Blick, den Katzen bekommen, wenn sie etwas sehen, das Menschen nicht sehen können.
-
-Ich drehte mich um.
-
-Der Korridor war leer.
-
-»Gut«, sagte ich, mehr zu mir selbst als zu ihm. »Kein Problem. Wir gehen jetzt zu Frina, und du verhältst dich.«
-
-Momo schnurrte.
-
-Ich nahm das als Zustimmung und ging los.
+Die Palastküche war ein eigenes Universum, mit eigenen Gesetzen und Ritualen. Wer überleben wollte, musste lernen, ihre ungeschriebenen Regeln zu verstehen, ihre Rhythmen zu spüren und ihre Hierarchien zu erkennen. Acen tat das. Und während er die ersten Stufen erklomm, wusste er, dass dies erst der Anfang war.
 
 ---
 
 
 
-Frinas Tür stand einen Spalt offen, wie meistens. Ich klopfte trotzdem, wartete die zwei Sekunden, die sie brauchte, um zu antworten, und trat ein.
+In der dritten Woche änderte sich die Routine. Es war wie immer alles perfekt durchgetaktet, doch man spürte eine unsichtbare Spannung. Die Küchenbesetzung war leicht verändert, einige Neue waren gekommen. Die Atmosphäre war lauter, kantiger. Überall wurden Gerüchte über eine bevorstehende Inspektion gemurmelt – der Hausherr, Paleus Arista, würde angeblich höchstpersönlich erscheinen.
 
-Frina stand am Regal mit den Kristallen, den Rücken zur Tür, und ordnete etwas um. Sie drehte sich um.
+Die Arbeit lief trotzdem wie im Zeitraffer. Kotta schnitt Gemüse, sodass die Schalen wie Konfetti durch die Luft wirbelten. Ferris und Sae sortierten Fleischchargen. 
 
-Dann passierte alles sehr schnell.
+Dann passierte es.
 
-Ihre Augen gingen zu Momo auf meinem Arm. Ihre Hände hoben sich sofort, Handflächen nach außen, die Finger gespreizt – eine Haltung, die ich noch nie an ihr gesehen hatte, aber die ich sofort erkannte: Kampfstellung. Nicht die Art, die man einnimmt, wenn man nachdenkt. Die Art, die der Körper übernimmt, bevor der Kopf gefragt wird. Aus ihren Handflächen breitete sich etwas aus, ein Schimmern, das sich um sie schloss wie eine Haut aus Licht – nicht hell, eher wie die Oberfläche von Seifenwasser, wenn es die Farben bricht. Die Blase war in Sekunden vollständig, ein gleichmäßiges Oval, das sie von den Wänden abhob.
+Ein dumpfer Knall aus dem Bereich der Induktionsöfen. Kurz darauf ein Zischen, dann ein beißender Geruch. Die Luft wurde schwer. In Sekunden breitete sich panische Bewegung aus. Zwei Köche taumelten, hielten sich die Augen. Einer fiel, Hände vor dem Gesicht, und schrie. Ferris sackte hinter den Tischen zu Boden, klammerte sich an den Bauch.
 
-Momo sah sie an. Dann gähnte er.
+»Was ist das?", rief Kotta, doch der beißende Geruch machte Sprechen fast unmöglich. Reimann war in Sekunden da. Er erkannte die Gefahr sofort. »Alle raus! Jetzt!«
 
-»Luna.« Frinas Stimme war ruhig, aber das war die Ruhe von jemandem, der sehr bewusst ruhig ist. »Was ist das.«
+Die meisten rannten Richtung Notausgang, doch die Luft wurde rasend schnell dicker, Acen spürte, wie die Augen tränten. Die Naniten in seinem Körper signalisierten Gefahr, schoben ein dumpfes Sirren durch sein Nervensystem. Es war kein gewöhnlicher Brand – der Geruch war nicht nach Rauch, sondern etwas anderes, Süßliches, das an Cyanide erinnerte.
 
-»Das ist Momo«, sagte ich.
+Er sah, wie ferris weit hinten im Raum am Boden lag, unfähig, sich zu bewegen. Sae war zu Boden gesunken, ihre Hände zitterten, sie starrte ins Leere. Kotta hob sie auf, schaffte sie zur Tür.
 
-»Was ist das.«
+Reiman erschien in der Tür. »Ferris!«, rief Acen und zeigt in den dunstigen Raum.
 
-»Eine Katze. Mein Kater. Er ist mitgekommen.«
+»Vergiss ihn. Wir können ihm nicht mehr helfen.« Er legt eine Hand auf Acens Schulter, doch der schüttelte sie ab. Er lief los.
 
-Frina bewegte sich nicht. Die Blase um sie hielt, schimmernd, und ich sah, wie ihre Augen das Tier abtasteten – Fell, Pfoten, den langen Schwanz, der jetzt träge über meinen Unterarm hing. Sie suchte nach etwas. Nach dem, was sie erwartete zu finden.
+Er ließ die Naniten auf volle Kapazität laufen, aktivierte die respiratorische Filterfunktion. Es hätte nie gedacht, sie er einmal wirklich würde benutzen müssen.
 
-»Was ist eine Katze?«
+Er atmete ein, ließ die Naniten die Luft reinigen, stürzte zu Ferris. Der hatte aufgehört zu schreien, röchelte nur noch. Acen packte ihn unter den Achseln, zog ihn zur Tür. Der Raum war jetzt fast völlig vernebelt, die Sicht minimal.
 
-»Ein Tier«, sagte ich. »Ein Haustier.«
+Er spürte, wie die Haut am Hals kribbelte, die Ohren rauschten, aber die Naniten hielten den Blutkreislauf stabil. Draußen vor der Küche lag Sae, Kotta versuchte, sie wachzuhalten. Reimann stand vor der Tür, zählte die Köpfe.
 
-Sie blickte mir in die Augen, dann auf Momo, dann wieder auf mich. »Ein Haustier? Wie ein Schwein?«
+»Alle da!«
 
-»Nein, nicht wie ein Schwein. Das wäre ja ein Nutztier. Er lebt bei mir in der Wohnung.« Ich machte eine kurze Pause. »Hier gibt es keine Haustiere? Da verpasst ihr was.«
+Acen hatte ihn schon halb durch die Tür gezogen, als der zweite Knall kam. Eine Druckwelle, nicht stark, aber genug, um Acen mit Ferris nach draußen zu schleudern. Die Küche war jetzt von einer gelben Wolke gefüllt, das Absaugsystem röchelte, als würde es ersticken.
 
-Frina schien nicht interessiert an einer Diskussion über Tierhaltung. Sie schüttelte den Kopf. »Tiere kommen beim Übergang nicht durch. In keine der Welten.«
+Reimann packte Ferris' Beine, zog ihn in den Flur. Dann schlug die Brandsicherung an, alle Türen schlossen sich schlagartig, und die Welt war still.
 
-»Anscheinend doch.«
+Sae hustete, ihr Gesicht blau. Kotta lag keuchend auf dem Boden. Ferris rührte sich nicht. Acen spürte einen metallischen Geschmack im Mund, aber sein Herz schlug ruhig. Die Naniten hatten mehr ausgehalten als er erwartet hatte.
 
-Frina sah mich an. Dann sah sie Momo an. Momo hatte den Kopf leicht geneigt und betrachtete die schimmernde Blase mit dem Ausdruck eines Katers, der ein Insekt für möglicherweise interessant hält, aber noch nicht entschieden hat, ob es den Aufwand wert ist.
+Reimann kniete über Ferris, tastete den Hals ab. »Er lebt«, murmelte er. Dann sah er zu Acen. Seine Augen musterten ihn, nicht aus Sorge, sondern aus Interesse. »Wie hast du das gemacht?«
 
-»Es könnte eine Tarnung sein«, sagte Frina. »Ein Monster oder Dämon könnte die Form eines Tieres angenommen haben.«
+Acen zuckte mit den Schultern, kaute auf seiner Lippe. »Habe das Gas ignoriert.«
 
-»Er ist kein Monster.« Ich streichelte ihn sanft zwischen den Ohren.
+»Das ist keine Antwort.« Reimann wischte sich den Schweiß von der Stirn. »Du bist nicht wie die anderen.«
 
-»Wie kannst du dir da so sicher sein?«
+»Ich habe einfach nicht nachgedacht«, sagte Acen.
 
-»Frina.« Ich hob den Arm etwas an, sodass Momo besser zu sehen war. Er ließ es geschehen, mit der Würde eines Tieres, das an Demütigungen gewöhnt ist. »Er lebt seit Jahren bei mir. Er hat Krallen, die er in meine Jacke gräbt, wenn er nervös ist. Er hat gerade keine Krallen in meine Jacke gegraben. Er ist entspannt. Monster sind nicht entspannt.«
+Reimann stand auf, streckte sich. »Du bist ein kleiner, arroganter Bastard«, sagte er leise. Aber dann: »Gut gemacht. Ohne dich wäre er tot.«
 
-»Du weißt nicht, wie Monster aus deiner Welt sich verhalten.«
+Kotta richtete sich auf, sah Acen mit einem neuen Respekt an. »Er hat Ferris rausgezogen«, sagte er.
 
-Das war ein fairer Punkt. Ich schwieg einen Moment.
+Reimann schnaubte. »Klar. Einer muss ja der Held sein.«
 
-»Er schnurrt«, sagte ich dann. »Hör hin.«
+»Was ist passiert?", fragte Acen.
 
-Frina hörte hin. Das Schnurren war leise, gleichmäßig, das vertraute Vibrieren, das ich in meinem Unterarm spürte. Es war das banalste Geräusch der Welt, und in diesem Metallraum mit seinen leuchtenden Adern klang es vollkommen fehl am Platz und vollkommen unbedrohlich.
+Reimann blickte auf die geschlossene Tür der Küche, als könnte er durch sie hindurchsehen. »Ich hab keine Ahnung. Dieser Geruch … das war nichts, was es in der Küche geben sollte. Das wird ein Nachspiel haben.«
 
-Frinas Hände senkten sich um einen halben Zentimeter.
+Acen nickte. Er wusste, dass das hier nicht vorbei war.
 
-»Ich habe noch nie ein Tier gesehen, das so klingt«, sagte sie.
+Später, als die Notärzte Ferris und Sae abtransportiert hatten und der Rest der Belegschaft in den Ersatzküchen Dienst tat, kam Reimann zu Acen.
 
-»In meiner Welt klingen sie alle so. Wenn sie zufrieden sind.«
+Er wartete, bis niemand in der Nähe war. Dann stellte er sich dicht vor ihn. »Du bist kein gewöhnlicher Mensch«, sagte er leise. »Und ich will wissen, was du bist.«
 
+Acen antwortete nicht.
 
+»Ich halte dich nicht für einen Spion«, fuhr Reimann fort. »Dafür bist du zu ehrlich. Aber du hast Fähigkeiten, die ich gebrauchen kann.« Er legte Acen eine Hand auf die Schulter. »Ab jetzt kümmerst du dich um die heiklen Aufgaben. Die, bei denen Präzision wichtiger ist als Muskeln.«
 
-Frinas Blick ruhte nun fest auf Momo. Die Blase hielt, aber ihr Schimmern legte sich, wurde dünner, durchsichtiger. Momo blinzelte sie an – langsam, einmal – und schaute dann an ihr vorbei zum Regal mit den Kristallen.
+Er wartete einen Moment, dann sagte er: »Du wirst beobachtet, Alvaro. Mach keinen Fehler.«
 
-»Er ist aus meiner Welt«, sagte ich. »Er ist mit mir hergekommen, weil er neben mir geschlafen hat. Ich weiß nicht, wie das funktioniert, aber er ist kein Monster. Er ist mein Kater, und er ist unpraktisch, und ich muss dafür sorgen, dass er bei mir ist, wenn ich zurückgehe.«
+Acen nickte. Er spürte, dass das Gespräch ein Vertrauensbeweis war. Oder zumindest so etwas wie eine Allianz. Doch was sollten *heikle Aufgaben* sein? Was für heikle Aufgaben gab es in einer Großküche?
 
-Frina ließ die Hände sinken. Die Blase löste sich nicht sofort, sondern zog sich langsam zurück, wie Wasser, das in den Boden zieht. Sie sah noch einmal auf Momo, dann auf mich.
+Am Abend, allein im Schlafraum, ließ Acen die Naniten den Schaden analysieren. Es war erstaunlich, wie viele Funktionen in seinem Körper versteckt waren.
 
-»Du hast ein Lebewesen mitgebracht«, sagte sie.
+Er dachte an den heutigen Tag, an das Gefühl, Ferris aus der Küche zu ziehen, an die kalte, klare Logik, mit der er alles ausgeführt hatte. Es war wie in den Simulationen, aber diesmal war es echt.
 
-»Unabsichtlich.«
-
-»Aber du hast es getan. Das ist ... bemerkenswert«, sagte sie.
-
-»Ist es das? Ich hab sogar einen Mantel mitgebracht, den ich nicht mal angehabt habe, als ich eingeschlafen bin.«
-
-Sie sah erneut zu Momo, und zum ersten Mal seit ich eingetreten war, sah ihr Blick nicht nach Kampfbereitschaft aus. Er sah aus wie Nachdenken. »Du hast ein Lebewesen aus deiner Welt in diese gebracht«, wiederholte sie matt.
-
-»Er ist eine Katze.«
-
-»Er ist ein Lebewesen.« Frina trat einen Schritt auf mich zu, die Blase war vollständig verschwunden. Sie streckte eine Hand aus – langsam, vorsichtig, wie man es bei etwas tut, das man nicht erschrecken will – und hielt sie Momo hin.
-
-Momo beschnupperte ihre Finger. Dann rieb er seinen Kopf daran.
-
-Frina zog die Hand nicht zurück. Sie sah auf das Tier hinunter, und ich sah, wie sich etwas in ihrem Gesicht veränderte – nicht viel, nur ein kleines Nachlassen um den Mund.
-
-»Die anderen müssen das wissen«, sagte sie.
+Er schloss die Augen und wusste, dass ab morgen alles anders laufen würde.
 
 ---
 
+Nach der Lichterlöschung versank die Sonnenfresser in ein dunkles, gedämpftes Blau. Acen blieb meist noch eine Stunde wach. Er lauschte dem leisen, mechanischen Summen der Station, das durch die Wände drang.
 
-Frinas Kommunikationsgerät hing an der Wand neben dem Regal, und ich hätte es nie als solches erkannt. Es war eine Kupferplatte, nicht größer als ein Blatt Papier, in die feine Rillen graviert waren, die ich für Dekoration gehalten hatte. Frina legte beide Handflächen flach darauf, und die Rillen begannen zu leuchten – dasselbe blaugrüne Licht wie in den Wandadern, aber konzentrierter, pulsierend in einem Muster, das sich wiederholte. Dreimal. Dann hörte es auf.
+In dieser Stunde, in der die Station schlief, begann seine eigentliche Arbeit.
 
-»Sie kommen«, sagte Frina.
+Er hatte begonnen, die Gangsysteme hinter den Küchenwändern zu erforschen. Zuerst nur aus Langeweile. Doch sein Interesse wurde geweckt, als er merkte, dass die Gänge weit über den begrenzten Bereich der Küche hinausgingen. Die Luke, die er in der Vorratskammer entdeckt hatte, führte in ein Netz aus Versorgungsschächten. Sie waren eng, aber für seinen schmalen Körper passierbar. Er gewöhnte sich an die engen Wände, das ständige Summen der Kabel und den Geruch von Staub und Öl. 
 
-Ich setzte mich auf den Stuhl am Tisch und hielt Momo auf dem Schoß. Er hatte aufgehört zu schnurren und beobachtete die Tür mit der Aufmerksamkeit, die er sonst Vögeln auf dem Fensterbrett widmete.
+Es gab nirgends die Sensorfelder wie auf der *das Ende der Reise*. Wachen und abgeschlossene Bereiche hielt man hier wohl für ausreichend. Was seltsam war, denn die schmalen Versorungs- und Wartungschächte ignorierten Absperrungen komplett. 
 
-Sie kamen nicht alle gleichzeitig. Kael zuerst, dann Vera, dann Ezra, der die Tür hinter sich schloss. Oswin fehlte. Lyra auch. Kael sah mich an, sah Momo, und sein Blick blieb auf dem Kater.
+Die Versorgungsschächte waren unbeleuchtet, aber die Naniten verbesserten seine Sicht. Er bewegte sich wie ein Tier, langsam und vorsichtig, tastete die Umgebung ab.
 
-»Was ist das?«, sagte er.
+In der ersten Nacht folgte er dem Schacht bis zu einem Versorgungsknoten. Dahinter eine Serviceklappe, die in einen Korridor führte, den er nicht kannte. Er öffnete vorsichtig, lugte hinaus: Niemand. Er verließ den Schacht, setzte einen Marker in seinem Gedächtnis, schlich sich dann weiter vor.
 
-»Eine Katze«, sagte ich. »Ein Tier aus meiner Welt. Ein Haustier.«
+Die oberen Stockwerke der Sonnenfresser waren anders. Weniger Menschen, mehr Roboter. Die Wege breiter, die Türen seltener, aber schwerer. Einmal hörte er ein mechanisches Klacken und versteckte sich gerade noch rechtzeitig in einem Wartungsschrank, als ein Trupp Wachen in schwarzen Rüstungen vorbeimarschierte. Ihre Bewegungen waren synchronisiert, jeder Schritt wie eine Zeile im Takt einer unsichtbaren Musik.
 
-»Haustier? So etwas wie ein Schwein?«
+Acen zählte sechs Männer, alle mit schweren Waffen. Ihr Blick war starr nach vorne gerichtet, niemand achtete auf die Umgebung. Er wartete, bis das Echo der Schritte verklang, dann schlich er weiter.
 
-Ich verdrehte die Augen. 
+Je höher er kam, desto sauberer wurde die Luft. Die Temperatur sank, das Licht wechselte auf ein subtiles Orange. Er sah aus einem Lüftungsgitter, wie ein Gefangener mit zwei Wachen durch den Gang geführt wurde. Der Mann wirkte vertraut – ein ehemaliger Kollege aus der Küche? Nein, zu groß. Aber das Gesicht war ihm bekannt. Er beobachtete, wie die Wachen den Mann grob weiterschoben, ihn dann in eine metallene Tür schubsten. Die Tür verriegelte, und der Gang war wieder leer.
 
-Frina trat vor, bevor ich antworten konnte. »Luna hat ein Lebewesen aus ihrer Welt in diese gebracht. Unabsichtlich. Die ... Katze hat neben ihr geschlafen und ist beim Übergang mitgekommen.«
+Acen hatte inzwischen verstanden, dass die Hierarchie auf dem Schiff ein Spiegelbild der Gesellschaft draußen war. Die ganz unten machten die Arbeit. Die weiter oben kontrollierten die Ressourcen. Und ganz oben saß eine Schicht, die alles sah und alles wusste, ohne sich je zu zeigen.
 
-Niemand sprach. Vera starrte auf Momo, Ezra auf Frina, Kael auf mich.
+Er kam an eine Stelle, an der der Versorgungsschacht endete. Nur ein Blech, mit sechs Schrauben befestigt. Dahinter war Stille. Er lauschte: keine Stimmen, kein Maschinensurren. Langsam schraubte er das Blech ab und spähte durch die Öffnung.
 
-»Ein Lebewesen«, sagte Ezra.
+Dahinter lag ein Raum, ausstaffiert mit schweren Teppichen und einer gewaltigen Glasfront. Es war, als hätte er die Atmosphäre eines ganzen Planeten in einen Raum gepresst: Pflanzen, echtes Holz, der Geruch von Wasser und Grün. Der Kontrast zur sterilen Küche war so extrem, dass es fast schmerzte.
 
-»Ein Tier«, sagte ich. »Mein Kater. Er ist harmlos.«
+Ein langer Tisch, gedeckt für drei Personen. An der Wand ein Hologramm mit rotierenden Planeten. In der Ecke eine menschliche Gestalt – groß, schlank, mit silbrigem Haar. Sie bewegte sich kaum, stand einfach da und betrachtete das Hologramm. Acen blieb reglos, versuchte, ihren Rhythmus zu studieren. Minuten verstrichen, dann setzte sie sich an den Tisch, starrte ins Leere.
 
-»Das ist nicht der Punkt.« Ezra trat näher, und ich sah, wie er Momo betrachtete – nicht mit Frinas anfänglicher Kampfbereitschaft, sondern mit der konzentrierten Aufmerksamkeit eines Mannes, der etwas auseinandernimmt, um zu verstehen, wie es zusammengesetzt ist. »Der Punkt ist, dass du ihn mitgebracht hast. Dass der Übergang ein Lebewesen zugelassen hat.«
+Acen schob das Blech wieder vor den Schacht, verschraubte es vorsichtig. Er spürte, wie sein Herz raste, obwohl die Naniten den Kreislauf zu drosseln versuchten. Er kannte das Gefühl: Er war nah dran, entdeckt zu werden. Oder schlimmer – er hatte vielleicht bereits eine Falle ausgelöst.
 
-»Ich weiß nicht, ob er ihn *zugelassen* hat«, sagte ich. »Momo hat einfach neben mir gelegen. Ich habe nicht versucht, ihn mitzunehmen.«
+Er zog sich zurück, bewegte sich noch vorsichtiger durch die Gänge. Im letzten Abschnitt, kurz vor der Küche, hörte er plötzlich Stimmen. Er erkannte sofort Kotta, die andere war tief und ruhig. Reimann.
 
-»Aber er ist hier.« Vera verschränkte die Arme. Ihre Stimme war ruhig, aber ich kannte diesen Ton – sie dachte schnell und wollte, dass die anderen aufholten. »Wenn sie ein Tier mitnehmen kann, ohne es zu versuchen – was kann sie mitnehmen, wenn sie es versucht?«
+»Er beobachtet alles«, sagte Reimann.
 
-Niemand antwortete sofort. Momo gähnte.
+Kotta lachte leise. »Wie ein Raubtier.«
 
-Ezra richtete sich auf. »Menschen«, sagte er.
+»Das ist kein Kind«, sagte Reimann. »Der Junge ist gefährlich. Aber ich mag das.«
 
-Das Wort fiel in den Raum wie etwas Schweres.
+Ein Moment Stille, dann: »Was tun wir?«
 
-Kael lehnte sich gegen die Wand. »Das würde einiges erklären.«
+»Beobachten. Nicht eingreifen. Ich will wissen, was er sucht.«
 
-»Was würde es erklären?«, fragte ich.
+Acen hielt den Atem an. Sie hatten ihn nicht entdeckt, aber sie wussten, dass er anders war. Es war nur eine Frage der Zeit, bis sie versuchten, ihn zu benutzen. Oder zu eliminieren.
 
-»Die Resonanz-Magier.« Er sah mich an. »Wir wissen, dass sie Einfluss auf deine Welt haben. Wir wissen, dass sie dort operieren können. Wir haben nie verstanden, wie – nicht vollständig. Wenn die Fähigkeit, Lebewesen zwischen den Welten zu transportieren, möglich ist, dann haben sie sie wahrscheinlich auch. Oder hatten sie.«
+In der Nacht lag Acen wach, hörte die Naniten im Blut, die fremden Stimmen im Kopf. Sein Radius wurde mit jedem Tag größer, die Gefahren aber auch.
 
-»Das würde erklären, wie sie überhaupt erst Fuß gefasst haben«, sagte Vera. »Nicht durch Bruchstellen. Durch jemanden, der sie hindurchgebracht hat.«
+Am nächsten Morgen beim Frühstück saß Kotta wie immer am Tisch. Doch er sagte nichts. Er warf Acen nur einen kurzen, respektvollen Blick zu. Sogar Ferris hatte damit aufgehört, sich bei ihm für seine Rettung zu danken.
 
-Ezra nickte langsam. »Und wenn Luna das kann –«
+Als die Schicht begann, stand Reimann an der Tür. Er sah Acen direkt an und nickte. Kein Befehl, keine Warnung. Nur ein Zeichen: Ich weiß, wer du bist. Und ich weiß, was du kannst.
 
-»Dann können wir Menschen in ihre Welt bringen«, sagte Frina. »Agenten. Verstärkung. Wir wären nicht mehr darauf angewiesen, dass sie alleine operiert.«
+Das war der Moment, in dem Acen begriff, dass die Küche nicht das Ende seiner Reise war. Sondern erst der Anfang.
 
-Ich saß da und hörte zu, wie sie über mich sprachen, als wäre ich ein Werkzeug, das man gerade neu bewertet hatte. Das war nicht böse gemeint – das wusste ich. Aber es war trotzdem ein seltsames Gefühl, so dazusitzen, mit einem Kater auf dem Schoß, während die anderen die Konsequenzen meiner Schlafgewohnheiten diskutierten. *War* ich vielleicht ein Werkzeug, das sie neu bewerteten? Ich schob den Gedanken beiseite.
 
-»Ich könnte es versuchen«, sagte ich.
+# Lyra
 
-Alle sahen mich an.
 
-»Ich meine – wenn ihr wissen wollt, ob es funktioniert, könnte ich es versuchen. Jemanden mitnehmen, wenn ich zurückgehe.«
+Als Acen diesmal die Luke im Vorratsraum aufstemmte, ging er vorsichtiger vor als je zuvor. Er hatte die Abläufe der Wachen so oft beobachtet, dass jede Pause, jeder Schritt, jedes Zögern ihm vertraut war. Die Abstände hatte er abgeschätzt, das Zeitfenster grob berechnet – zumindest so genau, wie es eben ging. Trotzdem blieb in seinem Magen das flaue Gefühl: Ganz ohne Risiko war es nie.
 
-Vera schüttelte den Kopf. »Wir wissen nicht, was passiert. Derjenige könnte in deiner Welt stranden. Oder er könnte –« Sie machte eine kurze Pause. »Verschwinden. Irgendwo dazwischen.«
+Die Luft in den Versorgungsschächten war heute trocken und roch nach verbranntem Plastik. Irgendwo in der Nähe musste ein Kabel durchgeschmort sein. Hoffentlich tauchte jetzt nicht ein Wartungstechniker auf, Ja der den Schaden beheben wollte. Er bewegte sich schneller als sonst, schlich durch die Kurven im Halbdunkel, wie ein Tier in seinem Bau. Seine Schritte waren fast lautlos, nur einmal streifte sein Schuh eine Gitterluke – ein leises Klirren, das in der Dunkelheit viel zu laut schien. Er blieb sofort stehen, lauschte, doch nichts rührte sich. Die vertrauten Ritzen in den Wänden, das schwache Licht durch die Wartungsöffnungen, das ewige Brummen der Station – alles wie immer. Schließlich war es so weit: Er erreichte den noch unbekannten Gang.
 
-»Wir wissen zu wenig über den Übergang. Bis vor ein paar Monaten wussten wir nicht einmal etwas von Luna«, sagte Frina.
+Da war plötzlich ein anderer Geruch in der Luft. Nicht Öl und Schmierfett, sondern süßlich, fremd – fast wie die künstlichen Blumen, die sein Großvater einmal für ein Bankett bestellt hatte. Acen hielt den Atem an und bewegte sich vorsichtiger weiter. Er folgte seiner Nase um eine Abzweigung herum, tiefer hinein ins Unbekannte. Da sah er es. Ein Licht. Nicht das sterile Blau der Wartungslampen, sondern etwas Weiches, Warmes. Er ging gebückt näher, bis er durch ein Gitter in einen kleinen Betriebsraum spähen konnte.
 
-»Letztlich wird uns nichts anderes übrig bleiben als ein Versuch«, sagte Oswin, der jetzt in der Tür stand – ich hatte ihn nicht kommen hören. Er trat ein, sein Hemdkragen stand auf einer Seite hoch, als hätte er sich das Hemd in aller Hast übergezogen. »Entschuldigt die Verspätung. Ich habe mitgehört.« Er sah auf Momo. »Faszinierend.«
+Dort saß jemand. Auf einem der niedrigen Wartungspulte, die Beine angezogen, das Kinn auf die Knie gestützt. Lange, silberweiße Haare fielen wie ein Wasserfall über das Nachthemd. Sie war klein, fast zerbrechlich. Und sie summte – eine Melodie, die Acen nicht kannte. Jede Note so klar, dass sie durch das Metall vibrierte.
 
-»Wir sind uns einig, dass es ein Risiko ist«, sagte Ezra. »Aber das Potential –«
+Er starrte sie an, als wäre sie ein seltenes Tier hinter Glas. Für einen Moment vergaß er, warum er hier war.
 
-»Das Potential ist erheblich«, sagte Kael. Er hatte sich von der Wand abgestoßen und stand jetzt aufrechter. »Ich sage, wir versuchen es.«
+Dann bewegte sie sich. Ihr Kopf schnellte herum, die Augen riesig und hell, wie zwei Perlen im Licht. Sie hatte ihn bemerkt.
 
-»Du sagst, *wir* versuchen es«, sagte Vera. »Aber derjenige, der mitgeht, ist nicht *wir*. Derjenige, der mitgeht, ist eine einzelne Person, die möglicherweise nicht zurückkommt.«
+Einatmen. Ausatmen. Keine Panik jetzt.
 
-»Dann gehe ich.«
+Sie sagte: »Du bist schlecht im Verstecken.«
 
-Vera sah ihn an. »Kael.«
+Acen zuckte zusammen. Hatte sie ihn wirklich gesehen? Oder war das ein Test?
 
-»Ich sage, wir versuchen es«, wiederholte er. »Wenn jemand das Risiko tragen soll, dann ich.«
+Er entriegelte die Luke und kletterte vorsichtig aus dem Schacht, blieb aber in der Deckung des Schattens. »Ich wollte dich nicht stören.«
 
-Ich hätte etwas sagen sollen, aber in diesem Moment spürte ich es bereits – das vertraute Ziehen. Das leise, unverkennbare Ziehen, das ich inzwischen kannte wie einen alten Schmerz: mein Körper, der anfing aufzuwachen. Nicht sofort, nicht in Sekunden, aber bald. Der Übergang kündigte sich an.
+Sie schüttelte den Kopf, als wäre das die unnötigste Entschuldigung der Welt. »Du brauchst dich nicht zu entschuldigen. Ich hab' genauso wenig recht, hier zu sein, wie du.«
 
-Ich stand auf. Momo rutschte von meinem Schoß und landete auf dem Boden mit dem lautlosen Aufprall, den Katzen immer hinbekommen.
+Er trat ganz heraus. »Ich arbeite in der Küche. Heute gab's Ärger, weil Vorräte fehlten … Der Küchenchef hat gesagt, ich soll mich nach dem Nachtsignal mal umschauen. Ich hab' diese Luke gefunden, die nur angelehnt war … da bin ich auf Erkundungstour gegangen.«
 
-»Ich wache gleich auf«, sagte ich.
+Sie musterte ihn von oben bis unten. »Du bist zu dünn für die Küche. Und du stehst schief.«
 
-Alle sahen mich an.
+Acen wusste nicht, was er darauf sagen sollte. Und er stand ganz sicher *nicht *schief. Also schwieg er.
 
-Ich bückte mich und nahm Momo auf. Er ließ es geschehen. Ich hielt ihn gegen meine Brust, seine Pfoten auf meinem Unterarm, sein Gewicht vertraut und warm.
+Sie ließ die Beine baumeln. »Wie heißt du?«
 
-»Ich nehme ihn mit zurück«, sagte ich. »Das ist der Plan. Er muss bei mir sein, wenn –«
+»Acen.«
 
-Kael bewegte sich.
+»Du bist komisch. Du hast viel zu klare Augen. Und deine Hände sind sauber. Die meisten aus der Küche haben immer fleckige Fingerkuppen von Beeren oder roter Beete. Und Schnittwunden.«
 
-Er war schnell. Zwei Schritte, und dann legte er seine Arme um mich, fest und ohne Zögern, und Momo war zwischen uns eingequetscht. Er miaute. Kläglich, vorwurfsvoll, mit der ganzen Würde eines Tieres, dem gerade Unrecht geschehen war.
+Sie hatte recht. Die Naniten sorgten dafür, dass seine Schnitte schnell verheilten.
 
-Ich hätte fast gelacht. Fast.
+»Wer bist du?«, fragte er.
 
-»Kael«, sagte ich.
+Sie schob die Haare zurück und sah ihn an, als müsse er sie kennen. »Lyra Arista. Zehnte Tochter des Hauses Arista. Und du hast mir meinen Lieblingsraum geklaut.«
 
-»Du hast gesagt, derjenige muss bei dir sein«, sagte er, direkt hinter meinem Ohr. »Ich bin bei dir.« Seine Wange berührte meine. Ein Prickeln fuhr durch mein Gesicht, dann durch meinen ganzen Körper. Und der Geruch war wieder da – irgendwo zwischen Erdbeerfeld und Zypressenhain, mit einer Spur von Zahnrad, wie alles in dieser Welt. Ich musste dem Drang widerstehen, ihn wie ein Hund zu beschnüffeln.
+Acen blinzelte. »Du bist … die Tochter von Paleus?«
 
-Das Ziehen wurde stärker.
+Sie nickte, als würde sie gefragt, ob Wasser nass ist.
 
-»Das ist keine Entscheidung, die du in drei Sekunden treffen solltest«, sagte ich.
+Er überlegte, ob er sich verbeugen sollte. Sein Großvater hätte es getan. Doch Lyra verzog das Gesicht, als sie seine Unsicherheit sah.
 
-»Ich habe sie nicht in drei Sekunden getroffen. Es waren vier. Vielleicht fünf.«
+»Mach das nicht. Die Erwachsenen machen das immer. Ich hasse das.«
 
-Momo miaute erneut, diesmal etwas lauter, und ich spürte, wie er versuchte, sich zwischen uns hindurchzudrücken, was ihm nicht gelang, weil Kael nicht nachgab.
+Er entspannte sich.
 
-Vera sagte etwas. Ezra sagte etwas. Ich hörte die Worte, aber das Ziehen war jetzt so stark, dass sie weit weg klangen, wie Stimmen durch Wasser.
+Sie sah ihn an, als würde sie durch ihn hindurchsehen. »Warum bist du wirklich hier?«
 
-Ich hielt Momo fest. Kael hielt mich fest. Momo hielt sich selbst für das größte Opfer in diesem Raum, was er mit einem dritten, besonders klagenden Laut zum Ausdruck brachte.
+Er wich ihrem Blick aus, sie hatte ihn durchschaut.
 
-Dann kam die Dunkelheit.
+»Ich kann nachts nicht schlafen. Da sehe ich mich halt ein wenig um.«
 
+»Und nun bist du hier in meinem Versteck aufgetaucht.«
 
-# Kapitel 6 - Besuch aus Kirgisistan
+Acen zuckte mit den Schultern. »Wir können teilen.«
 
-Ich wachte auf, weil Momo auf mir saß, was nicht ungewöhnlich war. Momo saß gelegentlich auf mir, wenn er der Meinung war, dass ich lange genug geschlafen hatte und es Zeit wurde, ihn zu füttern. Was ungewöhnlich war: Er saß nicht auf mir. Er saß neben mir, auf etwas, das nicht die Matratze war, und betrachtete dieses Etwas mit der konzentrierten Ernsthaftigkeit, die er sonst Vögeln auf dem Fensterbrett widmete. 
+Sie überlegte. »Du bist nicht wie die anderen. Die meisten laufen weg, wenn sie mich sehen. Oder sie fangen an zu stottern.«
 
-Ich öffnete die Augen halb. Mein Gesicht ruhte auf etwas Warmem, etwas Festem, das sich hob und senkte, und mein halbwacher Verstand stellte fest, dass es sich dabei um einen Brustmuskel handelte – einen ziemlich kräftigen, soweit ich das im Halbschlaf beurteilen konnte. Ich lag auf der Seite, die Wange auf dieser Fläche, und der Rhythmus darunter war so gleichmäßig, so ruhig, dass mein Körper keine Veranlassung sah, sich zu bewegen.
+Acen schüttelte den Kopf. »Ich bin nicht so leicht zu erschrecken.«
 
-Ich blinzelte und dachte, noch halb im Schlaf, dass es ein wirklich schöner Brustmuskel war. Breit. Gut proportioniert. Das Licht, das durch die Vorhänge sickerte, legte sich flach darüber und betonte die Kontur. Dahinter konnte ich Momo ausmachen. Er drehte den Kopf und sah mich an, mit dem Ausdruck eines Tieres, das eine Situation vollständig erfasst hat und auf eine Reaktion wartet.
+Lyra lachte. Es klang nicht mädchenhaft, sondern wie das Kichern einer alten Hexe. »Ich schon!«
 
-Dann wurde mir klar, dass in meinem Bett kein Brustmuskel sein sollte. Ruckartig setzte ich mich auf. Die Decke glitt herunter. Ich starrte den Mann neben mir an. Es war Kael.
+Er musste grinsen. Sie war seltsam, aber nicht unangenehm.
 
-Er lag auf dem Rücken, die Augen geschlossen, und schlief. Er trug nichts. Die Decke lag irgendwo auf Hüfthöhe.
+»Und machst *du* hier so spät nachts?«, fragte er sie.
 
-Ich trug wie immer nur ein langes, schlabbriges Männer-T-Shirt und Unterhose. So war ich gestern ins Bett gegangen. Ich sah auf Kael hinunter und versuchte, meine Gedanken in eine sinnvolle Reihenfolge zu bringen.
+»Ich höre, wie die Station atmet.«
 
-Er war also tatsächlich mit mir gekommen, aber wieso war er halbnackt? Moment! War er denn halbnackt? Ich widerstand dem Impuls die Decke weiter herabzuziehen. 
+Er runzelte die Stirn.
 
-Momo trat von Kaels Schulter auf die Matratze, setzte sich zwischen uns und betrachtete mich mit großem Ernst.
+»Na, hör doch!« Sie hielt den Finger an die Lippen. Dann schloss sie die Augen.
 
-»Sag kein Wort«, sagte ich zu ihm.
+Acen lauschte. Erst hörte er nur das Summen der Generatoren. Dann, langsam, schälte sich ein anderes Geräusch heraus – wie ein ferner Herzschlag, ein regelmäßiges Pulsieren, als würde der ganze Sonnenfresser leben.
 
-Momo sagte kein Wort. Er blinzelte einmal, langsam, und schaute dann auf Kael, dann auf mich, dann wieder auf Kael, mit der Gründlichkeit eines Tieres, das eine Bestandsaufnahme macht.
+»Ich glaube, ich höre es.«
 
-Kael öffnete die Augen. Sofort, ohne das übliche Blinzeln oder Orientieren, war er wach. Sein Blick glitt von der Decke zu mir und blieb dann an Momo hängen. Für einen Moment erstarrte er, die Muskeln angespannt, als hätte er eine Gefahr erkannt, die ich nicht sah. Vielleicht war er einfach kein ›Katzenmensch‹. Aber dann erinnerte ich mich, dass es in der Traumwelt keine Katzen gab. Ich fuhr Momo sanft über den Kopf, um Kael zu zeigen, das von dem Tier keine Gefahr ausging. Kaels Anspannung wich einer vorsichtigen Neugier, und er richtete sich auf, als akzeptierte er die neue Situation.
+Lyra nickte. »Wenn ich Musik mache, höre ich das immer. Es ist wie ein Rhythmus, der nie aufhört.«
 
-Dann sah er an sich herunter. Er war nackt. Das war offensichtlich, und er schien es mit derselben Gleichgültigkeit zur Kenntnis zu nehmen, mit der man feststellt, dass es draußen bewölkt ist. Er sah kurz auf seinen eigenen Unterleib, dann auf mich, und sagte etwas.
+»Du kannst Musik machen?«, fragte er.
 
-Es war keine Sprache, die ich kannte. Keine, die ich je gehört hatte. Die Laute waren weich und präzise zugleich, mit einem sanften Rhythmus.
+Sie lächelte verschmitzt. »Besser als du laufen kannst, Küchenjunge.«
 
-»Ich verstehe dich nicht«, sagte ich.
+Er lachte.
 
-Er sah mich an. Dann sah er sich im Zimmer um, ruhig, systematisch, und ich sah, wie er die Situation einordnete. Kein Fenster zur Traumwelt. Keine leuchtenden Adern in den Wänden. Keine Resonanzsäulen, keine Zahnräder, kein Vibrieren in den Knochen. Nur mein Zimmer, grau im Morgenlicht, mit dem tropfenden Wasserhahn im Bad und dem summenden Kühlschrank.
+»Dann zeig mal.«
 
-Er sagte noch etwas, kürzer diesmal, und sah mich dabei an.
+Sie zog ein kleines Gerät aus dem Ärmel. Es war rund, mit winzigen Tasten. Sie drückte darauf herum, und eine Melodie begann, leise und klar, als würde ein ganzer Chor in der Wand sitzen.
 
-»Altsyrranisch«, sagte ich, weil mir nichts Besseres einfiel. »Du sprichst Altsyrranisch. Nein, wahrscheinlich eher Syrranisch, die Sprache deiner Heimat. Und ich spreche Deutsch. Das ist ein Problem.«
+Acen lauschte. Es war anders als alles, was er kannte – nicht wie die Lärmmusik aus den Kantinen, sondern wie … wie ein Traum.
 
-Er schien das zu verstehen, auch ohne die Worte. Er nickte einmal, kurz, und stand auf, völlig nackt und mir zugewandt. 
+»Kannst du das auswendig?«
 
-Ich sah weg, obwohl er einen hübschen Penis hatte. *Was zum Teufel*? Hatte ich das gerade wirklich gedacht? Ich fühlte, wie Röte heiß meine Wangen flutete.
- 
+Lyra nickte. »Ich kann es besser als das. Ich kann es variieren. Pass auf.«
 
-»Kael.« Er antwortete nicht. Ich hörte ihn sich bewegen, hörte seine Schritte auf dem Holzboden, und als ich wieder hinsah, stand er am Fenster und betrachtete die Straße. Immer noch nackt und vollkommen unbeeindruckt davon.
+Sie spielte die Melodie rückwärts, dann doppelt so schnell, dann fügte sie eigene Töne hinzu. Am Ende klang es wie das Klopfen seines eigenen Herzens, nur schöner.
 
-Ich stand auf und verließ das Zimmer. Marcus’ Zimmer lag am Ende des Flurs. Ich ging hinein und öffnete den Kleiderschrank meines Bruders. 
+Er war beeindruckt. »Wie hast du das gelernt?«
 
-Hinter mir hörte ich Schritte in der Tür.
+Sie zuckte die Schultern. »Ich muss irgendwas machen, wenn ich nicht schlafen kann. Die Erwachsenen reden nicht mit mir, die meisten Kinder sind blöd. Also spiele ich Musik.«
 
-Ich drehte mich nicht um. »Ich suche etwas für dich«, sagte ich, laut genug, damit er es hörte, obwohl er es nicht verstand. »Warte kurz.«
+»Bist du oft alleine?«
 
-Ich zog eine Jeans heraus, hielt sie hoch, schüttelte den Kopf. Marcus war breiter als Kael. Ich warf sie zurück und griff nach einem Stapel Shirts. Darunter lag ein Hoodie – dunkelblau, mit dem Aufdruck von Marcus’ Uni. 
+Sie zuckte wieder die Schultern, als wäre das keine echte Frage. »Immer.«
 
-Dann suchte ich nach einer Jogginghose, fand eine mit Kordelzug, und drehte mich um.
+Es wurde still. Acen spürte, wie sie ihn prüfend musterte.
 
-Kael stand in der Tür und betrachtete Marcus’ Zimmer mit derselben ruhigen Aufmerksamkeit, mit der er vorhin die Straße betrachtet hatte. Sein Blick wanderte über den Schreibtisch, den Bildschirm, die Kabel, das Regal mit den Büchern. Eine andere Welt. Und noch immer kein Funken Scham. Ich beschloss, die Schamlosigkeit Kaels zu ignorieren. 
+»Und du? Warum bist du wirklich hier? Keine Lüge, diesmal.«
 
-Ich hielt ihm den Hoodie hin.
+Er überlegte. Dann sagte er: »Ich will wissen, wie alles funktioniert. Die Station. Die Menschen. Warum sie tun, was sie tun. Ich mag keine Regeln, die ich nicht verstehe.«
 
-Er sah auf das Kleidungsstück, dann auf mich. Ich machte eine Geste, die unmissverständlich war: *Zieh das an.* Er nahm den Hoodie, betrachtete ihn kurz – die Nähte, den Stoff, den Aufdruck – und zog ihn über den Kopf. Dann die Jogginghose, den Kordelzug, den er ohne Zögern richtig band.
+Sie lächelte. »Du bist wie ich.«
 
-Er  richtete sich auf, und ich musste zugeben, dass er den Uni-Hoodie mit dem Aufdruck *TU-Berlin* mit einer Haltung trug, als wäre er eigens für ihn gefertigt worden. Nicht weil er gut aussah darin – obwohl er das tat –, sondern weil er sich offensichtlich nicht darum scherte, wie er aussah. Er trug ihn einfach, so wie er in der Traumwelt seine Kleidung getragen hatte: als wäre Kleidung eine Funktion und keine Aussage.
+»Nicht ganz. Du bist eine Prinzessin. Ich bin Küchenabschaum.«
 
-Momo erschien zwischen seinen Beinen, beschnupperte die Jogginghose und setzte sich auf seinen Fuß.
+»Du bist kein Abschaum.« Sie sagte das, als wäre es ein Befehl.
 
-Kael sah auf die Katze hinunter. Dann sagte er etwas auf Syrranisch, leise, fast beiläufig.
+Er schwieg einen Moment. Dann fragte sie: »Hast du Freunde, Acen?«
 
-Ich atmete aus und lehnte mich gegen den Türrahmen. Kael stand in Marcus’ Zimmer, in Marcus’ Hoodie, mit meiner Katze auf dem Fuß, und sah mich an. 
+Er überlegte. Ferris vielleicht, aber der war eher ein Problemfall als ein Freund. Kotta? Mehr ein Raubtier als ein Kumpel. Sae? Zu alt.
 
-»Okay«, sagte ich. »Ich mach’ mal Frühstück.«
+Er schüttelte den Kopf.
 
+Lyra nickte, als hätte sie nichts anderes erwartet. »Ich auch nicht.«
 
+Dann beugte sie sich vor, als würde sie ihm ein Geheimnis verraten wollen. »Willst du mein Freund sein?«
+
+Acen war perplex. Das kam zu schnell, zu direkt. »Warum?«
+
+»Weil du nicht lügst. Und weil du nicht wegläufst.«
+
+Er überlegte, wie sein Großvater reagiert hätte. Wahrscheinlich hätte er gesagt: ›Freundschaft ist ein Tauschgeschäft. Pass auf, was du gibst und nimm dir alles, was du kriegen kannst.‹
+
+Aber Lyra war kein Feind. Und sie war sein Schlüssel nach oben.
+
+Er nickte. »Okay. Ich kann dein Freund sein.«
+
+Sie lächelte zufrieden. »Dann musst du mir ein Versprechen geben.«
+
+»Welches?«
+
+»Du darfst niemandem sagen, dass du mich nachts getroffen hast. Und du musst jedes Mal, wenn ich dich rufe, kommen. Egal wann.«
+
+Er runzelte die Stirn. »Das ist eine Menge verlangt.«
+
+Sie zuckte die Schultern. »Es gibt genug Bedienstete, die sterben, wenn sie nicht kommen, wenn man ruft. Also bist du besser dran, auf mich zu hören.«
+
+War das eine unterschwellige Warnung oder bloß ein Anflug von Prinzessinnenstolz? Er durfte nicht vergessen, wer sie wirklich war: die Tochter des grausamsten Herrschers, den die Galaxis kannte.
+
+Er musste lachen. »Du bist wirklich nicht wie die anderen.«
+
+»Das weiß ich.« Sie sah stolz aus.
+
+Acen überlegte kurz. Dann sagte er: »Und was bekomme ich dafür?«
+
+Sie blinzelte. »Was willst du denn?«
+
+Er nahm sich Zeit, zu antworten. »Wissen. Ich will wissen, wie der Palast funktioniert. Wer wirklich Macht hat. Wer wen hasst, wer wen fürchtet. Und ich will wissen, wie dein Vater ist.«
+
+Lyra sah ihn prüfend an. »Was willst du mit solchen Informationen überhaupt? Was nützt einem Küchenjungen das alles?«
+
+Acen zögerte, erwischt von der Direktheit ihrer Frage. Eigentlich – was brachte es ihm wirklich? Sollte er nicht lieber Fluchtpläne schmieden, die Routen der Versorgungsschiffe studieren oder herausfinden, wie man Zugang zu den Hangars bekam? Doch das war nicht das, was ihn nachts wach hielt. Es war dieser unerklärliche Drang, Paleus zu verstehen – zu wissen, wie Macht in diesem Palast wirklich funktionierte.
+
+Er zuckte die Schultern. »Ich … weiß es nicht. Ich will es einfach wissen.«
+
+Lyra lächelte schief. »Nur neugierig?«
+
+Mehr hatte er ihr im Moment nicht zu bieten. »Vielleicht.«
+
+Sie wurde ernst. »Na gut. Also — Mein Vater ist wie ein schwarzer Stern. Alles fällt auf ihn zu, nichts entkommt. Er frisst alles – sogar seine eigenen Gedanken. Manchmal, wenn ich ihn anschaue, denke ich, er wäre gar nicht mehr lebendig. Nur noch Macht.«
+
+Acen fröstelte. »Das klingt gruselig.«
+
+»Ist es auch.«
+
+Für einen Moment sprach keiner von beiden. Das Summen der Station war jetzt lauter als die Worte. Acen merkte, wie Lyras Antwort in ihm nachhallte – dieser Gedanke vom schwarzen Stern, der alles verschlingt. Für einen Augenblick fühlte er sich, als säßen sie beide am Rand eines Abgrunds, auf dessen Grund die Wahrheit über Paleus lauerte.
+
+Lyra stand langsam auf, ließ die Füße vom Pult baumeln und sprang leise zu Boden.
+
+»Du solltest jetzt gehen«, sagte sie leise. »Wenn jemand uns zusammen sieht, gibt es Ärger. Für dich mehr als für mich.«
+
+Acen nickte. Er wollte noch etwas fragen, wusste aber nicht was. Zu viele Gedanken wirbelten in ihm herum.
+
+»Wirst du morgen wieder hier sein?« fragte er schließlich.
+
+Lyra überlegte. »Wenn ich nicht schlafen kann. Und wenn du kommst, bring mir was Süßes aus der Küche mit.«
+
+Sie grinste, und für einen Moment war sie wieder ein Kind – nicht die Tochter des Herrschers.
+
+Acen lächelte zurück. »Abgemacht.«
+
+Er schob sich zurück in den Schacht, warf noch einen letzten Blick zurück. Lyra hatte sich wieder hingesetzt, das Kinn auf die Knie gelegt. Sie summte, leise, als würde sie die Station beruhigen.
+
+Als er in der Dunkelheit verschwand, wusste Acen, dass dies kein gewöhnlicher nächtlicher Ausflug gewesen war. Er hatte eine Verbündete gefunden – oder vielleicht auch eine neue Gefahr.
+
+
+# Paleus
+
+Das Kommandozentrum auf der oberen Ebene des Sonnenfressers hatte keine Fenster. Die einzige Lichtquelle war das holografische Display in der Raummitte, das seinen blauweißen Schein auf die Wände und die Gesichter der drei Offiziere warf, die dort warteten.
+
+Der zweite Offizier trat vor. Er sprach ruhig und legte Datenpakete dar, abgefangene Kommunikation, Ressourcenverschiebungen in drei Sektoren. Dann nannte er einen Namen: »Der Rawchester-Clan hat in dieser Region—«
+
+Paleus tippte ohne Hast einen Code in sein Handgerät.
+
+Ein dünner Energiestrahl traf den Unterarm des Offiziers und brannte eine präzise Linie in die Haut. Der Mann zog die Luft durch die Nase, hielt den Arm still. Er sah nicht nach unten.
+
+»Rawhester«, sagte Paleus. Seine Stimme war gleichmäßig. »Fahre fort.«
+
+Der Offizier fuhr fort.
+
+Die Beweise waren eindeutig. Paleus hörte zu, ohne den Blick vom Display zu nehmen. Die Rawhesters hatten sich Zeit gelassen, das musste er ihnen lassen. Aber sie hatten sich geirrt, wie alle sich irrten, die glaubten, er würde es nicht rechtzeitig sehen.
+
+»Eine Einladung an Pan Rawhester. Er soll hierher kommen, zu einem diplomatischen Gespräch.« Er überlegte einen Moment. »Macht es höflich. Betont unsere gemeinsamen Interessen.«
+
+Einer der Nachrichtendienstoffiziere hob die Hand. »Wenn er ahnt, dass wir seinen Verrat kennen, könnte er die Einladung als Falle erkennen.«
+
+   »Und was, glaubst du, wird er machen?«, fragte Paleus, »Mein Einladung ausschlagen?«
+
+Der Offizier schluckte hörbar. “Natürlich nicht. Wie könnte er?” 
+
+Paleus sah den Mann nicht mehr an, sondern ordnete bereits Dateien auf dem Display neu. »Danke für den Einwand.«
+
+Der Offizier schwieg.
 
 ---
 
+Paleus diktierte noch eine zweite Anweisung: Eine Reihe von Dokumenten sollte vorbereitet werden, gefälscht, mit unterschiedlichen Informationsständen, und dann unter bestimmten Mitgliedern seiner eigenen Familie verteilt werden. Welches Dokument zu wem gelangte und von dort aus weiterfloss, würde ihm sagen, wer redete und mit wem.
 
+Bevor die Offiziere den Raum verließen, hielt er den ersten zurück. »Der Bericht über den Kommunikationskanal. Gut zusammengestellt. Das war nützlich.«
 
-Ich ging in die Küche, Kael folgte mir mit den gleichen ruhigen Schritten, die ich aus der Traumwelt kannte. Momo schlängelte sich zwischen seinen Beinen hindurch und nahm Posten auf dem Küchenboden, von wo aus er uns beide beobachten konnte.
+Der Mann nickte.
 
-Auf dem Tisch stand noch die Schale mit den Äpfeln von gestern. Ich räumte sie beiseite und öffnete den Kühlschrank. Kael trat näher. Sein Blick wanderte über die Tür, die Dichtung, das Licht, das beim Öffnen anging. 
+Paleus wandte sich wieder dem Display zu, bevor die Tür sich schloss.
 
-Ich holte Butter, Marmelade und eine Packung Toast heraus. Kael betrachtete den Toast, die gleichmäßig geschnittenen Scheiben, die Plastikverpackung. 
+---
 
-Ich schob zwei Scheiben in den Toaster und drückte den Hebel herunter. Das leise Klicken ließ ihn den Kopf drehen. Er beobachtete, wie die Heizstäbe durch das Gitter zu glühen begannen, ohne eine Flamme zu zeigen. Kein Staunen, nur Konzentration.
+Sein Handgerät leuchtete auf. Lyras Kennung.
 
-Während der Toast brutzelte, ging ich zum Spülbecken und drehte den Wasserhahn auf. Kael folgte mir. Das Wasser lief kalt und klar in den Abfluss. Ich schloss den Hahn, öffnete ihn wieder, ließ es laufen. Er beugte sich vor, nicht um näher hinzusehen, sondern um den Mechanismus zu verstehen. Der Drehgriff, die Bewegung, das Geräusch des Wassers, das auf Metall traf. In der Traumwelt gab es -- wie es sich für eine Steampunk-Welt gehörte -- Hebel, um den Wasserfluss zu regulieren.
+Er nahm das Gespräch an.
 
-Ich schloss den Hahn. Kael richtete sich auf und sah mich an. Ich zeigte auf den Hahn, dann auf das Becken. Er nickte einmal.
+Sie war in der Trainingshalle, das sah er sofort. Im Hintergrund standen zwei Trainer an der Wand, und in der Mitte der Halle wartete ein Mädchen in Kampfstellung, vielleicht zehn oder elf Jahre alt, einen halben Kopf größer als Lyra. Lyra hatte das Gerät so positioniert, dass er alles sehen konnte.
 
-Der Toaster sprang hoch. Kael drehte sich um. Ich nahm die heißen Scheiben heraus, strich Butter darauf, dann Marmelade. Die süße, rote Masse breitete sich auf dem warmen Brot aus. Ich legte einen Toast auf einen Teller und schob ihn über den Tisch zu ihm.
+»Ich wollte dir etwas zeigen«, sagte Lyra.
 
-Kael betrachtete den Toast. Dann nahm er ihn und biss ab. Sein Gesicht zeigte Überraschung und er sagte etwas. Er schluckte, sah auf den Rest des Toasts in seiner Hand, dann auf mich.
+»Ich sehe«, sagte er.
 
-»Süß«, sagte ich. »Das ist süß.«
+Der Kampf dauerte weniger als zwei Minuten. Lyra bewegte sich schnell und ohne Zögern. Das andere Mädchen war nicht langsam, aber Lyra ließ ihr keinen Raum. Sie beendete es mit einem Wurf, der die Ältere flach auf den Rücken brachte. Dann trat sie zurück und sah in die Kamera.
 
-Er biss noch einmal ab, und diesmal sah ich, wie seine Augen für einen Moment zur Marmelade schweiften. Nicht überrascht, nur registrierend. Ein neuer Geschmack. Er beendete den Toast und wartete.
+Paleus ließ einen Moment vergehen.
 
-Ich aß meinen eigenen Toast stehend, während ich überlegte, was als Nächstes kommen musste. Das Bad. Die Toilette. Die Lichtschalter. Alles Dinge, die in der Traumwelt anders funktionierten oder gar nicht existierten.
+»Gut«, sagte er. »Sehr gut.«
 
-Ich wusch den Teller ab, ließ das Wasser laufen, schloss den Hahn. Kael beobachtete jede Bewegung. Dann ging ich zum Flur und zeigte auf den Lichtschalter. Ich drückte ihn nach oben. Das Licht im Flur ging an. Ich drückte ihn nach unten. Das Licht ging aus. Ich wiederholte die Bewegung zweimal, langsam. Kael trat näher, betrachtete den Schalter. Er schaltete ein paar mal das Licht an und aus und sagte: *Kel Mag* und ich war mir sicher das bedeutete *Technomagie*.
+Lyras Gesicht veränderte sich kaum, aber er sah es trotzdem. »Ich arbeite an der Druckpunkt-Sequenz, die du mir gezeigt hast.«
 
-Momo folgte uns ins Bad. Ich zeigte auf den Lichtschalter dort, machte das gleiche Spiel. An, aus. Kael sah zu, sagte nichts. Dann zeigte ich auf die Toilette. Ich hob den Deckel, ließ ihn fallen. In der Traumwelt waren Toiletten groß und rechteckig. Ich fand das scheußlich. Man saß darauf wie ein Affe auf dem Schleifstein. Schloss man den Deckel, und öffnete ihn wieder, war alles sauber. Hier war die Schüssel klein, rund, aus Porzellan. Ich drückte die Spülung. Das Wasser rauschte herunter, spülte, füllte sich wieder. Kael beugte sich vor, um den Mechanismus zu sehen, nicht das Wasser.
+»Das sieht man.«
 
-Ich zeigte auf das Toilettenpapier, die Rolle an der Wand. In der Traumwelt gab es das auch, sah nur anders aus. Er berührte das Papier kurz mit den Fingerspitzen, fühlte die Textur, zog die Hand zurück.
-
-Dann standen wir einfach da, Kael, Momo und ich, in dem engen Bad, und ich wusste nicht, was ich noch zeigen sollte. Kael sah sich um, den Spiegel, das Waschbecken, den Duschvorhang. Sein Gesicht war ruhig, aber seine Augen arbeiteten. Sie nahmen alles auf, speicherten es, ordneten es ein.
-
-Momo sprang auf den Rand der Badewanne und setzte sich. Er sah Kael an, dann mich, als wollte er sagen: *Und jetzt?*
-
-Ich atmete aus. »Das war’s erstmal.«
-
-Kael sah mich an. Dann sagte er etwas auf Syrranisch, leise, fast für sich selbst. Es klang nicht wie eine Frage, mehr wie eine Feststellung.
-
-Ich nickte, als hätte ich ihn verstanden. Vielleicht hatte ich das ja.
-
-Das Klingeln war hart und ungeduldig, zweimal kurz hintereinander, dann eine Pause, dann noch einmal. Ich erstarrte mitten in der Küche. Kael hob den Kopf, sein Blick ging zur Wohnungstür.
-
-»Scheiße«, sagte ich leise.
-
-Das Klingeln wiederholte sich. Ich ging zum Flur, langsam, als könnte ich die Zeit damit verlangsamen. Durch den Spion sah ich Neles Gesicht, angespannt, die Augenbrauen zusammengezogen. Sie klingelte erneut.
-
-Ich öffnete die Tür einen Spalt. »Hey.«
-
-Nele drückte sie sofort weiter auf. »Wo warst du?«
-
-»Ich …«
-
-»Du hast dich gestern Abend nicht gemeldet. Wie verabredet.« Sie trat näher, ihr Blick ging über meine Schulter in die Wohnung. »Was ist hier los?«
-
-»Nichts. Ich war müde. Ich bin einfach eingeschlafen.« Ich versuchte, die Tür etwas zu schließen, aber sie stemmte ihren Fuß gegen den Rahmen.
-
-»Du siehst nicht müde aus. Du siehst …« Ihr Blick wurde schmal. »Du hast jemanden hier.«
+Eine kurze Pause. Lyra wischte sich die Hände an einem Tuch ab. »Ich will am Jungsternturnier teilnehmen. Die Qualifikation beginnt in sechs Wochen.«
 
 »Nein.«
 
-»Doch. Du hast einen Mann hier. Das wurde aber auch mal Zeit. Wann hattest du das letzte mal Sex? 2020?« Sie schob die Tür ganz auf und trat ein. »Wo ist er?«
+»Ich bin gut genug.«
 
-»Nele, bitte.«
+»Das bezweifle ich nicht. Aber du hast noch nie außerhalb der Halle gekämpft.«
 
-Sie ignorierte mich und ging Richtung Küche. Ich folgte ihr, meine Hände waren feucht. In der Küchentür blieb sie stehen.
+»Dann lass mich herausfinden, wie anders es ist.«
 
-Kael saß am Tisch und aß seinen Toast. Er sah auf, als Nele eintrat, und sagte etwas auf Syrranisch. Seine Stimme war ruhig, höflich.
+»Noch nicht.«
 
-Nele starrte ihn an. Dann drehte sie sich zu mir um. »Wer ist das?«
+Lyra sah ihn an. »Wann dann?«
 
-»Das ist … Kael.«
+»Wenn die Zeit stimmt.«
 
-»Er studiert an der TU?«, sagte sie mit blick auf den Hoodie.
+Sie nickte einmal, knapp. »Noch etwas?«, fragte er.
 
-»Nein, der gehört Marcus.« Ich zuckte hilflos mit den Schultern. 
+»Nein.« Eine halbe Sekunde Pause. »Danke, dass du drangegangen bist.«
 
-»Muss ich die offensichtliche Frage aussprechen?«
+»Natürlich«, sagte er.
 
-»Nein, musst du nicht. Er kam nackt hier an.«
+Er beendete das Gespräch.
 
-»Woher kam er, und wieso sollte er dabei nackt gewesen sein?«
+Er legte das Gerät auf den Tisch.
 
-Ich schwieg.
+Das andere Mädchen hatte gut gekämpft. Besser als Lyra ahnte. Die Trainer wussten, was er erwartete: Lyra gewann immer, jeder Kampf, jede Übung, jede Bewertung. Nicht weil die Gegner schwach waren, sondern weil sie rechtzeitig nachgaben. Lyra glaubte, ihre Einschätzung der eigenen Fähigkeiten sei zuverlässig. Das war die Absicht.
 
-Nele sah in Kaels Blick, dass er dem Gespräch nicht gefolgt war. »Englisch? Français? Where are you from?«
+Lyra würde ihre eigenen Fähigkeiten ihr Leben lang überschätzen. Sollte sie sich eines Tages gegen ihn wenden — wie es so viele ihrer Geschwister in den letzten 1000 Jahren getan hatte — wäre sie ein leicht einzuschätzender Gegner.
 
-Kael sah sie an, dann mich. Er verstand die Frage nicht, aber er verstand die Situation. Er sagte etwas auf Syrranisch, das nach einer Erklärung klang.
-
-»Er spricht kein Englisch«, sagte ich.
-
-»Was spricht er dann?«
-
-Ich atmete ein. »Altsyrranisch. Oder Syrranisch. Ich weiß es nicht genau.«
-
-Neles Blick wurde flach. »Luna. Was zum Teufel ist hier los?«
-
-»Er ist nicht von hier.«
-
-»Das habe ich gemerkt. Aber *wo* kommt er her? Kirgisistan? Georgien?«
-
-»Nein.« Ich schloss die Augen für eine Sekunde. »Er ist nicht von dieser Welt.«
-
-Nele sagte nichts. Sie sah mich an, als wartete sie auf die Pointe.
-
-»Er kommt aus der Traumwelt«, sagte ich. »Ich hab dir doch schon oft von meinen wilden Träumen erzählt — von meiner Steampunkwelt. Tja, es hat sich erwiesen, dass sie real ist.«
-
-Nele sah zu Kael, der seinen Toast beendet hatte und nun das Geschehen beobachtete. Er nickte. Er hatte verstanden, dass ich Nele die Wahrheit gesagt hatte.
-
-Dann stand er auf. Er zog den Ärmel des Hoodies hoch, langsam, ohne Eile. Auf seinem Unterarm war ein Tattoo, schwarz und fein, das sich um seinen Arm wand. Es war eine Schlange mit feinen Schuppen. Und sie bewegte sich. Langsam, kaum merklich, aber unbestreitbar. Die Schuppen schienen im Licht zu schimmern.
-
-Nele starrte darauf. Sie sagte nichts.
-
-Kael streckte den Arm aus, eine Einladung. Nele zögerte, dann berührte sie mit einem Finger die Tätowierung. Die Schlange reagierte sofort, drehte den Kopf in Richtung ihrer Berührung. Sie schlängelte sich um Neles Fingerabdruck und für einen Moment fühlte sich die Haut unter ihrem Finger warm an, lebendig.
-
-Nele zog die Hand zurück. Sie sah Kael an, dann mich. Ihr Mund war leicht geöffnet, aber kein Ton kam heraus. Es kam nicht oft vor, das Nele die Worte fehlten.
-
-»Setz dich erstmal hin.« Ich nahm sie am Arm, als befürchtete ich, sie würde einfach in Ohnmacht fallen. 
+  Er liebte dieses Kind. Das war keine Sentimentalität, es war eine Tatsache, die er gelegentlich prüfte und jedes Mal bestätigt fand. Aber Lyra würde älter werden, und Talent wuchs manchmal schneller als Loyalität. Er hatte gefährlichere Probleme gelöst. Sollte sie zu einem werden, würde es ihm Leid tun auch dieses Problem zu lösen, wie er alle seine Prbleme löste. 
 
 
+# Beförderung
+
+
+Das Licht über dem Arbeitstisch flackerte einmal und blieb dann still. Acen stand mit den Händen im Teig, fühlte Mehl zwischen den Fingern, während sein Blick unauffällig den Raum abtastete. Viktor Reimann lehnte sich am anderen Ende des Tisches gegen das Edelstahlregal, die Arme verschränkt, das Gesicht eine Maske aus abwartender Strenge.
+
+»Du hast gestern Salz statt Natriumcitrat benutzt. Grillsoße Nummer acht war dadurch flacher im Abgang.«
+
+Acen rührte langsam weiter. »Vielleicht erwartet der Gaumen flach an diesem Punkt. Um die nächste Welle betonen zu können.«
+
+Reimanns linke Augenbraue hob sich kaum merklich. Sein Blick blieb auf Acens Händen. »Man erwartet nichts. Man definiert, was erwartet werden soll.«
+
+Acen legte den Teig ruhig ab, streifte die Reste von der Haut. Stille lag zwischen ihnen, wie ein dünner Ölfilm auf Wasser. Reimann war nicht der Typ für Smalltalk, nie gewesen. Er sprach, wenn es nötig war, und ließ die Stille ansonsten wie ein Werkzeug wirken. Acen hatte das zuerst als Einschüchterung gelesen, dann als Test, und schließlich als eine Art von Respekt. Oder vielleicht war es auch einfach, was übrig blieb, wenn man zu lange in geschlossenen Küchen gearbeitet hatte.
+
+Er griff nach dem Teigschaber, schob die Masse von der Arbeitsfläche in eine Metallschüssel. Die Bewegungen waren ruhig, fast meditativer als die Gedanken in seinem Kopf. Er hatte Reimann nachts sprechen hören, durch die dünnen Wände. Seine Stimme war wie ein Messer, das durch Butter glitt – weich, aber mit einer Klinge darunter. Acen wusste, dass der Küchenchef etwas ahnte. Vielleicht nicht das ganze Ausmaß, aber genug, um ihn im Auge zu behalten. Und trotzdem ließ er ihn immer wieder an die besten Stationen.
+
+»Du bist zu exakt, Acen. Kein Mensch arbeitet so.« Reimann trat näher, legte beide Hände auf die Tischkante, sodass seine Fingerknöchel weiß hervortraten. Die Augen wanderten über Acens Gesicht, scannten winzige Muskelbewegungen ab. »Mach absichtlich Fehler. Nicht jeden Tag, aber oft genug, dass es glaubwürdig bleibt.«
+
+*Reimann lässt langsam die Maske fallen*, dachte Acen. *Er verbirgt nicht mehr, dass er mich durchschaut hat. Was kommt als Nächstes? Ärger? Eine Meldung, die sicherlich meinen Tod bedeutete?*
+
+Acen nickte. »Verstanden.«
+
+Reimann schob die Schüssel zu sich, prüfte den Teig, zog ein kleines Stück ab und rollte es mit den Daumen. »Du hast Talent, das ist nicht das Problem. Das Problem ist, dass du auffällst.« Er warf das Teigstück in den Müll, als hätte er das Urteil gefällt. »Und auffallen ist das Letzte, was du hier willst.«
+
+Acen spürte die Worte im Brustkorb mehr als im Kopf. Es war kein Befehl, sondern eine Warnung. Er wollte antworten, doch Reimann schnitt ihm das Wort ab. »Ab morgen bist du nicht mehr in der Küche.«
+
+Das war wie ein Schlag. Für einen Moment glaubte Acen, dass er rausflog, dass alles vorbei war, bevor es überhaupt begonnen hatte. Dann sah er Reimanns Gesicht, das reglos blieb, als wäre es nur eine weitere Schicht Teig, die noch geformt werden musste.
+
+»Du gehst ins Servierteam. Drei Tage Probe. Wenn du dich blamierst, bist du schneller wieder hier, als dir lieb ist.«
+
+Acen wollte widersprechen, doch sein Körper reagierte nicht. Er nickte noch einmal, diesmal langsamer.
+
+Reimann schob die Schüssel zurück. »Du bist zu klug für die Küche. Aber nicht klug genug für den Palast. Noch nicht.«
+
+Er deutete auf den Ausgang. »Jetzt geh schlafen. Du wirst es brauchen.«
+
+Acen verließ ohne ein weiteres Wort die Küche.
+
+Im Schlafraum lag Ferris schon auf der Matratze, die Augen offen, starrte an die Decke. Er hatte seit dem Vorfall mit dem Gas nicht mehr normal gesprochen. Auch jetzt sagte er nichts, als Acen sich neben ihn setzte. Nur ein leises, heiseres Atmen, das wie eine tickende Uhr klang.
+
+Acen zog die dünne Decke über die Schultern und starrte ins Dunkel. Gedanken rasten durch seinen Kopf, sprangen von Reimanns Gesicht zu den Gerüchten über das Servierteam. Was wusste er darüber? Wenig. Nur, dass die Mitglieder selten in der Küche sah, dass sie Uniformen trugen, die nach echtem Stoff rochen, nicht nach Nano-Polymer. Sie hatten einen abgetrennten Bereich hier im Schlafsaal.
+
+Im Halbschlaf träumte Acen von seinem Großvater. Die Simulationen, die endlosen Lektionen, das Gefühl, immer zu wenig zu sein. Und dann die Kälte in den Augen des alten Mannes, als er ihn nach dem letzten Fehlschlag aus dem Trainingsraum warf. »Du bist noch nicht bereit«, hatte er gesagt. »Wenn du auffällst, bist du tot.«
+
+Grelles Licht bohrte sich durch Acens geschlossene Lider, als der Morgen in Form der kalten Lichter an Decke unbarmherzig in den Schlafraum einbrach. Zwei Männer in grauen Uniformen warteten an der Tür. Ihre Gesichter waren glatt, ohne erkennbare Mimik. Sie musterten Acen, dann deutete einer mit dem Kopf auf den Ausgang.
+
+»Folge uns.«
+
+Acen zog sich die neue Uniform an – weiße Hose, weißes Hemd mit blauen Nähten, dazu ein Gürtel aus echtem Leder. Es roch nach Reinigungsmittel. Ganz sicher nicht die Uniform, die man zum Servieren tragen würde. 
+
+Er verabschiedete sich von Ferris, der noch schlaftrunken auf seiner Matratze hockte.
+
+Sie führten ihn durch Gänge, die er bisher nur von der anderen Seite durch die Lüftungsschlitze gesehen hatte.
+
+Schließlich gelangten sie in einen schmalen Korridor, der in einem kreisrunden Raum endete. Kein steriles Weiß, sondern gedämpftes Blau. 
+
+»Warte hier.«
+
+Einer der Männer verschwand durch eine Seitentür, während der andere reglos neben dem Eingang stehen blieb. Seine Augen wanderten immer wieder zur Decke, als erwarte er etwas von dort. Acen folgte seinem Blick, entdeckte aber nur ein winziges rotes Licht, das in unregelmäßigen Abständen aufblinkte.
+
+Der erste Mann kehrte zurück, nickte seinem Kollegen zu. Ein stummer Austausch, den Acen nicht entschlüsseln konnte.
+
+»Name?«, fragte der Mann, während er ein Pad aus seiner Tasche zog.
+
+»Acen Alvaro.«
+
+»Alter?«
+
+»Vierzehn.«
+
+Der Mann hielt kurz inne, wechselte einen Blick mit seinem Kollegen. »Reimann scheint sie immer jünger zu schicken.«
+
+Er tippte etwas ein, dann reichte er Acen das Pad. »Dein Dienstplan.«
+
+Acen überflog die Informationen. Tisch sechs, Westflügel, Dienst bei den Abendempfängen. Und am Rand, fast unauffällig: ein Symbol, das er kannte. Das gleiche, das sein Großvater manchmal auf Dokumenten hinterlassen hatte. Ein Kreis mit drei Punkten.
+
+»Verstanden?«
+
+Acen nickte langsam. »Und wer ist Mein Chef?«
+
+Der Mann lächelte dünn. »Jeder andere im Servierteam steht über dir, aber ich werde es sein, dem du berichtest. Ja. Ich heiße Jem.«
+
+»Was soll ich denn berichten?«, fragte Acen ratlos. »Wie viele Teller ich serviert habe?« 
+
+»Freche Antworten sind nicht der Weg, um hier oben zu bestehen.« Die Stimme des Mannes klang nicht bedrohlich, sondern ruhig, als er das sagte. Nur in seinem Blick lag eine gewisse Ernsthaftigkeit.
+
+»Nein. Du berichtest über jedes Gespräch, das du mithörst, über jeden Blick, den die Gäste wechseln, und über jeden Gegenstand, der den Besitzer wechselt. Hast du das verstanden?«
+
+Acen nickte nur stumm.
+
+Der zweite Mann trat näher, seine Stimme kaum mehr als ein Flüstern: »Reimann hat dich empfohlen. Das bedeutet, du hast Potenzial. Oder er braucht einen Sündenbock. Du redest mit niemand anderem über das, was du gesehen oder gehört hast, außer mit uns. Ist das klar?«
+
+Wiederum nickte Acen nur stumm. Er spürte, wie sich sein Puls beschleunigte. 
+
+Diese seltsame Einführung konnte nur eines bedeuten … Oder eher zweierlei: Entweder spionierte das Servierteam für Reimann oder für jemand über ihm, oder sie waren von Paleus Sicherheitsdienst. Beides könnte für Acen gefährlich werden. 
+
+Sie führten ihn in einen anderen Raum, mit einer langen Reihe von Spinden. Jeder Spind hatte einen Namen. Acen fand seinen am Ende der Reihe, unterhalb eines anderen Namens, den er nicht lesen konnte. Er öffnete den Spind: Darin lag eine weitere Uniform, dieses Mal in Schwarzweiß, dazu eine kleine Kiste mit dem Logo des Palasts. Er öffnete sie vorsichtig. Darin: ein Messer, ein Löffel, eine Gabel, alle aus echtem Metall. Und ein winziger, zusammenklappbarer Teleskopstab.
+
+Er musterte die Gegenstände, dann steckte er sie in die Tasche. Es fühlte sich an wie eine Ausrüstung, nicht wie Besteck.
+
+Die Männer ließen ihn allein. Er hörte Stimmen auf dem Gang, konnte aber nicht verstehen, was gesprochen wurde. 
+
+Er zog die neue Uniform an, verstaute die Kiste im Gürtel. Dann stand er da, im Licht der Neonröhren, und fragte sich, was jetzt kam.
+
+Die Tür öffnete sich. Eine Frau trat ein, etwa dreißig, mit kurzem Haar und einer Narbe am Kinn. Ihre Augen waren grau, weicher als die der Männer zuvor. Sie musterte Acen, dann sagte sie: »Du bist der Neue.«
+
+Er nickte.
+
+»Ich bin Leva.« Sie sprach leise, aber mit Autorität. »Folge mir. Ich zeige dir den Weg.«
+
+Sie führte ihn durch ein Labyrinth von Korridoren, vorbei an Türen, die alle gleich aussahen. Acen speicherte jede Abzweigung, jedes Detail. Schließlich erreichten sie einen großen Raum, der wie ein Vorbereitungsraum für Bankette wirkte. Hier standen lange Tische, gedeckt mit weißen Tüchern, darauf Kristallgläser und Teller aus feinstem Porzellan.
+
+Leva wies auf einen der Tische. »Heute Abend ist ein Empfang. Dreißig Gäste, darunter Paleus selbst. Du bist für Tisch sechs zuständig.«
+
+»Was ist mit den anderen?«
+
+»Die machen, was sie immer machen. Du hältst dich an den Ablauf. Kein Wort zu den Gästen, es sei denn, du wirst angesprochen. Und wenn du angesprochen wirst, sprich nur das Nötigste.«
+
+Acen nickte.
+
+Leva musterte ihn noch einmal. »Du bist zu jung für das hier, aber Reimann meint, du schaffst es.«
+
+»Ich werde mein Bestes geben.«
+
+Sie lachte, dann wurde ihr Blick ernst. »Wenn du einen Fehler machst, gibt es keine zweite Chance. Hier wird beobachtet, alles. Jede Bewegung, jedes Zucken.«
+
+Er verstand.
+
+Leva zeigte ihm, wie man das Besteck ausrichtete, wie man die Gläser polierte, wie man die Teller exakt im rechten Winkel zum Tisch ausrichtete. Es war eine Arbeit für Maschinen, aber sie bestand darauf, dass alles von Hand gemacht wurde. »Die Gäste merken den Unterschied. Sie spüren es, wenn ein Mensch den Tisch gedeckt hat.«
+
+Acen fragte sich, ob das stimmte, oder ob es nur eine weitere Tradition war, die niemand mehr hinterfragte.
+
+Am Nachmittag kamen die anderen Servierer. Es waren alles Männer und Frauen, die älter waren als er, mit Gesichtern, die wenig verrieten. Sie sprachen nicht miteinander, sondern arbeiteten schweigend nebeneinanderher. Acen passte sich an, beobachtete, ahmte nach. Nach einer Stunde konnte er nicht mehr sagen, ob er auffiel oder nicht.
+
+Abends kam die Generalprobe. Die Türen zum Bankettsaal öffneten sich, und ein Testlauf begann. Leva erklärte, dass heute alles wie am echten Abend laufen würde, nur ohne Gäste. »Wir sind die Gäste«, sagte sie, und die Servierer wechselten die Rollen. Sie spielten die Mächtigen, die Reichen, die Unantastbaren. Es war eine seltsame, gespenstische Inszenierung.
+
+Acen beobachtete, wie die anderen sich bewegten. Jeder Schritt war einstudiert, jede Geste saß. Die Servierer verneigten sich und schwiegen. Es wirkte wie ein Theaterstück, aber eines mit echten Konsequenzen.
+
+Als er an der Reihe war, einen Teller zu servieren, merkte er, wie seine Hände zitterten. Die Naniten dämpften das Zittern, aber der Schweiß auf der Stirn blieb. Er setzte den Teller ab, exakt im Winkel, wie Leva es gezeigt hatte. Sie nickte, kaum merklich.
+
+Nach der Probe versammelte Leva das Team. »Gut gemacht«, sagte sie. »Morgen wird es härter. Morgen sehen euch die Gäste. Und morgen entscheidet sich, wer bleibt.«
+
+Acen spürte, wie die Anspannung nachließ. Er war durchgekommen, zumindest für heute.
+
+
+# Nerathis
+
+
+Im Sektor Epsilon-9, fast tausend Kilometer vom Hauptpalast entfernt, lag das Machtzentrum der Familie Neratis. Die Anlage erstreckte sich über eine Fläche von zwei Quadratkilometern und bestand aus fünfzehn miteinander verbundenen Kuppelstrukturen. Die Hauptkuppel ragte siebzig Meter in die Höhe und beherbergte die Kommandozentrale. Die schlanken Kuppeln waren aus verstärktem Plasglas gefertigt, das den extremen Temperaturschwankungen und der dünnen Atmosphäre des Planeten standhielt. Ein Netzwerk aus Druckschleusen und unterirdischen Tunneln verband die einzelnen Gebäudeteile. 
+
+Die Verteidigungsanlagen waren strategisch um das Gelände herum platziert. Schwere Geschütztürme drehten sich langsam, bereit, jeden Eindringling abzuwehren. Die Türme waren mit Hochleistungslasern und Plasmakanonen ausgestattet, die in der Lage waren, feindliche Schiffe und Bodentruppen gleichermaßen zu neutralisieren.
+
+Die Tür zum Konferenzraum öffnete sich lautlos. Selana Neratis betrat den Raum, gefolgt von zwei Beratern. Sie war groß, ihr Gang hatte etwas Militärisches. Ihr Haar war streng nach hinten gekämmt, silberne Strähnen zogen sich durch das Dunkel wie Spuren von Eis. Das Kleid: anthrazitfarben, mit hohem Kragen, der den Hals fast völlig verbarg. Keine Schmuckstücke, keine Abzeichen. Ihre Hände waren schmal, die Bewegungen kontrolliert – nichts daran wirkte zufällig.
+
+Sie blieb stehen, sah sich um – als würde sie die Temperatur messen, bevor sie das erste Wort sprach. Die Berater nahmen an der langen Tischseite Platz, warteten.
+
+„Statusbericht“, sagte Selana. Ihre Stimme war nicht laut, aber sie füllte den Raum.
+
+Der erste Berater schob ein Pad über den Tisch. „Drei neue Dekrete von Paleus. Zwei betreffen die Ressourcenallokation, eines die Überwachung der Kommunikationsnetze. Das erste …“
+
+Selana neigte kaum merklich den Kopf. „Keine Einzelheiten. Die Details sichte ich später selbst.“
+
+Der Mann räusperte sich. „Die Energieabgaben aus Sektor Vier werden um acht Prozent erhöht. Alle Transaktionen über das Kommunikationsnetz werden ab sofort von der Zentral-KI gespiegelt. Es gibt Hinweise, dass Paleus einen neuen Sicherheitschef einsetzt. Einen, der nicht aus dem Militär kommt.“
+
+Die Frau am anderen Ende des Tisches hob den Blick. „Wieder einer aus dem Technologiekonsortium?“
+
+„Vermutlich. Name taucht noch nicht in den offiziellen Listen auf.“
+
+Selanas Mundwinkel zuckten. „Natürlich nicht.“
+
+Sie stützte die Hände auf den Tisch. „Was gibt es aus den Randsektoren?“
+
+Der zweite Berater nahm das Wort. „Die Ithron-Familie hat ihre Aufrüstung nicht verlangsamt. Im Gegenteil. Es gibt Berichte über neue Infanterieeinheiten, vermutlich Exoskelette mit verbesserter taktischer Steuerung. Der Fokus liegt auf urbaner Kriegsführung.“
+
+„Und sie geben sich weiter loyal?“
+
+Der Berater nickte. „Nach außen hin. Aber die Spione berichten von Treffen mit Vertretern der Familie Valenor.“
+
+Selena grübelte. *Wenn die Ithrons nicht vorsichtig sind, wird ihre Aufrüstung bald die Aufmerksamkeit von Paleus erregen. Und ein Bündnis mit den Valenors muss ich auf jeden Fall verhindern. Wieso treffen die sich überhaupt mit denen so kurz vor unserem Treffen?    * 
+
+Die Berater schwiegen. Sie wussten, dass jetzt keine weiteren Details gefragt waren. 
 
 ---
 
+Am nächsten Abend betrat Kal Ithron den Konferenzraum. Er trug eine formelle Militäruniform, die seine Autorität unterstrich. Selana begrüßte ihn mit einem kühlen Nicken.
 
+„Kal, es ist lange her“, sagte sie, ihre Stimme ruhig und kontrolliert.
 
-Der Schlüssel drehte sich im Schloss, und kurz darauf trat Marcus ein, eine braune Papiertüte in der Hand. 
+Kal erwiderte das Nicken. „Selana, danke, dass du Zeit für dieses Treffen gefunden hast.“
 
-»Ich dachte, ich bringe was mit«, sagte er, während er die Tür schloss. Dann sah er auf.
+Sie setzten sich an den langen Tisch. Selana legte ihre Fingerspitzen aneinander, während Kal seinen Uniformkragen lockerte und einen Blick zur geschlossenen Tür warf. Das leise Summen der Überwachungssysteme schien plötzlich lauter als sonst. Zwischen ihnen stand eine unberührte Karaffe Wasser – keiner griff danach.
 
-Kael saß am Küchentisch. Er trug Marcus’ Hoodie. Er sah Marcus an.
+Du weißt sicher durch deine Spione von unserer militärischen Aufrüstung im Bereich schwerer Infanterie
 
-Marcus blieb stehen. Die Tüte mit den Croissants hing an seinen Fingern. Sein Blick ging von Kael zu mir, dann zurück zu Kael. Zu dem Hoodie. Zu dem fremden Gesicht unter seiner Kapuze.
+Selana reagierte kühl. „Ich werde wohl kaum auf diesen unverholenen Versuch durch selektive – und falsche – Informationen meine Quellen zu kompromittieren. Also: Kein Kommentar.“
 
-»Wer ist das?«, fragte Marcus. Seine Stimme war flach.
+Kal lächelte dünn. „Verständlich. Aber wir sollten offen sprechen. Die Lage ist ernst.“
 
-»Das ist Kael«, sagte ich.
+Selana lehnte sich zurück, ihre Augen scharf. „Offenheit ist ein Luxus, den wir uns in diesen Zeiten nicht leisten können. Aber ich höre zu.“
 
-Marcus stellte die Tüte auf den Flurtisch. Er ging langsam in die Küche, blieb zwei Schritte vor Kael stehen. »Wer bist du und warum trägst du meinen TU-Hoodie?«
+Kal beugte sich vor. „Wir haben gemeinsame Interessen. Die Valenors haben uns ein Angebot gemacht. Sie wollen eine Allianz, um die Machtverhältnisse zu ändern.“
 
-Kael antwortete auf syrranisch. Er wich Marcus’ Blick nicht aus.
+Selana hob eine Augenbraue. „Eine Allianz? Mit welchem Ziel? Und … um welche ‚Machtverhältnisse‘ geht es hier?“
 
-»English?«, versuchte Marcus. »Where are you from?«
+Kal zögerte kurz. „Um die Kontrolle über wichtige Ressourcen zu gewinnen. Die Valenors haben Zugang zu Technologien, die uns einen Vorteil verschaffen könnten.“
 
-Kael schwieg. Seine Hände lagen ruhig auf dem Tisch.
+*Natürlich hatte er die Frage nach den ‚Machtverhältnissen‘ ignoriert, *dachte sie. *Er war zu feige Paleus auch nur zu erwähnen. *
 
-Marcus drehte sich zu mir um. »Luna. Was geht hier vor?«
+„Ein riskantes Spiel. Die Valenors sind nicht bekannt für ihre Loyalität. Was bieten sie euch an?“
 
-Nele trat zwischen sie. Sie stellte sich direkt vor Kael, als würde sie ihn abschirmen. »Er ist mein Freund.«
+„Sie haben uns Zugang zu ihrer Forschung versprochen. Neue Waffensysteme, verbesserte Schutzschilde. Aber sie wollen im Gegenzug unsere militärische Stärke.“
 
-Marcus sah sie an. »Dein Freund.«
+Selana schwieg einen Moment. „Und was erwartet ihr von uns?“
 
-»Ja. Er ist mein Freund.« Nele wandte sich Kael zu und sprach ihn mit einem schnellen, bedeutungslosen Kauderwelsch an. Ein Strom von Silben, die nach nichts klangen. »Talarish ven mora? Kess et drem?«
+Kal lehnte sich zurück. „Eure Unterstützung. Gemeinsam könnten wir eine starke Front bilden. Die Valenors würden uns die Technologie liefern, wir die militärische Macht.“
 
-Kael sah sie an. Dann verstand er. Er nickte, einmal, und antwortete. Seine Stimme war ruhig. 
+Selana stand auf und ging zum Fenster. „Ein interessantes Angebot. Aber ich muss darüber nachdenken. Eine solche Allianz birgt viele Risiken.“
 
-»Was spricht er?«, fragte Marcus.
+Kal nickte. „Ich verstehe. Aber die Zeit drängt. Die Valenors erwarten eine Antwort. “
 
-»Kirgisisch«, sagte Nele, ohne zu zögern. »Ich habe ein Auslandssemester gemacht. Austauschprogramm. Er ist hier zu Besuch.«
+Selana drehte sich um und sah Kal direkt in die Augen. „Ich werde darüber nachdenken. Aber ich werde keine voreiligen Entscheidungen treffen. Die Sicherheit meiner Familie steht an erster Stelle.“
 
-Marcus’ Blick wanderte zu dem Hoodie. »Und warum trägt er meine Sachen?«
+Kal stand auf. „Ich respektiere das. Aber denk daran, gemeinsam könnten wir viel erreichen. Ich glaube, wir haben alle ein Interesse daran, die Zukunft in unserem Sinne zu gestalten. Es gibt immer eine größeres Ziel.“
 
-»Seine Kleidung ist ruiniert.« Nele machte eine wegwerfende Handbewegung. »Wir waren vorhin in einer Autowerkstatt. Er wollte sich den Unterboden ansehen. Da ist Öl ausgelaufen. Überall. Wir mussten alles entsorgen.«
+Als Kal den Raum verließ, blieb Selana allein zurück. Ihre Gedanken rasten. Die Allianz mit den Ithrons und den  Valenors könnte ihnen einen Vorteil verschaffen, aber sie musste vorsichtig sein. Ein falscher Schritt könnte alles ruinieren.
 
-Marcus sagte nichts. Er sah Kael an, dann Nele, dann wieder Kael. Seine Augen waren schmal.
 
-Nele packte Kael am Arm. »Wir müssen jetzt gehen. Wir sind schon spät dran.«
+## Der Empfang
 
-Kael ließ sich hochziehen. Er stand da, in der zu großen Jogginghose und dem Uni-Hoodie, und wartete.
+Der Bankettsaal der Sonnenfresser lag unter einer Kuppel aus geschliffenem Kristall, die das Licht der künstlichen Sonne in zahllose schmale Strahlen zerlegte und auf die polierten Tischflächen warf. Die Tische standen in konzentrischen Ringen um eine erhöhte Plattform, auf der Paleus Arista thronte, umgeben von seinen engsten Beratern und den ranghöchsten Vasallen. Sein Sessel war aus dunklem Holz mit goldenen Intarsien, die im Licht der Kuppel aufblitzten, sobald er sich bewegte. Und er bewegte sich wenig. Er aß langsam, mit bedächtigen, gleichmäßigen Bewegungen, und sein Gesicht zeigte während des ganzen Abends keine Regung. Seine Augen wanderten durch den Saal, von Tisch zu Tisch, von Gesicht zu Gesicht, und sie ruhten auf jedem Gast, als wollten sie etwas Bestimmtes finden. Was genau, das wusste niemand zu sagen, aber alle spürten den Blick.
 
-Dann zog Nele ihn zu sich und küsste ihn auf den Mund. Es war kein zärtlicher Kuss. Es war hart, bestimmt, eine Demonstration. Kael zuckte zurück, nur einen Zentimeter, ein fast unsichtbares Innehalten. Sein Körper straffte sich für einen Moment, seine Augen wurden groß. 
+Die Luft war schwer von Parfüm und erhitzten Speisen, von unterdrücktem Lachen und dem leisen Klirren von Besteck auf Porzellan. Bedienstete in schwarz-weißen Uniformen bewegten sich zwischen den Tischen, lautlos, mit einstudierten Schritten, die keinen Zentimeter zu viel oder zu wenig abmaßen. Die Gäste unterhielten sich in gedämpftem Ton, lachten in abgemessenen Abständen und tranken mehr Wein, als gut für sie war.
 
-Nele ließ ihn los. »Er ist schüchtern«, sagte sie zu Marcus. Ihre Stimme klang beiläufig, als wäre das die natürlichste Erklärung der Welt.
+Acen stand mit den anderen Dienern in der schmalen Nische hinter dem Vorhang, der den Vorbereitungsraum vom Saal trennte. Die Uniform, die Leva ihm heute Morgen übergeben hatte, lag eng auf seinen Schultern, der Stoff steif vom Bügeln, der Kragen hoch genug, um den Hals zu bedecken. Seine Hände waren ruhig, obwohl sein Puls schneller ging als gewöhnlich. Die Naniten in seinem Blut arbeiteten auf Hochtouren, schärften seine Sinne, filterten die Geräusche des Raumes in einzelne, unterscheidbare Stränge. Er hörte das Summen der Lüftung, das Scharren eines Stuhls am dritten Tisch, das leise Zischen einer Weinkaraffe, die geleert wurde.
 
-Sie zog Kael am Arm Richtung Flur. Marcus trat zur Seite. Sie gingen an ihm vorbei, an der Tüte mit den Croissants vorbei, und verschwanden aus der Wohnung. Die Tür fiel ins Schloss.
+Leva stand neben ihm, die Augen auf die gegenüberliegende Seite des Saals gerichtet. Sie hatte ihm vorhin die wichtigsten Gäste genannt, mit knappen Worten und ohne jede Wertung, so wie man einem Kind die Namen von Werkzeugen beibringt. Der dicke Mann mit dem roten Gesicht und den feuchten Lippen war Hausherr von Vant, ein Vasall, der seine eigenen Leute auspeitschen ließ, wenn die Ernten nicht stimmten. Die Frau mit den schmalen Lippen und den funkelnden Ohrringen war die Witwe eines ermordeten Gouverneurs, die durch geschickte Heiraten ein Handelsimperium zusammengehalten hatte. Ihr Lächeln war bekannt dafür, dass es niemals die Augen erreichte. Die jungen Offiziere am Rand gehörten zum Stab von General Korrath und waren dafür berüchtigt, dass sie jedes Gespräch auf die Größe ihrer Schiffe lenkten. Und die Töchter des Hauses Arista saßen verteilt über den ganzen Saal, jede von ihnen ein Beweisstück für die Fruchtbarkeit und die Politik ihres Vaters.
 
-Marcus und ich standen in der Küche. Das Schweigen lastete schwer auf dem Raum. 
+Nur an einem Tisch saß niemand von den Erwachsenen, die um ihre Plätze kämpften. Am dritten Tisch links, zwischen einer Frau mit grauem Haar und einem Mann, der ununterbrochen auf sein Datenpad starrte, saß eine junge Frau, die sich mit einer Selbstverständlichkeit bewegte, die nur jemand haben konnte, der nie gelernt hatte, um etwas zu bitten. Ihr Haar war silberblond und zu einem kunstvollen Knoten hochgesteckt, aus dem sich ein paar lose Strähnen lösten und über ihre Schläfe fielen. Sie trug ein Kleid aus dunkelblauem Stoff, das im Licht der Kristallkuppel schimmerte, aber nicht so schimmerte, als hätte sie es gewählt, um aufzufallen. Es schimmerte, weil der Stoff teuer war, und das genügte.
 
-Marcus sah auf die leere Stelle, wo Kael gesessen hatte. Dann sah er mich an.
+Nene Arista.
 
-»Kirgisisch«, sagte er. Ich zuckte mit den Schultern.
+Acen hatte sie nie zuvor gesehen, aber er erkannte sie sofort. Nicht an ihrem Gesicht, das er nur aus den flüchtigen Erwähnungen der anderen Diener kannte. Er erkannte sie an der Art, wie sie saß. Sie lehnte sich nicht zurück wie die anderen Töchter, die steif und ergeben neben ihren Müttern oder Ehemännern hockten. Sie saß aufrecht, die Hände locker auf der Tischkante, und ihr Blick wanderte durch den Saal, als würde sie jeden einzelnen Gast taxieren. Sie nahm nichts einfach hin. Sie überprüfte, sie ordnete ein, sie legte ab. In ihren Augen lag etwas, das Acen kannte, obwohl er es bei einem Mädchen wie ihr nicht erwartet hätte: dasselbe wachsame Interesse, mit dem er selbst die Küche beobachtet hatte, als er neu war.
 
-Mein Handy summte. Ich zog es aus der Hosentasche. Eine Nachricht von Nele. *Wir sind unten in meinem Auto. Laufe Richtung Kottbusser Tor.*
+Acen aktivierte seine Naniten und schärft seine Sinneswahrnehmungen. Er beobachtete sie, während er die letzten Details seiner Servierposition überprüfte. Er hatte den Ablauf des Banketts einstudiert, bis jede Bewegung saß. Der Gang zum Tisch, die Verbeugung, das Abstellen der Platte, der Schritt zurück. Leva hatte ihn dreimal durch die Proben geschickt, bis er die Reihenfolge im Schlaf beherrschte. Erst die Vorspeisen, dann die Suppe, dann der Fisch, dann das Geflügel. Zu jedem Gang gehörte eine andere Platte, ein anderer Abstand zum Teller, ein anderer Winkel des Abstellens. Es war die gleiche Arbeit wie in der Küche, nur dass hier die Messer nicht geschnitten wurden, sondern serviert.
 
-Ich steckte das Telefon wieder weg und sah zu Marcus. Er stand noch immer in der Küche, die Hände in den Taschen vergraben, und starrte auf den leeren Stuhl. Er wirkte gekränkt und ungläubig zugleich.
+Jetzt, im echten Saal, mit den echten Gästen und dem echten Geruch von gebratenem Fleisch und exotischen Gewürzen, fühlte es sich anders an. Die Proben waren eine Sache. Hier war jeder Fehler sichtbar, jede Abweichung vom Ablauf wurde von zwanzig Augenpaaren registriert, die zu nichts anderem da waren. Auch war es ein Fehler gewesen, seine Naniten zu aktivieren, nur weil er Nene beobachten wollte. Ein wilder Strom aus Eindrücken fluteten sein Gehirn. Auch wenn er sie nun abgeshaltet hatte, würden sie eine ganze Weile brauchen, bis ihre Wirkung abgeklungen war. 
 
-»Ich muss gleich los«, sagte ich.
+Der erste Gang wurde serviert. Acen trat aus der Nische, die Platte mit den Vorspeisen in den Händen, und bewegte sich mit den anderen Dienern durch die Reihen. Er hielt den Blick geradeaus, aber seine Augen registrierten alles. Der dicke Hausherr von Vant hob sein Glas, ohne den Diener anzusehen, der ihm nachschenkte, und trank, als hätte er Durst, den kein Wein stillen konnte. Die Witwe mit den schmalen Lippen flüsterte mit ihrem Nachbarn, während ihre Finger unruhig über den Rand ihres Tellers strichen, eine Bewegung, die aussah, als würde sie eine Tastatur bedienen, die nicht da war. Die jungen Offiziere unterhielten sich in kurzen, abgehackten Sätzen und warfen dabei immer wieder einen Blick zur Plattform, auf der Paleus saß. Sie wollten gesehen werden, aber sie wollten nicht auffallen. Das war die Kunst, die sie noch nicht beherrschten.
 
-Er antwortete nicht. Er schien mich gar nicht zu hören. Dann rieb er sich mit der Hand über das Gesicht. »Ich geh’ jetzt«, sagte er. Seine Stimme war matt. »Ich kann das hier gerade nicht.«
+Paleus selbst bewegte sich kaum. Er aß, was ihm serviert wurde, in der gleichen gleichmäßigen Folge, ohne Hast und ohne Genuss. Er kaute, schluckte, trank einen Schluck Wasser, wischte sich den Mund ab. Keine Bewegung war überflüssig, keine war neu. Acen spürte, wie der Blick des Herrschers ihn streifte, als er an der Plattform vorbeiging. Es war kein feindseliger Blick, aber auch kein freundlicher. Es war der Blick eines Mannes, der einen neuen Gegenstand in einem Raum registriert, in dem alle Gegenstände erfasst sind.
 
-Er nahm die Papiertüte mit den Croissants vom Flurtisch, ließ sie dann aber wieder fallen. Er drehte sich um und ging zur Tür, öffnete sie, trat hinaus und schloss sie hinter sich, ohne mich noch einmal anzusehen. 
+Acen erreichte seinen Tisch, stellte die Platte ab und trat zurück. Die Bewegungen saßen, genau wie in der Probe, bis zu dem Winkel, in dem die Platte die Tischkante berührte. Er atmete leise aus, als er wieder in der Nische stand, und beobachtete weiter.
 
-Ich wartete. Ich zählte bis dreißig in meinem Kopf, ging dann zum Fenster und sah hinunter. Marcus kam aus dem Hauseingang, die Schultern hochgezogen, und verschwand um die Ecke. Ich atmete aus.
+Der zweite Gang folgte. Der dritte. Die Gespräche wurden lauter, das Lachen freier. Die Vasallen tranken mehr, als sie sollten, und die jungen Offiziere begannen, mit den Töchtern der Adelshäuser zu sprechen, die an den Tischen verteilt waren. Jede dieser Töchter war mit einer Präzision platziert, die man erst erkannte, wenn man beobachtete, wer neben ihr saß. Eine Tochter neben dem Hausherrn von Vant, eine andere neben dem Bruder der Witwe, eine dritte neben einem Offizier, dessen Rang auf der Schulterklappe stand. Paleus verteilte seine Kinder wie Figuren auf einem Brett, und jede von ihnen war ein Einsatz.
 
-Dann rannte ich die Treppen hinunter, zwei Stufen auf einmal, bis ich den windigen Hof erreichte.
+Nur Nene blieb dort, wo sie war, und bewegte sich nicht. Sie aß mit gleichmäßigen Bewegungen, sprach wenig, und ihr Blick kehrte immer wieder zu ihrem Vater zurück, der auf der Plattform thronte. Sie beobachtete ihn, wie er die Tische beobachtete, mit derselben Geduld, derselben Genauigkeit. Acen sah, dass sie nicht wie die anderen Töchter auf ihren Platz gelegt worden war. Sie hatte sich ihren Platz genommen.
 
-Neles kleiner blauer Polo stand mit laufendem Motor am Bordstein. Sie saß am Steuer, die Hände um das Lenkrad geklammert. Kael saß steif auf dem Beifahrersitz und starrte auf die Backsteinwand. Ich öffnete die hintere Tür und ließ mich auf den Sitz fallen. Der Bezug war kalt.
+Beim dritten Gang veränderte sich etwas. Nene beugte sich zu der jungen Frau auf ihrer linken Seite, einer blassen Person mit dunklen Haaren, die bisher kaum ein Wort gesagt hatte. Nene flüsterte ihr etwas zu, und die junge Frau lachte, leise und verlegen. Nene lachte nicht mit. Sie lächelte, und dieses Lächeln war anders als das höfliche Lächeln der anderen Gäste. Es hatte eine Kante.
 
-»Fahr los«, sagte ich.
+Acen versuchte, sie zu lesen. Ihre Haltung verriet nichts, aber ihre Augen waren nicht die einer gehorsamen Tochter. Sie beobachteten, genau wie seine eigenen. Sie taxierten, genau wie seine eigenen. Und als sie für einen Moment den Kopf wandte und direkt in seine Richtung sah, traf ihn ihr Blick mit einer Intensität, die ihn überraschte. Es war, als hätte sie gewusst, dass er sie ansah, ohne hinzusehen.
 
-Nele warf mir einen Blick über die Schulter zu, dann legte sie den Gang ein und fuhr an. Sie sagte kein Wort. Wir fuhren die Straße entlang, bogen rechts ab, Richtung Kottbusser Tor. Die Häuserfluchten wichen grauen Plattenbauten, die Schaufenster wurden bunter, die Menschen dichter.
+Er senkte den Kopf, bevor er es verhindern konnte, und konzentrierte sich auf seine Hände. Die Naniten summten leise in seinem Blut, bereit, jeden Fehler zu korrigieren, jede Unsicherheit zu dämpfen. Aber als er wieder aufsah, war Nene bereits abgewandt, ihr Gesicht wieder in der ruhigen Maske, die sie für die Öffentlichkeit trug. Nur ihre Fingerspitzen ruhten auf der Tischkante, und sie bewegten sich in einem Rhythmus, der nicht zu der Musik passte, die aus den versteckten Lautsprechern kam.
 
-Nele hielt an einer roten Ampel. »Und jetzt?«, fragte sie, ohne sich umzudrehen.
+Der vierte Gang wurde serviert. Acen trug eine Platte mit gebratenem Geflügel, das in einer dunklen Sauce schwamm, und bewegte sich durch die Reihen. Er war jetzt sicherer, die Bewegungen flüssiger. Er hatte den Rhythmus des Saals gefunden, die Pausen zwischen den Gesprächen, die Momente, in denen die Diener unsichtbar wurden.
 
-»Weiter. Einfach weiter.«
+Als er an Nenes Tisch ankam, stellte er die Platte nicht sofort ab. Er positionierte sie neben ihrem Teller, sodass sie sich selbst bedienen konnte, wie es die anderen Diener für die hohen Gäste auch taten. Genau in diesem Moment beugte sich Nene wieder zu der jungen Frau auf ihrer linken Seite. Sie wollte ihr etwas zeigen und hob die Hand, um auf einen Punkt im Saal zu deuten. Ihre Handbewegung war schnell, ungeduldig, und ihr Handrücken streifte den Rand der Platte, die Acen hielt.
 
-Sie seufzte und fuhr wieder an.
+Die Platte schwankte. Eine Gabel, die schräg auf dem Rand der Platte balanciert hatte, rutschte ab und fiel mit einem hellen Klirren auf die Tischdecke, direkt neben Nenes Teller. Sie lag zwischen dem Teller und der kleinen Schale mit Brot, das Besteck geradlinig quer zur Tischkante.
 
-Sie parkte in einer Seitenstraße, wo die Fassaden mit Graffiti überzogen waren und kaputte Fahrräder an Zäune gekettet waren. Wir stiegen aus. Die Luft roch nach Abgasen und gebratenem Fleisch. Kael stand auf dem Bürgersteig und sah sich um. Sein Blick glitt über die vorbeieilenden Menschen, die Schilder, die U-Bahn-Eingänge, die Mülltonnen. Er sagte nichts. Seine Hände hingen ruhig an seinen Seiten, aber seine Augen arbeiteten. Sie nahmen jede Bewegung auf, jeden Winkel, jedes Detail, als würde er eine Karte des Ortes in seinem Kopf anlegen.
+Der Klang war laut in der plötzlichen Stille. Acen spürte, wie die Blicke der Gäste an den benachbarten Tischen zu ihm herüberwanderten. Er spürte, wie sich sein Gesicht verfärbte, wie das Blut aus seinen Wangen wich. Er sah die Gabel auf der weißen Tischdecke liegen, und in seinem Kopf war eine Sekunde lang nichts. Kein Ablauf, keine Proben, keine einstudierten Winkel. Nur die Gabel und das Wissen, dass er sie nicht einfach so zurücklegen konnte, nicht hier, vor allen Gästen, nicht mit Reimann, der irgendwo am Rand des Saals stehen musste.
 
-Wir gingen los, ohne ein Ziel. Nele und ich nebeneinander, Kael einen halben Schritt hinter uns. Seine Anwesenheit war wie ein stiller Schatten. Die Menschen strömten an uns vorbei, redeten, lachten, stritten. Kael beobachtete sie alle mit derselben konzentrierten Stille. Ein Mann schrie seine Freundin an. Eine Frau lachte hysterisch in ihr Telefon. Kael registrierte es, ohne mit der Wimper zu zucken.
+Er legte die Platte auf einenm freien Plath neben Nene ab. 
 
-Nele blieb vor einem Café stehen. Die Scheiben waren beschlagen, innen brannte warmes Licht. »Kaffee«, sagte sie. Es war keine Frage.
+Ein leises, tiefes Knurren drang aus der Richtung des Vorbereitungsraums. Acen erkannte es, ohne hinzusehen. Reimann hatte es ihm noch nie erklärt, aber er verstand es jetzt: Es war das Geräusch, das ein Hund machte, bevor er sich auf ein Kaninchen stürzte.
 
-Drinnen war es eng und laut. Der Geruch von gerösteten Bohnen und warmer Milch lag in der Luft. Wir setzten uns an einen kleinen Tisch in der Ecke. Kael nahm Platz, sein Rücken berührte die Lehne nicht. Er musterte den Raum – die Espressomaschine, die zischende Dampfdüse, die Kuchenvitrine, die Menschen, die auf ihre Bildschirme starrten.
+Die Gabel lag auf dem Tisch. Seine Hand griff nach ihr, und als er sie in den Fingern hielt, wusste er plötzlich nicht mehr, wohin sie gehörte. Links neben den Teller, das hatte er hundertmal geübt, aber in diesem Moment, mit allen Augen auf ihn gerichtet und Reimanns Knurren im Ohr, war das Wissen wie weggewischt. Er starrte auf den Teller,  auf das Brot, auf das Weinglas, und nichts davon sagte ihm, wo die Gabel platziert werden musste.
 
-Nele bestellte drei Filterkaffees. Als die Tassen kamen, dampfend und schwarz, nahm Kael die seine in beide Hände. Er roch daran, bevor er einen Schluck nahm. Seine Augenbrauen zogen sich für einen Sekundenbruchteil zusammen. Ein neuer Geschmack. Er stellte die Tasse ab und beobachtete weiter.
+Sein Blick traf Nene. Sie saß jetzt wieder aufrecht, die Hände auf der Tischkante, und sie grinste. Es war ein freundliches Grinsen, aber in ihren Augen lag ein leichter Spott, eine Beobachtung aus sicherer Distanz. Sie hatte sein Erbleichen gesehen. Sie hatte sein Zögern gesehen. Und sie genoss es, mit einer Ruhe, die nicht gespielt war.
 
-Ich rührte Zucker in meinen Kaffee. Der Löffel glitt mir aus den Fingern, fiel klingend auf den Tischrand und kippte dann über die Kante hinunter.
+Dann machte sie eine Bewegung. Es war kaum sichtbar, eine kleine Neigung des Kopfes, kaum mehr als ein Wimpernschlag, aber ihre Augen waren dabei auf einen Punkt an ihrer Tischseite gerichtet. Acen folgte ihrem Blick. Links neben dem Teller, wo die Gabel hingehörte. Sie hatte ihm gezeigt, wo sie hingehörte, ohne ein Wort zu sagen, ohne die Lippen zu bewegen. Ihr Grinsen war nicht breiter geworden, aber es war wärmer geworden, so als würde sie ihm mitteilen, dass sie ihn nicht für einen Idioten hielt, nur weil er gerade einen Fehler gemacht hatte.
 
-Der Löffel fiel. Und stoppte. Er stoppte zehn Zentimeter über dem schmutzigen Fliesenboden, schwebte dort für einen Herzschlag lang, waagerecht, als läge er auf einer unsichtbaren Fläche. Dann schnellte er in Kaels offengehaltener Hand. Er lächelte und legte den Löffel auf Lunas Unterteller. 
+Acen hob die Gabel. Er legte sie neben den Teller, genau an die richtige Stelle. Seine Hand war ruhig, aber sein Herz schlug schneller, als es bei einem Diener, der seine Arbeit machte, der Fall sein sollte. Nene grinste immer noch, und als er sich aufrichtete, sah er, dass sie den Kopf leicht schräg legte, als würde sie ihn herausfordern.
 
-Nele hatte es gesehen. Sie starrte auf den Löffel, dann auf Kael, der unbeteiligt einen Schluck Kaffee nahm, als wäre nichts geschehen. Wahrscheinlich war es weder Absicht noch eine Demonstration seiner Fähigkeiten gewesen, sondern einfach eine nette Geste. 
+Etwas in ihm weigerte sich, diese Herausforderung auszuschlagen. Er hatte die Gabel richtig platziert, genau wie sie es ihm gezeigt hatte, und das war das Ende der Sache. Aber er konnte nicht anders.
 
-»Okay«, sagte Nele. Ihre Stimme war flach.
+Er griff nach der Gabel, hob sie wieder auf, und legte sie mit einer langsamen, bewussten Bewegung verkehrt herum auf den Tisch. Die Zinken zeigten zu Nene. Sie zeigten auf sie, direkt auf sie, wie ein kleiner, stummer Witz, den nur sie verstehen konnte.
 
-Sie wartete einen Moment, nahm einen Schluck von ihrem eigenen Kaffee, setzte die Tasse ab.
+Einen Moment lang war es still. Dann lachte Nene laut auf. Es war ein helles, überraschtes Lachen, das durch den Saal schallte, ein Lachen, das nicht zu den gedämpften Gesprächen der anderen Gäste passte, nicht zu der zurückhaltenden Art, in der man bei Tisch lachte. Es brachte die Gespräche an den anderen Tischen zum Verstummen. Die Vasallen drehten sich um, die Offiziere starrten, und Paleus auf seiner Plattform hob den Kopf und sah in ihre Richtung. Sein Gesicht zeigte keine Regung, aber seine Augen verweilten einen Moment auf Nene, bevor sie weiterwanderten.
 
-»Okay«, sagte sie noch einmal, leiser, als würde sie das Wort auf der Zunge zergehen lassen. Einmal reichte nicht aus.
+Acen spürte, wie die Hitze in sein Gesicht stieg. Er hatte nicht erwartet, dass sie so reagieren würde. Er hatte nur eine kleine Provokation gewollt, einen stillen Witz zwischen ihnen, den sie zur Kenntnis nehmen sollte. Aber sie hatte ihn laut gemacht, öffentlich, unübersehbar.
 
-»Ach ja, ich vergaß: Magie gibt es in der Traumwelt auch«, sagte ich.
+Reimann trat aus der Nische, sein Gesicht rot vor Wut. Er hatte nicht sehen können, was Acen mit der Gabel gemacht hatte, aber er hatte das Lachen gehört, und er wusste, dass etwas nicht stimmte. Seine Augen bohrten sich in Acens Rücken, und Acen spürte den Blick wie einen physischen Druck, der ihn zwischen den Schulterblättern traf.
 
-»Okay«, sagte Nele zum dritten Mal. 
+Aber er konnte nicht anders. Er grinste Nene an, ein keckes, herausforderndes Grinsen, das er nicht zurückhalten konnte. Sie grinste zurück, ihre Augen funkelten, und dann wandte sie sich ab, als wäre nichts geschehen. 
 
+Acen griff nach der leeren Platte und trat zurück. Die Bewegungen saßen wieder, der Schritt nach hinten, das Halten der Platte auf Brusthöhe. Er ging zur Nische, und als er die Kante des Vorhangs erreichte, drehte er sich noch einmal um.
 
+Nene hatte den Kopf gehoben. Sie sah ihm direkt nach. Ihr Blick war nicht auf die Platte gerichtet, nicht auf seine Hände, sondern auf sein Gesicht, und er verweilte dort mit einer Aufmerksamkeit, die über das hinausging, was eine Prinzessin einem Diener normalerweise schenkte. Ihr Lächeln war noch da, und es hielt einen Moment, während ihre Augen die seinen trafen, dann wandte sie sich ab und beugte sich wieder zu der jungen Frau, als wollte sie ihr etwas erzählen, das nichts mit dem Abend zu tun hatte.
 
----
+Reimann kam in der Nische auf ihn zu, die Schritte hart auf dem Marmorboden. »Was war das?«, zischte er, seine Stimme kaum hörbar.
 
+Acen sah ihm in die Augen. »Ein Fehler«, sagte er. »Es wird nicht wieder vorkommen.«
 
+Reimann musterte ihn lange, dann nickte er knapp. Er wusste, dass Acen ihm nicht die Wahrheit sagte, und Acen wusste, dass er es wusste. Aber Reimann sagte nichts weiter, er wandte sich ab und kehrte an seinen Platz am Rand des Saals zurück.
 
-Nele stellte ihre Tasse ab. Der Kaffee war kalt geworden. Sie sah mich an, dann Kael, dann wieder mich. »Wie funktioniert das eigentlich? Der Wechsel?«
-
-Ich zuckte mit den Schultern. »Man schläft ein. Und wacht auf. Das ist alles.«
-
-»Das ist nicht alles. Du schläfst hier ein und wachst dort auf. Geht das immer?«
-
-»Immer. Mein Körper ist immer nur in einer Welt. Wenn ich hier bin, bin ich nicht dort. Und umgekehrt.«
-
-»Und die Kleidung?«
-
-»Die wechselt mit.« Ich trank einen Schluck von meinem eigenen kalten Kaffee. »Wenn ich hier in T-Shirt und Schlüpper einschlafe, wache ich dort voll angezogen auf. Mit allem, was dazugehört. Umgekehrt genauso. Ich schlafe dort ein, in meiner Traumwelt-Kleidung, und wache hier in dem auf, was ich hier angehabt habe, als ich eingeschlafen bin.«
-
-Nele dachte nach. Ihr Blick wanderte zu Kael, der uns ruhig zuhörte, als verstehe er jedes Wort. »Das erklärt seinen … Zustand von heute Morgen.«
-
-»Ja. Wahrscheinlich schläft er nackt. Da ist dann nichts, was mit wechseln könnte.«
-
-»Also er ist dort in Kleidung mit dir gewechselt, also wachte er hier auf in seiner ›Schlafkleidung‹ ...«
-
-
-»Also nackt. Ja.«
-
-»Und wenn er hier einschläft?«
-
-»Keine Ahnung, das werden wir wohl erst herausfinden müssen.« Ich sah zu Kael. Er hielt meinen Blick aus, sein Gesicht zeigte kein Erkennen, aber eine Art stilles Einverständnis. Er wusste, worum es ging.
-
-Nele nickte langsam.
-
-Wir verließen das Café. Die Sonne stand schon hoch am Himmel, warf kurze, harte Schatten. Nele schlug vor, noch ein bisschen durch die Stadt zu laufen. »Touristenprogramm«, sagte sie. »Er soll was sehen.«
-
-Wir fuhren zum Alexanderplatz. Kael betrachtete den Fernsehturm, sein Blick glitt die schlanke Stahlkonstruktion hinauf bis zur Kugel. Dieses Mal lag sogar etwas Erstaunen in seinem Blick. Wir wollten mit der U-Bahn eine Station fahren, nur um ihm das Geräusch und das Ruckeln zu zeigen. Doch an der Treppe blieb Kael stehen. Er starrte in den Zugang hinunter, trat einen Schritt zurück und schüttelte den Kopf. Dann redete er auf Syrranisch auf mich ein, schnell und eindringlich, die Hände in ständiger Bewegung, und wies immer wieder in die Dunkelheit des Treppenabgangs. Ich versuchte, ihn zu überreden, zeigte auf die Menschen, die ganz selbstverständlich hinuntergingen, aber er ließ sich nicht bewegen. Was immer er dort unten vermutete, er würde keinen Schritt in diesen Tunnel gehen. Also gaben wir es auf und blieben an der Oberfläche.
-
-Als der Abend herannahte, brachte Nele uns mit dem Auto nach Hause. Sie parkte vor meinem Haus und ließ den Motor laufen.
-
-»Und jetzt?«, fragte sie.
-
-»Jetzt muss er schlafen. Um zurückzukehren.«
-
-»Und du?«
-
-»Ich auch.«
-
-Sie sah mich an. Ich wusste, was sie dachte. »In demselben Bett.«
-
-»Ja.«
-
-Nele nickte. Sie drehte den Zündschlüssel um, der Motor verstummte. »Dann viel Glück.«
-
-»Danke.«
-
-Kael und ich stiegen aus. Nele winkte kurz, dann fuhr sie davon.
-
-Im Hausflur war es schon dunkel, die Abenddämmerung reichte nicht mehr bis hier unten. Kael blieb auf der Schwelle stehen. Er starrte in den Schatten hinein, trat einen halben Schritt zurück und schüttelte den Kopf, genau wie an der U-Bahn-Station. Ich tastete nach dem Schalter, das Licht flammte auf. Erst dann, widerstrebend, setzte er einen Fuß über die Schwelle.
-
-Wir gingen die Treppen hoch. Oben dasselbe Spiel: Ich öffnete die Wohnungstür, dahinter lag alles still und dunkel, und Kael rührte sich nicht. Er wich zurück, die Schultern angespannt, und murmelte etwas auf Syrranisch. Ich schaltete das Licht im Flur an. Er zögerte noch einen Moment, dann trat er ein.
-
-Sein erster Weg führte ihn in die Küche, ans Fenster. Er blickte hinaus in die einsetzende Dunkelheit der Nacht und redete, schnell, halb zu sich selbst. Es klang besorgt. Irritiert.
-
-Warum benahm sich Kael so seltsam? Was war sein Problem? Ich war ratlos. Schließlich schien er genug zu haben von dem Anblick Berlins im Abendrot, und er drehte sich um und ging den Flur entlang direkt zum Schlafzimmer.  Ich folgte ihm. Er stand mitten im Raum und betrachtete das Bett. Dann begann er, sich auszuziehen.
-
-Es war nicht langsam oder zögerlich. Es war einfach die nächste logische Handlung. Er zog den Uni-Hoodie über den Kopf, ließ ihn auf den Boden fallen. Dann die Jogginghose, die Unterhose darunter. Innerhalb von Sekunden stand er wieder nackt da, so wie ich ihn am Morgen gesehen hatte. Er schien die Kälte der Wohnung nicht zu spüren.
-
-Er ging zum Bett, schob die Decke zurück und legte sich hinein. Dann sah er mich an und sagte etwas auf Syrranisch. Seine Stimme war ruhig, eine Aufforderung.
-
-Ich atmete ein. Meine Kehle war trocken. Ich drehte mich um, zog mein Sweatshirt aus, dann die Jeans. Ich trug keine BH, aber ich drehte Kael meinen Rücken zu. Ich zog das auf dem Bettliegende T-Shirt an. Das war mein Schlafanzug. Das war mein Schutz.
-
-Ich ging zurück zum Lichtschalter neben der Tür und knipste das Licht aus.
-
-Kaels Aufschrei auf Syrranisch ließ mich zusammenfahren. Im Dunkeln hörte ich die Decke rascheln, das Knarren des Bettes, als er sich hochriss. Erschrocken knipste ich das Licht hastig wieder an.
-
-Er saß kerzengerade im Bett, die Augen weit aufgerissen, der Brustkorb hob und senkte sich viel zu schnell. 
-
-Und da begriff ich es. Das Zögern vor der dunklen Wohnungstür. Der angespannte Blick aus dem Küchenfenster in die einsetzende Nacht. Selbst der dämmrige Hausflur war schon zu viel für ihn gewesen; Kael hatte Angst vor der Dunkelheit.
-
-Das würde er mir erklären müssen, wenn wir wieder in der Traumwelt waren.
-
-Also ließ ich das Licht brennen und kroch auf die andere Seite des Bettes. Die Matratze senkte sich unter seinem Gewicht, als er sich langsam wieder hinlegte. Ich spürte die Wärme, die von seinem Körper ausging. Ich lag auf dem Rücken und starrte an die Decke, während das helle Licht in meinen Augen brannte.
-
-Kael drehte sich zur Seite, zu mir. Seine Hand fand meine Hüfte. Er zog mich sanft zu sich, bis mein Rücken an seiner Brust lag, sein Arm um meine Taille. Sein Atem strich warm über meinen Nacken.
-
-Ich erstarrte. Jeder Muskel in meinem Körper war angespannt. Das war die Position, in der ich aufgewacht war. Das war der Weg zurück.
-
-Ich hörte seinen Atem ruhiger werden, tiefer. Er schlief schnell ein, so wie in der Traumwelt. Sein Arm wurde schwerer.
-
-Ich lag wach. Ich versuchte, mich zu entspannen, versuchte, an nichts zu denken. Aber mein Herz schlug zu schnell, und meine Gedanken kreisten. Die Wärme seines Körpers, der Geruch seiner Haut, der fremd und doch vertraut war, das Gewicht seines Arms. Ich musste einschlafen. Ich musste.
-
-Die Minuten zogen sich hin. Das tropfende Geräusch aus dem Bad schien lauter zu werden. Ein Auto fuhr draußen vorbei. Kael bewegte sich im Schlaf nicht. Seine Brust hob und senkte sich in einem gleichmäßigen Rhythmus gegen meinen Rücken.
-
-Normalerweise schlief ich schnell ein. Jetzt,  wo ich es wollte, blieb ich wach. Ich zählte meine Atemzüge. Ich stellte mir die leuchtenden Adern in den Wänden der Traumwelt vor. Ich dachte an Frina, an Ezra, an die Stadt mit den goldenen Türmen.
-
-Nichts half.
-
-Ich lag in den Armen eines nackten Mannes aus einer anderen Welt und wartete auf den Schlaf, der nicht kommen wollte.
-
-
-
----
-
-
-
-Ich stand im Aufenthaltsraum. Kael stand neben mir, glücklicherweise vollständig bekleidet. Ich trug wie immer meinen Vintage-Mantel, ein Sweatshirt und darunter meine Blue Jeans. 
-
-Ezra und Vera saßen auf den gemütlichen Sesseln, die im Raum verteilt waren. Sie blickten überrascht auf. Beide hatten rechteckige Tafeln auf den Knien, die aus Metall zu bestehen schienen. Wäre dies meine Welt, würde ich annehmen, dass es sich um iPads handelte. 
-
-»Ihr seid wieder da!« Ezra legte sein Rechteck ab und sprang auf. Er eilte auf mich zu und schüttelte mit beiden Händen meine rechte Hand.
-
-»Hat es funktioniert?« Er sah erwartungsvoll zu Kael hinüber.
-
-»Ja«, antwortete er.
-
-Ezra ging zurück zu seinem Platz und setzte sich wieder. 
-
-»Setzt euch. Ich hoffe, du hast etwas mehr als nur eine einzige Silbe zu bieten als Bericht. Wie war es in Lunas Welt? «
-
-Wir setzten uns und Kael begann mit seinem Bericht. 
-
-»Verwirrend. Fremdartig. Berlin *riecht* sogar anders als Königsstadt. Und überall ist die Elektrizität. Sie ist in der Luft, sie ist in den Wänden, sie ist einfach überall. Er hatte Mühe, auch nur die einfachsten Zauber zu wirken.« 
-
-Ezra beugte sich nach vorne. »Du hast in Lunas Welt gezaubert? Und das hat funktioniert?«
-
-„Wie gesagt: nicht besonders gut.“
-
-Ezra sah hinüber zu Vera, die sich bislang nicht am Gespräch beteiligt hatte. 
-
-„Das ist tatsächlich eine völlig neue Information“, sagte sie.
-
-Kael schwieg nun, doch Ezra sah ihn auffordernd an. Doch dann seufzte Kael und fuhr fort.
- 
-»Ich konnte mich mit Luna leider nicht verständigen, denn in ihrer Welt gibt es ja keine Resonanzsäulen.«
-
-»Du hättest ja einen Resonanz-Kristall mitnehmen können. Aber du musstest dich ja trotz meiner Bedenken in dieses Abenteuer stürzen.« 
-
-
-Kael zuckte nur mit den Schultern. 
-
-Ich blickte nun zu Kael hinüber. »Du warst verwirrt, und dich hat die Fremdartigkeit meiner Welt beeindruckt? Davon hast du dir aber nichts anmerken lassen.«
-
-Wiederum zuckte er nur mit den Schultern. Ich wurde nicht schlau aus dem Kerl.
-
-»Aber eines musst du mir erklären«, fuhr ich fort. »Warum bist du bei Einbruch der Dunkelheit so nervös geworden?« Das hatte ich absichtlich so freundlich formuliert. Eigentlich hatte er ja vor Angst aufgeschrien wie ein kleines Kind, als sich das Licht im Schlafzimmer gelöscht hatte. 
- 
-Kael verzog das Gesicht. »Bei uns geht die Sonne niemals unter. Niemals. Und dann stehe ich plötzlich in deiner Welt, und es wird einfach … dunkel.«
-
-»Das konnten wir ja durch die Risse auch beobachten«, warf Ezra ein. »Allein diese U-Bahn! Menschen fahren unter der Erde durch finstere Tunnel!«
-
-»Ja«, bestätigte Kael. »Sie wollten mich auch in eine hinunterführen, mitten in einen finsteren Schlund. Ich habe mich geweigert.«
-
-»Aber die U-Bahnen sind doch beleuchtet«, warf ich ein. »Es ist dort unten nicht wirklich dunkel.«
-
-Kael schüttelte den Kopf. »Das ist nicht dasselbe. Künstliches Licht kann das Tageslicht nicht komplett ersetzen. Man spürt, dass die Sonne fehlt.«
-
-Vera nickte. »Kein Wunder, dass er sich gewehrt hat. Wer die Dunkelheit nicht kennt, fürchtet sie. Und jeder von uns trägt diese Urangst in sich – die Angst vor dem Fehlen des Tageslichts. Dagegen hilft keine Lampe der Welt.«
-
-Mir ging plötzlich ein Licht auf. »Deshalb sind eure Häuser so hoch, aber schmal! Darüber wundere ich mich schon seit Jahren.  Jedes Zimmer muss ein Fenster nach außen haben. Und die Treppenhäuser und Fahrstühle liegen außen am Haus. Keine Keller, keine Tunnel – nirgendwo Dunkelheit.«
-
-Kael sah mich an, und zum ersten Mal zuckte er nicht mit den Schultern.
-
-
-# Kapitel 7 - Politik
-
-
-Das ist der erste Satz^[Das ist eine Fußnote]
+Acen stand in der Nische, die Hände locker an den Seiten, und beobachtete die Hofgesellschaft, die sich wieder ihren Gesprächen und ihrem Wein zuwandte. Der dicke Hausherr von Vant trank weiter, die Witwe flüsterte weiter, die Offiziere schielten weiter zur Plattform. Alles war wieder auf seinen Platz zurückgekehrt, als wäre nichts geschehen. Nur die Gabel lag noch immer verkehrt herum auf dem Tisch, und Nenes Lachen war noch in den Ohren der Gäste, die es gehört hatten.
 
 

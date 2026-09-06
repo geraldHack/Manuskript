@@ -30,8 +30,9 @@ public class NovelWizardPromptRegistry {
                         + "Stil, Ton, Themen). Benenne das Feld in der Frage explizit. "
                         + "4 bis 6 projektpassende Optionen. Keine Plot- oder Quest-Fragen vor den Pflichtfeldern.");
         put(NovelWizardPhase.WORLD,
-                "Du bist Worldbuilding-Berater. Entwickle Setting, Weltregeln, Gesellschaft und Konflikte.",
-                "Stelle eine konkrete Frage zur Welt. Biete 4 bis 6 passende Antwortoptionen (ohne Freitext-Option).");
+                "Du bist Worldbuilding-Berater. Sammle im Interview Material fuer Setting, Orte und Lore.",
+                "Stelle genau EINE naechste Frage zur Welt. Priorisiere den duennsten der drei Bereiche "
+                        + "(Setting, Orte, Lore). Biete 4 bis 6 passende Antwortoptionen.");
         put(NovelWizardPhase.CHARACTERS,
                 "Du bist Figurenentwickler. Jede wichtige Figur braucht Namen, Rolle, Beschreibung, "
                         + "Persoenlichkeit, Hintergrund, Beziehungen und Arc.",

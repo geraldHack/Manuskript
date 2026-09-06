@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Mindmap</title>
+  <script src="vis-network.min.js"></script>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #000000;
+      --panel: #f8f9fa;
+      --border: #e9ecef;
+      --edge: #888888;
+    }
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      background: var(--bg); color: var(--text);
+      font-family: system-ui, sans-serif;
+    }
+    #toolbar {
+      padding: 6px 10px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text);
+    }
+    #network {
+      width: 100%; height: calc(100% - 36px);
+      background: var(--bg);
+    }
+    #status { opacity: 0.85; }
+    /* vis.js setzt background als Verlauf — komplett ersetzen, nicht nur background-color */
+    div.vis-network div.vis-manipulation,
+    div.vis-network div.vis-edit-mode {
+      background: var(--panel) !important;
+      border: 1px solid var(--border) !important;
+      box-shadow: none !important;
+    }
+    div.vis-network div.vis-manipulation div.vis-label,
+    div.vis-network div.vis-edit-mode div.vis-label,
+    div.vis-network div.vis-manipulation div.notification {
+      color: var(--text) !important;
+    }
+    div.vis-network div.vis-manipulation div.vis-separator-line {
+      background-color: var(--border) !important;
+    }
+    div.vis-network div.vis-manipulation button.vis-button,
+    div.vis-network div.vis-edit-mode button.vis-button {
+      background-color: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+    div.vis-network div.vis-manipulation button.vis-button.vis-edit.vis-edit-mode {
+      background-color: var(--bg) !important;
+      border: 1px solid var(--border) !important;
+    }
+    #editOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    #editOverlay.open { display: flex; }
+    #confirmOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: 1001;
+      align-items: center;
+      justify-content: center;
+    }
+    #confirmOverlay.open { display: flex; }
+    #editDialog, #confirmDialog {
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px;
+      min-width: 320px;
+      max-width: 90vw;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+    #editDialog h3, #confirmDialog h3 { margin: 0 0 12px; font-size: 15px; font-weight: 600; }
+    #confirmDialog p { margin: 0 0 14px; font-size: 13px; line-height: 1.4; }
+    #editDialog label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+    #editDialog input,
+    #editDialog select,
+    #editDialog textarea {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 4px;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+    }
+    #editDialog textarea {
+      min-height: 5.5em;
+      resize: vertical;
+      line-height: 1.35;
+      white-space: pre-wrap;
+    }
+    #editDialog .actions,
+    #confirmDialog .actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 14px;
+    }
+    #editDialog button,
+    #confirmDialog button {
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+    }
+    #editDialog button.primary,
+    #confirmDialog button.primary {
+      background: #4a7ebb;
+      border-color: #2b5f9e;
+      color: #fff;
+    }
+    #confirmDialog button.danger {
+      background: #c45c5c;
+      border-color: #8b3030;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div id="toolbar"><span id="status">Doppelklick: Knoten oder Kante bearbeiten (Beziehung optional).</span></div>
+  <div id="network"></div>
+
+  <div id="editOverlay">
+    <div id="editDialog" role="dialog" aria-modal="true">
+      <h3 id="editTitle">Knoten bearbeiten</h3>
+      <label id="editHeadingRow">Überschrift
+        <input id="editHeadingInput" type="text"/>
+      </label>
+      <label id="editTextRow">Text (optional, kleiner unter der Überschrift)
+        <textarea id="editTextInput" rows="4"></textarea>
+      </label>
+      <label id="editGroupRow">Gruppe
+        <select id="editGroupSelect">
+          <option value="character">Figur (character)</option>
+          <option value="place">Ort (place)</option>
+          <option value="plot">Handlung (plot)</option>
+          <option value="chapter">Kapitel (chapter)</option>
+          <option value="other">Sonstiges (other)</option>
+        </select>
+      </label>
+      <label id="editEdgeRow" style="display:none">Beziehung (optional)
+        <input id="editEdgeInput" type="text"/>
+      </label>
+      <label id="editEdgeArrowsRow" style="display:none">Pfeile
+        <select id="editEdgeArrowsSelect">
+          <option value="to">A → B</option>
+          <option value="from">B → A</option>
+          <option value="both">Beide</option>
+          <option value="none">Keine</option>
+        </select>
+      </label>
+      <div class="actions">
+        <button type="button" id="editCancelBtn">Abbrechen</button>
+        <button type="button" id="editOkBtn" class="primary">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="confirmOverlay">
+    <div id="confirmDialog" role="dialog" aria-modal="true">
+      <h3 id="confirmTitle">Löschen?</h3>
+      <p id="confirmMessage"></p>
+      <div class="actions">
+        <button type="button" id="confirmCancelBtn">Abbrechen</button>
+        <button type="button" id="confirmOkBtn" class="primary danger">Löschen</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var nodes = new vis.DataSet([]);
+    var edges = new vis.DataSet([]);
+    var network = null;
+    var notifyTimer = null;
+    var theme = { bg: '#ffffff', text: '#000000', panel: '#f8f9fa', border: '#e9ecef', edge: '#888888' };
+    var pendingEdit = null;
+    var pendingDelete = null;
+    /** Letzte bekannte Koordinaten (vis-Keys können Zahl/String mischen). */
+    var cachedPositions = {};
+    var straightenTimer = null;
+    var STRAIGHT_EDGE_SMOOTH = false;
+
+    var groups = {
+      character: { color: { background: '#4a7ebB', border: '#2B5F9E', highlight: { background: '#6a9edB', border: '#2B5F9E' } }, font: { color: '#fff', size: 11, multi: 'html', bold: { size: 16, color: '#fff', vadjust: 1 } } },
+      place:     { color: { background: '#c45c5c', border: '#8b3030', highlight: { background: '#d47c7c', border: '#8b3030' } }, font: { color: '#fff', size: 11, multi: 'html', bold: { size: 16, color: '#fff', vadjust: 1 } } },
+      plot:      { color: { background: '#c9a227', border: '#8a7010', highlight: { background: '#d9b247', border: '#8a7010' } }, font: { color: '#111', size: 11, multi: 'html', bold: { size: 16, color: '#111', vadjust: 1 } } },
+      chapter:   { color: { background: '#5a9a4a', border: '#3a6a2a', highlight: { background: '#7aba6a', border: '#3a6a2a' } }, font: { color: '#fff', size: 11, multi: 'html', bold: { size: 16, color: '#fff', vadjust: 1 } } },
+      other:     { color: { background: '#666680', border: '#444458', highlight: { background: '#8686a0', border: '#444458' } }, font: { color: '#fff', size: 11, multi: 'html', bold: { size: 16, color: '#fff', vadjust: 1 } } }
+    };
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+    }
+
+    function splitLegacyLabel(label) {
+      if (!label) return { heading: '', text: '' };
+      var i = String(label).indexOf('\n');
+      if (i < 0) return { heading: String(label).trim(), text: '' };
+      return { heading: String(label).substring(0, i).trim(), text: String(label).substring(i + 1).trim() };
+    }
+
+    function nodeHeadingValue(n) {
+      if (!n) return '';
+      if (n.heading && String(n.heading).trim()) return String(n.heading).trim();
+      return splitLegacyLabel(n.label).heading;
+    }
+
+    function nodeTextValue(n) {
+      if (!n) return '';
+      if (n.text && String(n.text).trim()) return String(n.text).trim();
+      return splitLegacyLabel(n.label).text;
+    }
+
+    function formatNodeLabel(heading, text) {
+      var h = (heading || '').trim();
+      var t = (text || '').trim();
+      if (!h && !t) return '<b>Neu</b>';
+      if (!t) return '<b>' + escapeHtml(h) + '</b>';
+      return '<b>' + escapeHtml(h) + '</b>\n' + escapeHtml(t);
+    }
+
+    function hasPosition(n) {
+      return n && typeof n.x === 'number' && typeof n.y === 'number'
+          && isFinite(n.x) && isFinite(n.y);
+    }
+
+    function positionLookup(positions, nodeId) {
+      if (!positions || nodeId == null) return null;
+      if (positions[nodeId]) return positions[nodeId];
+      var s = String(nodeId);
+      if (positions[s]) return positions[s];
+      var num = Number(nodeId);
+      if (!isNaN(num) && positions[num]) return positions[num];
+      return null;
+    }
+
+    function roundCoord(v) {
+      return Math.round(v * 10) / 10;
+    }
+
+    function syncPositionsToDataset(positions) {
+      if (!positions) return;
+      nodes.getIds().forEach(function(nid) {
+        var p = positionLookup(positions, nid);
+        if (p && typeof p.x === 'number' && typeof p.y === 'number') {
+          nodes.update({ id: nid, x: roundCoord(p.x), y: roundCoord(p.y) });
+          cachedPositions[nid] = { x: roundCoord(p.x), y: roundCoord(p.y) };
+          cachedPositions[String(nid)] = cachedPositions[nid];
+        }
+      });
+    }
+
+    function captureLivePositions(nodeIds) {
+      if (!network || typeof network.getPositions !== 'function') return {};
+      var ids = nodeIds && nodeIds.length ? nodeIds : nodes.getIds();
+      if (!ids.length) return {};
+      try {
+        return network.getPositions(ids) || {};
+      } catch (e) {
+        try {
+          return network.getPositions() || {};
+        } catch (e2) {
+          return {};
+        }
+      }
+    }
+
+    function moveNodeIfAvailable(id, x, y) {
+      if (network && typeof network.moveNode === 'function'
+          && typeof x === 'number' && typeof y === 'number') {
+        network.moveNode(id, x, y);
+      }
+    }
+
+    function cachePositionsFromDataset() {
+      nodes.get().forEach(function(n) {
+        if (typeof n.x === 'number' && typeof n.y === 'number') {
+          var entry = { x: roundCoord(n.x), y: roundCoord(n.y) };
+          cachedPositions[n.id] = entry;
+          cachedPositions[String(n.id)] = entry;
+        }
+      });
+    }
+
+    function applyLoadedPositionsToView() {
+      if (!network) return;
+      nodes.get().forEach(function(n) {
+        if (typeof n.x === 'number' && typeof n.y === 'number') {
+          moveNodeIfAvailable(n.id, n.x, n.y);
+        }
+      });
+    }
+
+    function mergeIntoCache(positions) {
+      if (!positions) return;
+      Object.keys(positions).forEach(function(key) {
+        var p = positions[key];
+        if (p && typeof p.x === 'number' && typeof p.y === 'number') {
+          var entry = { x: roundCoord(p.x), y: roundCoord(p.y) };
+          cachedPositions[key] = entry;
+          cachedPositions[String(key)] = entry;
+        }
+      });
+    }
+
+    function toVisNode(n, gridX, gridY) {
+      var heading = nodeHeadingValue(n);
+      var body = nodeTextValue(n);
+      var vis = {
+        id: n.id,
+        group: normalizeGroup(n.group),
+        heading: heading,
+        text: body,
+        label: formatNodeLabel(heading, body),
+        fixed: false
+      };
+      if (hasPosition(n)) {
+        vis.x = roundCoord(n.x);
+        vis.y = roundCoord(n.y);
+      } else if (typeof gridX === 'number' && typeof gridY === 'number') {
+        vis.x = gridX;
+        vis.y = gridY;
+      }
+      return vis;
+    }
+
+    function syncAllPositionsFromNetwork() {
+      if (!network) return;
+      var live = captureLivePositions(nodes.getIds());
+      nodes.getIds().forEach(function(nid) {
+        var p = positionLookup(live, nid);
+        if (p && typeof p.x === 'number' && typeof p.y === 'number') {
+          nodes.update({ id: nid, x: roundCoord(p.x), y: roundCoord(p.y), fixed: false });
+        }
+      });
+      mergeIntoCache(captureLivePositions(nodes.getIds()));
+    }
+
+    function nodeLabelPreview(n) {
+      var h = nodeHeadingValue(n);
+      return h.length > 48 ? h.substring(0, 45) + '…' : h;
+    }
+
+    function normalizeGroup(g) {
+      if (!g) return 'other';
+      g = String(g).trim().toLowerCase();
+      return ['character', 'place', 'plot', 'chapter', 'other'].indexOf(g) >= 0 ? g : 'other';
+    }
+
+    function normalizeEdgeData(data) {
+      if (!data) return data;
+      var copy = Object.assign({}, data);
+      if (copy.from && typeof copy.from === 'object') copy.from = copy.from.id;
+      if (copy.to && typeof copy.to === 'object') copy.to = copy.to.id;
+      return copy;
+    }
+
+    function closeEditor() {
+      document.getElementById('editOverlay').classList.remove('open');
+      pendingEdit = null;
+    }
+
+    function openNodeEditor(data, callback, manualUpdate) {
+      pendingEdit = { kind: 'node', data: data, callback: callback, manualUpdate: !!manualUpdate };
+      document.getElementById('editTitle').textContent = 'Knoten bearbeiten';
+      document.getElementById('editHeadingRow').style.display = 'block';
+      document.getElementById('editTextRow').style.display = 'block';
+      document.getElementById('editGroupRow').style.display = 'block';
+      document.getElementById('editEdgeRow').style.display = 'none';
+      document.getElementById('editEdgeArrowsRow').style.display = 'none';
+      document.getElementById('editHeadingInput').value = nodeHeadingValue(data);
+      document.getElementById('editTextInput').value = nodeTextValue(data);
+      document.getElementById('editGroupSelect').value = normalizeGroup(data.group);
+      document.getElementById('editOverlay').classList.add('open');
+      document.getElementById('editHeadingInput').focus();
+      document.getElementById('editHeadingInput').select();
+    }
+
+    function nodeDisplayName(id) {
+      var n = nodes.get(id);
+      return n ? nodeLabelPreview(n) : String(id);
+    }
+
+    function updateEdgeArrowOptions(fromId, toId) {
+      var a = nodeDisplayName(fromId);
+      var b = nodeDisplayName(toId);
+      var sel = document.getElementById('editEdgeArrowsSelect');
+      sel.options[0].text = a + ' → ' + b;
+      sel.options[1].text = b + ' → ' + a;
+      sel.options[2].text = 'Beide (' + a + ' ↔ ' + b + ')';
+      sel.options[3].text = 'Keine';
+    }
+
+    function arrowModeFromData(data) {
+      if (!data) return 'to';
+      if (data.arrowMode) return data.arrowMode;
+      if (typeof data.arrows === 'string') {
+        var m = data.arrows.trim().toLowerCase();
+        if (['to', 'from', 'both', 'none'].indexOf(m) >= 0) return m;
+      }
+      return 'to';
+    }
+
+    function arrowsToVis(mode) {
+      switch (mode) {
+        case 'from': return 'from';
+        case 'both': return 'to, from';
+        case 'none': return '';
+        case 'to':
+        default: return 'to';
+      }
+    }
+
+    function applyEdgeVisualFields(edge) {
+      var copy = Object.assign({}, edge);
+      copy.arrowMode = arrowModeFromData(copy);
+      copy.arrows = arrowsToVis(copy.arrowMode);
+      copy.smooth = STRAIGHT_EDGE_SMOOTH;
+      return copy;
+    }
+
+    function openEdgeEditor(data, callback, manualUpdate) {
+      data = normalizeEdgeData(data);
+      pendingEdit = { kind: 'edge', data: data, callback: callback, manualUpdate: !!manualUpdate };
+      document.getElementById('editTitle').textContent = 'Kante bearbeiten';
+      document.getElementById('editHeadingRow').style.display = 'none';
+      document.getElementById('editTextRow').style.display = 'none';
+      document.getElementById('editGroupRow').style.display = 'none';
+      document.getElementById('editEdgeRow').style.display = 'block';
+      document.getElementById('editEdgeArrowsRow').style.display = 'block';
+      document.getElementById('editEdgeInput').value = data.label || '';
+      updateEdgeArrowOptions(data.from, data.to);
+      document.getElementById('editEdgeArrowsSelect').value = arrowModeFromData(data);
+      document.getElementById('editOverlay').classList.add('open');
+      document.getElementById('editEdgeInput').focus();
+    }
+
+    function commitEditor() {
+      if (!pendingEdit) return;
+      var p = pendingEdit;
+      var updated = Object.assign({}, p.data);
+      if (p.kind === 'node') {
+        var heading = document.getElementById('editHeadingInput').value.trim();
+        var body = document.getElementById('editTextInput').value.trim();
+        if (!heading) return;
+        updated.heading = heading;
+        updated.text = body;
+        updated.label = formatNodeLabel(heading, body);
+        updated.group = normalizeGroup(document.getElementById('editGroupSelect').value);
+      } else {
+        var edgeLabel = document.getElementById('editEdgeInput').value.trim();
+        if (edgeLabel) updated.label = edgeLabel;
+        else delete updated.label;
+        var arrowMode = document.getElementById('editEdgeArrowsSelect').value;
+        updated.arrowMode = arrowMode;
+        updated.arrows = arrowsToVis(arrowMode);
+        updated.smooth = STRAIGHT_EDGE_SMOOTH;
+        updated = normalizeEdgeData(updated);
+      }
+      closeEditor();
+      if (p.manualUpdate) {
+        if (p.kind === 'node') {
+          var cur = nodes.get(updated.id);
+          if (cur && typeof cur.x === 'number') updated.x = cur.x;
+          if (cur && typeof cur.y === 'number') updated.y = cur.y;
+          updated.fixed = false;
+          nodes.update(updated);
+        } else {
+          edges.update(applyEdgeVisualFields(updated));
+          scheduleStraightenEdges();
+        }
+        scheduleNotify();
+      } else if (p.callback) {
+        p.callback(p.kind === 'edge' ? applyEdgeVisualFields(updated) : updated);
+        scheduleStraightenEdges();
+        scheduleNotify();
+      }
+    }
+
+    function cancelEditor() {
+      if (!pendingEdit) return;
+      var cb = pendingEdit.callback;
+      var manual = pendingEdit.manualUpdate;
+      closeEditor();
+      if (!manual && cb) cb(null);
+    }
+
+    function showDeleteConfirm(message, onOk, onCancel) {
+      pendingDelete = { onOk: onOk, onCancel: onCancel || null };
+      document.getElementById('confirmMessage').textContent = message;
+      document.getElementById('confirmOverlay').classList.add('open');
+    }
+
+    function closeDeleteConfirm(confirmed) {
+      if (!pendingDelete) return;
+      var p = pendingDelete;
+      pendingDelete = null;
+      document.getElementById('confirmOverlay').classList.remove('open');
+      if (confirmed && p.onOk) p.onOk();
+      else if (!confirmed && p.onCancel) p.onCancel();
+    }
+
+    function describeDeleteTarget(data) {
+      if (!data) return 'Auswahl';
+      var parts = [];
+      if (data.nodes && data.nodes.length) {
+        var names = data.nodes.map(function(id) {
+          var n = nodes.get(id);
+          return n ? nodeLabelPreview(n) : String(id);
+        });
+        if (data.nodes.length === 1) {
+          parts.push('Knoten „' + names[0] + '“');
+        } else {
+          parts.push(data.nodes.length + ' Knoten (' + names.join(', ') + ')');
+        }
+      }
+      if (data.edges && data.edges.length) {
+        if (data.edges.length === 1 && (!data.nodes || !data.nodes.length)) {
+          var e = edges.get(data.edges[0]);
+          parts.push(e && e.label ? 'Kante „' + e.label + '“' : '1 Kante');
+        } else {
+          parts.push(data.edges.length + (data.edges.length === 1 ? ' Kante' : ' Kanten'));
+        }
+      }
+      return parts.length ? parts.join(' und ') : 'Auswahl';
+    }
+
+    function deleteSelectionHandler(data, callback) {
+      showDeleteConfirm(
+        describeDeleteTarget(data) + ' wirklich löschen?',
+        function() { callback(data); scheduleNotify(); },
+        function() { callback(null); }
+      );
+    }
+
+    function editNodeData(data, callback) {
+      openNodeEditor(data, callback, false);
+    }
+
+    function editEdgeData(data, callback) {
+      openEdgeEditor(data, callback, false);
+    }
+
+    function edgeFontOptions() {
+      return {
+        size: 11,
+        align: 'middle',
+        color: theme.text,
+        background: theme.panel,
+        strokeWidth: 0
+      };
+    }
+
+    function edgeVisualOptions() {
+      return {
+        arrows: 'to',
+        font: edgeFontOptions(),
+        color: { color: theme.edge, highlight: theme.edge, hover: theme.edge },
+        smooth: STRAIGHT_EDGE_SMOOTH,
+        width: 2,
+        selectionWidth: 4,
+        hoverWidth: 3
+      };
+    }
+
+    function straightenEdges() {
+      if (!network) return;
+      var updates = edges.get().map(function(edge) {
+        return applyEdgeVisualFields({ id: edge.id, from: edge.from, to: edge.to, label: edge.label, arrowMode: arrowModeFromData(edge) });
+      });
+      if (updates.length) {
+        edges.update(updates);
+      }
+      network.setOptions({ edges: edgeVisualOptions() });
+      network.redraw();
+    }
+
+    function scheduleStraightenEdges() {
+      if (straightenTimer) clearTimeout(straightenTimer);
+      straightenTimer = setTimeout(straightenEdges, 250);
+    }
+
+    function networkOptions() {
+      return {
+        locale: 'de',
+        groups: groups,
+        nodes: {
+          shape: 'box',
+          margin: 12,
+          font: { size: 11, multi: 'html', align: 'center', bold: { size: 16, vadjust: 1 } },
+          widthConstraint: { maximum: 280 },
+          heightConstraint: { minimum: 40 }
+        },
+        edges: edgeVisualOptions(),
+        physics: false,
+        interaction: { hover: true, multiselect: true, dragNodes: true, dragView: true },
+        manipulation: {
+          enabled: true,
+          addNode: function(data, callback) {
+            data.heading = data.heading || 'Neu';
+            data.text = data.text || '';
+            data.group = normalizeGroup(data.group || 'other');
+            data.label = formatNodeLabel(data.heading, data.text);
+            callback(data);
+            scheduleNotify();
+          },
+          addEdge: function(data, callback) {
+            callback(applyEdgeVisualFields(Object.assign({}, data, { arrowMode: 'to' })));
+            scheduleStraightenEdges();
+            scheduleNotify();
+          },
+          editNode: editNodeData,
+          editEdge: {
+            editWithoutDrag: editEdgeData
+          },
+          deleteNode: deleteSelectionHandler,
+          deleteEdge: deleteSelectionHandler
+        }
+      };
+    }
+
+    function initNetwork() {
+      var container = document.getElementById('network');
+      network = new vis.Network(container, { nodes: nodes, edges: edges }, networkOptions());
+      network.on('beforeDrawing', function(ctx) {
+        ctx.fillStyle = theme.bg;
+        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      });
+      network.on('dragStart', function() {
+        network.setOptions({ physics: false });
+      });
+      network.on('dragEnd', function(params) {
+        if (!params.nodes || !params.nodes.length) return;
+        syncAllPositionsFromNetwork();
+        scheduleNotify();
+      });
+      network.on('doubleClick', function(params) {
+        if (params.nodes.length === 1) {
+          var nodeData = nodes.get(params.nodes[0]);
+          if (nodeData) openNodeEditor(Object.assign({}, nodeData), null, true);
+        } else if (params.edges.length === 1) {
+          var edgeData = edges.get(params.edges[0]);
+          if (edgeData) openEdgeEditor(Object.assign({}, edgeData), null, true);
+        }
+      });
+    }
+
+    function applyNetworkVisualOptions() {
+      if (!network) return;
+      network.setOptions({
+        physics: false,
+        groups: groups,
+        edges: edgeVisualOptions()
+      });
+    }
+
+    window.applyTheme = function(p) {
+      if (!p) return;
+      theme = p;
+      document.documentElement.style.setProperty('--bg', p.bg);
+      document.documentElement.style.setProperty('--text', p.text);
+      document.documentElement.style.setProperty('--panel', p.panel);
+      document.documentElement.style.setProperty('--border', p.border);
+      document.body.style.backgroundColor = p.bg;
+      document.body.style.color = p.text;
+      var netEl = document.getElementById('network');
+      if (netEl) netEl.style.backgroundColor = p.bg;
+      var tb = document.getElementById('toolbar');
+      if (tb) tb.style.backgroundColor = p.panel;
+      applyNetworkVisualOptions();
+    };
+
+    function scheduleNotify() {
+      if (notifyTimer) clearTimeout(notifyTimer);
+      notifyTimer = setTimeout(notifyJava, 400);
+    }
+
+    function encodeBase64Utf8(str) {
+      var bytes = new TextEncoder().encode(str);
+      var binary = '';
+      for (var i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary);
+    }
+
+    function notifyJava() {
+      if (window.javaBridge && window.javaBridge.onGraphChanged) {
+        window.javaBridge.onGraphChanged(encodeBase64Utf8(JSON.stringify(exportGraph())));
+      }
+    }
+
+    function exportGraph() {
+      syncAllPositionsFromNetwork();
+      var n = nodes.get().map(function(node) {
+        var o = {
+          id: node.id,
+          heading: nodeHeadingValue(node),
+          text: nodeTextValue(node),
+          group: node.group || 'other'
+        };
+        if (typeof node.x === 'number' && isFinite(node.x)) o.x = roundCoord(node.x);
+        if (typeof node.y === 'number' && isFinite(node.y)) o.y = roundCoord(node.y);
+        return o;
+      });
+      var e = edges.get().map(function(edge) {
+        var o = { from: edge.from, to: edge.to };
+        var mode = arrowModeFromData(edge);
+        if (mode && mode !== 'to') o.arrows = mode;
+        if (edge.label) o.label = edge.label;
+        return o;
+      });
+      return { version: 2, nodes: n, edges: e };
+    }
+
+    window.loadGraph = function(data) {
+      if (!data) data = { nodes: [], edges: [] };
+      cachedPositions = {};
+      nodes.clear();
+      edges.clear();
+      var rawNodes = data.nodes || [];
+      var missing = rawNodes.filter(function(n) { return !hasPosition(n); });
+      var cols = Math.max(1, Math.ceil(Math.sqrt(missing.length || 1)));
+      var missingIndex = 0;
+      if (rawNodes.length) {
+        nodes.add(rawNodes.map(function(n) {
+          if (hasPosition(n)) return toVisNode(n);
+          var i = missingIndex++;
+          return toVisNode(n, (i % cols) * 300, Math.floor(i / cols) * 130);
+        }));
+      }
+      if (data.edges && data.edges.length) {
+        edges.add(data.edges.map(function(edge) {
+          return applyEdgeVisualFields(edge);
+        }));
+      }
+      if (!network) initNetwork();
+      else {
+        network.setData({ nodes: nodes, edges: edges });
+        network.setOptions({ physics: false });
+      }
+      if (!rawNodes.some(hasPosition) && rawNodes.length) {
+        network.fit({ animation: false });
+      }
+      applyLoadedPositionsToView();
+      cachePositionsFromDataset();
+      scheduleStraightenEdges();
+
+      document.getElementById('status').textContent =
+        rawNodes.length + ' Knoten, ' + (data.edges ? data.edges.length : 0) + ' Kanten';
+    };
+
+    window.loadGraphFromJson = function(jsonStr) {
+      try {
+        var data = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
+        loadGraph(data);
+      } catch (e) {
+        document.getElementById('status').textContent = 'Laden fehlgeschlagen: ' + e;
+      }
+    };
+
+    function decodeBase64Utf8(b64) {
+      var binary = atob(b64);
+      var bytes = new Uint8Array(binary.length);
+      for (var i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return new TextDecoder('utf-8').decode(bytes);
+    }
+
+    window.loadGraphFromBase64 = function(b64) {
+      try {
+        loadGraph(JSON.parse(decodeBase64Utf8(b64)));
+      } catch (e) {
+        document.getElementById('status').textContent = 'Laden fehlgeschlagen: ' + e;
+      }
+    };
+
+    window.getGraphJson = function() {
+      return JSON.stringify(exportGraph());
+    };
+
+    window.flushGraphJson = function() {
+      if (notifyTimer) {
+        clearTimeout(notifyTimer);
+        notifyTimer = null;
+      }
+      syncAllPositionsFromNetwork();
+      return encodeBase64Utf8(getGraphJson());
+    };
+
+    document.getElementById('editOkBtn').addEventListener('click', commitEditor);
+    document.getElementById('editCancelBtn').addEventListener('click', cancelEditor);
+    document.getElementById('editOverlay').addEventListener('click', function(e) {
+      if (e.target === this) cancelEditor();
+    });
+    document.getElementById('editHeadingInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') commitEditor();
+      if (e.key === 'Escape') cancelEditor();
+    });
+    document.getElementById('editTextInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) commitEditor();
+      if (e.key === 'Escape') cancelEditor();
+    });
+    document.getElementById('editEdgeInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') commitEditor();
+      if (e.key === 'Escape') cancelEditor();
+    });
+
+    document.getElementById('confirmOkBtn').addEventListener('click', function() { closeDeleteConfirm(true); });
+    document.getElementById('confirmCancelBtn').addEventListener('click', function() { closeDeleteConfirm(false); });
+    document.getElementById('confirmOverlay').addEventListener('click', function(e) {
+      if (e.target === this) closeDeleteConfirm(false);
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      initNetwork();
+      if (window.javaBridge && window.javaBridge.onGraphChanged) {
+        document.getElementById('status').textContent = 'Bereit.';
+      }
+    });
+  </script>
+</body>
+</html>

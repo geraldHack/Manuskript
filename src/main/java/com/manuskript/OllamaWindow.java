@@ -2861,6 +2861,7 @@ public class OllamaWindow {
                     if (resultContextMenu != null) {
                         // Aktualisiere Menü-Status basierend auf Textauswahl
                         updateResultContextMenu(resultContextMenu);
+                        EditorDialogThemes.styleContextMenu(resultContextMenu, currentThemeIndex);
                         resultContextMenu.show(resultWebView, event.getScreenX(), event.getScreenY());
                     }
                     event.consume();

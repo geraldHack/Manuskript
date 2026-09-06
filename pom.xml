@@ -209,7 +209,7 @@
                 </configuration>
             </plugin>
             
-            <!-- Maven Resources Plugin - Explizite Konfiguration für Windows -->
+            <!-- CSS aus JAR nach config/css spiegeln (Installer + Dev nutzen aktuelle Regeln) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -218,6 +218,26 @@
                     <encoding>UTF-8</encoding>
                     <useDefaultDelimiters>true</useDefaultDelimiters>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>sync-css-to-config</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/config/css</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/src/main/resources/css</directory>
+                                    <includes>
+                                        <include>*.css</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.openjfx</groupId>

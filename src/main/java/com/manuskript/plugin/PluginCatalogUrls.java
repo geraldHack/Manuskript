@@ -16,7 +16,9 @@ public final class PluginCatalogUrls {
             "openrouter-monitor",
             "mammouth-monitor",
             "projekt-backup",
-            "schreib-statistik");
+            "schreib-statistik",
+            "publish-paket",
+            "mindmap");
 
     private static final Pattern FILE_NAME = Pattern.compile("[A-Za-z0-9._-]+\\.jar");
     private static final Pattern PLUGIN_ID = Pattern.compile("[a-z0-9][a-z0-9._-]*");

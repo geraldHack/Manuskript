@@ -16,6 +16,16 @@ class PlotholeAgentFreeformTest {
         assertFalse(message.contains("KEINE_PROBLEME"));
         assertFalse(message.contains("<PROBLEM>"));
         assertFalse(message.contains("ANALYSE-SCOPE"));
+        assertTrue(message.contains("Kein Pflichtformat"));
+    }
+
+    @Test
+    void freeformWithAuthorInstructionOmitsOpenEndedFormat() {
+        String message = PlotholeAgent.buildUserMessage(
+                "Der Held ging.", "", "Nur einen Bild-Prompt.", true);
+        assertTrue(message.contains("Nur einen Bild-Prompt."));
+        assertTrue(message.contains("ANWEISUNG DES AUTORS"));
+        assertFalse(message.contains("Kein Pflichtformat"));
     }
 
     @Test

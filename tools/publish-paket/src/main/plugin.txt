@@ -1,0 +1,6 @@
+Publish-Paket
+@project.version@
+
+Checkliste für KDP eBook und Tolino Media: Cover-Maße, Klappentext, Keywords, Kapitel/TOC und Metadaten.
+Klappentext und Keywords per KI (Agenten-Backend). Klappentext optional direkt in Export-Metadaten (abstract).
+Speichert Daten in data/publish_package.json. Kein Upload — nur Vorbereitung und Hilfslinks.

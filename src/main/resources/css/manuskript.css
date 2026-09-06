@@ -7527,9 +7527,10 @@
 }
 
 .weiss-theme .title-bar .title-icon-label {
-    -fx-text-fill: #000000;
+    -fx-text-fill: #ffffff;
     -fx-font-weight: bold;
-    -fx-background-color: transparent;
+    -fx-background-color: #3498db;
+    -fx-background-radius: 6px;
 }
 
 .weiss-theme .title-bar .window-control-button {
@@ -7642,7 +7643,8 @@
 .theme-dark .title-bar .title-icon-label {
     -fx-text-fill: #ffffff;
     -fx-font-weight: bold;
-    -fx-background-color: transparent;
+    -fx-background-color: #3498db;
+    -fx-background-radius: 6px;
 }
 
 .theme-dark .title-bar .window-control-button {
@@ -7660,10 +7662,15 @@
 }
 
 .theme-dark.blau-theme .title-bar .title-text,
-.theme-dark.blau-theme .title-bar .title-icon-label,
 .theme-dark.blau-theme .title-bar .window-control-button {
     -fx-text-fill: #ffffff;
     -fx-background-color: transparent;
+}
+
+.theme-dark.blau-theme .title-bar .title-icon-label {
+    -fx-text-fill: #ffffff;
+    -fx-background-color: #3498db;
+    -fx-background-radius: 6px;
 }
 
 .theme-dark.blau-theme .title-bar .window-control-button:hover {
@@ -7676,10 +7683,15 @@
 }
 
 .theme-dark.gruen-theme .title-bar .title-text,
-.theme-dark.gruen-theme .title-bar .title-icon-label,
 .theme-dark.gruen-theme .title-bar .window-control-button {
     -fx-text-fill: #ffffff;
     -fx-background-color: transparent;
+}
+
+.theme-dark.gruen-theme .title-bar .title-icon-label {
+    -fx-text-fill: #ffffff;
+    -fx-background-color: #3498db;
+    -fx-background-radius: 6px;
 }
 
 .theme-dark.gruen-theme .title-bar .window-control-button:hover {
@@ -7692,10 +7704,15 @@
 }
 
 .theme-dark.lila-theme .title-bar .title-text,
-.theme-dark.lila-theme .title-bar .title-icon-label,
 .theme-dark.lila-theme .title-bar .window-control-button {
     -fx-text-fill: #ffffff;
     -fx-background-color: transparent;
+}
+
+.theme-dark.lila-theme .title-bar .title-icon-label {
+    -fx-text-fill: #ffffff;
+    -fx-background-color: #3498db;
+    -fx-background-radius: 6px;
 }
 
 .theme-dark.lila-theme .title-bar .window-control-button:hover {
@@ -7719,12 +7736,12 @@
     -fx-background-color: transparent;
 }
 
-/* Pastell-Theme Icon-Label (M) – Hintergrund transparent */
+/* Pastell-Theme Icon-Label (M) – lila Bubble */
 .pastell-theme .title-bar .title-icon-label {
-    -fx-background-color: transparent;
-    -fx-text-fill: #311b92;
+    -fx-background-color: #ba68c8;
+    -fx-text-fill: #ffffff;
     -fx-font-weight: bold;
-    -fx-background-radius: 3px;
+    -fx-background-radius: 6px;
     -fx-padding: 2px;
 }
 
@@ -10070,6 +10087,101 @@
     -fx-border-color: #444444;
 }
 
+/* Host-Toolbar MenuButton (Mehr Format, Hilfe) – auch ohne Theme-Ancestor */
+.host-toolbar-menu-button.toolbar-button,
+.menu-button.host-toolbar-menu-button {
+    -fx-background-color: #495057;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #6c757d;
+    -fx-border-width: 1px;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+    -fx-padding: 5px 10px;
+}
+
+.host-toolbar-menu-button.toolbar-button .label,
+.menu-button.host-toolbar-menu-button .label {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ffffff;
+}
+
+.host-toolbar-menu-button.toolbar-button .arrow-button,
+.menu-button.host-toolbar-menu-button .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.host-toolbar-menu-button.toolbar-button .arrow-button .arrow,
+.menu-button.host-toolbar-menu-button .arrow-button .arrow {
+    -fx-background-color: #ffffff;
+}
+
+.host-toolbar-menu-button.toolbar-button:hover,
+.menu-button.host-toolbar-menu-button:hover {
+    -fx-background-color: #6c757d;
+}
+
+.weiss-theme .host-toolbar-menu-button.toolbar-button,
+.weiss-theme .menu-button.host-toolbar-menu-button,
+.host-toolbar-menu-button.toolbar-button.weiss-theme,
+.menu-button.host-toolbar-menu-button.weiss-theme {
+    -fx-background-color: #f8f9fa;
+    -fx-text-fill: #000000;
+    -fx-border-color: #dee2e6;
+}
+
+.weiss-theme .host-toolbar-menu-button.toolbar-button .label,
+.weiss-theme .menu-button.host-toolbar-menu-button .label,
+.host-toolbar-menu-button.toolbar-button.weiss-theme .label,
+.menu-button.host-toolbar-menu-button.weiss-theme .label {
+    -fx-background-color: transparent;
+    -fx-text-fill: #000000;
+}
+
+.weiss-theme .host-toolbar-menu-button.toolbar-button .arrow-button .arrow,
+.weiss-theme .menu-button.host-toolbar-menu-button .arrow-button .arrow,
+.host-toolbar-menu-button.toolbar-button.weiss-theme .arrow-button .arrow,
+.menu-button.host-toolbar-menu-button.weiss-theme .arrow-button .arrow {
+    -fx-background-color: #000000;
+}
+
+.weiss-theme .host-toolbar-menu-button.toolbar-button:hover,
+.weiss-theme .menu-button.host-toolbar-menu-button:hover,
+.host-toolbar-menu-button.toolbar-button.weiss-theme:hover,
+.menu-button.host-toolbar-menu-button.weiss-theme:hover {
+    -fx-background-color: #e9ecef;
+}
+
+.pastell-theme .host-toolbar-menu-button.toolbar-button,
+.pastell-theme .menu-button.host-toolbar-menu-button,
+.host-toolbar-menu-button.toolbar-button.pastell-theme,
+.menu-button.host-toolbar-menu-button.pastell-theme {
+    -fx-background-color: #e1bee7;
+    -fx-text-fill: #000000;
+    -fx-border-color: #ba68c8;
+}
+
+.pastell-theme .host-toolbar-menu-button.toolbar-button .label,
+.pastell-theme .menu-button.host-toolbar-menu-button .label,
+.host-toolbar-menu-button.toolbar-button.pastell-theme .label,
+.menu-button.host-toolbar-menu-button.pastell-theme .label {
+    -fx-background-color: transparent;
+    -fx-text-fill: #000000;
+}
+
+.pastell-theme .host-toolbar-menu-button.toolbar-button .arrow-button .arrow,
+.pastell-theme .menu-button.host-toolbar-menu-button .arrow-button .arrow,
+.host-toolbar-menu-button.toolbar-button.pastell-theme .arrow-button .arrow,
+.menu-button.host-toolbar-menu-button.pastell-theme .arrow-button .arrow {
+    -fx-background-color: #000000;
+}
+
+.pastell-theme .host-toolbar-menu-button.toolbar-button:hover,
+.pastell-theme .menu-button.host-toolbar-menu-button:hover,
+.host-toolbar-menu-button.toolbar-button.pastell-theme:hover,
+.menu-button.host-toolbar-menu-button.pastell-theme:hover {
+    -fx-background-color: #ce93d8;
+}
+
 /* Dropdowns in der Host-Toolbar optisch an Buttons angleichen */
 .weiss-theme .host-toolbar .combo-box,
 .weiss-theme .host-toolbar .combo-box .list-cell {
@@ -12062,6 +12174,16 @@
     -fx-background-color: derive(-fx-background, -22%);
 }
 
+.agent-idiom-split {
+    -fx-background-color: transparent;
+}
+
+.agent-idiom-split > .split-pane-divider {
+    -fx-padding: 8 0 8 0;
+    -fx-background-color: derive(-fx-background, -22%);
+    -fx-cursor: v-resize;
+}
+
 .ni-review-side-panel {
     -fx-background-color: derive(-fx-background, 6%);
 }
@@ -12157,6 +12279,10 @@
 }
 
 .theme-dark .ni-review-split > .split-pane-divider {
+    -fx-background-color: #6b7280;
+}
+
+.theme-dark .agent-idiom-split > .split-pane-divider {
     -fx-background-color: #6b7280;
 }
 

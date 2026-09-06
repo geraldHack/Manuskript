@@ -3,6 +3,7 @@ package com.manuskript.agent;
 import com.manuskript.ResourceManager;
 
 import java.util.Locale;
+import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,6 +17,9 @@ public final class IdiomReviewSupport {
 
     public static final String PARAM_MAX_CHARS = "agent.idiom_review.max_chars";
     public static final String PARAM_AGENT_ID = "agent.idiom_review.agent_id";
+
+    private static final String PREF_REWRITE_SPLIT = "rewrite_split";
+    private static final double DEFAULT_REWRITE_SPLIT = 0.62;
 
     private static final Pattern REWRITE_PATTERN = Pattern.compile(
             "<REWRITE>\\s*([\\s\\S]*?)\\s*</REWRITE>", Pattern.CASE_INSENSITIVE);
@@ -116,6 +120,24 @@ public final class IdiomReviewSupport {
             }
         }
         return null;
+    }
+
+    public static double loadRewriteSplitPosition() {
+        double value = Preferences.userNodeForPackage(IdiomReviewSupport.class)
+                .getDouble(PREF_REWRITE_SPLIT, DEFAULT_REWRITE_SPLIT);
+        return clampSplit(value);
+    }
+
+    public static void persistRewriteSplitPosition(double position) {
+        Preferences.userNodeForPackage(IdiomReviewSupport.class)
+                .putDouble(PREF_REWRITE_SPLIT, clampSplit(position));
+    }
+
+    private static double clampSplit(double position) {
+        if (Double.isNaN(position)) {
+            return DEFAULT_REWRITE_SPLIT;
+        }
+        return Math.max(0.25, Math.min(0.85, position));
     }
 
     public static String combineContextBlocks(String chatbotContext, String surroundingContext) {

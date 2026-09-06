@@ -27,7 +27,11 @@ public final class WorldEditorAiPrompts {
                     Hauptfiguren nur kurz (Name + ein Satz Rolle). Markdown.
                     """;
             case "worldbuilding.txt" ->
-                    "Erstelle Worldbuilding (Setting, Regeln, Gesellschaft, Orte). Markdown mit Kategorien.";
+                    "Erstelle Worldbuilding auf Deutsch mit genau diesen Abschnitten:\n"
+                            + "## Setting\n(Regeln, Gesellschaft, Technologie/Magie, Konflikte)\n"
+                            + "## Orte\n(pro Ort: ### Name mit Beschreibung)\n"
+                            + "## Lore\n(pro Eintrag: ### Titel mit Hintergrund)\n"
+                            + "Markdown.";
             default -> "Erhalte Informationen ueber das Projekt.";
         };
     }
@@ -55,8 +59,14 @@ public final class WorldEditorAiPrompts {
                     Nur belegbare Aussagen aus dem Text, keine Erfindungen.
                     """ + merge + scopeHint;
             case "worldbuilding.txt" -> """
-                    Extrahiere aus dem Manuskript alle Worldbuilding-Fakten (Setting, Regeln, Orte, Gesellschaft, Magie/Technik).
-                    Markdown mit sinnvollen ##-Abschnitten. Nur belegbare Details aus dem Manuskript.
+                    Extrahiere aus dem Manuskript Worldbuilding-Fakten auf Deutsch.
+                    Markdown mit genau diesen Abschnitten:
+                    ## Setting
+                    ## Orte
+                    (pro Ort ### Name)
+                    ## Lore
+                    (pro Eintrag ### Titel)
+                    Nur belegbare Details aus dem Manuskript.
                     """ + merge + scopeHint;
             case "style.txt" -> """
                     Leite aus den Kapitelproben den tatsaechlichen Schreibstil ab (Perspektive, Zeitform, Satzlaenge, Ton, Dialog).

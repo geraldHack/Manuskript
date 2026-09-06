@@ -268,11 +268,25 @@ public class OllamaService {
      * Für Plugin-/Agent-Läufe, die globale Parameter nicht überschreiben sollen.
      */
     public void applySamplingInMemory(double temperature, int maxTokens) {
+        applySamplingInMemory(temperature, maxTokens, Double.NaN, Double.NaN);
+    }
+
+    /**
+     * Wie {@link #applySamplingInMemory(double, int)}, zusätzlich Top-P und Repeat-Penalty.
+     * {@code NaN} oder Werte &lt; 0 lassen den jeweiligen Parameter unverändert.
+     */
+    public void applySamplingInMemory(double temperature, int maxTokens, double topP, double repeatPenalty) {
         if (temperature >= 0) {
             this.temperature = Math.max(0.0, Math.min(2.0, temperature));
         }
         if (maxTokens > 0) {
             this.maxTokens = Math.max(1, Math.min(8192, maxTokens));
+        }
+        if (!Double.isNaN(topP) && topP >= 0) {
+            this.topP = Math.max(0.0, Math.min(1.0, topP));
+        }
+        if (!Double.isNaN(repeatPenalty) && repeatPenalty >= 0) {
+            this.repeatPenalty = Math.max(0.0, Math.min(2.0, repeatPenalty));
         }
     }
     

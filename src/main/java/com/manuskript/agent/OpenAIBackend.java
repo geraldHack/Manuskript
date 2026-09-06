@@ -48,6 +48,8 @@ public class OpenAIBackend implements AIBackend {
     private Double frequencyPenaltyOverride;
     /** {@code null} = Parameter {@code agent.openai.reasoning_effort}. */
     private String reasoningEffortOverride;
+    /** {@code null} = Parameter {@code agent.chatbot.max_continuations}. */
+    private Integer maxContinuationsOverride;
 
     public OpenAIBackend() {
         this.httpClient = HttpClient.newBuilder()
@@ -130,6 +132,11 @@ public class OpenAIBackend implements AIBackend {
         this.reasoningEffortOverride = effort;
     }
 
+    /** Optional; {@code null} = Parameter {@code agent.chatbot.max_continuations}. */
+    public void setMaxContinuationsOverride(int maxContinuations) {
+        this.maxContinuationsOverride = Math.max(0, maxContinuations);
+    }
+
     @Override
     public CompletableFuture<String> chat(String systemPrompt, String userMessage, int maxTokens) {
         JsonArray messages = new JsonArray();
@@ -200,8 +207,10 @@ public class OpenAIBackend implements AIBackend {
         try {
             JsonArray workingMessages = gson.fromJson(gson.toJson(messages), JsonArray.class);
             StringBuilder fullContent = new StringBuilder();
-            int maxContinues = Math.max(0, Math.min(8,
-                    ResourceManager.getIntParameter("agent.chatbot.max_continuations", 4)));
+            int maxContinues = maxContinuationsOverride != null
+                    ? maxContinuationsOverride
+                    : Math.max(0, Math.min(8,
+                            ResourceManager.getIntParameter("agent.chatbot.max_continuations", 4)));
             // Reasoning-only (content=null) höchstens 1× nachziehen — sonst hängt Kimi minutenlang.
             int emptyContentContinues = 0;
             final int maxEmptyContentContinues = 1;

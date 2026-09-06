@@ -1,5 +1,6 @@
 package com.manuskript.agent;
 
+import com.manuskript.EditorDialogThemes;
 import javafx.geometry.Bounds;
 import javafx.geometry.Side;
 import javafx.scene.Node;
@@ -12,9 +13,14 @@ public final class AgentPopupSupport {
     }
 
     public static void showMenuBelow(ContextMenu menu, Node anchor) {
+        showMenuBelow(menu, anchor, AgentFindingStyles.themeIndex());
+    }
+
+    public static void showMenuBelow(ContextMenu menu, Node anchor, int themeIndex) {
         if (menu == null || anchor == null || menu.getItems().isEmpty()) {
             return;
         }
+        EditorDialogThemes.styleContextMenu(menu, themeIndex);
         Bounds screen = anchor.localToScreen(anchor.getBoundsInLocal());
         if (screen != null) {
             menu.show(anchor, screen.getMinX(), screen.getMaxY());

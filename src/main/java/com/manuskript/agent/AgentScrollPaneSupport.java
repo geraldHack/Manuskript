@@ -3,6 +3,7 @@ package com.manuskript.agent;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SplitPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -114,6 +115,11 @@ public final class AgentScrollPaneSupport {
             if (flexibleRegion instanceof ScrollPane findingsScroll) {
                 findingsScroll.setMinHeight(120);
                 findingsScroll.setPrefViewportHeight(200);
+            } else if (flexibleRegion instanceof SplitPane) {
+                VBox.setVgrow(flexibleRegion, Priority.ALWAYS);
+                flexibleRegion.setMinHeight(160);
+                flexibleRegion.setPrefHeight(0);
+                flexibleRegion.setMaxHeight(Double.MAX_VALUE);
             } else {
                 flexibleRegion.setMinHeight(120);
                 flexibleRegion.setPrefHeight(Region.USE_COMPUTED_SIZE);
@@ -129,6 +135,10 @@ public final class AgentScrollPaneSupport {
             if (flexibleRegion instanceof ScrollPane findingsScroll) {
                 findingsScroll.setMinHeight(0);
                 findingsScroll.setPrefViewportHeight(Region.USE_COMPUTED_SIZE);
+            } else if (flexibleRegion instanceof SplitPane) {
+                flexibleRegion.setMinHeight(0);
+                flexibleRegion.setPrefHeight(0);
+                flexibleRegion.setMaxHeight(Double.MAX_VALUE);
             } else {
                 flexibleRegion.setMinHeight(0);
                 flexibleRegion.setPrefHeight(Region.USE_COMPUTED_SIZE);

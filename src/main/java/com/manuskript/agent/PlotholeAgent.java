@@ -189,7 +189,11 @@ public class PlotholeAgent {
             userMessage.append(authorInstruction.trim()).append("\n\n");
         }
         if (freeform) {
-            userMessage.append("Antworte jetzt gemäß dem System-Prompt. Kein Pflichtformat.");
+            if (authorInstruction != null && !authorInstruction.isBlank()) {
+                userMessage.append("Antworte jetzt gemäß dem System-Prompt und der Anweisung des Autors.");
+            } else {
+                userMessage.append("Antworte jetzt gemäß dem System-Prompt. Kein Pflichtformat.");
+            }
             return userMessage.toString();
         }
         userMessage.append("ANALYSE-SCOPE (zwingend einzuhalten):\n");

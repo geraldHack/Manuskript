@@ -114,15 +114,17 @@ public class OllamaBackend implements AIBackend {
                                                    Consumer<String> onDelta) {
         CompletableFuture<String> future = new CompletableFuture<>();
         StringBuilder acc = new StringBuilder();
+        double previousTemp = ollamaService.getTemperature();
         int previousMaxTokens = ollamaService.getMaxTokens();
-        if (maxTokens > 0) {
-            ollamaService.applySamplingInMemory(-1, maxTokens);
-        }
-        Runnable restoreMaxTokens = () -> {
-            if (maxTokens > 0) {
-                ollamaService.applySamplingInMemory(-1, previousMaxTokens);
-            }
-        };
+        double previousTopP = ollamaService.getTopP();
+        double previousPenalty = ollamaService.getRepeatPenalty();
+        ollamaService.applySamplingInMemory(
+                effectiveTemperature(),
+                maxTokens > 0 ? maxTokens : -1,
+                effectiveTopP(),
+                effectiveRepeatPenalty());
+        Runnable restoreSampling = () -> ollamaService.applySamplingInMemory(
+                previousTemp, previousMaxTokens, previousTopP, previousPenalty);
         chatStreaming(systemPrompt, userMessage, chunk -> {
             if (chunk == null || chunk.isEmpty()) {
                 return;
@@ -132,10 +134,10 @@ public class OllamaBackend implements AIBackend {
                 onDelta.accept(chunk);
             }
         }, () -> {
-            restoreMaxTokens.run();
+            restoreSampling.run();
             future.complete(ModelTextNormalizer.normalize(acc.toString()));
         }, ex -> {
-            restoreMaxTokens.run();
+            restoreSampling.run();
             future.completeExceptionally(ex);
         });
         return future;

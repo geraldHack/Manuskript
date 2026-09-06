@@ -20,6 +20,7 @@ import com.manuskript.agent.OpenAIBackend;
 import com.manuskript.agent.AgentActivityTracker;
 import com.manuskript.agent.AgentAnalysisErrors;
 import com.manuskript.agent.AgentSamplingParams;
+import com.manuskript.agent.BildPromptSupport;
 import com.manuskript.agent.PlotholeAgent;
 import com.manuskript.agent.SceneContextLoader;
 import com.manuskript.agent.SceneContextSize;
@@ -94,8 +95,10 @@ public class ChapterAgentSupport {
             wireAgentTabStatus(tab);
             applyEditorAppearance();
             loadAgentModels();
+            refreshBildPromptSelectionUi();
         });
         agentTabPane.loadFromConfig();
+        host.setOnSelectionChanged(this::refreshBildPromptSelectionUi);
         for (AgentTab tab : agentTabPane.getAgentTabs()) {
             setupAgentTabCallbacks(tab);
             wireAgentTabStatus(tab);
@@ -112,7 +115,23 @@ public class ChapterAgentSupport {
         ensurePanelVisible(userWantsPanelVisible);
         loadAgentModels();
         applyEditorAppearance();
-        Platform.runLater(this::applyEditorAppearance);
+        Platform.runLater(() -> {
+            applyEditorAppearance();
+            refreshBildPromptSelectionUi();
+        });
+    }
+
+    private void refreshBildPromptSelectionUi() {
+        if (agentTabPane == null) {
+            return;
+        }
+        String selected = host.getSelectedText();
+        boolean hasSelection = host.hasTextSelection()
+                && selected != null
+                && !selected.isBlank();
+        for (AgentTab tab : agentTabPane.getAgentTabs()) {
+            tab.updateBildPromptSelectionAvailable(hasSelection);
+        }
     }
 
     public void applyFontSize(int size) {
@@ -158,6 +177,7 @@ public class ChapterAgentSupport {
             loadAgentModels();
             applyEditorAppearance();
             ensurePanelVisible(keepVisible);
+            refreshBildPromptSelectionUi();
             logger.info("Agenten-Parameter neu geladen (Backend={}, Modell={})",
                     ResourceManager.getParameter("agent.backend", "Ollama"),
                     ResourceManager.getParameter("agent.openai.model", ""));
@@ -647,11 +667,23 @@ public class ChapterAgentSupport {
         String text = host.getText() != null ? host.getText() : "";
         String allChapters = buildAnalysisContext(targetTab, text);
         int maxOutputTokens = targetTab.getAgentConfig().getMaxTokens();
+        String authorInstruction = null;
+        if (BildPromptSupport.isBildPrompt(config)) {
+            agent.setSystemPrompt(BildPromptSupport.effectiveSystemPrompt(config.getSystemPrompt()));
+            allChapters = BildPromptSupport.trimContext(allChapters);
+            maxOutputTokens = BildPromptSupport.clampMaxTokens(maxOutputTokens);
+            String selected = "";
+            if (targetTab.isUseSelectionRequested() && host.hasTextSelection()) {
+                selected = host.getSelectedText() != null ? host.getSelectedText() : "";
+            }
+            authorInstruction = BildPromptSupport.combineAuthorInstruction(
+                    targetTab.getExtraPrompt(), selected);
+        }
         String agentName = config.getName() != null ? config.getName() : "Agent";
         logger.info("{}: Manuskript={} Zeichen, Kontext={} Zeichen, max_output_tokens={}",
                 agentName, text.length(), allChapters.length(), maxOutputTokens);
         if (config.isFreeform()) {
-            agent.analyzeRaw(text, allChapters, maxOutputTokens, null, targetTab::appendFreeformDelta, true)
+            agent.analyzeRaw(text, allChapters, maxOutputTokens, authorInstruction, targetTab::appendFreeformDelta, true)
                     .thenAccept(targetTab::finishFreeformAnalysis)
                     .exceptionally(ex -> {
                         String detail = AgentAnalysisErrors.format(ex);

@@ -1119,12 +1119,68 @@ public class NovelCreationWizardWindow {
 
     private void finishCurrentPhase(String contentOverride) {
         NovelWizardPhase phase = session.getCurrentPhase();
+        if (phase == NovelWizardPhase.WORLD
+                && (contentOverride == null || contentOverride.isBlank())) {
+            finishWorldPhaseWithDocument();
+            return;
+        }
         if (phase == NovelWizardPhase.CHARACTERS
                 && (contentOverride == null || contentOverride.isBlank())) {
             finishCharactersPhaseWithSheets();
             return;
         }
         completePhase(phase, contentOverride);
+    }
+
+    private void finishWorldPhaseWithDocument() {
+        if (!confirmWorldbuildingFileOverwriteIfNeeded()) {
+            return;
+        }
+        syncStandingInstructionsFromUi();
+        setBusy(true, "Worldbuilding wird erzeugt …");
+        String dialogue = NovelWizardAiService.buildPhaseDialogue(session, NovelWizardPhase.WORLD);
+        aiService.generateWorldbuildingDocument(session, worldEditorMapper.readExistingContext(), dialogue)
+                .whenComplete((document, ex) -> Platform.runLater(() -> {
+                    if (ex != null) {
+                        logger.warn("Worldbuilding konnte nicht erzeugt werden", ex);
+                        setBusy(false, "Worldbuilding fehlgeschlagen: " + ex.getMessage());
+                        CustomAlert alert = new CustomAlert(CustomAlert.AlertType.ERROR);
+                        alert.setTitle("Welt-Phase");
+                        alert.setHeaderText("Worldbuilding konnte nicht erzeugt werden");
+                        alert.setContentText(ex.getMessage());
+                        alert.applyTheme(themeIndex);
+                        alert.showAndWait(stage != null ? stage : owner);
+                        return;
+                    }
+                    String content = document == null || document.isBlank()
+                            ? buildPhaseSummary(NovelWizardPhase.WORLD)
+                            : document;
+                    if (!WorldBuildingDocument.hasRequiredSections(content)) {
+                        statusLabel.setText("Hinweis: Entwurf ohne alle drei Abschnitte (Setting, Orte, Lore) – bitte prüfen.");
+                    }
+                    completePhase(NovelWizardPhase.WORLD, content);
+                }));
+    }
+
+    private boolean confirmWorldbuildingFileOverwriteIfNeeded() {
+        if (!worldEditorMapper.worldbuildingFileHasPersistableContent()) {
+            return true;
+        }
+        ButtonType overwrite = new ButtonType("Worldbuilding schreiben");
+        ButtonType cancel = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
+        CustomAlert alert = new CustomAlert(CustomAlert.AlertType.CONFIRMATION);
+        alert.setTitle("Welt-Phase");
+        alert.setHeaderText("worldbuilding.txt ist nicht leer");
+        alert.setContentText(
+                "Beim Abschliessen werden Setting, Orte und Lore in worldbuilding.txt geschrieben.\n\n"
+                        + "Der Block „## Roman-Assistent: Welt“ wird dabei ersetzt. "
+                        + "Text oberhalb dieses Blocks bleibt erhalten.\n\n"
+                        + "Trotzdem fortfahren?");
+        alert.getButtonTypes().setAll(overwrite, cancel);
+        alert.applyTheme(themeIndex);
+        Window dialogOwner = stage != null ? stage : owner;
+        Optional<ButtonType> result = alert.showAndWait(dialogOwner);
+        return result.isPresent() && result.get() == overwrite;
     }
 
     private void finishCharactersPhaseWithSheets() {

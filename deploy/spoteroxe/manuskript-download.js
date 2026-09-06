@@ -7,6 +7,10 @@
 //   545 MB
 //   Manuskript-2.1.73-macos-arm64.dmg
 //   Release-Notes (beliebig viele Zeilen)
+//
+// Es gibt eine „latest“-Datei (Manuskript-macos-arm64.txt) und eine
+// versionsgebundene Datei (Manuskript-2.1.73-macos-arm64.txt). Nach dem Laden
+// der latest-Datei wird die versionsgebundene bevorzugt – manuelle Edits dort greifen.
 (function () {
   function text(selector, value) {
     document.querySelectorAll(selector).forEach(function (el) {
@@ -37,37 +41,24 @@
     }
     var lines = String(raw).replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
     var i = 0;
-    while (i < lines.length && !String(lines[i]).trim()) {
-      i++;
-    }
-    if (i >= lines.length) {
-      return null;
-    }
-    var label = String(lines[i++]).trim().replace(/^\uFEFF/, "");
-    while (i < lines.length && !String(lines[i]).trim()) {
-      i++;
-    }
-    var version = "";
-    if (i < lines.length && /^\d+(?:\.\d+)*$/.test(String(lines[i]).trim())) {
-      version = String(lines[i++]).trim();
-    }
-    while (i < lines.length && !String(lines[i]).trim()) {
-      i++;
-    }
-    var body = [];
-    for (; i < lines.length; i++) {
-      var line = String(lines[i]).trim();
-      if (line) {
-        body.push(line);
+    function nextNonEmpty() {
+      while (i < lines.length && !String(lines[i]).trim()) {
+        i++;
       }
+      if (i >= lines.length) {
+        return "";
+      }
+      return String(lines[i++]).trim().replace(/^\uFEFF/, "");
     }
-    var platform = body[0] || "";
-    var sizeLabel = body[1] || "";
-    var filename = body[2] || "";
-    var releaseNotes = body.slice(3).join("\n");
-    if (!version || !filename) {
+    var label = nextNonEmpty();
+    var version = nextNonEmpty();
+    var platform = nextNonEmpty();
+    var sizeLabel = nextNonEmpty();
+    var filename = nextNonEmpty();
+    if (!version || !/^\d+(?:\.\d+)*$/.test(version) || !filename) {
       return null;
     }
+    var releaseNotes = lines.slice(i).join("\n").replace(/^\n+/, "").replace(/\s+$/, "");
     return {
       label: label,
       version: version,
@@ -85,6 +76,7 @@
       row.hidden = !pack;
     }
     if (!pack) {
+      setNotes("[data-manuskript-" + prefix + "-notes]", "");
       return;
     }
     text("[data-manuskript-" + prefix + "-version]", pack.version);
@@ -110,7 +102,8 @@
   }
 
   function loadNotes(path) {
-    return fetch(path, { cache: "no-store" })
+    var bust = path + (path.indexOf("?") >= 0 ? "&" : "?") + "_=" + Date.now();
+    return fetch(bust, { cache: "no-store", headers: { "Cache-Control": "no-cache" } })
       .then(function (response) {
         if (!response.ok) {
           return null;
@@ -125,9 +118,48 @@
       });
   }
 
+  function versionedNotesPath(pack) {
+    if (!pack || !pack.filename) {
+      return null;
+    }
+    var base = String(pack.filename).replace(/\.(dmg|exe|zip)$/i, "");
+    if (!base) {
+      return null;
+    }
+    return "/downloads/" + base + ".txt";
+  }
+
+  /** latest-Alias laden, dann versionsgebundene .txt bevorzugen (manuelle Edits). */
+  function loadPlatform(latestPath) {
+    return loadNotes(latestPath).then(function (latest) {
+      if (!latest) {
+        return null;
+      }
+      var versionedPath = versionedNotesPath(latest);
+      if (!versionedPath || versionedPath === latestPath) {
+        return latest;
+      }
+      return loadNotes(versionedPath).then(function (versioned) {
+        if (!versioned) {
+          return latest;
+        }
+        // Metadaten aus latest behalten, falls versionsdatei unvollständig ist
+        return {
+          label: versioned.label || latest.label,
+          version: versioned.version || latest.version,
+          platform: versioned.platform || latest.platform,
+          sizeLabel: versioned.sizeLabel || latest.sizeLabel,
+          filename: versioned.filename || latest.filename,
+          releaseNotes: versioned.releaseNotes || latest.releaseNotes,
+          url: "/downloads/" + (versioned.filename || latest.filename)
+        };
+      });
+    });
+  }
+
   Promise.all([
-    loadNotes("/downloads/Manuskript-macos-arm64.txt"),
-    loadNotes("/downloads/Manuskript-windows-x64.txt")
+    loadPlatform("/downloads/Manuskript-macos-arm64.txt"),
+    loadPlatform("/downloads/Manuskript-windows-x64.txt")
   ]).then(function (packs) {
     var macos = packs[0];
     var windows = packs[1];

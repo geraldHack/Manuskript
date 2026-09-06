@@ -71,4 +71,14 @@ class IdiomReviewSupportTest {
                 IdiomReviewSupport.normalizeSuggestion(
                         "„Die Stimme des Dozenten erreichte mich gedämpft.\""));
     }
+
+    @Test
+    void rewriteSplitPositionIsClamped() {
+        IdiomReviewSupport.persistRewriteSplitPosition(0.01);
+        assertEquals(0.25, IdiomReviewSupport.loadRewriteSplitPosition(), 0.0001);
+        IdiomReviewSupport.persistRewriteSplitPosition(0.99);
+        assertEquals(0.85, IdiomReviewSupport.loadRewriteSplitPosition(), 0.0001);
+        IdiomReviewSupport.persistRewriteSplitPosition(0.55);
+        assertEquals(0.55, IdiomReviewSupport.loadRewriteSplitPosition(), 0.0001);
+    }
 }

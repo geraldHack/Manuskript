@@ -61,6 +61,8 @@ upload_pair openrouter-monitor
 upload_pair mammouth-monitor
 upload_pair projekt-backup
 upload_pair schreib-statistik
+upload_pair mindmap
+upload_pair publish-paket
 
 echo "[OK] https://spoteroxe.de/downloads/plugins/"
 echo "     Verzeichnislisting muss öffentlich sein (Apache Options Indexes)."

@@ -38,10 +38,7 @@ public class Main extends Application {
             ResourceManager.initializeConfigDirectory();
             
             // CSS mit ResourceManager laden
-            String cssPath = ResourceManager.getCssResource("css/manuskript.css");
-            if (cssPath != null) {
-                scene.getStylesheets().add(cssPath);
-            }
+            ResourceManager.attachSceneStylesheets(scene);
             
             // CustomStage konfigurieren
             customStage.setCustomTitle("Manuskript – Schreiben. Lektorieren. Produzieren.");

@@ -8,6 +8,7 @@ import com.manuskript.MdTextArea;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -15,10 +16,13 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -86,8 +90,12 @@ public class AgentTab extends ScrollPane {
     private int currentThemeIndex = AgentFindingStyles.themeIndex();
     private List<String> availableModels = new ArrayList<>();
     private TextArea revisionInstructionField;
+    private TextArea extraPromptField;
+    private CheckBox useSelectionCheck;
+    private Button copyPromptButton;
     private ChatbotContextPane contextPane;
     private MdTextArea rewriteTextArea;
+    private SplitPane idiomSplitPane;
     private Button applyRewriteButton;
     private Runnable onApplyRewriteClicked;
     private MdTextArea freeformOutputArea;
@@ -309,6 +317,16 @@ public class AgentTab extends ScrollPane {
             realtimeToggle.setVisible(false);
             realtimeToggle.setManaged(false);
         }
+        if (BildPromptSupport.isBildPrompt(config)) {
+            copyPromptButton = new Button("Kopieren");
+            copyPromptButton.setMaxWidth(Double.MAX_VALUE);
+            copyPromptButton.setDisable(true);
+            copyPromptButton.getStyleClass().add("agent-analyze-btn");
+            copyPromptButton.setTooltip(new Tooltip("Bild-Prompt in die Zwischenablage kopieren"));
+            copyPromptButton.setOnAction(e -> copyFreeformOutputToClipboard());
+            buttonRow.getChildren().add(copyPromptButton);
+            HBox.setHgrow(copyPromptButton, Priority.ALWAYS);
+        }
 
         // === Findings-Liste ===
         findingsList = new VBox(6);
@@ -358,16 +376,66 @@ public class AgentTab extends ScrollPane {
                     onApplyRewriteClicked.run();
                 }
             });
-            contentRoot.getChildren().addAll(toggleConfigButton, configBox, contextPane,
-                    buttonRow, scrollPane, rewriteLabel, rewriteTextArea, applyRewriteButton);
-            VBox.setVgrow(scrollPane, Priority.NEVER);
-            scrollPane.setMinHeight(80);
-            scrollPane.setPrefHeight(100);
-            scrollPane.setMaxHeight(140);
             VBox.setVgrow(rewriteTextArea, Priority.ALWAYS);
+            rewriteTextArea.setMinHeight(72);
+            rewriteTextArea.setPrefHeight(Region.USE_COMPUTED_SIZE);
+            rewriteTextArea.setMaxHeight(Double.MAX_VALUE);
+            VBox rewritePane = new VBox(4, rewriteLabel, rewriteTextArea, applyRewriteButton);
+            rewritePane.setMinHeight(96);
+            rewritePane.setMaxWidth(Double.MAX_VALUE);
+            rewritePane.setMaxHeight(Double.MAX_VALUE);
+            VBox.setVgrow(scrollPane, Priority.ALWAYS);
+            scrollPane.setMinHeight(80);
+            scrollPane.setPrefHeight(0);
+            scrollPane.setMaxHeight(Double.MAX_VALUE);
+            idiomSplitPane = new SplitPane(scrollPane, rewritePane);
+            idiomSplitPane.setOrientation(Orientation.VERTICAL);
+            idiomSplitPane.getStyleClass().add("agent-idiom-split");
+            idiomSplitPane.setMinHeight(0);
+            idiomSplitPane.setPrefHeight(0);
+            idiomSplitPane.setMaxHeight(Double.MAX_VALUE);
+            double savedSplit = IdiomReviewSupport.loadRewriteSplitPosition();
+            idiomSplitPane.setDividerPositions(savedSplit);
+            Platform.runLater(() -> {
+                idiomSplitPane.setDividerPositions(savedSplit);
+                idiomSplitPane.getDividers().get(0).positionProperty().addListener((obs, old, pos) ->
+                        IdiomReviewSupport.persistRewriteSplitPosition(pos.doubleValue()));
+            });
+            VBox.setVgrow(idiomSplitPane, Priority.ALWAYS);
+            contentRoot.getChildren().addAll(toggleConfigButton, configBox, contextPane,
+                    buttonRow, idiomSplitPane);
         } else {
             contextPane = new ChatbotContextPane(config.getId(), "WORLD_EDITOR");
-            contentRoot.getChildren().addAll(toggleConfigButton, configBox, contextPane, buttonRow, scrollPane);
+            if (BildPromptSupport.isBildPrompt(config)) {
+                useSelectionCheck = new CheckBox("Markierung als Motiv");
+                useSelectionCheck.setWrapText(true);
+                useSelectionCheck.setDisable(true);
+                useSelectionCheck.setSelected(BildPromptSupport.loadUseSelection(config.getId()));
+                useSelectionCheck.setTooltip(new Tooltip(
+                        "Grau, solange nichts markiert ist. Angehakt: Bild zeigt die Markierung, Kapitel bleibt Kontext."));
+                useSelectionCheck.selectedProperty().addListener((obs, old, selected) ->
+                        BildPromptSupport.persistUseSelection(config.getId(), selected));
+                Label extraLabel = new Label("Zusätzlicher Prompt (optional):");
+                extraPromptField = new TextArea();
+                extraPromptField.setPromptText("z.B. nah, Gegenlicht, keine weiteren Personen");
+                extraPromptField.setWrapText(true);
+                extraPromptField.setPrefRowCount(4);
+                extraPromptField.setMinHeight(4 * 18.0);
+                extraPromptField.setMaxWidth(Double.MAX_VALUE);
+                extraPromptField.setTooltip(new Tooltip(
+                        "Kommt zusätzlich zum System-Prompt. Blickwinkel, Moment, Kamera — ohne Eigennamen."));
+                String savedExtra = BildPromptSupport.loadExtraPrompt(config.getId());
+                if (savedExtra != null && !savedExtra.isBlank()) {
+                    extraPromptField.setText(savedExtra);
+                }
+                extraPromptField.textProperty().addListener((obs, old, val) ->
+                        BildPromptSupport.persistExtraPrompt(config.getId(), val));
+                VBox extraBox = new VBox(6, useSelectionCheck, extraLabel, extraPromptField);
+                contentRoot.getChildren().addAll(
+                        toggleConfigButton, configBox, contextPane, extraBox, buttonRow, scrollPane);
+            } else {
+                contentRoot.getChildren().addAll(toggleConfigButton, configBox, contextPane, buttonRow, scrollPane);
+            }
         }
 
         toggleConfigButton.setOnAction(e -> {
@@ -381,7 +449,7 @@ public class AgentTab extends ScrollPane {
     }
 
     private Region flexibleContentRegion() {
-        return rewriteTextArea != null ? rewriteTextArea : scrollPane;
+        return idiomSplitPane != null ? idiomSplitPane : scrollPane;
     }
 
     private void applyFreeformUi() {
@@ -410,7 +478,10 @@ public class AgentTab extends ScrollPane {
         if (emptyLabel != null
                 && !config.isSelectionRevisionAgent()
                 && !config.isIdiomReviewAgent()) {
-            emptyLabel.setText(freeform
+            emptyLabel.setText(BildPromptSupport.isBildPrompt(config)
+                    ? "Text markieren und „Markierung als Motiv“ ankreuzen,\n"
+                    + "zusätzlichen Prompt optional, dann ▶ Ausführen."
+                    : freeform
                     ? "Noch keine Antwort.\nKlicke ▶ Ausführen."
                     : "Noch keine Analyse.\nKlicke ▶ oder aktiviere ⚡.");
         }
@@ -455,6 +526,11 @@ public class AgentTab extends ScrollPane {
         AgentAnswerMdArea.applyFont(rewriteTextArea, currentFontFamily, size);
         applyAnswerTheme(currentThemeIndex);
         AgentActionButtonSupport.applyFontSize(size, analyzeButton, realtimeToggle);
+        if (copyPromptButton != null && analyzeButton != null) {
+            copyPromptButton.setMinHeight(analyzeButton.getMinHeight());
+            copyPromptButton.setPrefHeight(analyzeButton.getPrefHeight());
+            copyPromptButton.setMaxHeight(analyzeButton.getMaxHeight());
+        }
     }
 
     public void applyAnswerTheme(int themeIndex) {
@@ -489,6 +565,37 @@ public class AgentTab extends ScrollPane {
             modelSelector.setValue(model);
             config.setModel(model);
         });
+    }
+
+    private void copyFreeformOutputToClipboard() {
+        String text = freeformOutputArea != null ? freeformOutputArea.getText() : "";
+        if (text == null || text.isBlank()) {
+            reportStatusError("Nichts zu kopieren");
+            return;
+        }
+        ClipboardContent content = new ClipboardContent();
+        content.putString(text.trim());
+        Clipboard.getSystemClipboard().setContent(content);
+        reportStatus("Bild-Prompt in die Zwischenablage kopiert");
+    }
+
+    public String getExtraPrompt() {
+        if (extraPromptField == null) {
+            return "";
+        }
+        String text = extraPromptField.getText();
+        return text != null ? text.trim() : "";
+    }
+
+    public boolean isUseSelectionRequested() {
+        return useSelectionCheck != null && useSelectionCheck.isSelected();
+    }
+
+    public void updateBildPromptSelectionAvailable(boolean hasSelection) {
+        if (useSelectionCheck == null) {
+            return;
+        }
+        useSelectionCheck.setDisable(!hasSelection);
     }
 
     public String getRevisionInstruction() {
@@ -1140,6 +1247,9 @@ public class AgentTab extends ScrollPane {
         if (applyRewriteButton != null) {
             applyRewriteButton.setDisable(true);
         }
+        if (copyPromptButton != null) {
+            copyPromptButton.setDisable(true);
+        }
     }
 
     public void showError(String message) {
@@ -1188,10 +1298,16 @@ public class AgentTab extends ScrollPane {
             unregisterActivity();
             String visible = area.getText();
             if (visible == null || visible.isBlank()) {
+                if (copyPromptButton != null) {
+                    copyPromptButton.setDisable(true);
+                }
                 showParseResult(PlotholeParseResult.unparseable(
                         "Leere Antwort vom Modell. Bei Reasoning-Modellen (z. B. Qwen3) "
                                 + "max. Ausgabe-Tokens erhöhen oder ein Modell ohne Denk-Modus wählen."));
             } else {
+                if (copyPromptButton != null) {
+                    copyPromptButton.setDisable(false);
+                }
                 reportStatus("Antwort erhalten");
             }
         });

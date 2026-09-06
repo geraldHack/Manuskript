@@ -25,6 +25,8 @@ public final class AgentTabTooltipSupport {
                 "Schreibt eine Szene als Fließprosa passend zu Outline, Stil und Worldbuilding.");
         BY_AGENT_ID.put("b2c3d4e5-f6a7-4890-b1c2-d3e4f5a6b7c8",
                 "Schreib-Assistent mit Sessions und wählbarem Kapitelkontext.");
+        BY_AGENT_ID.put(AgentConfigManager.BILD_PROMPT_AGENT_ID,
+                "Bild-Prompt zum Kapitel: Look aus dem World-Editor, optionaler Zusatzprompt, ohne Eigennamen.");
         BY_AGENT_ID.put(IdiomReviewSupport.DEFAULT_AGENT_ID,
                 "Findet unnatürliche oder KI-typische Formulierungen in der Markierung (max. "
                         + IdiomReviewSupport.maxSelectionChars() + " Zeichen).");

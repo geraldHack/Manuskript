@@ -328,10 +328,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         });
 
         Scene scene = new Scene(root, 1100, 780);
-        String cssPath = ResourceManager.getCssResource("css/manuskript.css");
-        if (cssPath != null) {
-            scene.getStylesheets().add(cssPath);
-        }
+        ResourceManager.attachSceneStylesheets(scene);
         stage.setSceneWithTitleBar(scene);
         stage.setFullTheme(themeIndex);
         applyThemeToNode(root, themeIndex);
@@ -861,6 +858,8 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 {"Agenten", "chapter_editor_agents.html", "Hilfe - Agenten"},
                 {"Online-Lektorat", "online_lektorat.html", "Hilfe - Online-Lektorat"}
         });
+        editorHelpMenu.getStyleClass().addAll("toolbar-button", "host-toolbar-menu-button");
+        applyThemeToNode(editorHelpMenu, themeIndex);
 
         MenuButton mehrFormat = createMehrFormatMenu();
 
@@ -985,7 +984,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
     private MenuButton createMehrFormatMenu() {
         MenuButton mehrFormat = new MenuButton("Mehr Format…");
+        mehrFormat.getStyleClass().addAll("toolbar-button", "host-toolbar-menu-button");
         mehrFormat.setTooltip(new Tooltip("Zusätzliche Formatierung (Mark, Farbe, Fußnote, …)"));
+        applyThemeToNode(mehrFormat, themeIndex);
         mehrFormat.getItems().addAll(
                 formatMenuItem("Mark", () -> editor.toggleMark()),
                 formatMenuItem("Zentrieren", () -> editor.toggleCenter()),
@@ -1410,6 +1411,8 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             refreshStatusBusyBar();
             if (!transientStatusActive) {
                 updateStatusDisplay();
+            } else if (statusBusyDepth <= 0) {
+                scheduleStatusClear(5);
             }
         }
     }
@@ -2796,6 +2799,16 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     @Override
     public boolean hasTextSelection() {
         return editor.hasTextSelection();
+    }
+
+    @Override
+    public String getSelectedText() {
+        return editor.getSelectedText();
+    }
+
+    @Override
+    public void setOnSelectionChanged(Runnable listener) {
+        editor.setOnSelectionChanged(listener);
     }
 
     @Override

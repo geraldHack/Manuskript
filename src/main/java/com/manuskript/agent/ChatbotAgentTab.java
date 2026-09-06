@@ -634,7 +634,7 @@ public class ChatbotAgentTab extends ScrollPane {
             reportStatus("Alle Kontext-Quellen aktiv.");
             return;
         }
-        AgentPopupSupport.showMenuBelow(menu, anchor);
+        AgentPopupSupport.showMenuBelow(menu, anchor, chatThemeIndex >= 0 ? chatThemeIndex : AgentFindingStyles.themeIndex());
     }
 
     private void refreshContextPills() {

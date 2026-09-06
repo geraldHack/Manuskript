@@ -55,6 +55,28 @@ public interface ChapterEditorHost {
         return getSelectionStart() != getSelectionEnd();
     }
 
+    default String getSelectedText() {
+        if (!hasTextSelection()) {
+            return "";
+        }
+        String text = getText();
+        if (text == null || text.isEmpty()) {
+            return "";
+        }
+        int start = Math.min(getSelectionStart(), getSelectionEnd());
+        int end = Math.max(getSelectionStart(), getSelectionEnd());
+        start = Math.max(0, Math.min(text.length(), start));
+        end = Math.max(start, Math.min(text.length(), end));
+        if (start >= end) {
+            return "";
+        }
+        return text.substring(start, end);
+    }
+
+    /** Wird aufgerufen, wenn sich Caret oder Markierung im Editor ändern. */
+    default void setOnSelectionChanged(Runnable listener) {
+    }
+
     void selectRange(int start, int end);
 
     void requestEditorFocus();

@@ -5,7 +5,7 @@ import java.util.List;
 public enum NovelWizardPhase {
     BOOTSTRAP("Bootstrap", "Projekt einrichten", List.of()),
     BRAINSTORM("Brainstorm", "Genre, Stil, Umfang, Prämisse", List.of("context.txt", "style.txt")),
-    WORLD("Welt", "Setting, Regeln, Lore", List.of("worldbuilding.txt")),
+    WORLD("Welt", "Setting, Orte, Lore", List.of("worldbuilding.txt")),
     CHARACTERS("Figuren", "Namen, Beschreibungen, Rollen, Beziehungen", List.of("characters.txt")),
     PLOT("Handlung", "Ausgangslage und Hauptkonflikt", List.of("outline.txt")),
     SYNOPSIS("Synopsis", "Gesamt-Synopsis", List.of("synopsis.txt")),

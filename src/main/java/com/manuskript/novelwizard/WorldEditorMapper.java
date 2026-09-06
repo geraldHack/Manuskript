@@ -359,6 +359,11 @@ public class WorldEditorMapper {
         }
     }
 
+    /** Ob worldbuilding.txt bereits sinnvollen Inhalt hat. */
+    public boolean worldbuildingFileHasPersistableContent() {
+        return hasPersistableContent(read(NovelManager.WORLDBUILDING_FILE));
+    }
+
     /** Ob characters.txt bereits sinnvollen Inhalt hat (manuell oder Character Sheets). */
     public boolean charactersFileHasPersistableContent() {
         return hasPersistableContent(read(NovelManager.CHARACTERS_FILE));

@@ -30,6 +30,63 @@ public class NovelWizardAiService {
     }
 
     /**
+     * Erzeugt aus dem Welt-Interview strukturiertes Worldbuilding fuer worldbuilding.txt.
+     */
+    public CompletableFuture<String> generateWorldbuildingDocument(NovelWizardSession session, String existingContext,
+                                                                   String phaseDialogue) {
+        String systemPrompt = """
+                Du bist Worldbuilding-Berater. Erstelle aus dem Welt-Interview ein strukturiertes Worldbuilding-Dokument auf Deutsch.
+                Antworte ausschliesslich in diesem Format:
+                <CONTENT>
+                Markdown-Inhalt
+                </CONTENT>
+                <SUMMARY>Kurze Einordnung (1–3 Saetze)</SUMMARY>
+                
+                VERBOTEN: Rueckfragen, Interview-Format, **Frage:**/**Antwort:**-Listen, Stichpunkt-Antworten aus dem Dialog.
+                
+                PFLICHT – genau diese drei Abschnitte in dieser Reihenfolge (jeweils ## Ueberschrift):
+                ## Setting
+                (Weltregeln, Gesellschaft, Technologie/Magie, Konflikte, Atmosphaere – wie die Welt *jetzt* funktioniert)
+                
+                ## Orte
+                (Konkrete Schauplaetze; pro Ort eine ### Ueberschrift mit Beschreibung, Rolle in der Handlung, Verbindungen)
+                
+                ## Lore
+                (Geschichte, Mythen, Legenden, Hintergrundwissen – Vergangenheit und Erzaehltradition)
+                
+                Wenn zu einem Bereich wenig Material vorliegt: kurz notieren oder „(noch offen)“ – Abschnitt trotzdem anlegen.
+                """;
+        StringBuilder user = new StringBuilder();
+        user.append("Erstelle jetzt das vollstaendige Worldbuilding aus dem Welt-Interview.\n\n");
+        user.append(standingInstructionsBlock(session));
+        if (existingContext != null && !existingContext.isBlank()) {
+            user.append("<EXISTING_CONTEXT>\n").append(existingContext).append("\n</EXISTING_CONTEXT>\n\n");
+        }
+        if (session.getProjectSummary() != null && !session.getProjectSummary().isBlank()) {
+            user.append("<PROJECT_SUMMARY>\n").append(session.getProjectSummary()).append("\n</PROJECT_SUMMARY>\n\n");
+        }
+        if (phaseDialogue != null && !phaseDialogue.isBlank()) {
+            user.append("<WELT_INTERVIEW>\n").append(phaseDialogue).append("\n</WELT_INTERVIEW>\n\n");
+        }
+        String corrections = collectAuthorCorrections(session);
+        if (!corrections.isBlank()) {
+            user.append("<AUTOR_KORREKTUREN>\n").append(corrections).append("\n</AUTOR_KORREKTUREN>\n\n");
+        }
+        user.append("<COLLECTED>\n");
+        for (Map.Entry<String, String> entry : session.getCollected().entrySet()) {
+            user.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
+        }
+        user.append("</COLLECTED>\n");
+        syncBackendFromParameters();
+        return backend.chat(systemPrompt, user.toString(), maxTokensForPhase(NovelWizardPhase.SYNOPSIS))
+                .thenApply(raw -> {
+                    NovelWizardTurn turn = NovelWizardResponseParser.parse(raw, true);
+                    String content = turn.getContent();
+                    return content == null ? "" : content.trim();
+                });
+    }
+
+    /**
      * Erzeugt aus dem Figuren-Interview strukturierte Character Sheets fuer characters.txt.
      */
     public CompletableFuture<String> generateCharacterSheets(NovelWizardSession session, String existingContext,
@@ -281,6 +338,16 @@ public class NovelWizardAiService {
                     Frage gezielt nach dem naechsten fehlenden Punkt; Optionen immer mit konkreten Namen und Beschreibungen.
                     """);
         }
+        if (phase == NovelWizardPhase.WORLD) {
+            sb.append("""
+                    
+                    Welt-Phase – sammle Material fuer drei Bereiche (beim Abschluss strukturiert in worldbuilding.txt):
+                    - Setting: Regeln, Gesellschaft, Technologie/Magie, Konflikte
+                    - Orte: konkrete Schauplaetze, Regionen, wichtige Gebaeude
+                    - Lore: Geschichte, Mythen, Legenden, Hintergrundwissen
+                    Frage gezielt nach dem naechsten noch duennen Bereich; vermeide Wiederholungen.
+                    """);
+        }
         sb.append("\n").append(format);
         return sb.toString();
     }
@@ -355,6 +422,13 @@ public class NovelWizardAiService {
                     
                     Pruefe in EXISTING_CONTEXT und PHASE_DIALOG, welche Figuren schon Namen und Beschreibungen haben.
                     Frage als Naechstes explizit nach dem fehlenden Feld (z.B. Name des Protagonisten, Aussehen der Antagonistin).
+                    """);
+        }
+        if (phase == NovelWizardPhase.WORLD) {
+            sb.append("""
+                    
+                    Pruefe in PHASE_DIALOG, welche der drei Bereiche (Setting, Orte, Lore) noch duenn sind.
+                    Frage als Naechstes gezielt nach dem schwaechsten Bereich.
                     """);
         }
         return sb.toString();

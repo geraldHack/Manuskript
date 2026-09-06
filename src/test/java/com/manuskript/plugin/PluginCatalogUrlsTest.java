@@ -36,6 +36,8 @@ class PluginCatalogUrlsTest {
     @Test
     void validatesIdsNamesAndHashes() {
         assertTrue(PluginCatalogUrls.OFFICIAL_IDS.contains("schreib-statistik"));
+        assertTrue(PluginCatalogUrls.OFFICIAL_IDS.contains("publish-paket"));
+        assertTrue(PluginCatalogUrls.isAllowedId("mindmap"));
         assertTrue(PluginCatalogUrls.isAllowedId("openrouter-monitor"));
         assertFalse(PluginCatalogUrls.isAllowedId("../etc"));
         assertTrue(PluginCatalogUrls.isAllowedFileName("openrouter-monitor.jar"));

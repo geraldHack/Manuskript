@@ -6,15 +6,11 @@ import com.manuskript.ResourceManager;
 import com.manuskript.StageManager;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Erzeugt Plugin-Fenster im Manuskript-Look.
  */
 public final class PluginStages {
-
-    private static final Logger logger = LoggerFactory.getLogger(PluginStages.class);
 
     private PluginStages() {
     }
@@ -29,14 +25,7 @@ public final class PluginStages {
     public static void attachScene(Stage stage, Scene scene, int themeIndex) {
         if (scene != null && scene.getRoot() != null) {
             EditorDialogThemes.applyToNode(scene.getRoot(), themeIndex);
-        }
-        try {
-            String cssPath = ResourceManager.getCssResource("css/manuskript.css");
-            if (cssPath != null && scene != null && !scene.getStylesheets().contains(cssPath)) {
-                scene.getStylesheets().add(cssPath);
-            }
-        } catch (Exception e) {
-            logger.warn("CSS für Plugin-Fenster nicht geladen: {}", e.getMessage());
+            ResourceManager.attachSceneStylesheets(scene);
         }
         if (stage instanceof CustomStage customStage) {
             customStage.setSceneWithTitleBar(scene);

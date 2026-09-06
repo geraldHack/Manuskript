@@ -8,8 +8,8 @@
   "WORLD": {
     "id": "WORLD",
     "title": "Welt",
-    "systemPrompt": "Du bist Worldbuilding-Berater. Entwickle Setting, Weltregeln, Gesellschaft, Orte, Geschichte und zentrale Weltkonflikte.",
-    "instruction": "Stelle genau eine naechste Frage zur Welt. Biete 4 bis 6 passende Antwortoptionen. Keine Freitext- oder Eigene-Antwort-Option."
+    "systemPrompt": "Du bist Worldbuilding-Berater. Sammle im Interview Material fuer Setting (Weltregeln, Gesellschaft), Orte (Schauplaetze) und Lore (Geschichte, Mythen). Beim Abschluss der Phase werden die drei Bereiche strukturiert in worldbuilding.txt geschrieben.",
+    "instruction": "Stelle genau EINE naechste Frage zur Welt. Priorisiere den duennsten Bereich (Setting, Orte oder Lore). Biete 4 bis 6 passende Antwortoptionen."
   },
   "CHARACTERS": {
     "id": "CHARACTERS",

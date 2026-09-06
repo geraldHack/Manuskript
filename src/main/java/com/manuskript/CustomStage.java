@@ -1136,7 +1136,7 @@ public class CustomStage extends Stage {
             } else {
                 titleBar.setStyle("-fx-background-color: " + backgroundColor + "; -fx-padding: 5px; -fx-spacing: 5px; -fx-border-color: " + borderColor + "; -fx-border-width: 1px; -fx-border-radius: 0; -fx-min-height: " + (ICON_SIZE + 4) + "px; -fx-pref-height: " + (ICON_SIZE + 4) + "px;");
             }
-            iconLabel.setStyle(createIconStyle(textColor));
+            iconLabel.setStyle(createIconStyle("#ffffff"));
             titleLabel.setStyle(createTitleLabelStyle(textColor));
 
             String osName = System.getProperty("os.name").toLowerCase();
@@ -1192,7 +1192,8 @@ public class CustomStage extends Stage {
         currentTextColor = (themeIndex == 0 || themeIndex == 2) ? "black" : "white";
         if (titleBar != null) {
             titleBar.setStyle("-fx-padding: 0 12px; -fx-min-height: 48px; -fx-pref-height: 48px;");
-            iconLabel.setStyle("");
+            // Icon-Bubble behält hellen Text auf farbigem Hintergrund
+            iconLabel.setStyle(createIconStyle("#ffffff"));
             titleLabel.setStyle("");
             String osName = System.getProperty("os.name", "").toLowerCase();
             boolean isMac = osName.contains("mac");
@@ -1354,7 +1355,7 @@ public class CustomStage extends Stage {
 
     private void applyDefaultStyles() {
         titleBar.setStyle(DEFAULT_TITLEBAR_STYLE);
-        iconLabel.setStyle(createIconStyle(DEFAULT_TEXT_COLOR));
+        iconLabel.setStyle(createIconStyle("#ffffff"));
         titleLabel.setStyle(createTitleLabelStyle(currentTextColor));
 
         String osName = System.getProperty("os.name").toLowerCase();
@@ -1415,12 +1416,22 @@ public class CustomStage extends Stage {
         label.setMaxSize(ICON_SIZE, ICON_SIZE);
         label.setAlignment(Pos.CENTER);
         label.getStyleClass().add("title-icon-label"); // CSS-Klasse für gezieltes Styling
-        label.setStyle(createIconStyle(DEFAULT_TEXT_COLOR));
+        label.setStyle(createIconStyle("#ffffff"));
+        HBox.setMargin(label, new Insets(0, 10, 0, 0));
         return label;
     }
 
     private String createIconStyle(String textColor) {
-        return "-fx-text-fill: " + textColor + " !important; -fx-font-weight: bold !important; -fx-background-color: transparent !important; -fx-background-radius: 3px !important; -fx-padding: 2px !important; -fx-min-width: " + ICON_SIZE + "px !important; -fx-min-height: " + ICON_SIZE + "px !important; -fx-pref-width: " + ICON_SIZE + "px !important; -fx-pref-height: " + ICON_SIZE + "px !important;";
+        String backgroundColor = DEFAULT_ICON_BACKGROUND;
+        if (activeThemeIndex == 2) {
+            backgroundColor = "#ba68c8";
+        }
+        return "-fx-text-fill: " + textColor + " !important; -fx-font-weight: bold !important; "
+                + "-fx-background-color: " + backgroundColor + " !important; "
+                + "-fx-background-radius: 6px !important; -fx-padding: 2px !important; "
+                + "-fx-alignment: center; "
+                + "-fx-min-width: " + ICON_SIZE + "px !important; -fx-min-height: " + ICON_SIZE + "px !important; "
+                + "-fx-pref-width: " + ICON_SIZE + "px !important; -fx-pref-height: " + ICON_SIZE + "px !important;";
     }
 
     private void updateButtonStyles(String textColor, int fontSize) {

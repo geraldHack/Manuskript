@@ -20,6 +20,7 @@ import java.util.prefs.Preferences;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import javafx.scene.Scene;
 
 /**
  * Verwaltet den Zugriff auf Ressourcen mit Priorität für externe Config-Dateien
@@ -119,6 +120,35 @@ public class ResourceManager {
     public static String getBundledCssResource(String resourcePath) {
         java.net.URL url = ResourceManager.class.getResource("/" + resourcePath);
         return url != null ? url.toExternalForm() : null;
+    }
+
+    /**
+     * Hängt Config-CSS und gebündelte JAR-Version an die Scene.
+     * Die JAR-Regeln kommen danach und übersteuern veraltetes {@code config/css}.
+     */
+    public static void attachSceneStylesheets(Scene scene) {
+        attachSceneStylesheets(scene, false);
+    }
+
+    /** Wie {@link #attachSceneStylesheets(Scene)}, optional mit {@code styles.css} und {@code editor.css}. */
+    public static void attachSceneStylesheets(Scene scene, boolean includeEditorStyles) {
+        if (scene == null) {
+            return;
+        }
+        addStylesheetIfAbsent(scene, getCssResource("css/manuskript.css"));
+        addStylesheetIfAbsent(scene, getBundledCssResource("css/manuskript.css"));
+        if (includeEditorStyles) {
+            addStylesheetIfAbsent(scene, getCssResource("css/styles.css"));
+            addStylesheetIfAbsent(scene, getBundledCssResource("css/styles.css"));
+            addStylesheetIfAbsent(scene, getCssResource("css/editor.css"));
+            addStylesheetIfAbsent(scene, getBundledCssResource("css/editor.css"));
+        }
+    }
+
+    private static void addStylesheetIfAbsent(Scene scene, String uri) {
+        if (uri != null && !scene.getStylesheets().contains(uri)) {
+            scene.getStylesheets().add(uri);
+        }
     }
     
     /**

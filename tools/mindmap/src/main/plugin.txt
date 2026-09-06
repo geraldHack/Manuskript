@@ -1,0 +1,5 @@
+Mindmap
+@project.version@
+
+Editierbare Plot-Mindmap im WebView: Figuren, Orte, Kapitel und Beziehungen.
+KI Erstlesen und Aktualisieren nutzt die Agenten-Einstellungen. Speichert data/mindmap.json.

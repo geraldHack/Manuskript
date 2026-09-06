@@ -559,27 +559,12 @@ public class AgentConfigManager {
         saveConfigs(configs);
     }
 
-    private static final String BILD_PROMPT_DEFAULT_SYSTEM = """
-            Sieh dir das Kapitel an und mache ein stimmungsvolles, passenden Prompt für eine Bild-KI  dazu. benutze so viel Markdown, wie du willst.
-
-            Stilvorgaben
-
-            - **Stil:** detailed digital painting, cinematic composition, muted industrial color palette (grey, gunmetal, rust) broken by warm golden light and the girl's silver hair as focal point
-            - **Kamera:** medium shot, slightly low angle from the vent's perspective, shallow depth of field with the grate softly blurred in the foreground
-            - **Ton:** cool-distant, observational — no sentimentality, quiet tension, space opera realism, no glossy utopian aesthetics
-
-            ## Negativ-Prompt
-
-            no bright futuristic clean corridors, no holograms, no weapons, no adults, no romantic undertones, no cartoon style, no text""";
-
     private static void ensureBildPromptAgent(List<AgentConfig> configs) {
         for (AgentConfig c : configs) {
             if (BILD_PROMPT_AGENT_ID.equals(c.getId()) || "Bild-Prompt".equals(c.getName())) {
-                c.setUserDefined(false);
-                if (c.getAgentType() == null || c.getAgentType().isBlank()) {
-                    c.setAgentType("analysis");
+                if (BildPromptSupport.migrateExisting(c)) {
+                    saveConfigs(configs);
                 }
-                c.setFreeform(true);
                 return;
             }
         }
@@ -590,12 +575,12 @@ public class AgentConfigManager {
         AgentConfig bildAgent = new AgentConfig(
                 "Bild-Prompt",
                 backend,
-                BILD_PROMPT_DEFAULT_SYSTEM,
+                BildPromptSupport.DEFAULT_SYSTEM,
                 model,
-                0.3, 4864, 0.7, 1.3
+                0.25, BildPromptSupport.MAX_OUTPUT_TOKENS, 0.7, 1.15
         );
         bildAgent.setId(BILD_PROMPT_AGENT_ID);
-        bildAgent.setDefaultPrompt(BILD_PROMPT_DEFAULT_SYSTEM);
+        bildAgent.setDefaultPrompt(BildPromptSupport.DEFAULT_SYSTEM);
         bildAgent.setAgentType("analysis");
         bildAgent.setUserDefined(false);
         bildAgent.setFreeform(true);

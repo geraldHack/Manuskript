@@ -16,6 +16,7 @@ altheras
 altsyrranisch
 alvaro
 arista
+aristas
 ashford
 asthenar
 asthenars
@@ -127,6 +128,7 @@ oryn
 oswin
 paleus
 pixie-cut
+rakar
 rawhester
 reiman
 schulterrempler

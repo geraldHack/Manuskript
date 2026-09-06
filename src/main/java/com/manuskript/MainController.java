@@ -511,10 +511,7 @@ public class MainController implements Initializable {
                     // CSS initial laden und Theme-Klassen setzen, bevor wir Theme anwenden
             Platform.runLater(() -> {
                 if (mainContainer != null && mainContainer.getScene() != null) {
-                    String cssPath = ResourceManager.getCssResource("css/manuskript.css");
-                    if (cssPath != null && !mainContainer.getScene().getStylesheets().contains(cssPath)) {
-                        mainContainer.getScene().getStylesheets().add(cssPath);
-                    }
+                    ResourceManager.attachSceneStylesheets(mainContainer.getScene());
                 // Theme-Klassen auf Root vorab setzen, damit Pfeile etc. initial korrekt sind
                 Node root = mainContainer.getScene().getRoot();
                 root.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme", "weiss-theme", "pastell-theme");
@@ -6922,6 +6919,7 @@ public class MainController implements Initializable {
             });
             contextMenu.getItems().addAll(renameSeriesItem);
             row.contextMenuProperty().bind(Bindings.when(row.emptyProperty()).then((ContextMenu) null).otherwise(contextMenu));
+            row.setOnContextMenuRequested(evt -> EditorDialogThemes.styleContextMenu(contextMenu, currentThemeIndex));
             return row;
         });
         
@@ -10302,6 +10300,11 @@ public class MainController implements Initializable {
             }
 
             @Override
+            public String themeColor(int colorIndex) {
+                return com.manuskript.EditorDialogThemes.color(currentThemeIndex, colorIndex);
+            }
+
+            @Override
             public Stage createThemedStage(String title) {
                 return PluginStages.createThemedStage(title, currentThemeIndex);
             }
@@ -10322,7 +10325,40 @@ public class MainController implements Initializable {
                     logger.warn("Konnte URL nicht öffnen: {}", uri, e);
                 }
             }
+
+            @Override
+            public java.util.concurrent.CompletableFuture<String> completeChat(
+                    String systemPrompt, String userPrompt, int maxTokens) {
+                return createAgentBackendForPlugins().chat(
+                        systemPrompt == null ? "" : systemPrompt,
+                        userPrompt == null ? "" : userPrompt,
+                        Math.max(256, maxTokens));
+            }
         };
+    }
+
+    /** Agenten-Backend wie Welt-Editor / Novel-Assistent — für PluginHost.completeChat. */
+    private static com.manuskript.agent.AIBackend createAgentBackendForPlugins() {
+        String backendType = ResourceManager.getParameter("agent.backend", "Ollama");
+        com.manuskript.agent.AIBackend backend;
+        String model;
+        if ("OpenAI".equals(backendType)) {
+            com.manuskript.agent.OpenAIBackend openAi = new com.manuskript.agent.OpenAIBackend();
+            // Kurze JSON-Antworten: kein Reasoning-Feld, höchstens ein API-Roundtrip.
+            openAi.setReasoningEffortOverride("none");
+            openAi.setMaxContinuationsOverride(0);
+            backend = openAi;
+            model = ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini");
+            backend.setTemperature(ResourceManager.getDoubleParameter("agent.openai.temperature", 0.7));
+        } else {
+            backend = new com.manuskript.agent.OllamaBackend(new com.manuskript.OllamaService());
+            model = ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL);
+            backend.setTemperature(ResourceManager.getDoubleParameter("ollama.temperature", 0.3));
+        }
+        if (model != null && !model.isBlank()) {
+            backend.setCurrentModel(model.trim());
+        }
+        return backend;
     }
 
     private void startProgramLauncher(ProgramLauncher launcher) {
