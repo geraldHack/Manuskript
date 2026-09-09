@@ -1,6 +1,8 @@
 package com.manuskript;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -143,16 +145,43 @@ public class DocxFile {
         return fileName;
     }
     
+    /** Gleiche DOCX-Datei (canonical/isSameFile), unabhängig vom File-Objekt. */
+    public static boolean filesEqual(File left, File right) {
+        if (left == right) {
+            return true;
+        }
+        if (left == null || right == null) {
+            return false;
+        }
+        try {
+            return Files.isSameFile(left.toPath(), right.toPath());
+        } catch (IOException ignored) {
+            return identityFile(left).equals(identityFile(right));
+        }
+    }
+
+    private static File identityFile(File file) {
+        try {
+            return file.getCanonicalFile();
+        } catch (IOException ignored) {
+            return file.getAbsoluteFile();
+        }
+    }
+
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
         DocxFile docxFile = (DocxFile) obj;
-        return file.equals(docxFile.file);
+        return filesEqual(file, docxFile.file);
     }
-    
+
     @Override
     public int hashCode() {
-        return file.hashCode();
+        return identityFile(file).hashCode();
     }
 } 

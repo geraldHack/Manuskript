@@ -2,6 +2,7 @@ package com.manuskript;
 
 import com.manuskript.agent.FilterableModelOptionSelector;
 import com.manuskript.agent.ModelOption;
+import com.manuskript.agent.OpenAIBackend;
 import com.manuskript.agent.OpenAiProviderProfiles;
 import com.manuskript.agent.OpenRouterModelTags;
 
@@ -132,7 +133,6 @@ public class ParametersAdminWindow {
         }
 
         Button btnSave = new Button("Speichern");
-        btnSave.setDefaultButton(true);
         btnSave.setOnAction(e -> saveAll());
         Button btnRestore = new Button("Standard wiederherstellen");
         btnRestore.setOnAction(e -> restoreDefaults());
@@ -226,13 +226,12 @@ public class ParametersAdminWindow {
 
         String ollamaModel = ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL);
         ComboBox<String> ollamaModelCombo = new ComboBox<>();
-        ollamaModelCombo.setEditable(true);
+        ollamaModelCombo.setEditable(false);
         ollamaModelCombo.setPrefWidth(400);
-        ollamaModelCombo.setPromptText("Modell wählen oder eingeben…");
+        ollamaModelCombo.setPromptText("Modell wählen…");
         if (ollamaModel != null && !ollamaModel.isBlank()) {
             ollamaModelCombo.getItems().add(ollamaModel);
             ollamaModelCombo.setValue(ollamaModel);
-            ollamaModelCombo.getEditor().setText(ollamaModel);
         }
         Button ollamaLoadModelsBtn = new Button("Installierte laden");
         ollamaLoadModelsBtn.setTooltip(new Tooltip("Lädt lokal bei Ollama vorhandene Modelle in die Liste"));
@@ -522,7 +521,7 @@ public class ParametersAdminWindow {
         Label openaiKeyLabel = new Label("agent.openai.api_key");
         openaiKeyLabel.getStyleClass().add("param-key-label");
         Label openaiKeyHelp = new Label(
-                "API-Key fuer OpenAI/OpenRouter/Mammouth. Lokale Server akzeptieren oft den Platzhalter „local“.");
+                "API-Key für Cloud-Anbieter. Bei LM Studio / lokalen Servern leer lassen.");
         openaiKeyHelp.getStyleClass().add("param-help-label");
         openaiKeyHelp.setWrapText(true);
         openaiKeyHelp.setMaxWidth(680);
@@ -535,7 +534,7 @@ public class ParametersAdminWindow {
         Label openaiUrlLabel = new Label("agent.openai.api_url");
         openaiUrlLabel.getStyleClass().add("param-key-label");
         Label openaiUrlHelp = new Label(
-                "Basis-URL der OpenAI-kompatiblen API (OpenAI, Mammouth, OpenRouter …).");
+                "Basis-URL (OpenAI, Mammouth, OpenRouter, LM Studio …). LM Studio: http://127.0.0.1:1234/v1");
         openaiUrlHelp.getStyleClass().add("param-help-label");
         openaiUrlHelp.setWrapText(true);
         openaiUrlHelp.setMaxWidth(680);
@@ -632,6 +631,24 @@ public class ParametersAdminWindow {
         openaiParams.getChildren().add(agentTimeoutCard);
         keyToControl.put("agent.openai.request_timeout_sec", agentTimeoutSpinner);
 
+        int localMaxTokens = ResourceManager.getIntParameter("agent.openai.local_max_tokens", 2048);
+        localMaxTokens = Math.max(0, Math.min(8192, localMaxTokens));
+        Spinner<Integer> localMaxTokensSpinner = new Spinner<>(0, 8192, localMaxTokens, 256);
+        localMaxTokensSpinner.setEditable(true);
+        localMaxTokensSpinner.setPrefWidth(180);
+        Label localMaxTokensLabel = new Label("agent.openai.local_max_tokens");
+        localMaxTokensLabel.getStyleClass().add("param-key-label");
+        Label localMaxTokensHelp = new Label(
+                "Ausgabe-Limit nur für localhost/LM Studio. Kontext bleibt. 0 = keine Kappe. Cloud ignoriert den Wert.");
+        localMaxTokensHelp.getStyleClass().add("param-help-label");
+        localMaxTokensHelp.setWrapText(true);
+        localMaxTokensHelp.setMaxWidth(680);
+        VBox localMaxTokensCard = new VBox(4);
+        localMaxTokensCard.getStyleClass().add("param-card");
+        localMaxTokensCard.getChildren().addAll(localMaxTokensLabel, localMaxTokensSpinner, localMaxTokensHelp);
+        openaiParams.getChildren().add(localMaxTokensCard);
+        keyToControl.put("agent.openai.local_max_tokens", localMaxTokensSpinner);
+
         // Sichtbarkeit basierend auf Backend-Auswahl
         Runnable updateVisibility = () -> {
             String selected = backendCombo.getValue();
@@ -665,15 +682,15 @@ public class ParametersAdminWindow {
         content.getChildren().add(realtimeCard);
         keyToControl.put("agent.realtime_enabled", realtimeCheck);
 
-        String debounceStr = ResourceManager.getParameter("agent.realtime_debounce_ms", "2000");
-        int debounceVal = parseInt(debounceStr, 2000);
-        debounceVal = Math.max(500, Math.min(10000, debounceVal));
-        Spinner<Integer> debounceSpinner = new Spinner<>(500, 10000, debounceVal);
+        String debounceStr = ResourceManager.getParameter("agent.realtime_debounce_ms", "10000");
+        int debounceVal = parseInt(debounceStr, 10000);
+        debounceVal = Math.max(500, Math.min(60000, debounceVal));
+        Spinner<Integer> debounceSpinner = new Spinner<>(500, 60000, debounceVal);
         debounceSpinner.setEditable(true);
         debounceSpinner.setPrefWidth(180);
         Label debounceLabel = new Label("agent.realtime_debounce_ms");
         debounceLabel.getStyleClass().add("param-key-label");
-        Label debounceHelp = new Label("Verzoegerung in ms nach letztem Tippen, bevor die Echtzeit-Pruefung startet.");
+        Label debounceHelp = new Label("Verzoegerung in ms nach letztem Tippen, bevor die Echtzeit-Pruefung startet (10000 = 10 s).");
         debounceHelp.getStyleClass().add("param-help-label");
         debounceHelp.setWrapText(true);
         debounceHelp.setMaxWidth(680);
@@ -1026,7 +1043,9 @@ public class ParametersAdminWindow {
                     modelCombo.getItems().add(0, current);
                 }
                 modelCombo.setValue(current);
-                modelCombo.getEditor().setText(current);
+                if (modelCombo.isEditable() && modelCombo.getEditor() != null) {
+                    modelCombo.getEditor().setText(current);
+                }
             } else if (!modelCombo.getItems().isEmpty()) {
                 modelCombo.getSelectionModel().selectFirst();
             }
@@ -1067,7 +1086,9 @@ public class ParametersAdminWindow {
                     activeModelCombo.getItems().add(name);
                 }
                 activeModelCombo.setValue(name);
-                activeModelCombo.getEditor().setText(name);
+                if (activeModelCombo.isEditable() && activeModelCombo.getEditor() != null) {
+                    activeModelCombo.getEditor().setText(name);
+                }
                 showInfo("Ollama", msg + "\n\nAls aktives Modell gesetzt – bitte Speichern klicken.");
             } else {
                 showInfo("Ollama", msg);
@@ -1090,20 +1111,35 @@ public class ParametersAdminWindow {
     }
 
     private void loadOpenAIModels(String apiKey, String baseUrl, FilterableModelOptionSelector modelSelector, String context) {
-        if (apiKey == null || apiKey.isBlank() || baseUrl == null || baseUrl.isBlank()) {
-            showInfo("Eingabe fehlt", "Bitte API-Key und Basis-URL eintragen.");
+        if (baseUrl == null || baseUrl.isBlank()) {
+            showInfo("Eingabe fehlt",
+                    "Bitte die Basis-URL eintragen.\n\nLM Studio z. B.: http://127.0.0.1:1234/v1");
+            return;
+        }
+        String resolvedKey = OpenAIBackend.resolveApiKey(apiKey, baseUrl);
+        if (resolvedKey.isEmpty()) {
+            showInfo("Eingabe fehlt",
+                    "Bitte einen API-Key eintragen.\n\nLokale Server (localhost / 127.0.0.1), etwa LM Studio, brauchen keinen Key.");
             return;
         }
         String base = baseUrl.replaceAll("/$", "").trim();
-        // Mammouth.ai: Preise nur unter /public/models; /v1/models liefert oft keine model_info
-        String url = (base.contains("mammouth.ai")) ? "https://api.mammouth.ai/public/models" : (base + "/models");
+        String url = (base.toLowerCase(Locale.ROOT).contains("mammouth.ai"))
+                ? "https://api.mammouth.ai/public/models"
+                : (base + "/models");
+        final HttpRequest request;
+        try {
+            URI uri = OpenAIBackend.requireHttpUri(url);
+            request = HttpRequest.newBuilder()
+                    .uri(uri)
+                    .timeout(Duration.ofSeconds(20))
+                    .header("Authorization", "Bearer " + resolvedKey)
+                    .GET()
+                    .build();
+        } catch (RuntimeException ex) {
+            showInfo("Ungültige URL", OpenAIBackend.invalidOpenAiUrlMessage(baseUrl));
+            return;
+        }
         HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .timeout(Duration.ofSeconds(20))
-                .GET();
-        if (apiKey != null && !apiKey.isBlank()) requestBuilder.header("Authorization", "Bearer " + apiKey.trim());
-        HttpRequest request = requestBuilder.build();
         CompletableFuture.supplyAsync(() -> {
             try {
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
@@ -1220,12 +1256,11 @@ public class ParametersAdminWindow {
                             }
                         } catch (Exception ex) {
                             logger.error("Konnte ComfyUI-Hilfe nicht öffnen (Parameter)", ex);
-                            CustomAlert alert = new CustomAlert(CustomAlert.AlertType.ERROR);
-                            alert.setHeaderText("Hilfe konnte nicht geöffnet werden");
-                            alert.setContentText("Die ComfyUI Installationsanleitung wurde nicht gefunden.\n" +
-                                               "Bitte überprüfen Sie: config/help/comfyui_installation.html\n" +
-                                               "oder besuchen Sie: https://www.comfy.org/download");
-                            alert.showAndWait();
+                            showOwnedAlert(CustomAlert.AlertType.ERROR, "Hilfe",
+                                    "Hilfe konnte nicht geöffnet werden",
+                                    "Die ComfyUI Installationsanleitung wurde nicht gefunden.\n"
+                                            + "Bitte überprüfen Sie: config/help/comfyui_installation.html\n"
+                                            + "oder besuchen Sie: https://www.comfy.org/download");
                         }
                     });
                     helpButton.setMaxWidth(400);
@@ -1307,26 +1342,18 @@ public class ParametersAdminWindow {
                                         
                                         // Ergebnisse in UI anzeigen
                                         Platform.runLater(() -> {
-                                            CustomAlert alert = new CustomAlert(CustomAlert.AlertType.INFORMATION);
-                                            alert.setHeaderText("ComfyUI Voraussetzungen-Check Ergebnisse");
-                                            
                                             String content = output.toString();
                                             if (content.trim().isEmpty()) {
                                                 content = "Der Check wurde ausgeführt, aber es gab keine Ausgabe.\n\nExit-Code: " + exitCode;
                                             }
-                                            
-                                            alert.setContentText(content);
-                                            alert.showAndWait();
+                                            showOwnedAlert(CustomAlert.AlertType.INFORMATION, "ComfyUI",
+                                                    "ComfyUI Voraussetzungen-Check Ergebnisse", content);
                                         });
                                         
                                     } catch (Exception ex) {
                                         logger.error("Fehler beim Ausführen des ComfyUI Checks", ex);
-                                        Platform.runLater(() -> {
-                                            CustomAlert alert = new CustomAlert(CustomAlert.AlertType.ERROR);
-                                            alert.setHeaderText("Check-Fehler");
-                                            alert.setContentText("Fehler beim Ausführen: " + ex.getMessage());
-                                            alert.showAndWait();
-                                        });
+                                        Platform.runLater(() -> showOwnedAlert(CustomAlert.AlertType.ERROR, "ComfyUI",
+                                                "Check-Fehler", "Fehler beim Ausführen: " + ex.getMessage()));
                                     }
                                 }).start();
                                 
@@ -1335,15 +1362,12 @@ public class ParametersAdminWindow {
                             }
                         } catch (Exception ex) {
                             logger.error("Konnte ComfyUI Voraussetzungen-Check nicht starten", ex);
-                            Platform.runLater(() -> {
-                                CustomAlert alert = new CustomAlert(CustomAlert.AlertType.ERROR);
-                                alert.setHeaderText("Check konnte nicht gestartet werden");
-                                alert.setContentText("Das Voraussetzungen-Script wurde nicht gefunden.\n" +
-                                                   "Bitte überprüfen Sie: check-comfyui-prerequisites.ps1/.bat\n" +
-                                                   "oder führen Sie den Check manuell durch.\n\n" +
-                                                   "Fehler: " + ex.getMessage());
-                                alert.showAndWait();
-                            });
+                            Platform.runLater(() -> showOwnedAlert(CustomAlert.AlertType.ERROR, "ComfyUI",
+                                    "Check konnte nicht gestartet werden",
+                                    "Das Voraussetzungen-Script wurde nicht gefunden.\n"
+                                            + "Bitte überprüfen Sie: check-comfyui-prerequisites.ps1/.bat\n"
+                                            + "oder führen Sie den Check manuell durch.\n\n"
+                                            + "Fehler: " + ex.getMessage()));
                         }
                     });
                     checkButton.setMaxWidth(400);
@@ -1522,14 +1546,19 @@ public class ParametersAdminWindow {
     }
 
     private void showInfo(String title, String message) {
+        showOwnedAlert(CustomAlert.AlertType.INFORMATION, title, null, message);
+    }
+
+    private void showOwnedAlert(CustomAlert.AlertType type, String title, String header, String message) {
         Platform.runLater(() -> {
-            int theme = java.util.prefs.Preferences.userNodeForPackage(MainController.class).getInt("main_window_theme", 0);
-            CustomAlert a = new CustomAlert(Alert.AlertType.INFORMATION, title);
-            a.setHeaderText(null);
+            int theme = java.util.prefs.Preferences.userNodeForPackage(MainController.class)
+                    .getInt("main_window_theme", 0);
+            CustomAlert a = new CustomAlert(type);
+            a.setTitle(title);
+            a.setHeaderText(header);
             a.setContentText(message);
             a.applyTheme(theme);
-            a.initOwner(stage);
-            a.showAndWait();
+            a.showAndWait(stage);
         });
     }
 }

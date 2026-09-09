@@ -156,11 +156,11 @@
                   <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
                </children>
             </HBox>
-            <HBox fx:id="launcherToolbarBox" alignment="CENTER" spacing="6" minHeight="36" styleClass="action-group">
+            <FlowPane fx:id="launcherToolbarBox" alignment="CENTER" hgap="6" vgap="4" minHeight="36" styleClass="action-group flow-pane">
                <padding>
                   <Insets bottom="2.0" left="8.0" right="8.0" top="0.0" />
                </padding>
-            </HBox>
+            </FlowPane>
             <HBox alignment="CENTER_LEFT" spacing="0">
                <padding>
                   <Insets bottom="2.0" left="8.0" right="8.0" top="0.0" />

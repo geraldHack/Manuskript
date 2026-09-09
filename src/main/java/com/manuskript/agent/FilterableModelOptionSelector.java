@@ -71,10 +71,10 @@ public class FilterableModelOptionSelector extends VBox {
         filteredModels = new FilteredList<>(allModels, option -> true);
         modelCombo = new ComboBox<>(filteredModels);
         modelCombo.setConverter(CONVERTER);
-        modelCombo.setEditable(true);
+        modelCombo.setEditable(false);
         modelCombo.setMaxWidth(Double.MAX_VALUE);
         modelCombo.setPrefWidth(520);
-        modelCombo.setPromptText("Modell wählen oder eingeben");
+        modelCombo.setPromptText("Modell wählen");
         modelCombo.setCellFactory(list -> createModelListCell());
         modelCombo.setButtonCell(createModelListCell());
 

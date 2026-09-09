@@ -14759,7 +14759,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
 
         int debounceMs = Integer.parseInt(
-            ResourceManager.getParameter("agent.realtime_debounce_ms", "2000"));
+            ResourceManager.getParameter("agent.realtime_debounce_ms", "10000"));
 
         agentRealtimeTimeline = new Timeline(new KeyFrame(
             Duration.millis(debounceMs), event -> {

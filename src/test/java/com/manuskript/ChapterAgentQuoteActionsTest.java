@@ -58,6 +58,26 @@ class ChapterAgentQuoteActionsTest {
     }
 
     @Test
+    void prepareReplacementTextKeepsWrappingQuotes() {
+        String prepared = ChapterAgentQuoteActions.prepareReplacementText("\"Geh weg\"", 0);
+        assertEquals("\u201EGeh weg\u201C", prepared);
+    }
+
+    @Test
+    void applyQuoteWrappingAddsQuotesWhenOriginalIsQuoted() {
+        String wrapped = ChapterAgentQuoteActions.applyQuoteWrapping(
+                "\u201EHallo\u201C", "Tschüss", 0);
+        assertEquals("\u201ETschüss\u201C", wrapped);
+    }
+
+    @Test
+    void applyQuoteWrappingDoesNotDoubleWrap() {
+        String wrapped = ChapterAgentQuoteActions.applyQuoteWrapping(
+                "\u201EHallo\u201C", "\u201ETschüss\u201C", 0);
+        assertEquals("\u201ETschüss\u201C", wrapped);
+    }
+
+    @Test
     void resolveReplacementRangeExtendsIdiomQuoteToFullSentence() {
         String document = "Er stand am Fenster. Die Stimme drang wie durch Watte zu mir und verhallte.";
         String truncatedQuote = "Die Stimme drang wie durch Watte";

@@ -72,8 +72,6 @@ public class AgentPanel extends VBox {
 
         HBox buttonRow = new HBox(6);
         buttonRow.getChildren().addAll(analyzeButton, realtimeToggle);
-        HBox.setHgrow(analyzeButton, Priority.ALWAYS);
-        HBox.setHgrow(realtimeToggle, Priority.ALWAYS);
         AgentActionButtonSupport.configureRow(buttonRow, analyzeButton, realtimeToggle);
 
         // Findings-Liste

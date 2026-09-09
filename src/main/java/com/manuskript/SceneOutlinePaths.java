@@ -9,55 +9,103 @@ public final class SceneOutlinePaths {
 
     private SceneOutlinePaths() {}
 
-    /**
-     * data/{KapitelBasename}-scenes.txt neben der DOCX-Datei.
-     */
+    public record Resolution(File canonical, File existing) {
+        public File readable() {
+            return existing != null ? existing : canonical;
+        }
+    }
+
     public static File scenesFileForDocx(File docxFile) {
-        if (docxFile == null) {
+        return resolve(docxFile).canonical();
+    }
+
+    public static File scenesFileForMd(File mdFile) {
+        return resolve(mdFile).canonical();
+    }
+
+    public static File existingScenesFile(File chapterFile) {
+        return resolve(chapterFile).readable();
+    }
+
+    public static Resolution resolveBest(File... candidates) {
+        Resolution first = null;
+        for (File candidate : candidates) {
+            if (candidate == null) {
+                continue;
+            }
+            Resolution resolution = resolve(candidate);
+            if (first == null) {
+                first = resolution;
+            }
+            if (resolution.existing() != null && resolution.existing().isFile()) {
+                return resolution;
+            }
+        }
+        return first != null ? first : new Resolution(null, null);
+    }
+
+    public static Resolution resolve(File chapterFile) {
+        File canonical = canonicalScenesFile(chapterFile);
+        if (canonical == null) {
+            return new Resolution(null, null);
+        }
+        if (canonical.isFile()) {
+            return new Resolution(canonical, canonical);
+        }
+        File existing = findExistingIgnoreCase(canonical);
+        return new Resolution(canonical, existing);
+    }
+
+    static File canonicalScenesFile(File chapterFile) {
+        if (chapterFile == null) {
             return null;
         }
-        String baseName = docxFile.getName();
-        int idx = baseName.lastIndexOf('.');
-        if (idx > 0) {
-            baseName = baseName.substring(0, idx);
+        String baseName = stripExtension(chapterFile.getName());
+        if (baseName.endsWith("-scenes")) {
+            File parent = chapterFile.getParentFile();
+            return parent == null ? chapterFile : new File(parent, baseName + ".txt");
         }
-        File parent = docxFile.getParentFile();
-        if (parent == null) {
+        File dataDir = dataDirectoryFor(chapterFile);
+        if (dataDir == null) {
             return null;
-        }
-        File dataDir = new File(parent, "data");
-        if (!dataDir.exists()) {
-            dataDir.mkdirs();
         }
         return new File(dataDir, baseName + "-scenes.txt");
     }
 
-    public static File scenesFileForMd(File mdFile) {
-        if (mdFile == null) {
-            return null;
-        }
-        String baseName = mdFile.getName();
-        int idx = baseName.lastIndexOf('.');
-        if (idx > 0) {
-            baseName = baseName.substring(0, idx);
-        }
-        if (baseName.endsWith("-scenes")) {
-            return mdFile;
-        }
-        File parent = mdFile.getParentFile();
+    static File dataDirectoryFor(File chapterFile) {
+        File parent = chapterFile.getParentFile();
         if (parent == null) {
             return null;
         }
         if ("data".equals(parent.getName())) {
-            File projectDir = parent.getParentFile();
-            if (projectDir != null) {
-                return new File(parent, baseName + "-scenes.txt");
+            return parent;
+        }
+        return new File(parent, "data");
+    }
+
+    static String stripExtension(String name) {
+        if (name == null) {
+            return "";
+        }
+        int idx = name.lastIndexOf('.');
+        return idx > 0 ? name.substring(0, idx) : name;
+    }
+
+    private static File findExistingIgnoreCase(File canonical) {
+        File dataDir = canonical.getParentFile();
+        if (dataDir == null || !dataDir.isDirectory()) {
+            return null;
+        }
+        String wanted = canonical.getName();
+        File[] files = dataDir.listFiles((dir, name) -> name.endsWith("-scenes.txt"));
+        if (files == null) {
+            return null;
+        }
+        for (File file : files) {
+            if (file.getName().equalsIgnoreCase(wanted)) {
+                return file;
             }
         }
-        File dataDir = new File(parent, "data");
-        if (!dataDir.exists()) {
-            dataDir.mkdirs();
-        }
-        return new File(dataDir, baseName + "-scenes.txt");
+        return null;
     }
 }

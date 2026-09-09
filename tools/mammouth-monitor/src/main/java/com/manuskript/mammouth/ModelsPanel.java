@@ -1,11 +1,13 @@
 package com.manuskript.mammouth;
 
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -54,18 +56,24 @@ public class ModelsPanel extends VBox {
         idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
         idCol.setPrefWidth(340);
 
-        TableColumn<Row, String> inCol = new TableColumn<>("Input");
-        inCol.setCellValueFactory(new PropertyValueFactory<>("input"));
+        TableColumn<Row, Double> inCol = new TableColumn<>("Input");
+        inCol.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(c.getValue().getInputCost()));
+        inCol.setCellFactory(col -> priceCell());
+        inCol.setComparator(MammouthClient::compareCost);
         inCol.setPrefWidth(140);
 
-        TableColumn<Row, String> outCol = new TableColumn<>("Output");
-        outCol.setCellValueFactory(new PropertyValueFactory<>("output"));
+        TableColumn<Row, Double> outCol = new TableColumn<>("Output");
+        outCol.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(c.getValue().getOutputCost()));
+        outCol.setCellFactory(col -> priceCell());
+        outCol.setComparator(MammouthClient::compareCost);
         outCol.setPrefWidth(140);
 
         table.getColumns().add(idCol);
         table.getColumns().add(inCol);
         table.getColumns().add(outCol);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        inCol.setSortType(TableColumn.SortType.ASCENDING);
+        table.getSortOrder().setAll(inCol);
         VBox.setVgrow(table, Priority.ALWAYS);
 
         statusLabel.setWrapText(true);
@@ -77,7 +85,7 @@ public class ModelsPanel extends VBox {
         progress.setVisible(false);
         progress.setManaged(false);
 
-        Label hint = new Label("Quelle: https://api.mammouth.ai/public/models — Preise pro 1 Million Tokens.");
+        Label hint = new Label("Quelle: https://api.mammouth.ai/public/models — Preise pro 1 Million Tokens, sortiert nach Input-Preis.");
         hint.setWrapText(true);
 
         getChildren().addAll(title, hint, loadingBox, table, statusLabel);
@@ -95,10 +103,7 @@ public class ModelsPanel extends VBox {
                 List<MammouthClient.ModelInfo> models = client.getPublicModels();
                 List<Row> rows = new ArrayList<>();
                 for (MammouthClient.ModelInfo model : models) {
-                    rows.add(new Row(
-                            model.id(),
-                            MammouthClient.formatPerMillion(model.inputPerMillion()),
-                            MammouthClient.formatPerMillion(model.outputPerMillion())));
+                    rows.add(new Row(model.id(), model.inputPerMillion(), model.outputPerMillion()));
                 }
                 Platform.runLater(() -> {
                     table.setItems(FXCollections.observableArrayList(rows));
@@ -116,6 +121,16 @@ public class ModelsPanel extends VBox {
         }, EXECUTOR);
     }
 
+    private static TableCell<Row, Double> priceCell() {
+        return new TableCell<>() {
+            @Override
+            protected void updateItem(Double item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? null : MammouthClient.formatPerMillion(item));
+            }
+        };
+    }
+
     private void setLoading(boolean loading) {
         if (loadingBox != null) {
             loadingBox.setVisible(loading);
@@ -125,25 +140,25 @@ public class ModelsPanel extends VBox {
 
     public static final class Row {
         private final String id;
-        private final String input;
-        private final String output;
+        private final Double inputCost;
+        private final Double outputCost;
 
-        public Row(String id, String input, String output) {
+        public Row(String id, Double inputCost, Double outputCost) {
             this.id = id;
-            this.input = input;
-            this.output = output;
+            this.inputCost = inputCost;
+            this.outputCost = outputCost;
         }
 
         public String getId() {
             return id;
         }
 
-        public String getInput() {
-            return input;
+        public Double getInputCost() {
+            return inputCost;
         }
 
-        public String getOutput() {
-            return output;
+        public Double getOutputCost() {
+            return outputCost;
         }
     }
 }

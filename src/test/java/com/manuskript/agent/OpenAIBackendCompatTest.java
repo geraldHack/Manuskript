@@ -29,8 +29,33 @@ class OpenAIBackendCompatTest {
     @Test
     void loopbackUrlDetection() {
         assertTrue(OpenAIBackend.isLoopbackOpenAiUrl("http://127.0.0.1:8080/v1"));
-        assertTrue(OpenAIBackend.isLoopbackOpenAiUrl("http://localhost:11434/v1"));
+        assertTrue(OpenAIBackend.isLoopbackOpenAiUrl("http://127.0.0.1:1234/v1"));
+        assertTrue(OpenAIBackend.isLoopbackOpenAiUrl("http://localhost:1234/v1"));
         assertFalse(OpenAIBackend.isLoopbackOpenAiUrl("https://api.openai.com/v1"));
+    }
+
+    @Test
+    void localMaxTokensAreCappedOnLoopbackOnly() {
+        assertEquals(2048, OpenAIBackend.clampMaxTokensForUrl(
+                32768, "http://127.0.0.1:1234/v1", OpenAIBackend.DEFAULT_LOCAL_MAX_TOKENS));
+        assertEquals(1024, OpenAIBackend.clampMaxTokensForUrl(
+                1024, "http://localhost:1234/v1", OpenAIBackend.DEFAULT_LOCAL_MAX_TOKENS));
+        assertEquals(32768, OpenAIBackend.clampMaxTokensForUrl(
+                32768, "https://api.openai.com/v1", OpenAIBackend.DEFAULT_LOCAL_MAX_TOKENS));
+        assertEquals(32768, OpenAIBackend.clampMaxTokensForUrl(
+                32768, "http://127.0.0.1:1234/v1", 0));
+    }
+
+    @Test
+    void requireHttpUriRejectsNonNumericPort() {
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+                () -> OpenAIBackend.requireHttpUri("http://localhost:1234i/v1/models"));
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+                () -> OpenAIBackend.requireHttpUri("http://localhost:1234:/v1/models"));
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(
+                () -> OpenAIBackend.requireHttpUri("http://127.0.0.1:1234/v1/models"));
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(
+                () -> OpenAIBackend.requireHttpUri("https://api.openai.com/v1/models"));
     }
 
     @Test

@@ -58,18 +58,31 @@ public final class BildPromptSupport {
     }
 
     public static String combineAuthorInstruction(String extraPrompt, String selectedText) {
-        StringBuilder sb = new StringBuilder(AUTHOR_INSTRUCTION);
+        StringBuilder sb = new StringBuilder();
+        String binding = formatBindingExtraPrompt(extraPrompt);
+        if (!binding.isBlank()) {
+            sb.append(binding).append("\n\n");
+        }
+        sb.append(AUTHOR_INSTRUCTION);
         if (selectedText != null && !selectedText.isBlank()) {
             sb.append("\n\nDas Bild zeigt NUR den markierten Moment. Das Kapitel ist nur Kontext.");
             sb.append("\n=== MARKIERUNG BEGINN ===\n");
             sb.append(selectedText.trim());
             sb.append("\n=== MARKIERUNG ENDE ===");
         }
-        if (extraPrompt != null && !extraPrompt.isBlank()) {
-            sb.append("\n\nZusätzlicher Prompt des Autors (zwingend):\n");
-            sb.append(extraPrompt.trim());
+        if (!binding.isBlank()) {
+            sb.append("\n\nSetze den VERBINDLICHEN ZUSATZPROMPT oben im Bild-Prompt um.");
         }
         return sb.toString();
+    }
+
+    public static String formatBindingExtraPrompt(String extraPrompt) {
+        if (extraPrompt == null || extraPrompt.isBlank()) {
+            return "";
+        }
+        return "=== VERBINDLICHER ZUSATZPROMPT (ZWINGEND) ===\n"
+                + extraPrompt.trim()
+                + "\n=== ENDE ZUSATZPROMPT ===";
     }
 
     public static String loadExtraPrompt(String agentId) {
@@ -104,8 +117,20 @@ public final class BildPromptSupport {
     }
 
     public static String effectiveSystemPrompt(String userPrompt) {
+        return effectiveSystemPrompt(userPrompt, null);
+    }
+
+    public static String effectiveSystemPrompt(String userPrompt, String extraPrompt) {
         String base = userPrompt == null || userPrompt.isBlank() ? DEFAULT_SYSTEM : userPrompt.trim();
-        return base + "\n\n" + OUTPUT_CONSTRAINTS;
+        StringBuilder sb = new StringBuilder(base);
+        String binding = formatBindingExtraPrompt(extraPrompt);
+        if (!binding.isBlank()) {
+            sb.append("\n\n").append(binding);
+            sb.append("\n\nDer Zusatzprompt hat Vorrang für Blickwinkel, Licht, Komposition, Kamerabild und Stimmung.");
+            sb.append(" Er darf sichtbare Details ergänzen, die im Manuskript nicht stehen — ohne Eigennamen, ohne dem Text zu widersprechen.");
+        }
+        sb.append("\n\n").append(OUTPUT_CONSTRAINTS);
+        return sb.toString();
     }
 
     public static int clampMaxTokens(int requested) {

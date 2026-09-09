@@ -6,7 +6,6 @@ import java.util.function.Consumer;
 import java.util.prefs.Preferences;
 
 import com.manuskript.MdTextArea;
-import com.manuskript.ResourceManager;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -177,7 +176,7 @@ public class SceneWritingAgentTab extends ScrollPane {
 
         Label modelLabel = new Label("Modell:");
 
-        Label contextSizeLabel = new Label("Kontext:");
+        Label contextSizeLabel = ChatbotContextPane.chromeLabel("Kontext:");
         contextSizeCombo = new ComboBox<>();
         contextSizeCombo.getItems().setAll(SceneContextSize.values());
         contextSizeCombo.setConverter(contextSizeConverter());
@@ -197,6 +196,7 @@ public class SceneWritingAgentTab extends ScrollPane {
             contextSizeCombo.setTooltip(new Tooltip(contextSizeCombo.getValue().getTooltip()));
         }
         HBox contextSizeRow = new HBox(8, contextSizeLabel, contextSizeCombo);
+        contextSizeRow.getStyleClass().add("agent-chrome-row");
         HBox.setHgrow(contextSizeCombo, Priority.ALWAYS);
         contextSizeRow.setAlignment(Pos.CENTER_LEFT);
 
@@ -564,11 +564,10 @@ public class SceneWritingAgentTab extends ScrollPane {
     }
 
     private void loadModelsAsync() {
-        reportStatus("Lade Modelle…");
+        reportStatus("Lade Modelle vom Parameter-Provider…");
         new Thread(() -> {
             try {
-                AIBackend backend = createBackendForModelLoad();
-                List<String> models = backend.getAvailableModels();
+                List<String> models = AgentModelCatalog.loadFromParameters();
                 Platform.runLater(() -> {
                     availableModels = new ArrayList<>(models);
                     modelSelector.setModels(models);
@@ -581,14 +580,6 @@ public class SceneWritingAgentTab extends ScrollPane {
                 Platform.runLater(() -> reportStatusError("Modelle laden fehlgeschlagen: " + e.getMessage()));
             }
         }, "SceneAgent-LoadModels").start();
-    }
-
-    private AIBackend createBackendForModelLoad() {
-        String backendType = ResourceManager.getParameter("agent.backend", "Ollama");
-        if ("OpenAI".equals(backendType)) {
-            return new OpenAIBackend();
-        }
-        return new OllamaBackend(new com.manuskript.OllamaService());
     }
 
     public void setModels(List<String> models) {
@@ -658,18 +649,7 @@ public class SceneWritingAgentTab extends ScrollPane {
     }
 
     private static HBox createSliderRow(String labelText, Slider slider, Label valueLabel) {
-        Label caption = new Label(labelText);
-        caption.setMinWidth(Region.USE_PREF_SIZE);
-        caption.setPrefWidth(Region.USE_COMPUTED_SIZE);
-        caption.setMaxWidth(Region.USE_PREF_SIZE);
-        HBox.setHgrow(caption, Priority.NEVER);
-        configureSliderValueLabel(valueLabel);
-        slider.setMinWidth(48);
-        HBox row = new HBox(8);
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.getChildren().addAll(caption, slider, valueLabel);
-        HBox.setHgrow(slider, Priority.ALWAYS);
-        return row;
+        return AgentFontSizeSupport.createSliderRow(labelText, slider, valueLabel);
     }
 
     private static String formatValue(double v) {

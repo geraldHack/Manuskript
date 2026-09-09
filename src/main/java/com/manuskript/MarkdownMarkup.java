@@ -28,4 +28,40 @@ public final class MarkdownMarkup {
         s = s.replaceAll("[ \\t]+", " ").trim();
         return s;
     }
+
+    /**
+     * Markdown-Inline-Formatierung für Kurztexte auflösen (Popups, Tooltips).
+     */
+    public static String toPlainText(String text) {
+        if (text == null || text.isEmpty()) {
+            return "";
+        }
+        String s = text.replace("\r\n", " ").replace('\r', ' ').replace('\n', ' ');
+        s = stripImageBlocks(s);
+        s = s.replaceAll("(?i)><c>(.*?)</c>", "$1");
+        s = s.replaceAll("(?i)><center>(.*?)</center>", "$1");
+        s = s.replaceAll("\\[([^\\]]+)\\]\\([^)]+\\)", "$1");
+        s = s.replaceAll("!\\[([^\\]]*)\\]\\([^)]+\\)(?:\\{\\s*width\\s*=\\s*\\d+%\\s*})?", "$1");
+        for (int i = 0; i < 3; i++) {
+            s = s.replaceAll("\\*\\*([^*]+)\\*\\*", "$1");
+            s = s.replaceAll("__([^_]+)__", "$1");
+            s = s.replaceAll("(?<!\\*)\\*([^*]+)\\*(?!\\*)", "$1");
+            s = s.replaceAll("(?<!_)_([^_]+)_(?!_)", "$1");
+        }
+        s = s.replaceAll("`([^`]+)`", "$1");
+        s = s.replaceAll("~~([^~]+)~~", "$1");
+        s = s.replaceAll("==([^=]+)==", "$1");
+        s = s.replaceAll("(?i)</?(?:sup|sub|b|i|em|strong|u|mark|span)[^>]*>", "");
+        return normalize(s);
+    }
+
+    private static String stripImageBlocks(String text) {
+        String s = text;
+        java.util.List<MarkdownImageSupport.ParsedBlock> blocks = MarkdownImageSupport.parseBlocks(s);
+        for (int i = blocks.size() - 1; i >= 0; i--) {
+            MarkdownImageSupport.ParsedBlock block = blocks.get(i);
+            s = s.substring(0, block.start()) + s.substring(block.end());
+        }
+        return s;
+    }
 }

@@ -44,8 +44,10 @@ public class SceneOutlineWindow {
     private Button btnSave;
     private Button btnClose;
     private File scenesFile;
+    private File loadSourceFile;
     private Timeline autoSaveTimeline;
     private boolean dirty = false;
+    private boolean suppressDirty = false;
     private int themeIndex = 0;
     private String fontFamily = "Segoe UI";
     private double fontSize = 16;
@@ -53,8 +55,15 @@ public class SceneOutlineWindow {
 
     public void show(Scene ownerScene, File docxFile, String chapterDisplayName, int themeIndex,
                      String editorFontFamily, double editorFontSize) {
+        show(ownerScene, chapterDisplayName, themeIndex, editorFontFamily, editorFontSize, docxFile);
+    }
+
+    public void show(Scene ownerScene, String chapterDisplayName, int themeIndex,
+                     String editorFontFamily, double editorFontSize, File... chapterFiles) {
         this.themeIndex = themeIndex;
-        this.scenesFile = SceneOutlinePaths.scenesFileForDocx(docxFile);
+        SceneOutlinePaths.Resolution resolution = SceneOutlinePaths.resolveBest(chapterFiles);
+        this.scenesFile = resolution.canonical();
+        this.loadSourceFile = resolution.readable();
 
         if (stage == null) {
             createStage(ownerScene);
@@ -71,11 +80,16 @@ public class SceneOutlineWindow {
 
     public void reloadForChapter(Scene ownerScene, File docxFile, String chapterDisplayName, int themeIndex,
                                  String editorFontFamily, double editorFontSize) {
+        reloadForChapter(ownerScene, chapterDisplayName, themeIndex, editorFontFamily, editorFontSize, docxFile);
+    }
+
+    public void reloadForChapter(Scene ownerScene, String chapterDisplayName, int themeIndex,
+                                 String editorFontFamily, double editorFontSize, File... chapterFiles) {
         if (stage == null || !stage.isShowing()) {
             return;
         }
         saveIfDirty();
-        show(ownerScene, docxFile, chapterDisplayName, themeIndex, editorFontFamily, editorFontSize);
+        show(ownerScene, chapterDisplayName, themeIndex, editorFontFamily, editorFontSize, chapterFiles);
     }
 
     public void applyTheme(int themeIndex) {
@@ -202,6 +216,9 @@ public class SceneOutlineWindow {
         loadWindowProperties();
 
         editor.textProperty().addListener((obs, o, n) -> {
+            if (suppressDirty) {
+                return;
+            }
             dirty = true;
             scheduleAutoSave();
         });
@@ -240,25 +257,33 @@ public class SceneOutlineWindow {
     }
 
     private void loadFromFile() {
-        if (scenesFile == null) {
-            editor.setPlainContent("");
-            statusLabel.setText("Kein Kapitel geöffnet");
-            dirty = false;
-            return;
-        }
+        File source = loadSourceFile != null ? loadSourceFile : scenesFile;
+        suppressDirty = true;
         try {
-            if (scenesFile.exists()) {
-                String content = Files.readString(scenesFile.toPath(), StandardCharsets.UTF_8);
+            if (source == null) {
+                editor.setPlainContent("");
+                statusLabel.setText("Kein Kapitel geöffnet");
+                dirty = false;
+                return;
+            }
+            if (source.exists()) {
+                String content = Files.readString(source.toPath(), StandardCharsets.UTF_8);
                 editor.setPlainContent(content);
-                statusLabel.setText("Geladen: " + scenesFile.getName());
+                if (editor.getText().isBlank() && content != null && !content.isBlank()) {
+                    editor.setText(content);
+                }
+                statusLabel.setText("Geladen: " + source.getName());
+                dirty = false;
             } else {
                 editor.setPlainContent("");
-                statusLabel.setText("Neue Datei: " + scenesFile.getName());
+                statusLabel.setText("Neue Datei: " + source.getName());
+                dirty = false;
             }
-            dirty = false;
         } catch (IOException e) {
             logger.warn("Fehler beim Laden der Szenen-Outline: {}", e.getMessage());
             statusLabel.setText("Fehler beim Laden");
+        } finally {
+            suppressDirty = false;
         }
     }
 
@@ -286,7 +311,14 @@ public class SceneOutlineWindow {
                 parent.mkdirs();
             }
             String numbered = editor.getNumberedContent();
+            if (isBlankOutline(numbered) && scenesFile.isFile()
+                    && !isBlankOutline(Files.readString(scenesFile.toPath(), StandardCharsets.UTF_8))) {
+                logger.warn("Leere Outline nicht über vorhandene Datei geschrieben: {}", scenesFile.getName());
+                dirty = false;
+                return;
+            }
             Files.writeString(scenesFile.toPath(), numbered, StandardCharsets.UTF_8);
+            loadSourceFile = scenesFile;
             dirty = false;
             Platform.runLater(() -> statusLabel.setText("Gespeichert: " + scenesFile.getName()));
         } catch (IOException e) {
@@ -295,8 +327,15 @@ public class SceneOutlineWindow {
         }
     }
 
+    private static boolean isBlankOutline(String text) {
+        if (text == null || text.isBlank()) {
+            return true;
+        }
+        return text.lines().allMatch(line -> line.replaceFirst("^\\d+\\.\\s*", "").isBlank());
+    }
+
     public static String loadScenesOutlineText(File docxFile) {
-        File f = SceneOutlinePaths.scenesFileForDocx(docxFile);
+        File f = SceneOutlinePaths.existingScenesFile(docxFile);
         if (f == null || !f.exists()) {
             return "";
         }

@@ -13,6 +13,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.event.EventHandler;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -21,6 +22,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollBar;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.layout.VBox;
@@ -202,6 +204,13 @@ public class ManuskriptTextEditor extends Region {
     private LanguageToolDictionary languageToolDictionary;
     private Runnable onLanguageToolMatchesChanged;
     private LanguageToolService.Match hoveredLanguageToolMatch;
+    private final Popup worldTermHoverPopup = new Popup();
+    private final Label worldTermHoverCategory = new Label();
+    private final Label worldTermHoverTitle = new Label();
+    private final Label worldTermHoverExcerpt = new Label();
+    private List<WorldbuildingTermIndex.TextMatch> currentWorldTermMatches = new ArrayList<>();
+    private WorldbuildingTermIndex.Entry hoveredWorldTermEntry;
+    private Consumer<WorldbuildingTermIndex.Entry> worldTermOpenHandler;
     private EventHandler<MouseEvent> contextMenuOutsideClickFilter;
     private EventHandler<MouseEvent> sceneSelectionDragFilter;
     private EventHandler<MouseEvent> sceneSelectionReleaseFilter;
@@ -243,6 +252,10 @@ public class ManuskriptTextEditor extends Region {
     private boolean wrapText = true;
     private boolean applyingSnapshot = false;
     private int suppressEnterCount = 0;
+    /** Eingebettete Felder (Character Cards): nach Enter Layout neu aufbauen, Scroll oben halten. */
+    private boolean embeddedFieldMode;
+    private Runnable embeddedFieldLayoutListener;
+    private EventHandler<ScrollEvent> embeddedFieldScrollFilter;
     private boolean renderMarkupHidden = true;
     private boolean showLineNumbers = true;
     private int quoteStyleIndex = 0;
@@ -259,6 +272,7 @@ public class ManuskriptTextEditor extends Region {
     private double preferredCaretX = Double.NaN;
     private File imageMdDirectory;
     private File imageProjectDirectory;
+    private MarkdownImageLightbox imageLightbox;
     private int bulkUpdateDepth = 0;
     private boolean streamingUpdate;
     private boolean ignoreScrollBarRender;
@@ -398,6 +412,98 @@ public class ManuskriptTextEditor extends Region {
         suppressEnterCount = Math.max(suppressEnterCount, Math.max(1, eventCount));
     }
 
+    /**
+     * Eingebettete Auto-Höhen-Felder: nach jedem Enter Markdown/Layout neu aufbauen
+     * und Scroll zurücksetzen, wenn der Inhalt ohne innere Scrollbar passt.
+     */
+    public void setEmbeddedFieldMode(boolean enabled, Runnable onLayoutChanged) {
+        this.embeddedFieldMode = enabled;
+        this.embeddedFieldLayoutListener = onLayoutChanged;
+        verticalScrollBar.setVisible(!enabled);
+        verticalScrollBar.setManaged(!enabled);
+        if (embeddedFieldScrollFilter != null) {
+            removeEventFilter(ScrollEvent.SCROLL, embeddedFieldScrollFilter);
+            embeddedFieldScrollFilter = null;
+        }
+        if (enabled) {
+            scrollTop = 0;
+            verticalScrollBar.setValue(0);
+            embeddedFieldScrollFilter = event -> {
+                scrollParentScrollPane(event.getDeltaY());
+                event.consume();
+            };
+            addEventFilter(ScrollEvent.SCROLL, embeddedFieldScrollFilter);
+        }
+        requestLayout();
+    }
+
+    private double effectiveScrollbarWidth() {
+        return embeddedFieldMode ? 0 : SCROLLBAR_WIDTH;
+    }
+
+    private void scrollParentScrollPane(double deltaY) {
+        Node node = getParent();
+        while (node != null) {
+            if (node instanceof ScrollPane scrollPane) {
+                Node content = scrollPane.getContent();
+                if (content == null) {
+                    return;
+                }
+                double viewportH = scrollPane.getViewportBounds().getHeight();
+                double contentH = content.getBoundsInLocal().getHeight();
+                double max = Math.max(0, contentH - viewportH);
+                if (max <= 0) {
+                    return;
+                }
+                double pixelOffset = scrollPane.getVvalue() * max;
+                double next = Math.max(0, Math.min(max, pixelOffset - deltaY));
+                scrollPane.setVvalue(next / max);
+                return;
+            }
+            node = node.getParent();
+        }
+    }
+
+    public void rebuildEmbeddedFieldLayout() {
+        if (!embeddedFieldMode) {
+            return;
+        }
+        int savedCaret = caret;
+        int savedAnchor = anchor;
+        autoRuleDelay.stop();
+        forceFullAutoMarkRebuild = true;
+        invalidateLayoutCaches();
+        boolean previousIgnore = ignoreScrollBarRender;
+        ignoreScrollBarRender = true;
+        try {
+            rebuildStructuralMarkdownNow();
+            rebuildAutoMarks();
+            syncBlockLayoutFromMarkdown();
+            caret = Math.max(0, Math.min(savedCaret, text.length()));
+            anchor = Math.max(0, Math.min(savedAnchor, text.length()));
+            preferredCaretX = Double.NaN;
+            scrollTop = 0;
+            verticalScrollBar.setValue(0);
+            updateScrollBar();
+        } finally {
+            ignoreScrollBarRender = previousIgnore;
+        }
+        render();
+        if (embeddedFieldLayoutListener != null) {
+            embeddedFieldLayoutListener.run();
+        }
+        clampEmbeddedFieldScrollTop();
+        render();
+    }
+
+    public void clampEmbeddedFieldScrollTop() {
+        if (!embeddedFieldMode) {
+            return;
+        }
+        scrollTop = 0;
+        verticalScrollBar.setValue(0);
+    }
+
     public void requestInputFocus() {
         canvas.requestFocus();
     }
@@ -428,11 +534,44 @@ public class ManuskriptTextEditor extends Region {
         return editable;
     }
 
+    /** Geschätzte Zeilenhöhe (px) für Layout-Berechnungen in eingebetteten Feldern. */
+    public double estimatedLineHeight() {
+        return lineHeight();
+    }
+
+    /**
+     * Bevorzugte Anzeigehöhe für den aktuellen Inhalt bei gegebener Breite (ohne Scrollleiste).
+     * Kompakte untere Innenabstände – für Character Cards und ähnliche eingebettete Editoren.
+     */
+    public double measurePreferredHeightForEmbeddedField(double contentWidth) {
+        double width = Math.max(80, contentWidth);
+        double previousWidth = canvas.getWidth();
+        double previousHeight = canvas.getHeight();
+        invalidateLayoutCaches();
+        canvas.setWidth(width);
+        canvas.setHeight(8192);
+        try {
+            List<VisualLine> lines = visualLines();
+            double y = 0;
+            for (int i = 0; i < lines.size(); i++) {
+                y += segmentHeightForLineIndex(i, lines);
+            }
+            if (lines.isEmpty()) {
+                y = lineHeight();
+            }
+            return Math.max(lineHeight() + 4, y + 4);
+        } finally {
+            canvas.setWidth(previousWidth);
+            canvas.setHeight(previousHeight);
+            invalidateLayoutCaches();
+        }
+    }
+
     @Override
     protected void layoutChildren() {
         double width = Math.max(0, getWidth());
         double height = Math.max(0, getHeight());
-        double barWidth = SCROLLBAR_WIDTH;
+        double barWidth = effectiveScrollbarWidth();
         canvas.setLayoutX(0);
         canvas.setLayoutY(0);
         double newCanvasWidth = Math.max(0, width - barWidth);
@@ -444,6 +583,7 @@ public class ManuskriptTextEditor extends Region {
         keyboardProxy.resizeRelocate(0, 0, 1, 1);
         verticalScrollBar.resizeRelocate(Math.max(0, width - barWidth), 0, barWidth, height);
         updateScrollBar();
+        clampEmbeddedFieldScrollTop();
         render();
     }
 
@@ -661,6 +801,10 @@ public class ManuskriptTextEditor extends Region {
         }
         syncBlockLayoutFromMarkdown();
         refreshLayout();
+    }
+
+    public void attachImageLightbox(MarkdownImageLightbox lightbox) {
+        this.imageLightbox = lightbox;
     }
 
     private void beginBulkUpdate() {
@@ -951,16 +1095,18 @@ public class ManuskriptTextEditor extends Region {
                 return;
             }
         }
-        pushUndoCoalesced(UndoEditKind.DELETE, "");
-        int caretBefore = caret;
-        ViewportAnchor viewportAnchor = captureCaretViewportAnchor(caretBefore);
-        text.delete(caret - 1, caret);
-        adjustRangesForReplace(caret - 1, caret, 0);
-        caret--;
-        anchor = caret;
-        preferredCaretX = Double.NaN;
-        rememberEditRange(caret, 0);
-        afterTextChanged(viewportAnchor, caret, true);
+        if (renderMarkupHidden) {
+            int[] range = HiddenMarkupDeleteSupport.backwardRange(
+                    caret,
+                    toHiddenMarkupSpans(hiddenMarkupRanges),
+                    toHiddenMarkupSpans(inlineFormatCaretZones));
+            if (range == null) {
+                return;
+            }
+            deleteSourceRange(range[0], range[1]);
+            return;
+        }
+        deleteSourceRange(caret - 1, caret);
     }
 
     public void deleteSelectionOrNext() {
@@ -991,11 +1137,33 @@ public class ManuskriptTextEditor extends Region {
                 return;
             }
         }
+        if (renderMarkupHidden) {
+            int[] range = HiddenMarkupDeleteSupport.forwardRange(
+                    caret,
+                    text.length(),
+                    toHiddenMarkupSpans(hiddenMarkupRanges),
+                    toHiddenMarkupSpans(inlineFormatCaretZones));
+            if (range == null) {
+                return;
+            }
+            deleteSourceRange(range[0], range[1]);
+            return;
+        }
+        deleteSourceRange(caret, caret + 1);
+    }
+
+    private void deleteSourceRange(int start, int end) {
+        int safeStart = Math.max(0, Math.min(text.length(), start));
+        int safeEnd = Math.max(safeStart, Math.min(text.length(), end));
+        if (safeStart >= safeEnd) {
+            return;
+        }
         pushUndoCoalesced(UndoEditKind.DELETE, "");
         int caretBefore = caret;
         ViewportAnchor viewportAnchor = captureCaretViewportAnchor(caretBefore);
-        text.delete(caret, caret + 1);
-        adjustRangesForReplace(caret, caret + 1, 0);
+        text.delete(safeStart, safeEnd);
+        adjustRangesForReplace(safeStart, safeEnd, 0);
+        caret = safeStart;
         anchor = caret;
         preferredCaretX = Double.NaN;
         rememberEditRange(caret, 0);
@@ -1241,6 +1409,69 @@ public class ManuskriptTextEditor extends Region {
             case 5 -> getStyleClass().addAll("theme-dark", "lila-theme");
             default -> getStyleClass().add("theme-dark");
         }
+        applyEditorThemeColors(themeIndex);
+        contextMenuThemeIndex = themeIndex;
+        EditorDialogThemes.styleContextMenu(editorContextMenu, themeIndex);
+    }
+
+    /**
+     * Eingebettete Welt-Editor-Felder (Character Cards): gleiche Flächenfarben wie
+     * {@code world-editor-textarea}, nicht die dunkle Kapitel-Editor-Palette.
+     */
+    public void applyEmbeddedFieldTheme(int themeIndex) {
+        getStyleClass().removeAll(
+                "theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme", "weiss-theme", "pastell-theme");
+        switch (themeIndex) {
+            case 0 -> getStyleClass().add("weiss-theme");
+            case 2 -> getStyleClass().add("pastell-theme");
+            case 3 -> getStyleClass().addAll("theme-dark", "blau-theme");
+            case 4 -> getStyleClass().addAll("theme-dark", "gruen-theme");
+            case 5 -> getStyleClass().addAll("theme-dark", "lila-theme");
+            default -> getStyleClass().add("theme-dark");
+        }
+        setShowLineNumbers(false);
+        String background;
+        String text;
+        String selection;
+        switch (Math.max(0, Math.min(5, themeIndex))) {
+            case 0 -> {
+                background = "#ffffff";
+                text = "#1f1f1f";
+                selection = "#9ec9ff";
+            }
+            case 1 -> {
+                background = "#3d3d3d";
+                text = "#e0e0e0";
+                selection = "#375a7f";
+            }
+            case 2 -> {
+                background = "#ffffff";
+                text = "#4a148c";
+                selection = "#c7a6d8";
+            }
+            case 3 -> {
+                background = "#172554";
+                text = "#ffffff";
+                selection = "#3b82f6";
+            }
+            case 4 -> {
+                background = "#022c22";
+                text = "#ffffff";
+                selection = "#10b981";
+            }
+            default -> {
+                background = "#3b0764";
+                text = "#ffffff";
+                selection = "#8b5cf6";
+            }
+        }
+        setEditorTheme(themeIndex, background, background, text, text, selection);
+        setStyle("-fx-background-color: " + background + "; -fx-background-radius: 4;");
+        contextMenuThemeIndex = themeIndex;
+        EditorDialogThemes.styleContextMenu(editorContextMenu, themeIndex);
+    }
+
+    private void applyEditorThemeColors(int themeIndex) {
         switch (themeIndex) {
             case 1 -> setEditorTheme(themeIndex, "#1a1a1a", "#2d2d2d", "#9ca3af", "#ffffff", "#375a7f");
             case 2 -> setEditorTheme(themeIndex, "#f3e5f5", "#e1bee7", "#6b4f6b", "#000000", "#c7a6d8");
@@ -1264,6 +1495,7 @@ public class ManuskriptTextEditor extends Region {
         updateBlockStructureColors(themeIndex);
         updateMarkPalette(dark);
         updateLanguageToolHoverTheme();
+        updateWorldTermHoverTheme();
         registerDefaultFormatAutoRules();
         forceFullAutoMarkRebuild = true;
         scheduleAutoRuleRebuild();
@@ -1359,6 +1591,55 @@ public class ManuskriptTextEditor extends Region {
         markedAreas.removeIf(area -> area.type == MarkedArea.Type.LANGUAGE_TOOL);
         render();
         notifyLanguageToolMatchesChanged();
+    }
+
+    public void setWorldTermOpenHandler(Consumer<WorldbuildingTermIndex.Entry> handler) {
+        worldTermOpenHandler = handler;
+    }
+
+    public void applyWorldTermMatches(List<WorldbuildingTermIndex.TextMatch> matches) {
+        clearWorldTermMatches();
+        if (matches == null || matches.isEmpty()) {
+            return;
+        }
+        currentWorldTermMatches = new ArrayList<>(matches);
+        java.util.Map<WorldbuildingTermIndex.Category, MarkedArea> paintByCategory = new java.util.LinkedHashMap<>();
+        for (WorldbuildingTermIndex.TextMatch match : matches) {
+            if (match.end() <= match.start()) {
+                continue;
+            }
+            MarkedArea paintArea = paintByCategory.computeIfAbsent(match.entry().category(), category -> {
+                MarkedArea created = new MarkedArea(this);
+                created.markTypeSilent(MarkedArea.Type.WORLD_TERM);
+                created.markColorSilent(colorForWorldTermCategory(category, darkMarkPalette));
+                markedAreas.add(created);
+                return created;
+            });
+            paintArea.addRangeSilent(match.start(), match.end());
+        }
+        render();
+    }
+
+    public void clearWorldTermMatches() {
+        hideWorldTermHover();
+        currentWorldTermMatches.clear();
+        markedAreas.removeIf(area -> area.type == MarkedArea.Type.WORLD_TERM);
+        render();
+    }
+
+    private static String colorForWorldTermCategory(WorldbuildingTermIndex.Category category, boolean dark) {
+        if (dark) {
+            return switch (category) {
+                case CHARACTER -> "#2a3340";
+                case PLACE -> "#283530";
+                case LORE -> "#322a38";
+            };
+        }
+        return switch (category) {
+            case CHARACTER -> "#e3edf7";
+            case PLACE -> "#e5f2e8";
+            case LORE -> "#ede8f4";
+        };
     }
 
     public void clearLektoratMatches() {
@@ -2804,6 +3085,7 @@ public class ManuskriptTextEditor extends Region {
                 } else {
                     int insertAt = normalizeCaretOffset(caret, true);
                     if (!hasSelection()) {
+                        insertAt = insertOffsetForEnter(insertAt);
                         anchor = insertAt;
                     }
                     caret = insertAt;
@@ -2812,6 +3094,9 @@ public class ManuskriptTextEditor extends Region {
                     replaceSelection(insertion);
                     if (continuedList) {
                         syncOrderedListSourceNumbers();
+                    }
+                    if (embeddedFieldMode) {
+                        rebuildEmbeddedFieldLayout();
                     }
                 }
             }
@@ -2841,12 +3126,20 @@ public class ManuskriptTextEditor extends Region {
             }
             case PAGE_UP -> {
                 cancelPendingGedankenstrich();
-                verticalScrollBar.setValue(Math.max(0, verticalScrollBar.getValue() - canvas.getHeight()));
+                if (embeddedFieldMode) {
+                    scrollParentScrollPane(canvas.getHeight());
+                } else {
+                    verticalScrollBar.setValue(Math.max(0, verticalScrollBar.getValue() - canvas.getHeight()));
+                }
                 moveVertical(-(int) Math.max(1, canvas.getHeight() / lineHeight()), event.isShiftDown());
             }
             case PAGE_DOWN -> {
                 cancelPendingGedankenstrich();
-                verticalScrollBar.setValue(Math.min(verticalScrollBar.getMax(), verticalScrollBar.getValue() + canvas.getHeight()));
+                if (embeddedFieldMode) {
+                    scrollParentScrollPane(-canvas.getHeight());
+                } else {
+                    verticalScrollBar.setValue(Math.min(verticalScrollBar.getMax(), verticalScrollBar.getValue() + canvas.getHeight()));
+                }
                 moveVertical((int) Math.max(1, canvas.getHeight() / lineHeight()), event.isShiftDown());
             }
             case TAB -> {
@@ -2880,6 +3173,45 @@ public class ManuskriptTextEditor extends Region {
         editorContextMenu.setOnShown(event -> installContextMenuOutsideClickHandler());
         editorContextMenu.setOnHidden(event -> removeContextMenuOutsideClickHandler());
         updateLanguageToolHoverTheme();
+        setupWorldTermHoverPopup();
+    }
+
+    private void setupWorldTermHoverPopup() {
+        worldTermHoverCategory.setWrapText(true);
+        worldTermHoverCategory.setMaxWidth(420);
+        worldTermHoverTitle.setWrapText(true);
+        worldTermHoverTitle.setMaxWidth(420);
+        worldTermHoverExcerpt.setWrapText(true);
+        worldTermHoverExcerpt.setMaxWidth(420);
+
+        VBox container = new VBox(6, worldTermHoverCategory, worldTermHoverTitle, worldTermHoverExcerpt);
+        container.setAlignment(Pos.TOP_LEFT);
+        container.setPadding(new Insets(8, 10, 8, 10));
+        worldTermHoverPopup.getContent().add(container);
+        worldTermHoverPopup.setAutoHide(true);
+        worldTermHoverPopup.setAutoFix(true);
+        updateWorldTermHoverTheme();
+    }
+
+    private void updateWorldTermHoverTheme() {
+        String background = toWebColor(editorBackgroundColor);
+        String textColor = toWebColor(editorTextColor);
+        String border = toWebColor(gutterBackgroundColor);
+        String mutedColor = toWebColor(gutterTextColor);
+
+        String containerStyle = String.format(
+                "-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 1; -fx-background-radius: 4; -fx-border-radius: 4;",
+                background, border);
+        String categoryStyle = String.format("-fx-text-fill: %s; -fx-font-size: 11px; -fx-font-weight: bold;", mutedColor);
+        String titleStyle = String.format("-fx-text-fill: %s; -fx-font-size: 13px; -fx-font-weight: bold;", textColor);
+        String excerptStyle = String.format("-fx-text-fill: %s; -fx-font-size: 12px;", textColor);
+
+        if (!worldTermHoverPopup.getContent().isEmpty()) {
+            worldTermHoverPopup.getContent().get(0).setStyle(containerStyle);
+        }
+        worldTermHoverCategory.setStyle(categoryStyle);
+        worldTermHoverTitle.setStyle(titleStyle);
+        worldTermHoverExcerpt.setStyle(excerptStyle);
     }
 
     private void installContextMenuOutsideClickHandler() {
@@ -2973,6 +3305,7 @@ public class ManuskriptTextEditor extends Region {
     private void setupMouseHandling() {
         canvas.setOnMousePressed(event -> {
             hideLanguageToolHover();
+            hideWorldTermHover();
             hideAllContextMenus();
             if (event.getButton() != MouseButton.PRIMARY) {
                 requestInputFocus();
@@ -3018,6 +3351,17 @@ public class ManuskriptTextEditor extends Region {
                 event.consume();
                 return;
             }
+            if (clickCount == 1 && imageLightbox != null && shouldRenderImagePreview()) {
+                ParsedImageBlock imageBlock = imageBlockAtContentY(event.getX(), contentY);
+                if (imageBlock != null) {
+                    imageLightbox.toggle(
+                            imageBlock.image(),
+                            imageBlock.caption(),
+                            imageBlock.startOffset());
+                    event.consume();
+                    return;
+                }
+            }
             MarkedArea interactiveArea = interactiveAreaAt(offset);
             if (interactiveArea != null && interactiveArea.hasClickCallback()) {
                 interactiveArea.fireClick();
@@ -3033,18 +3377,26 @@ public class ManuskriptTextEditor extends Region {
         });
         canvas.setOnScroll(event -> {
             hideLanguageToolHover();
+            hideWorldTermHover();
+            if (embeddedFieldMode) {
+                scrollParentScrollPane(event.getDeltaY());
+                event.consume();
+                return;
+            }
             verticalScrollBar.setValue(Math.max(0, Math.min(verticalScrollBar.getMax(), verticalScrollBar.getValue() - event.getDeltaY())));
             event.consume();
         });
-        canvas.setOnMouseMoved(event -> updateLanguageToolHover(event.getX(), event.getY() + scrollTop, event.getScreenX(), event.getScreenY()));
+        canvas.setOnMouseMoved(event -> updateEditorHover(event.getX(), event.getY() + scrollTop, event.getScreenX(), event.getScreenY()));
         canvas.setOnMouseExited(event -> {
             hideLanguageToolHover();
+            hideWorldTermHover();
             if (mouseSelectionDragActive && event.isPrimaryButtonDown()) {
                 updateSelectionAutoScroll(lastSelectionDragViewportY);
             }
         });
         canvas.setOnContextMenuRequested(event -> {
             hideLanguageToolHover();
+            hideWorldTermHover();
             hideLanguageToolContextMenu();
             showEditorContextMenu(event);
             event.consume();
@@ -3141,14 +3493,18 @@ public class ManuskriptTextEditor extends Region {
             stopSelectionAutoScroll();
             return;
         }
-        double max = verticalScrollBar.getMax();
         double step = selectionAutoScrollDirection * SELECTION_AUTO_SCROLL_STEP_PX;
-        double nextScroll = Math.max(0, Math.min(max, verticalScrollBar.getValue() + step));
-        if (Math.abs(nextScroll - verticalScrollBar.getValue()) < 0.01) {
-            return;
+        if (embeddedFieldMode) {
+            scrollParentScrollPane(-step);
+        } else {
+            double max = verticalScrollBar.getMax();
+            double nextScroll = Math.max(0, Math.min(max, verticalScrollBar.getValue() + step));
+            if (Math.abs(nextScroll - verticalScrollBar.getValue()) < 0.01) {
+                return;
+            }
+            verticalScrollBar.setValue(nextScroll);
+            scrollTop = nextScroll;
         }
-        verticalScrollBar.setValue(nextScroll);
-        scrollTop = nextScroll;
         double dragX = Double.isNaN(lastSelectionDragViewportX) ? textLeft() : lastSelectionDragViewportX;
         double contentY = selectionAutoScrollDirection > 0
                 ? scrollTop + Math.max(0, canvas.getHeight() - 1)
@@ -3175,6 +3531,12 @@ public class ManuskriptTextEditor extends Region {
 
         if (match != null) {
             appendLanguageToolMenuItems(match);
+            editorContextMenu.getItems().add(new SeparatorMenuItem());
+        }
+
+        WorldbuildingTermIndex.TextMatch worldTerm = findWorldTermMatchAt(clickPos);
+        if (worldTerm != null && worldTermOpenHandler != null) {
+            appendWorldTermMenuItems(worldTerm);
             editorContextMenu.getItems().add(new SeparatorMenuItem());
         }
 
@@ -3245,6 +3607,23 @@ public class ManuskriptTextEditor extends Region {
         }
     }
 
+    private void appendWorldTermMenuItems(WorldbuildingTermIndex.TextMatch match) {
+        WorldbuildingTermIndex.Entry entry = match.entry();
+        String typeLabel = entry.category().label();
+        String target = entry.term();
+        if (!target.equals(entry.sectionHeading())) {
+            target = entry.term() + " → " + entry.sectionHeading();
+        }
+        MenuItem item = new MenuItem("Im Welt-Editor anzeigen: " + target + " (" + typeLabel + ")");
+        WorldbuildingTermIndex.Entry captured = entry;
+        item.setOnAction(e -> {
+            if (worldTermOpenHandler != null) {
+                worldTermOpenHandler.accept(captured);
+            }
+        });
+        editorContextMenu.getItems().add(item);
+    }
+
     private void appendLanguageToolMenuItems(LanguageToolService.Match match) {
         MenuItem header = new MenuItem("LanguageTool: " + safeMessage(match));
         header.setDisable(true);
@@ -3273,17 +3652,25 @@ public class ManuskriptTextEditor extends Region {
         }
     }
 
-    private void updateLanguageToolHover(double localX, double localY, double screenX, double screenY) {
+    private void updateEditorHover(double localX, double localY, double screenX, double screenY) {
         if (languageToolContextMenu.isShowing()) {
             hideLanguageToolHover();
+            hideWorldTermHover();
             return;
         }
         int offset = offsetAt(localX, localY);
-        LanguageToolService.Match match = findLanguageToolMatchAt(offset);
-        if (match == null) {
-            hideLanguageToolHover();
+        LanguageToolService.Match languageToolMatch = findLanguageToolMatchAt(offset);
+        if (languageToolMatch != null) {
+            hideWorldTermHover();
+            updateLanguageToolHover(localX, localY, screenX, screenY, languageToolMatch);
             return;
         }
+        hideLanguageToolHover();
+        updateWorldTermHover(offset, screenX, screenY);
+    }
+
+    private void updateLanguageToolHover(double localX, double localY, double screenX, double screenY,
+                                         LanguageToolService.Match match) {
         if (match == hoveredLanguageToolMatch && languageToolHoverPopup.isShowing()) {
             languageToolHoverPopup.setX(screenX + 12);
             languageToolHoverPopup.setY(screenY + 18);
@@ -3305,6 +3692,53 @@ public class ManuskriptTextEditor extends Region {
         if (!languageToolHoverPopup.isShowing()) {
             languageToolHoverPopup.show(canvas, screenX + 12, screenY + 18);
         }
+    }
+
+    private void updateWorldTermHover(int offset, double screenX, double screenY) {
+        WorldbuildingTermIndex.TextMatch match = findWorldTermMatchAt(offset);
+        if (match == null) {
+            hideWorldTermHover();
+            return;
+        }
+        WorldbuildingTermIndex.Entry entry = match.entry();
+        if (entry == hoveredWorldTermEntry && worldTermHoverPopup.isShowing()) {
+            worldTermHoverPopup.setX(screenX + 12);
+            worldTermHoverPopup.setY(screenY + 18);
+            return;
+        }
+        hoveredWorldTermEntry = entry;
+        worldTermHoverCategory.setText(entry.category().label());
+        worldTermHoverTitle.setText(entry.term());
+        String excerpt = entry.excerpt();
+        if (excerpt == null || excerpt.isBlank()) {
+            worldTermHoverExcerpt.setText("(Kein Kurztext im Welt-Editor)");
+            worldTermHoverExcerpt.setVisible(true);
+            worldTermHoverExcerpt.setManaged(true);
+        } else {
+            worldTermHoverExcerpt.setText(excerpt);
+            worldTermHoverExcerpt.setVisible(true);
+            worldTermHoverExcerpt.setManaged(true);
+        }
+        if (!worldTermHoverPopup.isShowing()) {
+            worldTermHoverPopup.show(canvas, screenX + 12, screenY + 18);
+        }
+    }
+
+    private void hideWorldTermHover() {
+        hoveredWorldTermEntry = null;
+        worldTermHoverPopup.hide();
+    }
+
+    private WorldbuildingTermIndex.TextMatch findWorldTermMatchAt(int offset) {
+        if (offset < 0 || currentWorldTermMatches.isEmpty()) {
+            return null;
+        }
+        for (WorldbuildingTermIndex.TextMatch match : currentWorldTermMatches) {
+            if (offset >= match.start() && offset < match.end()) {
+                return match;
+            }
+        }
+        return null;
     }
 
     private void hideLanguageToolHover() {
@@ -3741,7 +4175,11 @@ public class ManuskriptTextEditor extends Region {
                 restoreViewportAnchor(viewportAnchor, scrollSyncOffset);
             }
             if (keepCaretVisible) {
-                nudgeScrollToShowCaret();
+                if (embeddedFieldMode) {
+                    clampEmbeddedFieldScrollTop();
+                } else {
+                    nudgeScrollToShowCaret();
+                }
             }
         } finally {
             ignoreScrollBarRender = previousIgnore;
@@ -4885,7 +5323,9 @@ public class ManuskriptTextEditor extends Region {
             invalidateLayoutCaches();
         }
         if (MarkdownBlockSupport.mightHaveHorizontalRules(text.toString())) {
-            syncHorizontalRulesFromMarkdown();
+            if (!embeddedFieldMode) {
+                syncHorizontalRulesFromMarkdown();
+            }
         } else if (!horizontalRules.isEmpty() || !hiddenHorizontalRuleRanges.isEmpty()) {
             horizontalRules.clear();
             hiddenHorizontalRuleRanges.clear();
@@ -4943,7 +5383,7 @@ public class ManuskriptTextEditor extends Region {
     private void syncHorizontalRulesFromMarkdown() {
         horizontalRules.clear();
         hiddenHorizontalRuleRanges.clear();
-        if (text.isEmpty() || !renderMarkupHidden) {
+        if (embeddedFieldMode || text.isEmpty() || !renderMarkupHidden) {
             invalidateLayoutCaches();
             return;
         }
@@ -5607,7 +6047,8 @@ public class ManuskriptTextEditor extends Region {
             if (area.type != MarkedArea.Type.LEKTORAT
                     && area.type != MarkedArea.Type.REVIEW
                     && area.type != MarkedArea.Type.REVIEW_FLASH
-                    && area.type != MarkedArea.Type.TEXT_ANALYSIS) {
+                    && area.type != MarkedArea.Type.TEXT_ANALYSIS
+                    && area.type != MarkedArea.Type.WORLD_TERM) {
                 continue;
             }
             for (TextRange range : area.ranges) {
@@ -5749,7 +6190,8 @@ public class ManuskriptTextEditor extends Region {
         return style.backgroundPriority == MarkedArea.Type.LEKTORAT.priority
                 || style.backgroundPriority == MarkedArea.Type.REVIEW.priority
                 || style.backgroundPriority == MarkedArea.Type.REVIEW_FLASH.priority
-                || style.backgroundPriority == MarkedArea.Type.TEXT_ANALYSIS.priority;
+                || style.backgroundPriority == MarkedArea.Type.TEXT_ANALYSIS.priority
+                || style.backgroundPriority == MarkedArea.Type.WORLD_TERM.priority;
     }
 
     private void paintCenteredLine(GraphicsContext gc, VisualLine line, double y) {
@@ -6888,6 +7330,9 @@ public class ManuskriptTextEditor extends Region {
      * und nicht bei 1-Pixel-Rundung am unteren Rand.
      */
     private void nudgeScrollToShowCaret() {
+        if (embeddedFieldMode) {
+            return;
+        }
         List<VisualLine> lines = visualLines();
         if (lines.isEmpty() || canvas.getHeight() <= 0) {
             return;
@@ -6928,6 +7373,9 @@ public class ManuskriptTextEditor extends Region {
     }
 
     private void scrollRangeToViewportCenter(int start, int end) {
+        if (embeddedFieldMode) {
+            return;
+        }
         double viewportHeight = canvas.getHeight();
         if (viewportHeight <= 0) {
             return;
@@ -7094,6 +7542,36 @@ public class ManuskriptTextEditor extends Region {
 
     private double blockIndentOffset(VisualLine line) {
         return blockquoteIndentOffset(line) + listIndentOffset(line);
+    }
+
+    /**
+     * Enter darf verstecktes Inline-Markup nicht vom Wort trennen: visuell am Anfang
+     * von {@code *huhu*} liegt der Caret hinter {@code *}, ein Umbruch dort zeigt den
+     * Marker in der Zeile darüber.
+     */
+    private int insertOffsetForEnter(int caretOffset) {
+        if (!renderMarkupHidden) {
+            return caretOffset;
+        }
+        int lineStart = logicalLineStartForOffset(caretOffset);
+        int lineEnd = logicalLineEndIndex(caretOffset);
+        return HiddenMarkupEnterSupport.insertionOffset(
+                caretOffset,
+                lineStart,
+                lineEnd,
+                toHiddenMarkupSpans(hiddenMarkupRanges),
+                toHiddenMarkupSpans(inlineFormatCaretZones));
+    }
+
+    private static List<HiddenMarkupEnterSupport.Span> toHiddenMarkupSpans(List<TextRange> ranges) {
+        if (ranges == null || ranges.isEmpty()) {
+            return List.of();
+        }
+        List<HiddenMarkupEnterSupport.Span> spans = new ArrayList<>(ranges.size());
+        for (TextRange range : ranges) {
+            spans.add(new HiddenMarkupEnterSupport.Span(range.start, range.end));
+        }
+        return spans;
     }
 
     /**
@@ -7725,6 +8203,7 @@ public class ManuskriptTextEditor extends Region {
 
         public enum Type {
             MARKDOWN(10),
+            WORLD_TERM(22),
             TEXT_ANALYSIS(25),
             HIGHLIGHT(30),
             LINK(50),
@@ -7948,7 +8427,7 @@ public class ManuskriptTextEditor extends Region {
             }
             if (color != null && priority >= style.backgroundPriority) {
                 if (type != Type.LEKTORAT && type != Type.REVIEW && type != Type.REVIEW_FLASH
-                        && type != Type.TEXT_ANALYSIS) {
+                        && type != Type.TEXT_ANALYSIS && type != Type.WORLD_TERM) {
                     style.background = color;
                     style.backgroundPriority = priority;
                 } else {

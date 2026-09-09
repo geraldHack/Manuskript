@@ -1,4 +1,4 @@
 Mammouth-Monitor
 @project.version@
 
-Credits und Modellliste für Mammouth.
+Credits, Logs und Modellliste für Mammouth.

@@ -31,6 +31,7 @@ public class AgentConfigManager {
 
     private static final String AGENTS_RELATIVE = "config/agents.json";
     /** Fester Builtin-Tab „Bild-Prompt“ (nicht schließbar). */
+    public static final String PLOTHOLE_AGENT_ID = "8f863d56-5b14-46b6-9fae-8587f99958ae";
     public static final String BILD_PROMPT_AGENT_ID = "23bb2048-de19-42be-86aa-ddf5770d844a";
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
@@ -108,7 +109,7 @@ public class AgentConfigManager {
             backend,
             getDefaultPlotholePrompt(),
             model,
-            0.3, 4096, 0.7, 1.3
+            0.3, 2048, 0.7, 1.3
         ));
         AgentConfig sceneAgent = new AgentConfig(
             "Szene Schreiben",

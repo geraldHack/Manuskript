@@ -38,6 +38,7 @@ class ChapterRenameServiceTest {
         Files.writeString(data.resolve("Kapitel 1.status"), "fertig");
         Files.writeString(data.resolve("Kapitel 1.docx.meta"), "abc");
         Files.writeString(data.resolve("Kapitel 1-scenes.txt"), "Szene");
+        Files.writeString(project.resolve("chapter.txt"), "## Kapitel 1\nText\n\n## Kapitel 10: Extra\n");
         Files.writeString(data.resolve("Kapitel 1-tts-segments.json"), "[]");
         Files.writeString(data.resolve("Kapitel 1-tts-content.md"), "tts");
         Files.writeString(data.resolve("Kapitel 1-tts").resolve("block_001.mp3"), "mp3");
@@ -62,6 +63,18 @@ class ChapterRenameServiceTest {
         assertTrue(Files.exists(data.resolve("agents").resolve("plot").resolve("Prolog").resolve("latest.md")));
         assertFalse(Files.exists(data.resolve("Kapitel 1.md")));
         assertFalse(Files.exists(data.resolve("Kapitel 1-tts")));
+        assertEquals("## Prolog\nText\n\n## Kapitel 10: Extra\n",
+                Files.readString(project.resolve("chapter.txt")));
+    }
+
+    @Test
+    void rewriteWorldEditorHeadingsKeepsUnrelatedLines() {
+        String input = "## Der Empfang\nAcen serviert.\n## Kapitel 12: Der Empfang\nMehr.\nDer Empfangssaal bleibt.\n";
+        String updated = ChapterRenameService.rewriteWorldEditorHeadings(
+                input, "Der Empfang", "Das inszenierte Attentat");
+        assertEquals(
+                "## Das inszenierte Attentat\nAcen serviert.\n## Kapitel 12: Das inszenierte Attentat\nMehr.\nDer Empfangssaal bleibt.\n",
+                updated);
     }
 
     @Test

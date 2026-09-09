@@ -71,7 +71,7 @@ public final class AgentSelectionRevisionRunner {
             return;
         }
 
-        String model = targetTab.getAgentConfig().getModel();
+        String model = targetTab.resolveEffectiveModel();
         if (model == null || model.isBlank()) {
             targetTab.showError("Kein Modell gewählt");
             return;
@@ -89,6 +89,7 @@ public final class AgentSelectionRevisionRunner {
         AIBackend backend = agentBackends.get(targetTab.getAgentId());
         if (backend != null) {
             AgentSamplingParams.applyAgentConfig(backend, config);
+            backend.setCurrentModel(model);
         }
 
         if (showAgentPanel != null) {
@@ -132,7 +133,7 @@ public final class AgentSelectionRevisionRunner {
         }
         AIBackend backend = agentBackends.get(agentId);
         if (backend == null) {
-            backend = createBackend(tab.getAgentConfig());
+            backend = createBackend(tab);
             agentBackends.put(agentId, backend);
         }
         AgentMemory memory = new AgentMemory(projectDir, "agent_" + agentId, chapterKey);
@@ -142,10 +143,11 @@ public final class AgentSelectionRevisionRunner {
         return agent;
     }
 
-    private static AIBackend createBackend(AgentConfig config) {
+    private static AIBackend createBackend(AgentTab tab) {
+        AgentConfig config = tab.getAgentConfig();
         AIBackend backend = "OpenAI".equals(config.getBackend())
                 ? new OpenAIBackend() : new OllamaBackend(new OllamaService());
-        String model = config.getModel();
+        String model = tab.resolveEffectiveModel();
         if (model != null && !model.isBlank()) {
             backend.setCurrentModel(model.trim());
         }

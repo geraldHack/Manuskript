@@ -38,8 +38,8 @@ public class KeyBar extends VBox {
         }
 
         Label hint = new Label(
-                "Mammouth-API-Key (derselbe Key wie in Manuskript). Credits kommen von GET /key/info, "
-                        + "Modelle von /public/models. Dashboard: mammouth.ai/app/account/settings/api");
+                "Mammouth-API-Key (derselbe Key wie in Manuskript). Stand/Credits von /key/info und /user/info, "
+                        + "Logs von /spend/logs, Modelle von /public/models. Dashboard: mammouth.ai/app/account/settings/api");
         hint.setWrapText(true);
 
         keyField.setPromptText("Mammouth API-Key");

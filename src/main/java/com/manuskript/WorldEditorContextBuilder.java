@@ -23,6 +23,21 @@ public final class WorldEditorContextBuilder {
     public static final int DEFAULT_CHAPTER_MAX_CHARS = 80_000;
     /** Max. Zeichen pro Welt-Datei im Kontext. */
     public static final int DEFAULT_WORLD_FILE_MAX_CHARS = 6_000;
+    /** KI-Ausfüllen einer Figur: Kürzeres Manuskript-Excerpt. */
+    public static final int SINGLE_CHARACTER_CHAPTER_MAX_CHARS = 12_000;
+    /** KI-Ausfüllen: Welt-Tabs pro Datei. */
+    public static final int SINGLE_CHARACTER_WORLD_FILE_MAX_CHARS = 2_500;
+    /** KI-Ausfüllen: Aktuelles Kapitel (zusätzlich). */
+    public static final int SINGLE_CHARACTER_CURRENT_CHAPTER_MAX_CHARS = 20_000;
+
+    private static final String[] SINGLE_CHARACTER_WORLD_FILES = {
+            "context.txt",
+            "style.txt",
+            "worldbuilding.txt",
+            "outline.txt",
+            "akte.txt",
+            "synopsis.txt"
+    };
 
     private static final String[] WORLD_FILES = {
             "context.txt",
@@ -76,9 +91,38 @@ public final class WorldEditorContextBuilder {
         if (!chapters.isBlank()) {
             sb.append("=== MANUSKRIPT (Kapitel) ===\n").append(chapters.trim()).append("\n\n");
         }
-        String world = collectWorldFiles(projectDirectory, excludeFilename, worldFileMaxChars);
+        // Explizite Kapitelauswahl: nur diese Volltexte, keine weiteren Welt-Tabs obendrauf
+        if (extractScope == null || !extractScope.hasChapterSelection()) {
+            String world = collectWorldFiles(projectDirectory, excludeFilename, worldFileMaxChars);
+            if (!world.isBlank()) {
+                sb.append("=== BEREITS VORHANDENE WELT-DATEIEN ===\n").append(world.trim()).append("\n");
+            }
+        }
+        return sb.toString().trim();
+    }
+
+    /**
+     * Schlanker Kontext für KI-Ausfüllen einer einzelnen Figur (ohne characters.txt/chapter.txt als Welt-Tabs).
+     *
+     * @param includeManuscriptExcerpt false, wenn das aktuelle Kapitel separat mitgeschickt wird
+     */
+    public static String buildForSingleCharacter(String projectDirectory, MainController mainController,
+                                                 boolean includeManuscriptExcerpt) {
+        StringBuilder sb = new StringBuilder();
+        if (includeManuscriptExcerpt) {
+            String chapters = collectChapterSources(
+                    projectDirectory, mainController, SINGLE_CHARACTER_CHAPTER_MAX_CHARS, null);
+            if (!chapters.isBlank()) {
+                sb.append("=== MANUSKRIPT (Auszug) ===\n").append(chapters.trim()).append("\n\n");
+            }
+        }
+        String world = collectWorldFiles(
+                projectDirectory,
+                NovelManager.CHARACTERS_FILE,
+                SINGLE_CHARACTER_WORLD_FILES,
+                SINGLE_CHARACTER_WORLD_FILE_MAX_CHARS);
         if (!world.isBlank()) {
-            sb.append("=== BEREITS VORHANDENE WELT-DATEIEN ===\n").append(world.trim()).append("\n");
+            sb.append("=== WELT-KONTEXT ===\n").append(world.trim()).append("\n");
         }
         return sb.toString().trim();
     }
@@ -169,9 +213,13 @@ public final class WorldEditorContextBuilder {
     }
 
     private static String collectWorldFiles(String projectDirectory, String excludeFilename, int maxPerFile) {
+        return collectWorldFiles(projectDirectory, excludeFilename, WORLD_FILES, maxPerFile);
+    }
+
+    private static String collectWorldFiles(String projectDirectory, String excludeFilename,
+                                            String[] fileNames, int maxPerFile) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < WORLD_FILES.length; i++) {
-            String fileName = WORLD_FILES[i];
+        for (String fileName : fileNames) {
             if (fileName.equals(excludeFilename)) {
                 continue;
             }
@@ -179,10 +227,20 @@ public final class WorldEditorContextBuilder {
             if (content.isBlank()) {
                 continue;
             }
-            sb.append("\n## ").append(WORLD_LABELS[i]).append(" (").append(fileName).append(")\n");
-            sb.append(truncate(content.trim(), maxPerFile, WORLD_LABELS[i])).append("\n");
+            String label = labelForWorldFile(fileName);
+            sb.append("\n## ").append(label).append(" (").append(fileName).append(")\n");
+            sb.append(truncate(content.trim(), maxPerFile, label)).append("\n");
         }
         return sb.toString().trim();
+    }
+
+    private static String labelForWorldFile(String fileName) {
+        for (int i = 0; i < WORLD_FILES.length; i++) {
+            if (WORLD_FILES[i].equals(fileName)) {
+                return WORLD_LABELS[i];
+            }
+        }
+        return fileName;
     }
 
     private static String readFile(String projectDirectory, String fileName) {

@@ -56,15 +56,21 @@ public class CreditsPanel extends VBox {
         spendLabel.setFont(Font.font(null, FontWeight.BOLD, 22));
         budgetLabel.setFont(Font.font(null, FontWeight.BOLD, 22));
 
+        Label standCaption = new Label("Stand");
+        standCaption.setFont(Font.font(null, FontWeight.SEMI_BOLD, 13));
+
         GridPane main = new GridPane();
         main.setHgap(32);
         main.setVgap(8);
-        main.add(new Label("Verbleibend"), 0, 0);
+        main.add(standCaption, 0, 0);
         main.add(remainingLabel, 0, 1);
-        main.add(new Label("Verbraucht (aktuelles Fenster)"), 1, 0);
+        main.add(new Label("Verbraucht"), 1, 0);
         main.add(spendLabel, 1, 1);
         main.add(new Label("Max. Budget"), 0, 2);
         main.add(budgetLabel, 0, 3);
+
+        Label currencyHint = new Label("Mammouth rechnet in USD. Starter-Plan: 2 $ / Monat.");
+        currencyHint.setWrapText(true);
 
         GridPane extra = new GridPane();
         extra.setHgap(24);
@@ -85,7 +91,7 @@ public class CreditsPanel extends VBox {
         progress.setVisible(false);
         progress.setManaged(false);
 
-        getChildren().addAll(title, loadingBox, main, extra, aliasLabel, modelsLabel, statusLabel);
+        getChildren().addAll(title, currencyHint, loadingBox, main, extra, aliasLabel, modelsLabel, statusLabel);
         VBox.setVgrow(statusLabel, Priority.ALWAYS);
     }
 

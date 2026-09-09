@@ -25,6 +25,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -436,6 +437,14 @@ public class MdTextArea extends VBox {
     @Override
     public void requestFocus() {
         editor.requestInputFocus();
+    }
+
+    public void setImageDirectories(File mdDirectory, File projectDirectory) {
+        editor.setImageDirectories(mdDirectory, projectDirectory);
+    }
+
+    public void attachImageLightbox(MarkdownImageLightbox lightbox) {
+        editor.attachImageLightbox(lightbox);
     }
 
     public void applyTheme(int themeIndex) {

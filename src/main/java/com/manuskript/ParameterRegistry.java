@@ -230,8 +230,8 @@ public final class ParameterRegistry {
                 new String[]{"Ollama", "OpenAI"});
         add("agent.realtime_enabled", ParameterDef.Type.BOOLEAN, "false",
                 "Echtzeit-Pruefung beim Tippen aktivieren.", "Agenten");
-        add("agent.realtime_debounce_ms", ParameterDef.Type.INT, "2000",
-                "Verzoegerung in ms nach letztem Tippen, bevor die Echtzeit-Pruefung startet.", "Agenten");
+        add("agent.realtime_debounce_ms", ParameterDef.Type.INT, "10000",
+                "Verzoegerung in ms nach letztem Tippen, bevor die Echtzeit-Pruefung startet (Default 10000 = 10 s).", "Agenten");
         add("agent.selection_revision.max_chars", ParameterDef.Type.INT, "5000",
                 "Maximale Laenge einer Markierung fuer den Ueberarbeiten-Agenten (Kontextmenue).", "Agenten");
         add("agent.selection_revision.context_chars", ParameterDef.Type.INT, "1500",
@@ -251,11 +251,12 @@ public final class ParameterRegistry {
 
         // —— Agenten (OpenAI) ——
         add("agent.openai.api_key", ParameterDef.Type.STRING, "",
-                "API-Key fuer OpenAI/OpenRouter/Mammouth. Lokale Server akzeptieren oft den Platzhalter „local“.",
+                "API-Key fuer Cloud-Anbieter. Bei LM Studio / localhost leer lassen (intern Platzhalter „local“).",
                 "Agenten");
         add("agent.openai.api_url", ParameterDef.Type.STRING, "https://api.openai.com/v1",
                 "Basis-URL der OpenAI-kompatiblen API (z.B. https://api.openai.com/v1, "
-                        + "https://openrouter.ai/api/v1, https://api.mammouth.ai/v1).",
+                        + "https://openrouter.ai/api/v1, https://api.mammouth.ai/v1, "
+                        + "http://127.0.0.1:1234/v1 für LM Studio).",
                 "Agenten");
         add("agent.openai.model", ParameterDef.Type.STRING, "gpt-4o-mini",
                 "Modell fuer die OpenAI-Analyse (z.B. gpt-4o-mini, gpt-4o).",
@@ -270,6 +271,10 @@ public final class ParameterRegistry {
                 "Timeout pro Agenten-API-Anfrage in Sekunden. Cloud: 60–900 (Default 300). "
                         + "Lokale Server (localhost): Default 900, max. 3600. "
                         + "Bei Timeout zuerst Kontext verkleinern.",
+                "Agenten");
+        add("agent.openai.local_max_tokens", ParameterDef.Type.INT, "2048",
+                "Maximale Ausgabe-Tokens bei lokalem Server (localhost / 127.0.0.1, z. B. LM Studio). "
+                        + "Der Prompt-Kontext bleibt unverändert. 0 = keine Kappe. Cloud-URLs ignorieren diesen Wert.",
                 "Agenten");
         add("agent.openai.reasoning_effort", ParameterDef.Type.CHOICE, "none",
                 "Optional: reasoning_effort an die API senden (low/high), falls das Modell das Feld kennt. "

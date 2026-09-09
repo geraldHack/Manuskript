@@ -11,7 +11,7 @@ public final class AgentTabTooltipSupport {
     private static final Map<String, String> BY_AGENT_ID = new LinkedHashMap<>();
 
     static {
-        BY_AGENT_ID.put("8f863d56-5b14-46b6-9fae-8587f99958ae",
+        BY_AGENT_ID.put(AgentConfigManager.PLOTHOLE_AGENT_ID,
                 "Findet Plotlöcher, logische Widersprüche und Inkonsistenzen im Kapitel.");
         BY_AGENT_ID.put("5a1546dd-c6d7-4615-8d53-2671b9910efa",
                 "Prüft Dialoge auf klare Sprecherzuordnung und natürlichen Sprachrhythmus.");

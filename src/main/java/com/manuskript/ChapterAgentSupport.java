@@ -7,6 +7,7 @@ import com.manuskript.agent.AIBackend;
 import com.manuskript.agent.AgentConfig;
 import com.manuskript.agent.AgentConfigManager;
 import com.manuskript.agent.AgentMemory;
+import com.manuskript.agent.AgentModelCatalog;
 import com.manuskript.agent.AgentTab;
 import com.manuskript.agent.AgentTabPane;
 import com.manuskript.agent.ChatbotAgent;
@@ -648,7 +649,7 @@ public class ChapterAgentSupport {
         if (targetTab == null) {
             return;
         }
-        String model = targetTab.getAgentConfig().getModel();
+        String model = targetTab.resolveEffectiveModel();
         if (model == null || model.isBlank()) {
             targetTab.showError("Kein Modell gewählt");
             return;
@@ -662,24 +663,27 @@ public class ChapterAgentSupport {
         AIBackend backend = agentBackends.get(targetTab.getAgentId());
         if (backend != null) {
             AgentSamplingParams.applyAgentConfig(backend, config);
+            backend.setCurrentModel(model);
         }
         targetTab.setAnalyzing(true);
         String text = host.getText() != null ? host.getText() : "";
         String allChapters = buildAnalysisContext(targetTab, text);
         int maxOutputTokens = targetTab.getAgentConfig().getMaxTokens();
+        String agentName = config.getName() != null ? config.getName() : "Agent";
         String authorInstruction = null;
         if (BildPromptSupport.isBildPrompt(config)) {
-            agent.setSystemPrompt(BildPromptSupport.effectiveSystemPrompt(config.getSystemPrompt()));
+            String extraPrompt = targetTab.getExtraPrompt();
+            agent.setSystemPrompt(BildPromptSupport.effectiveSystemPrompt(config.getSystemPrompt(), extraPrompt));
             allChapters = BildPromptSupport.trimContext(allChapters);
             maxOutputTokens = BildPromptSupport.clampMaxTokens(maxOutputTokens);
             String selected = "";
             if (targetTab.isUseSelectionRequested() && host.hasTextSelection()) {
                 selected = host.getSelectedText() != null ? host.getSelectedText() : "";
             }
-            authorInstruction = BildPromptSupport.combineAuthorInstruction(
-                    targetTab.getExtraPrompt(), selected);
+            authorInstruction = BildPromptSupport.combineAuthorInstruction(extraPrompt, selected);
+            logger.info("{}: Zusatzprompt={} Zeichen, Markierung={} Zeichen",
+                    agentName, extraPrompt.length(), selected.length());
         }
-        String agentName = config.getName() != null ? config.getName() : "Agent";
         logger.info("{}: Manuskript={} Zeichen, Kontext={} Zeichen, max_output_tokens={}",
                 agentName, text.length(), allChapters.length(), maxOutputTokens);
         if (config.isFreeform()) {
@@ -741,7 +745,7 @@ public class ChapterAgentSupport {
         }
         AIBackend backend = agentBackends.get(agentId);
         if (backend == null) {
-            backend = createGenerationBackend(true, null, tab.getAgentConfig());
+            backend = createGenerationBackend(tab.isUseParameterModel(), tab.getOverrideModel(), tab.getAgentConfig());
             agentBackends.put(agentId, backend);
         }
         String chapterName = host.getEditorKey();
@@ -798,6 +802,19 @@ public class ChapterAgentSupport {
         return backend;
     }
 
+    /**
+     * Nach Editor-Änderungen: Echtzeit-Analyse des aktiven Agenten-Tabs neu anstoßen (debounced).
+     */
+    public void onEditorTextChanged() {
+        if (agentTabPane == null || !agentPanelVisible) {
+            return;
+        }
+        AgentTab activeTab = agentTabPane.getActiveTab();
+        if (activeTab != null && activeTab.isRealtimeEnabled()) {
+            triggerRealtimeCheck();
+        }
+    }
+
     private void triggerRealtimeCheck() {
         if (agentTabPane == null || !agentPanelVisible) {
             return;
@@ -805,7 +822,7 @@ public class ChapterAgentSupport {
         if (agentRealtimeTimeline != null) {
             agentRealtimeTimeline.stop();
         }
-        int debounceMs = Integer.parseInt(ResourceManager.getParameter("agent.realtime_debounce_ms", "2000"));
+        int debounceMs = Integer.parseInt(ResourceManager.getParameter("agent.realtime_debounce_ms", "10000"));
         agentRealtimeTimeline = new Timeline(new KeyFrame(Duration.millis(debounceMs), event -> {
             AgentTab currentTab = agentTabPane.getActiveTab();
             if (currentTab != null && currentTab.isRealtimeEnabled() && !currentTab.isAnalyzing()) {
@@ -821,17 +838,10 @@ public class ChapterAgentSupport {
         }
         CompletableFuture.supplyAsync(() -> {
             try {
-                AIBackend backend = agentBackends.isEmpty()
-                        ? ("OpenAI".equals(ResourceManager.getParameter("agent.backend", "Ollama"))
-                        ? new OpenAIBackend() : new OllamaBackend(new OllamaService()))
-                        : agentBackends.values().iterator().next();
-                return backend.getAvailableModels();
+                return AgentModelCatalog.loadFromParameters();
             } catch (Exception e) {
-                return java.util.Arrays.asList(
-                        ParameterRegistry.DEFAULT_OLLAMA_MODEL,
-                        "gemma3:4b",
-                        "mistral:7b-instruct",
-                        "llama3.1:8b-instruct");
+                logger.warn("Modellliste vom Parameter-Provider nicht geladen: {}", e.getMessage());
+                return java.util.List.<String>of();
             }
         }).thenAccept(models -> Platform.runLater(() -> {
             if (agentTabPane == null) {

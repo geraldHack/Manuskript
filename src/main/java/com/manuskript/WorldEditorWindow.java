@@ -1,5 +1,6 @@
 package com.manuskript;
 
+import com.manuskript.agent.AgentStatusBusyBarSupport;
 import com.manuskript.agent.AIBackend;
 import com.manuskript.agent.OpenAIBackend;
 import com.manuskript.agent.OllamaBackend;
@@ -8,6 +9,7 @@ import com.manuskript.StageManager;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -15,11 +17,16 @@ import javafx.stage.Window;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.prefs.Preferences;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Welt-Editor: Verwaltung von Projekt-Kontextdateien (context, style, worldbuilding, characters, outline, akte, synopsis, chapter).
@@ -34,17 +41,21 @@ public class WorldEditorWindow {
     private final Window owner;
     private final String projectDirectory;
     private final MainController mainController;
-    private final Map<String, MdTextArea> fileToTextArea = new HashMap<>();
+    private final Map<String, WorldEditorTabContent> fileToContent = new HashMap<>();
     private final Map<String, Button> fileToAiButton = new HashMap<>();
     private final Map<String, Button> fileToExtractButton = new HashMap<>();
     private final Map<String, Button> fileToSaveButton = new HashMap<>();
+    private final Map<String, Button> fileToCharacterFillButton = new HashMap<>();
     private final Map<String, Tab> fileToTab = new HashMap<>();
     private final Map<String, Label> fileToTabLabel = new HashMap<>();
     private Label statusLabel;
+    private ProgressBar statusBusyBar;
     private AIBackend aiBackend;
     private boolean suppressDirtyTracking = false;
     private int themeIndex;
     private final Map<String, Boolean> fileToDirty = new HashMap<>();
+
+    private MarkdownImageLightbox imageLightbox;
 
     private static final String[] FILES = {
         "context.txt",
@@ -120,15 +131,17 @@ public class WorldEditorWindow {
         int theme = java.util.prefs.Preferences.userNodeForPackage(MainController.class).getInt("main_window_theme", 0);
         this.themeIndex = theme;
 
-        // Statuszeile oben rechts
+        // Statuszeile oben (Text + Busy-Balken wie Kapitel-Editor / Roman-Assistent)
         statusLabel = new Label("Bereit");
         statusLabel.getStyleClass().add("status-label");
+        statusBusyBar = AgentStatusBusyBarSupport.createBusyBar();
         Button helpButton = HelpSystem.createHelpButton("Hilfe zum Welt-Editor", "world_editor.html", "Hilfe - Welt-Editor");
         Region statusSpacer = new Region();
         HBox.setHgrow(statusSpacer, Priority.ALWAYS);
-        HBox statusBox = new HBox(8, helpButton, statusSpacer, statusLabel);
-        statusBox.setAlignment(Pos.CENTER_LEFT);
-        statusBox.setPadding(new Insets(10, 15, 10, 10));
+        HBox statusRow = new HBox(8, helpButton, statusSpacer, statusLabel);
+        statusRow.setAlignment(Pos.CENTER_LEFT);
+        VBox statusArea = new VBox(2, statusRow, statusBusyBar);
+        statusArea.setPadding(new Insets(10, 15, 10, 10));
 
         tabPane = new TabPane();
         tabPane.getStyleClass().addAll("tab-pane", "world-editor-tab-pane");
@@ -149,11 +162,14 @@ public class WorldEditorWindow {
         }
 
         tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+            if (imageLightbox != null) {
+                imageLightbox.hide();
+            }
             updateTabEditorInteractivity(oldTab, newTab);
             refreshAllDirtyTabStyles();
             if (newTab != null && newTab.getUserData() instanceof String filename) {
                 ensureTabEditorLoaded(filename);
-                MdTextArea area = fileToTextArea.get(filename);
+                WorldEditorTabContent area = fileToContent.get(filename);
                 if (area != null) {
                     Platform.runLater(area::requestFocus);
                 }
@@ -163,10 +179,13 @@ public class WorldEditorWindow {
 
         VBox root = new VBox();
         root.getStyleClass().addAll(getThemeStyleClasses(theme));
-        root.getChildren().addAll(statusBox, tabPane);
+        root.getChildren().addAll(statusArea, tabPane);
         VBox.setVgrow(tabPane, Priority.ALWAYS);
 
-        Scene scene = new Scene(root);
+        StackPane rootStack = new StackPane(root);
+        imageLightbox = new MarkdownImageLightbox(rootStack);
+
+        Scene scene = new Scene(rootStack);
         String cssPath = ResourceManager.getCssResource("css/manuskript.css");
         if (cssPath != null) scene.getStylesheets().add(cssPath);
         stage.setTitleBarTheme(theme);
@@ -176,7 +195,7 @@ public class WorldEditorWindow {
             Tab selected = tabPane.getSelectionModel().getSelectedItem();
             if (selected != null && selected.getUserData() instanceof String filename) {
                 ensureTabEditorLoaded(filename);
-                MdTextArea area = fileToTextArea.get(filename);
+                WorldEditorTabContent area = fileToContent.get(filename);
                 if (area != null) {
                     Platform.runLater(area::requestFocus);
                 }
@@ -233,10 +252,10 @@ public class WorldEditorWindow {
         }
     }
 
-    private VBox createTabShell(String filename) {
+    private BorderPane createTabShell(String filename) {
         Button saveButton = new Button("💾 Speichern");
         saveButton.setOnAction(e -> {
-            MdTextArea area = fileToTextArea.get(filename);
+            WorldEditorTabContent area = fileToContent.get(filename);
             if (area != null) {
                 saveFile(filename, area);
                 statusLabel.setText(labelForFile(filename) + " gespeichert");
@@ -244,25 +263,48 @@ public class WorldEditorWindow {
         });
         fileToSaveButton.put(filename, saveButton);
 
-        HBox buttonBox = new HBox(10);
+        FlowPane buttonBox = new FlowPane();
+        buttonBox.setHgap(10);
+        buttonBox.setVgap(8);
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
-        buttonBox.setPadding(new Insets(5, 0, 0, 0));
+        buttonBox.setPadding(new Insets(8, 12, 8, 12));
+        buttonBox.getStyleClass().add("world-editor-button-box");
+        buttonBox.setMinHeight(Region.USE_PREF_SIZE);
         buttonBox.getChildren().add(saveButton);
         if (FeaturePacks.aiEnabled()) {
-            Button aiButton = new Button("🤖 KI-Generierung");
+            if (NovelManager.CHARACTERS_FILE.equals(filename)) {
+                Button fillButton = new Button("🤖 KI ausfüllen");
+                fillButton.setTooltip(new Tooltip(
+                        "Ausgewählte Figur per KI ergänzen (Felder, Kontext und Kapitel wählbar)"));
+                fillButton.setOnAction(e -> {
+                    ensureTabEditorLoaded(filename);
+                    WorldEditorTabContent area = fileToContent.get(filename);
+                    if (area instanceof CharacterCardsEditor editor) {
+                        if (!editor.hasSelectedCharacter()) {
+                            showError("Keine Figur ausgewählt",
+                                    "Bitte wählen Sie links eine Figur aus oder legen Sie eine neue an.");
+                            return;
+                        }
+                        editor.requestAiFillForSelected();
+                    }
+                });
+                fileToCharacterFillButton.put(filename, fillButton);
+                buttonBox.getChildren().add(fillButton);
+            }
+            Button aiButton = new Button("🤖 Aus Projekt entwickeln");
             aiButton.setOnAction(e -> {
                 ensureTabEditorLoaded(filename);
-                MdTextArea area = fileToTextArea.get(filename);
+                WorldEditorTabContent area = fileToContent.get(filename);
                 if (area != null) {
                     handleAiGeneration(filename, area);
                 }
             });
             fileToAiButton.put(filename, aiButton);
             if (WorldEditorAiPrompts.supportsExtractFromChapters(filename)) {
-                Button extractButton = new Button("📖 Aus Kapiteln");
+                Button extractButton = new Button("📖 Aus Manuskript extrahieren");
                 extractButton.setOnAction(e -> {
                     ensureTabEditorLoaded(filename);
-                    MdTextArea area = fileToTextArea.get(filename);
+                    WorldEditorTabContent area = fileToContent.get(filename);
                     if (area != null) {
                         handleExtractFromChapters(filename, area);
                     }
@@ -281,33 +323,41 @@ public class WorldEditorWindow {
         }
 
         Region editorPlaceholder = new Region();
-        editorPlaceholder.setMinHeight(120);
-        VBox content = new VBox(5, editorPlaceholder, buttonBox);
-        VBox.setVgrow(editorPlaceholder, Priority.ALWAYS);
+        editorPlaceholder.setMinHeight(0);
+        BorderPane content = new BorderPane();
+        content.setCenter(editorPlaceholder);
+        content.setBottom(buttonBox);
+        BorderPane.setMargin(buttonBox, new Insets(4, 4, 4, 4));
         return content;
     }
 
     /** Editor erst beim ersten Öffnen des Tabs laden (Canvas bricht bei Größe 0 ab). */
     private void ensureTabEditorLoaded(String filename) {
-        if (fileToTextArea.containsKey(filename)) {
+        if (fileToContent.containsKey(filename)) {
             return;
         }
         Tab tab = fileToTab.get(filename);
-        if (tab == null || !(tab.getContent() instanceof VBox content) || content.getChildren().isEmpty()) {
+        if (tab == null || !(tab.getContent() instanceof BorderPane content)) {
             return;
         }
-        if (!(content.getChildren().get(0) instanceof Region placeholder) || placeholder instanceof MdTextArea) {
+        if (!(content.getCenter() instanceof Region)) {
             return;
         }
 
-        MdTextArea textArea = createEditorArea(filename);
-        int placeholderIndex = content.getChildren().indexOf(placeholder);
-        content.getChildren().set(placeholderIndex, textArea);
-        VBox.setVgrow(textArea, Priority.ALWAYS);
-        fileToTextArea.put(filename, textArea);
+        WorldEditorTabContent editor = createTabContent(filename);
+        editor.attachImageLightbox(imageLightbox);
+        Node view = editor.getView();
+        if (view instanceof Region region) {
+            region.setMinHeight(0);
+        }
+        content.setCenter(view);
+        fileToContent.put(filename, editor);
     }
 
-    private MdTextArea createEditorArea(String filename) {
+    private WorldEditorTabContent createTabContent(String filename) {
+        if (NovelManager.CHARACTERS_FILE.equals(filename)) {
+            return createCharacterCardsEditor();
+        }
         MdTextArea textArea = new MdTextArea(MdTextAreaOptions.builder()
                 .editable(true)
                 .showToolbar(true)
@@ -319,8 +369,12 @@ public class WorldEditorWindow {
                 .hideMarkup(true)
                 .themeIndex(themeIndex)
                 .build());
-
-        loadFile(filename, textArea);
+        MdTextAreaTabContent content = new MdTextAreaTabContent(textArea);
+        loadFile(filename, content);
+        File projectDir = projectDirectory != null ? new File(projectDirectory) : null;
+        if (projectDir != null && projectDir.isDirectory()) {
+            content.setImageDirectories(projectDir, projectDir);
+        }
         markClean(filename);
 
         textArea.textProperty().addListener((obs, oldVal, newVal) -> {
@@ -328,12 +382,31 @@ public class WorldEditorWindow {
                 markDirty(filename);
             }
         });
-        return textArea;
+        return content;
+    }
+
+    private CharacterCardsEditor createCharacterCardsEditor() {
+        File projectDir = projectDirectory != null ? new File(projectDirectory) : null;
+        CharacterCardsEditor editor = new CharacterCardsEditor(stage, projectDir, themeIndex);
+        loadFile(NovelManager.CHARACTERS_FILE, editor);
+        editor.setSingleCharacterAiRequest(this::generateSingleCharacterWithAi);
+        editor.setCharacterAiDialogHost(characterName -> CharacterCardAiDialog.show(
+                stage,
+                themeIndex,
+                characterName,
+                mainController != null ? mainController.currentChapterContextLabel() : ""));
+        editor.addTextChangeListener((obs, oldVal, newVal) -> {
+            if (!suppressDirtyTracking) {
+                markDirty(NovelManager.CHARACTERS_FILE);
+            }
+        });
+        markClean(NovelManager.CHARACTERS_FILE);
+        return editor;
     }
 
     private void updateTabEditorInteractivity(Tab oldTab, Tab newTab) {
         for (Tab tab : tabPane.getTabs()) {
-            if (!(tab.getContent() instanceof VBox content)) {
+            if (!(tab.getContent() instanceof javafx.scene.layout.Pane content)) {
                 continue;
             }
             boolean selected = tab == newTab;
@@ -341,15 +414,14 @@ public class WorldEditorWindow {
         }
     }
 
-    private void loadFile(String filename, MdTextArea textArea) {
+    private void loadFile(String filename, WorldEditorTabContent content) {
         Path filePath = Paths.get(projectDirectory, filename);
         suppressDirtyTracking = true;
         try {
             if (Files.exists(filePath)) {
-                String content = Files.readString(filePath);
-                textArea.setText(content);
+                content.setText(Files.readString(filePath));
             } else {
-                textArea.setText("");
+                content.setText("");
             }
             markClean(filename);
         } catch (IOException e) {
@@ -359,10 +431,10 @@ public class WorldEditorWindow {
         }
     }
 
-    private void saveFile(String filename, MdTextArea textArea) {
+    private void saveFile(String filename, WorldEditorTabContent content) {
         Path filePath = Paths.get(projectDirectory, filename);
         try {
-            Files.writeString(filePath, textArea.getText());
+            Files.writeString(filePath, content.getText());
             markClean(filename);
             logger.info("Datei {} gespeichert", filename);
         } catch (IOException e) {
@@ -372,7 +444,7 @@ public class WorldEditorWindow {
     }
 
     private void saveAllFiles() {
-        for (Map.Entry<String, MdTextArea> entry : fileToTextArea.entrySet()) {
+        for (Map.Entry<String, WorldEditorTabContent> entry : fileToContent.entrySet()) {
             if (Boolean.TRUE.equals(fileToDirty.get(entry.getKey()))) {
                 saveFile(entry.getKey(), entry.getValue());
             }
@@ -537,7 +609,7 @@ public class WorldEditorWindow {
         });
     }
 
-    private void handleAiGeneration(String filename, MdTextArea textArea) {
+    private void handleAiGeneration(String filename, WorldEditorTabContent textArea) {
         String currentContent = textArea.getText();
         boolean hasContent = currentContent != null && !currentContent.trim().isEmpty();
 
@@ -562,7 +634,7 @@ public class WorldEditorWindow {
             int theme = java.util.prefs.Preferences.userNodeForPackage(MainController.class).getInt("main_window_theme", 0);
             CustomAlert alert = new CustomAlert(CustomAlert.AlertType.CONFIRMATION);
             alert.setHeaderText("Die Datei enthält bereits Inhalt.");
-            alert.setContentText("Neuen KI-Text anhängen oder den Tab-Inhalt ersetzen?");
+            alert.setContentText("Neu entwickelten Text anhängen oder den Tab-Inhalt ersetzen?");
             ButtonType appendButton = new ButtonType("Anhängen");
             ButtonType replaceButton = new ButtonType("Ersetzen");
             ButtonType cancel = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -581,7 +653,7 @@ public class WorldEditorWindow {
         }
     }
 
-    private void handleExtractFromChapters(String filename, MdTextArea textArea) {
+    private void handleExtractFromChapters(String filename, WorldEditorTabContent textArea) {
         if (!WorldEditorContextBuilder.hasChapterSources(projectDirectory, mainController)) {
             showError("Keine Kapitelquellen",
                     "Weder chapter.txt noch Markdown-Kapitel unter data/ gefunden.\n"
@@ -613,7 +685,7 @@ public class WorldEditorWindow {
         }
     }
 
-    private void promptChapterSelectionAndExtract(String filename, MdTextArea textArea, boolean append) {
+    private void promptChapterSelectionAndExtract(String filename, WorldEditorTabContent textArea, boolean append) {
         List<String> availableMd = WorldEditorContextBuilder.listAvailableMdFiles(projectDirectory, mainController);
         if (availableMd.isEmpty()) {
             logger.info("Keine MD-Kapitel unter data/ – Extraktion nutzt chapter.txt");
@@ -624,16 +696,16 @@ public class WorldEditorWindow {
                 .ifPresent(scope -> extractFromChapters(filename, textArea, append, scope));
     }
 
-    private void extractFromChapters(String filename, MdTextArea textArea, boolean append,
+    private void extractFromChapters(String filename, WorldEditorTabContent textArea, boolean append,
                                      WorldEditorExtractScope extractScope) {
         runAiGeneration(filename, textArea, append, true, extractScope);
     }
 
-    private void generateWithAi(String filename, MdTextArea textArea, boolean append) {
+    private void generateWithAi(String filename, WorldEditorTabContent textArea, boolean append) {
         runAiGeneration(filename, textArea, append, false, null);
     }
 
-    private void runAiGeneration(String filename, MdTextArea textArea, boolean append, boolean extractFromManuscript,
+    private void runAiGeneration(String filename, WorldEditorTabContent textArea, boolean append, boolean extractFromManuscript,
                                  WorldEditorExtractScope extractScope) {
         if (aiBackend == null) {
             logger.error("KI-Backend nicht initialisiert");
@@ -643,7 +715,9 @@ public class WorldEditorWindow {
         }
 
         if ("chapter.txt".equals(filename) && !extractFromManuscript) {
-            generateChapterSummaries(textArea);
+            if (textArea instanceof MdTextAreaTabContent mdContent) {
+                generateChapterSummaries(mdContent.textArea());
+            }
             return;
         }
 
@@ -667,29 +741,64 @@ public class WorldEditorWindow {
             fullPrompt.append("\n\n=== BISHERIGER INHALT DIESES TABS ===\n").append(currentContent.trim());
         }
 
+        String userPrompt = fullPrompt.toString();
+        if (extractFromManuscript) {
+            int chapterCount = extractScope != null && extractScope.hasChapterSelection()
+                    ? extractScope.selectedMdFileNames().size() : 0;
+            logger.info("KI-Extraktion {}: {} Zeichen Prompt{}",
+                    filename,
+                    userPrompt.length(),
+                    chapterCount > 0 ? ", " + chapterCount + " Kapitel" : "");
+        }
+
         logger.info("KI-{} fuer {} gestartet", extractFromManuscript ? "Extraktion" : "Generierung", filename);
         setAiButtonsBusy(filename, true, extractFromManuscript);
-        statusLabel.setText(extractFromManuscript ? "Extrahiere aus Kapiteln …" : "KI generiert …");
+        statusLabel.setText(extractFromManuscript ? "Extrahiere aus Manuskript …" : "Entwickle aus Projekt …");
 
         int maxTokens = WorldEditorAiPrompts.maxTokensForFile(filename, extractFromManuscript);
         aiBackend.chat(
                 "Du bist ein erfahrener deutscher Lektor und Projekt-Assistent. Antworte nur mit dem "
                         + "angeforderten Markdown-Inhalt, ohne Meta-Kommentare.",
-                fullPrompt.toString(),
+                userPrompt,
                 maxTokens
         ).thenAccept(generatedContent -> Platform.runLater(() -> {
-            String result = generatedContent == null ? "" : generatedContent.trim();
-            if (append && extractFromManuscript && !currentContent.trim().isEmpty()) {
-                textArea.setText(WorldEditorExtractMerge.mergeAppendExtract(filename, currentContent, result));
-            } else if (append && !currentContent.trim().isEmpty()) {
-                textArea.setText(currentContent.trim() + "\n\n" + result);
-            } else {
-                textArea.setText(result);
+            try {
+                String result = generatedContent == null ? "" : generatedContent.trim();
+                if (result.isEmpty()) {
+                    showError("Keine Extraktion",
+                            extractFromManuscript
+                                    ? "Die KI lieferte keinen Text. Evtl. max. Tokens erhöhen oder weniger Kapitel wählen."
+                                    : "Die KI lieferte keinen Text.");
+                    statusLabel.setText("Keine KI-Antwort");
+                    return;
+                }
+                String merged;
+                if (append && extractFromManuscript && !currentContent.trim().isEmpty()) {
+                    merged = WorldEditorExtractMerge.mergeAppendExtract(filename, currentContent, result);
+                } else if (append && !currentContent.trim().isEmpty()) {
+                    merged = currentContent.trim() + "\n\n" + result;
+                } else {
+                    merged = result;
+                }
+                if (textArea instanceof CharacterCardsEditor cards) {
+                    cards.applyExtractedMarkdown(merged);
+                    logger.info("KI-Extraktion {}: {} Figuren in der Karten-Ansicht",
+                            filename, cards.getCharacterCount());
+                } else {
+                    textArea.setText(merged);
+                }
+                markDirty(filename);
+                statusLabel.setText(extractFromManuscript ? "Extraktion abgeschlossen – bitte speichern"
+                        : "Entwicklung abgeschlossen – bitte speichern");
+                logger.info("KI-{} fuer {} abgeschlossen ({} Zeichen Ergebnis)",
+                        extractFromManuscript ? "Extraktion" : "Generierung", filename, merged.length());
+            } catch (RuntimeException e) {
+                logger.error("Verarbeitung der KI-Antwort fuer {} fehlgeschlagen: {}", filename, e.getMessage(), e);
+                showError("Ergebnis konnte nicht übernommen werden", e.getMessage());
+                statusLabel.setText("Fehler");
+            } finally {
+                setAiButtonsBusy(filename, false, extractFromManuscript);
             }
-            statusLabel.setText(extractFromManuscript ? "Extraktion abgeschlossen – bitte speichern"
-                    : "KI-Generierung abgeschlossen – bitte speichern");
-            setAiButtonsBusy(filename, false, extractFromManuscript);
-            logger.info("KI-{} fuer {} abgeschlossen", extractFromManuscript ? "Extraktion" : "Generierung", filename);
         })).exceptionally(ex -> {
             logger.error("KI-Aufruf fuer {} fehlgeschlagen: {}", filename, ex.getMessage());
             Platform.runLater(() -> {
@@ -701,16 +810,95 @@ public class WorldEditorWindow {
         });
     }
 
+    private void generateSingleCharacterWithAi(CharacterSheetDocument.CharacterEntry entry,
+                                               CharacterCardAiOptions options,
+                                               Consumer<CharacterSheetDocument.CharacterEntry> onSuccess,
+                                               Consumer<Throwable> onError) {
+        if (aiBackend == null) {
+            onError.accept(new IllegalStateException("KI-Backend nicht initialisiert"));
+            showError("KI-Backend nicht initialisiert",
+                    "Bitte konfigurieren Sie das KI-Backend in den Parametern.");
+            return;
+        }
+        CharacterCardAiOptions opts = options == null ? CharacterCardAiOptions.defaults() : options;
+
+        String prompt = WorldEditorAiPrompts.generateSingleCharacterPrompt(entry.name(), opts);
+        StringBuilder fullPrompt = new StringBuilder(prompt);
+
+        if (opts.includeWorldEditorContext()) {
+            boolean includeManuscriptExcerpt = !opts.includeCurrentChapter();
+            String projectContext = WorldEditorContextBuilder.buildForSingleCharacter(
+                    projectDirectory, mainController, includeManuscriptExcerpt);
+            if (!projectContext.isBlank()) {
+                fullPrompt.append("\n\n").append(projectContext);
+            }
+        }
+
+        if (opts.includeCurrentChapter() && mainController != null) {
+            MainController.ChapterMarkdownContent chapter = mainController.resolveCurrentChapterForContext();
+            if (chapter != null && chapter.content() != null && !chapter.content().isBlank()) {
+                String label = chapter.fileName() != null ? chapter.fileName() : "Kapitel";
+                String chapterText = WorldEditorContextBuilder.truncate(
+                        chapter.content().trim(),
+                        WorldEditorContextBuilder.SINGLE_CHARACTER_CURRENT_CHAPTER_MAX_CHARS,
+                        "Aktuelles Kapitel");
+                fullPrompt.append("\n\n=== AKTUELLES KAPITEL (").append(label).append(") ===\n")
+                        .append(chapterText);
+            }
+        }
+
+        fullPrompt.append("\n\n=== BISHERIGER STAND DIESER FIGUR ===\n")
+                .append(CharacterSheetDocument.serializeCharacter(entry).trim());
+
+        String userPrompt = fullPrompt.toString();
+        logger.info("KI-Ausfüllen {}: {} Zeichen Prompt", entry.name(), userPrompt.length());
+
+        statusLabel.setText("KI ausfüllen läuft …");
+        setAiButtonsBusy(NovelManager.CHARACTERS_FILE, true, false, true);
+        aiBackend.chat(
+                "Du bist ein erfahrener deutscher Figurenentwickler. "
+                        + "Antworte nur mit dem angeforderten Markdown-Inhalt, ohne Meta-Kommentare.",
+                userPrompt,
+                WorldEditorAiPrompts.maxTokensForSingleCharacter()
+        ).thenAccept(generatedContent -> Platform.runLater(() -> {
+            CharacterSheetDocument.CharacterEntry generated = CharacterSheetDocument.parseCharacterSection(
+                    generatedContent == null ? "" : generatedContent.trim());
+            onSuccess.accept(generated);
+            markDirty(NovelManager.CHARACTERS_FILE);
+            statusLabel.setText("Character Sheet erzeugt – bitte speichern");
+            setAiButtonsBusy(NovelManager.CHARACTERS_FILE, false, false);
+        })).exceptionally(ex -> {
+            Platform.runLater(() -> {
+                onError.accept(ex);
+                showError("Fehler bei der KI-Generierung", ex.getMessage());
+                setAiButtonsBusy(NovelManager.CHARACTERS_FILE, false, false);
+                statusLabel.setText("Fehler");
+            });
+            return null;
+        });
+    }
+
     private void setAiButtonsBusy(String filename, boolean busy, boolean extractRunning) {
+        setAiButtonsBusy(filename, busy, extractRunning, false);
+    }
+
+    private void setAiButtonsBusy(String filename, boolean busy, boolean extractRunning, boolean fillRunning) {
         fileToAiButton.values().forEach(b -> b.setDisable(busy));
         fileToExtractButton.values().forEach(b -> b.setDisable(busy));
+        fileToCharacterFillButton.values().forEach(b -> b.setDisable(busy));
+        AgentStatusBusyBarSupport.setActive(statusBusyBar, busy);
         Button aiButton = fileToAiButton.get(filename);
         if (aiButton != null) {
-            aiButton.setText(busy && !extractRunning ? "🤖 Generiere…" : "🤖 KI-Generierung");
+            aiButton.setText(busy && !extractRunning && !fillRunning
+                    ? "🤖 Entwickle…" : "🤖 Aus Projekt entwickeln");
         }
         Button extractButton = fileToExtractButton.get(filename);
         if (extractButton != null) {
-            extractButton.setText(busy && extractRunning ? "📖 Extrahiere…" : "📖 Aus Kapiteln");
+            extractButton.setText(busy && extractRunning ? "📖 Extrahiere…" : "📖 Aus Manuskript extrahieren");
+        }
+        Button fillButton = fileToCharacterFillButton.get(filename);
+        if (fillButton != null) {
+            fillButton.setText(busy && fillRunning ? "🤖 Fülle aus…" : "🤖 KI ausfüllen");
         }
     }
 
@@ -871,7 +1059,7 @@ public class WorldEditorWindow {
 
     private void runContinuityCheck() {
         ensureTabEditorLoaded(NovelManager.CHARACTERS_FILE);
-        MdTextArea area = fileToTextArea.get(NovelManager.CHARACTERS_FILE);
+        WorldEditorTabContent area = fileToContent.get(NovelManager.CHARACTERS_FILE);
         String characters = area != null ? area.getText() : "";
         Map<String, String> chapters = new LinkedHashMap<>();
         if (mainController != null) {
@@ -895,6 +1083,61 @@ public class WorldEditorWindow {
 
     public void show() {
         stage.show();
+        bringToFront();
+    }
+
+    /** Fenster anzeigen und in den Vordergrund holen. */
+    public void bringToFront() {
+        if (stage != null) {
+            stage.show();
+            stage.toFront();
+        }
+    }
+
+    public boolean matchesProject(String projectDirectory) {
+        return projectDirectory != null && projectDirectory.equals(this.projectDirectory);
+    }
+
+    /**
+     * Fenster öffnen und zum Abschnitt in der angegebenen Datei scrollen ({@code ##}- oder {@code ###}-Überschrift).
+     */
+    public void showAndNavigateTo(String filename, String sectionHeading) {
+        bringToFront();
+        Platform.runLater(() -> navigateToSection(filename, sectionHeading));
+    }
+
+    private void navigateToSection(String filename, String sectionHeading) {
+        if (filename == null || filename.isBlank() || sectionHeading == null || sectionHeading.isBlank()) {
+            return;
+        }
+        Tab tab = fileToTab.get(filename);
+        if (tab == null) {
+            return;
+        }
+        tabPane.getSelectionModel().select(tab);
+        ensureTabEditorLoaded(filename);
+        WorldEditorTabContent area = fileToContent.get(filename);
+        if (area == null) {
+            return;
+        }
+        area.navigateToSection(sectionHeading.trim());
+        area.requestFocus();
+        statusLabel.setText(labelForFile(filename) + ": " + sectionHeading.trim());
+    }
+
+    static int findHeadingOffset(String text, String heading) {
+        if (text == null || text.isBlank() || heading == null || heading.isBlank()) {
+            return -1;
+        }
+        String trimmed = heading.trim();
+        for (String prefix : List.of("### ", "## ")) {
+            Pattern pattern = Pattern.compile("(?m)^" + Pattern.quote(prefix) + Pattern.quote(trimmed) + "\\s*$");
+            Matcher matcher = pattern.matcher(text);
+            if (matcher.find()) {
+                return matcher.start();
+            }
+        }
+        return -1;
     }
 
     public void hide() {

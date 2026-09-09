@@ -6,6 +6,7 @@ import java.io.File;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ProgramLauncherRunnerTest {
@@ -42,5 +43,21 @@ class ProgramLauncherRunnerTest {
     void displayLabelFallsBackToFileName() {
         ProgramLauncher launcher = new ProgramLauncher("id", "  ", "/opt/tools/monitor.jar", null);
         assertEquals("monitor.jar", launcher.displayLabel());
+    }
+
+    @Test
+    void missingVisibleFlagDefaultsToShown() {
+        ProgramLauncher launcher = new com.google.gson.Gson().fromJson(
+                "{\"id\":\"a\",\"label\":\"Ollama\",\"path\":\"ollama\"}",
+                ProgramLauncher.class);
+        assertTrue(launcher.isVisibleInToolbar());
+    }
+
+    @Test
+    void explicitFalseHidesFromToolbar() {
+        ProgramLauncher launcher = new com.google.gson.Gson().fromJson(
+                "{\"id\":\"a\",\"label\":\"Ollama\",\"path\":\"ollama\",\"visibleInToolbar\":false}",
+                ProgramLauncher.class);
+        assertFalse(launcher.isVisibleInToolbar());
     }
 }

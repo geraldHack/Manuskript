@@ -1,3 +1,25 @@
 {
-  "launchers": []
+  "launchers": [
+    {
+      "id": "408eafcc-597f-4ab3-b333-ce053f6ac3c9",
+      "label": "LMS start",
+      "path": "/Users/geraldhackbart/.lmstudio/bin/lms",
+      "arguments": "server start",
+      "visibleInToolbar": false
+    },
+    {
+      "id": "cb196aea-c61c-4b76-96be-1f4cd87b1d34",
+      "label": "LMS stop",
+      "path": "/Users/geraldhackbart/.lmstudio/bin/lms",
+      "arguments": "server stop",
+      "visibleInToolbar": false
+    },
+    {
+      "id": "9e8c0cf6-af79-432e-a813-562f5593055a",
+      "label": "Ollama start",
+      "path": "/Applications/Ollama.app",
+      "arguments": "",
+      "visibleInToolbar": false
+    }
+  ]
 }

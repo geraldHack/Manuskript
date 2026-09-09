@@ -121,6 +121,7 @@ public final class ChapterRenameService {
             }
         }
         maybeUpdateMarkdownHeading(new File(dataDir, newBase + ".md"), oldBase, newBase);
+        maybeUpdateWorldEditorHeadings(projectDir, oldBase, newBase);
         return new Result(newDocx, moved, warnings);
     }
 
@@ -193,6 +194,73 @@ public final class ChapterRenameService {
             Files.move(from, to, StandardCopyOption.ATOMIC_MOVE);
         } catch (IOException e) {
             Files.move(from, to);
+        }
+    }
+
+    static String rewriteWorldEditorHeadings(String content, String oldBase, String newBase) {
+        if (content == null || oldBase == null || newBase == null
+                || oldBase.isBlank() || newBase.isBlank() || oldBase.equals(newBase)) {
+            return content;
+        }
+        String[] lines = content.split("\\R", -1);
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < lines.length; i++) {
+            if (i > 0) {
+                out.append('\n');
+            }
+            out.append(rewriteHeadingLine(lines[i], oldBase, newBase));
+        }
+        return out.toString();
+    }
+
+    private static String rewriteHeadingLine(String line, String oldBase, String newBase) {
+        String trimmed = line.stripTrailing();
+        int hashes = 0;
+        while (hashes < trimmed.length() && trimmed.charAt(hashes) == '#') {
+            hashes++;
+        }
+        if (hashes == 0 || hashes >= trimmed.length() || trimmed.charAt(hashes) != ' ') {
+            return line;
+        }
+        String title = trimmed.substring(hashes + 1).trim();
+        String rewritten = rewriteChapterTitle(title, oldBase, newBase);
+        if (rewritten.equals(title)) {
+            return line;
+        }
+        return "#".repeat(hashes) + " " + rewritten;
+    }
+
+    private static String rewriteChapterTitle(String title, String oldBase, String newBase) {
+        if (title.equals(oldBase)) {
+            return newBase;
+        }
+        java.util.regex.Matcher numbered = java.util.regex.Pattern.compile(
+                "(?i)^(Kapitel\\s+\\d+\\s*[:.\\-–—]\\s*)" + java.util.regex.Pattern.quote(oldBase) + "$")
+                .matcher(title);
+        if (numbered.matches()) {
+            return numbered.group(1) + newBase;
+        }
+        return title;
+    }
+
+    private static void maybeUpdateWorldEditorHeadings(File projectDir, String oldBase, String newBase) {
+        if (projectDir == null) {
+            return;
+        }
+        for (String name : new String[]{"chapter.txt", "synopsis.txt", "outline.txt"}) {
+            File file = new File(projectDir, name);
+            if (!file.isFile()) {
+                continue;
+            }
+            try {
+                String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+                String updated = rewriteWorldEditorHeadings(content, oldBase, newBase);
+                if (!updated.equals(content)) {
+                    Files.writeString(file.toPath(), updated, StandardCharsets.UTF_8);
+                }
+            } catch (IOException e) {
+                logger.warn("{}-Überschriften nicht angepasst: {}", name, e.getMessage());
+            }
         }
     }
 

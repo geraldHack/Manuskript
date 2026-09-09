@@ -8,7 +8,6 @@ import java.util.function.Consumer;
 
 import com.manuskript.CustomAlert;
 import com.manuskript.CustomChatArea;
-import com.manuskript.ResourceManager;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -134,6 +133,7 @@ public class ChatbotAgentTab extends ScrollPane {
         sessionRow.setAlignment(Pos.CENTER_LEFT);
 
         contextPills = new FlowPane(6, 4);
+        contextPills.getStyleClass().add("chatbot-context-pills");
         contextPills.setPrefWrapLength(280);
         Button addContextButton = new Button("+ Kontext");
         addContextButton.setOnAction(e -> showAddContextMenu(addContextButton));
@@ -141,20 +141,27 @@ public class ChatbotAgentTab extends ScrollPane {
         chaptersBeforeSpinner = new Spinner<>(0, 50, 3);
         chaptersBeforeSpinner.setEditable(true);
         chaptersBeforeSpinner.setPrefWidth(70);
+        chaptersBeforeSpinner.getStyleClass().add("agent-chrome-spinner");
         chaptersAfterSpinner = new Spinner<>(0, 50, 3);
         chaptersAfterSpinner.setEditable(true);
         chaptersAfterSpinner.setPrefWidth(70);
+        chaptersAfterSpinner.getStyleClass().add("agent-chrome-spinner");
+        AgentChromeSpinnerSupport.apply(chaptersBeforeSpinner, AgentFindingStyles.themeIndex());
+        AgentChromeSpinnerSupport.apply(chaptersAfterSpinner, AgentFindingStyles.themeIndex());
         chaptersBeforeSpinner.valueProperty().addListener((obs, o, n) -> {
-            contextConfig.setChaptersBefore(n);
+            contextConfig.setChaptersBefore(n == null ? 0 : n);
+            syncNeighborSource(ChatbotContextSource.CHAPTERS_BEFORE, n);
             persistSessionSettings();
         });
         chaptersAfterSpinner.valueProperty().addListener((obs, o, n) -> {
-            contextConfig.setChaptersAfter(n);
+            contextConfig.setChaptersAfter(n == null ? 0 : n);
+            syncNeighborSource(ChatbotContextSource.CHAPTERS_AFTER, n);
             persistSessionSettings();
         });
         neighborSpinnersRow = new HBox(8,
-                new Label("Davor:"), chaptersBeforeSpinner,
-                new Label("Danach:"), chaptersAfterSpinner);
+                ChatbotContextPane.chromeLabel("Davor:"), chaptersBeforeSpinner,
+                ChatbotContextPane.chromeLabel("Danach:"), chaptersAfterSpinner);
+        neighborSpinnersRow.getStyleClass().add("agent-chrome-row");
         neighborSpinnersRow.setAlignment(Pos.CENTER_LEFT);
         updateNeighborSpinnersVisibility();
 
@@ -248,7 +255,7 @@ public class ChatbotAgentTab extends ScrollPane {
                 createSliderRow("Temperatur:", temperatureSlider, temperatureValueLabel),
                 useParameterModelCheck,
                 new Label("Modell:"), modelSelector,
-                new Label("Kontextgröße:"), contextSizeCombo
+                ChatbotContextPane.chromeLabel("Kontextgröße:"), contextSizeCombo
         );
 
         toggleConfigButton.selectedProperty().addListener((obs, o, sel) -> {
@@ -624,6 +631,7 @@ public class ChatbotAgentTab extends ScrollPane {
             MenuItem item = new MenuItem(source.getLabel());
             item.setOnAction(e -> {
                 contextConfig.addSource(source);
+                ensureNeighborCount(source);
                 refreshContextPills();
                 updateNeighborSpinnersVisibility();
                 persistSessionSettings();
@@ -649,13 +657,42 @@ public class ChatbotAgentTab extends ScrollPane {
         }
     }
 
+    private void syncNeighborSource(ChatbotContextSource source, Integer count) {
+        if (source == null) {
+            return;
+        }
+        int value = count == null ? 0 : count;
+        if (value <= 0) {
+            if (contextConfig.hasSource(source)) {
+                contextConfig.removeSource(source);
+                refreshContextPills();
+                updateNeighborSpinnersVisibility();
+            }
+            return;
+        }
+        if (!contextConfig.hasSource(source)) {
+            contextConfig.addSource(source);
+            refreshContextPills();
+            updateNeighborSpinnersVisibility();
+        }
+    }
+
+    private void ensureNeighborCount(ChatbotContextSource source) {
+        if (source == ChatbotContextSource.CHAPTERS_BEFORE
+                && (chaptersBeforeSpinner.getValue() == null || chaptersBeforeSpinner.getValue() <= 0)) {
+            chaptersBeforeSpinner.getValueFactory().setValue(1);
+        }
+        if (source == ChatbotContextSource.CHAPTERS_AFTER
+                && (chaptersAfterSpinner.getValue() == null || chaptersAfterSpinner.getValue() <= 0)) {
+            chaptersAfterSpinner.getValueFactory().setValue(1);
+        }
+    }
+
     private void updateNeighborSpinnersVisibility() {
         boolean show = contextConfig.hasSource(ChatbotContextSource.CHAPTERS_BEFORE)
                 || contextConfig.hasSource(ChatbotContextSource.CHAPTERS_AFTER);
         neighborSpinnersRow.setVisible(show);
         neighborSpinnersRow.setManaged(show);
-        chaptersBeforeSpinner.setDisable(!contextConfig.hasSource(ChatbotContextSource.CHAPTERS_BEFORE));
-        chaptersAfterSpinner.setDisable(!contextConfig.hasSource(ChatbotContextSource.CHAPTERS_AFTER));
         if (show) {
             AgentScrollPaneSupport.ensureOverflowForChrome(contentRoot);
         } else {
@@ -664,11 +701,10 @@ public class ChatbotAgentTab extends ScrollPane {
     }
 
     private void loadModelsAsync() {
-        reportStatus("Lade Modelle…");
+        reportStatus("Lade Modelle vom Parameter-Provider…");
         new Thread(() -> {
             try {
-                AIBackend backend = createBackendForModelLoad();
-                List<String> models = backend.getAvailableModels();
+                List<String> models = AgentModelCatalog.loadFromParameters();
                 Platform.runLater(() -> {
                     modelSelector.setModels(models);
                     if (!models.isEmpty() && modelSelector.getValue() == null) {
@@ -680,14 +716,6 @@ public class ChatbotAgentTab extends ScrollPane {
                 Platform.runLater(() -> reportStatusError("Modelle laden fehlgeschlagen: " + e.getMessage()));
             }
         }, "Chatbot-LoadModels").start();
-    }
-
-    private AIBackend createBackendForModelLoad() {
-        String backendType = ResourceManager.getParameter("agent.backend", "Ollama");
-        if ("OpenAI".equals(backendType)) {
-            return new OpenAIBackend();
-        }
-        return new OllamaBackend(new com.manuskript.OllamaService());
     }
 
     public void setModels(List<String> models) {
@@ -736,6 +764,8 @@ public class ChatbotAgentTab extends ScrollPane {
     public void applyChatTheme(int themeIndex) {
         this.chatThemeIndex = themeIndex;
         chatArea.setThemeIndex(themeIndex);
+        AgentChromeSpinnerSupport.apply(chaptersBeforeSpinner, themeIndex);
+        AgentChromeSpinnerSupport.apply(chaptersAfterSpinner, themeIndex);
     }
 
     private void setStatusNeutral(String text) {
@@ -790,10 +820,7 @@ public class ChatbotAgentTab extends ScrollPane {
     }
 
     private static HBox createSliderRow(String label, Slider slider, Label valueLabel) {
-        HBox row = new HBox(8, new Label(label), slider, valueLabel);
-        HBox.setHgrow(slider, Priority.ALWAYS);
-        row.setAlignment(Pos.CENTER_LEFT);
-        return row;
+        return AgentFontSizeSupport.createSliderRow(label, slider, valueLabel);
     }
 
     private static StringConverter<ChatbotContextSize> contextSizeConverter() {

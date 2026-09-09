@@ -90,7 +90,7 @@ public class SceneContextLoader {
             if (sceneOutlineOverride != null && !sceneOutlineOverride.isBlank()) {
                 ctx.sceneOutline = truncate(sceneOutlineOverride.trim(), size.maxSceneOutlineChars(), "Szenen-Outline");
             } else {
-                File scenesFile = SceneOutlinePaths.scenesFileForDocx(currentDocx);
+                File scenesFile = SceneOutlinePaths.existingScenesFile(currentDocx);
                 ctx.sceneOutline = truncate(readFile(scenesFile), size.maxSceneOutlineChars(), "Szenen-Outline");
             }
         }

@@ -51,26 +51,33 @@ public class ChatbotContextPane extends VBox {
         addContextButton.setOnAction(e -> showAddContextMenu(addContextButton));
 
         contextPills = new FlowPane(6, 4);
+        contextPills.getStyleClass().add("chatbot-context-pills");
         contextPills.setPrefWrapLength(280);
 
         chaptersBeforeSpinner = new Spinner<>(0, 50, 3);
         chaptersBeforeSpinner.setEditable(true);
         chaptersBeforeSpinner.setPrefWidth(70);
+        chaptersBeforeSpinner.getStyleClass().add("agent-chrome-spinner");
         chaptersAfterSpinner = new Spinner<>(0, 50, 3);
         chaptersAfterSpinner.setEditable(true);
         chaptersAfterSpinner.setPrefWidth(70);
+        chaptersAfterSpinner.getStyleClass().add("agent-chrome-spinner");
+        applyTheme(AgentFindingStyles.themeIndex());
         chaptersBeforeSpinner.valueProperty().addListener((obs, o, n) -> {
-            contextConfig.setChaptersBefore(n);
+            contextConfig.setChaptersBefore(n == null ? 0 : n);
+            syncNeighborSource(ChatbotContextSource.CHAPTERS_BEFORE, n);
             persist();
         });
         chaptersAfterSpinner.valueProperty().addListener((obs, o, n) -> {
-            contextConfig.setChaptersAfter(n);
+            contextConfig.setChaptersAfter(n == null ? 0 : n);
+            syncNeighborSource(ChatbotContextSource.CHAPTERS_AFTER, n);
             persist();
         });
 
         neighborSpinnersRow = new HBox(8,
-                new Label("Davor:"), chaptersBeforeSpinner,
-                new Label("Danach:"), chaptersAfterSpinner);
+                chromeLabel("Davor:"), chaptersBeforeSpinner,
+                chromeLabel("Danach:"), chaptersAfterSpinner);
+        neighborSpinnersRow.getStyleClass().add("agent-chrome-row");
         neighborSpinnersRow.setAlignment(Pos.CENTER_LEFT);
 
         contextSizeCombo = new ComboBox<>();
@@ -86,12 +93,17 @@ public class ChatbotContextPane extends VBox {
         });
 
         getChildren().addAll(addContextButton, contextPills, neighborSpinnersRow,
-                new Label("Kontextgröße:"), contextSizeCombo);
+                chromeLabel("Kontextgröße:"), contextSizeCombo);
         loadFromPreferences();
     }
 
     public ChatbotContextConfig getContextConfig() {
         return contextConfig;
+    }
+
+    public void applyTheme(int themeIndex) {
+        AgentChromeSpinnerSupport.apply(chaptersBeforeSpinner, themeIndex);
+        AgentChromeSpinnerSupport.apply(chaptersAfterSpinner, themeIndex);
     }
 
     public ChatbotContextSize getContextSize() {
@@ -147,6 +159,7 @@ public class ChatbotContextPane extends VBox {
             MenuItem item = new MenuItem(source.getLabel());
             item.setOnAction(e -> {
                 contextConfig.addSource(source);
+                ensureNeighborCount(source);
                 refreshContextPills();
                 updateNeighborSpinnersVisibility();
                 persist();
@@ -171,15 +184,15 @@ public class ChatbotContextPane extends VBox {
         }
     }
 
-    /** Kontext-Chip: Label + kleines × (nicht das schwere ✕). */
+    static Label chromeLabel(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add("agent-chrome-label");
+        return label;
+    }
+
+    /** Kontext-Chip: gleicher Button-Look wie „+ Kontext“, Text und × auf einer Fläche. */
     static Button createContextPill(ChatbotContextSource source, Runnable onRemove) {
-        Label name = new Label(source.getLabel());
-        Label closeMark = new Label("×");
-        closeMark.getStyleClass().add("context-pill-close");
-        HBox row = new HBox(4, name, closeMark);
-        row.setAlignment(Pos.CENTER_LEFT);
-        Button pill = new Button();
-        pill.setGraphic(row);
+        Button pill = new Button(source.getLabel() + "  ×");
         pill.getStyleClass().add("chatbot-context-pill");
         pill.setTooltip(new Tooltip(source.getTooltip()));
         pill.setOnAction(e -> onRemove.run());
@@ -191,12 +204,41 @@ public class ChatbotContextPane extends VBox {
                 || contextConfig.hasSource(ChatbotContextSource.CHAPTERS_AFTER);
         neighborSpinnersRow.setVisible(show);
         neighborSpinnersRow.setManaged(show);
-        chaptersBeforeSpinner.setDisable(!contextConfig.hasSource(ChatbotContextSource.CHAPTERS_BEFORE));
-        chaptersAfterSpinner.setDisable(!contextConfig.hasSource(ChatbotContextSource.CHAPTERS_AFTER));
         if (show) {
             AgentScrollPaneSupport.ensureOverflowForChrome(this);
         } else {
             AgentScrollPaneSupport.restoreFillIfChromeCollapsed(this);
+        }
+    }
+
+    private void syncNeighborSource(ChatbotContextSource source, Integer count) {
+        if (source == null) {
+            return;
+        }
+        int value = count == null ? 0 : count;
+        if (value <= 0) {
+            if (contextConfig.hasSource(source)) {
+                contextConfig.removeSource(source);
+                refreshContextPills();
+                updateNeighborSpinnersVisibility();
+            }
+            return;
+        }
+        if (!contextConfig.hasSource(source)) {
+            contextConfig.addSource(source);
+            refreshContextPills();
+            updateNeighborSpinnersVisibility();
+        }
+    }
+
+    private void ensureNeighborCount(ChatbotContextSource source) {
+        if (source == ChatbotContextSource.CHAPTERS_BEFORE
+                && (chaptersBeforeSpinner.getValue() == null || chaptersBeforeSpinner.getValue() <= 0)) {
+            chaptersBeforeSpinner.getValueFactory().setValue(1);
+        }
+        if (source == ChatbotContextSource.CHAPTERS_AFTER
+                && (chaptersAfterSpinner.getValue() == null || chaptersAfterSpinner.getValue() <= 0)) {
+            chaptersAfterSpinner.getValueFactory().setValue(1);
         }
     }
 

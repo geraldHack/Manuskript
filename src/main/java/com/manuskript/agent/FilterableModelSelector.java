@@ -133,7 +133,6 @@ public class FilterableModelSelector extends VBox {
     public void setSelectorDisabled(boolean disabled) {
         filterField.setDisable(disabled);
         modelCombo.setDisable(disabled);
-        loadButton.setDisable(disabled);
     }
 
     public ComboBox<String> getComboBox() {

@@ -1,5 +1,7 @@
 package com.manuskript;
 
+import java.util.List;
+
 /**
  * Prompts fuer KI-Aktionen im Welt-Editor (Generierung vs. Extraktion aus dem Manuskript).
  */
@@ -88,10 +90,15 @@ public final class WorldEditorAiPrompts {
         };
     }
 
+    public static int maxTokensForSingleCharacter() {
+        return 2000;
+    }
+
     public static int maxTokensForFile(String filename, boolean extract) {
         if (extract) {
             return switch (filename) {
-                case "synopsis.txt", "outline.txt", "characters.txt" -> 4096;
+                case "characters.txt" -> 8192;
+                case "synopsis.txt", "outline.txt" -> 4096;
                 default -> 3000;
             };
         }
@@ -108,6 +115,33 @@ public final class WorldEditorAiPrompts {
 
     private static String characterSheetPrompt(boolean fromManuscript) {
         return characterSheetPrompt(fromManuscript, null);
+    }
+
+    public static String generateSingleCharacterPrompt(String characterName, CharacterCardAiOptions options) {
+        String name = characterName == null ? "" : characterName.trim();
+        CharacterCardAiOptions opts = options == null ? CharacterCardAiOptions.defaults() : options;
+        StringBuilder sb = new StringBuilder();
+        sb.append("Erstelle oder ergaenze ein Character Sheet auf Deutsch.\n");
+        sb.append("Kein Interview, keine Fragen, keine Meta-Kommentare.\n");
+        if (name.isBlank() || CharacterSheetDocument.isPlaceholderName(name)) {
+            sb.append("Liefere genau EIN Character Sheet (## Vorname Nachname).\n");
+        } else {
+            sb.append("Figur: ").append(name).append('\n');
+            sb.append("Ueberschrift exakt: ## ").append(name).append('\n');
+        }
+        sb.append("Nur diesen einen Abschnitt, keine weiteren Figuren.\n\n");
+        sb.append("Fuellen NUR diese Felder aus (andere Felder weglassen):\n");
+        for (String field : opts.orderedFields()) {
+            sb.append("**").append(field).append(":**\n");
+        }
+        if (!opts.additionalInstructions().isBlank()) {
+            sb.append("\nZusaetzliche Anweisung:\n").append(opts.additionalInstructions()).append('\n');
+        }
+        return sb.toString();
+    }
+
+    public static String generateSingleCharacterPrompt(String characterName) {
+        return generateSingleCharacterPrompt(characterName, CharacterCardAiOptions.defaults());
     }
 
     private static String characterSheetPrompt(boolean fromManuscript, WorldEditorExtractScope scope) {

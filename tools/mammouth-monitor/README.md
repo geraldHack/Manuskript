@@ -1,6 +1,6 @@
 # Mammouth Monitor
 
-Plugin für Manuskript: zeigt **Credits** (`GET /key/info`) und **Modelle** (`GET /public/models`) im Manuskript-Look.
+Plugin für Manuskript: zeigt **Credits** (`GET /key/info`, Fallback `GET /user/info`), **Logs** (`GET /spend/logs`) und **Modelle** (`GET /public/models`) im Manuskript-Look.
 
 Der Key kommt aus der Manuskript-Konfiguration (aktueller OpenAI-kompatibler Key, wenn die URL `mammouth.ai` enthält, sonst das Provider-Profil „Mammouth“). Alternativ im Monitor selbst eintragen — nicht in der Parameter-Verwaltung extra.
 
@@ -25,7 +25,8 @@ Aus dem Repo-Root:
 
 | Tab | Endpoint | Auth |
 |-----|----------|------|
-| Credits | `GET https://api.mammouth.ai/key/info` (Fallback: `/v1/key/info`) | Mammouth API-Key |
+| Credits | `GET /v1/key/info` und `GET /user/info` (Host-Wurzel als Fallback) | Mammouth API-Key |
+| Logs | `GET /user/daily/activity` (Fallback: `/spend/logs`) | Mammouth API-Key |
 | Modelle | `GET https://api.mammouth.ai/public/models` | optional |
 
 Dashboard: [mammouth.ai/app/account/settings/api](https://mammouth.ai/app/account/settings/api)

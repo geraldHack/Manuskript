@@ -10,7 +10,6 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
@@ -38,6 +37,8 @@ public class OpenAIBackend implements AIBackend {
     private static final String LOOPBACK_PLACEHOLDER_API_KEY = "local";
     /** Mindest-HTTP-Timeout für localhost/127.0.0.1 (Sekunden). */
     private static final int LOCAL_DEFAULT_REQUEST_TIMEOUT_SEC = 900;
+    /** Ausgabe-Token-Kappe für LM Studio / localhost (nicht das Kontextfenster). 0 = aus. */
+    static final int DEFAULT_LOCAL_MAX_TOKENS = 2048;
 
     private final HttpClient httpClient;
     private final Gson gson;
@@ -67,8 +68,14 @@ public class OpenAIBackend implements AIBackend {
 
     @Override
     public List<String> getAvailableModels() {
-        return new ArrayList<>(Arrays.asList(
-                "gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo", "gpt-4-turbo"));
+        try {
+            return AgentModelCatalog.fetchOpenAiCompatible(
+                    com.manuskript.ResourceManager.getParameter("agent.openai.api_key", ""),
+                    com.manuskript.ResourceManager.getParameter("agent.openai.api_url", DEFAULT_BASE_URL));
+        } catch (Exception e) {
+            logger.warn("Modellliste vom eingestellten Provider nicht geladen: {}", e.getMessage());
+            return List.of();
+        }
     }
 
     /**
@@ -88,7 +95,21 @@ public class OpenAIBackend implements AIBackend {
         return lower.contains("127.0.0.1") || lower.contains("localhost");
     }
 
-    static String resolveApiKey(String configuredKey, String baseUrl) {
+    /**
+     * Lokal (LM Studio) das Ausgabe-Budget kappen. Kontext/Prompt bleibt unverändert.
+     * {@code localCap <= 0} schaltet die Kappe aus.
+     */
+    static int clampMaxTokensForUrl(int maxTokens, String apiUrl, int localCap) {
+        if (maxTokens <= 0) {
+            return maxTokens;
+        }
+        if (localCap <= 0 || !isLoopbackOpenAiUrl(apiUrl)) {
+            return maxTokens;
+        }
+        return Math.min(maxTokens, localCap);
+    }
+
+    public static String resolveApiKey(String configuredKey, String baseUrl) {
         String key = configuredKey == null ? "" : configuredKey.trim();
         if (!key.isEmpty()) {
             return key;
@@ -97,6 +118,77 @@ public class OpenAIBackend implements AIBackend {
             return LOOPBACK_PLACEHOLDER_API_KEY;
         }
         return "";
+    }
+
+    /**
+     * Prüft, ob die URL vom HTTP-Client akzeptiert wird (Port nur Ziffern, http/https, Host vorhanden).
+     */
+    public static URI requireHttpUri(String url) {
+        String raw = url == null ? "" : url.trim();
+        URI uri;
+        try {
+            uri = URI.create(raw);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(invalidOpenAiUrlMessage(raw), e);
+        }
+        String scheme = uri.getScheme();
+        if (scheme == null
+                || (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))) {
+            throw new IllegalArgumentException(invalidOpenAiUrlMessage(raw));
+        }
+        assertNumericHttpPort(uri, raw);
+        try {
+            HttpRequest.newBuilder().uri(uri);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(invalidOpenAiUrlMessage(raw), e);
+        }
+        return uri;
+    }
+
+    static void assertNumericHttpPort(URI uri, String raw) {
+        String authority = uri.getRawAuthority();
+        if (authority == null || authority.isBlank()) {
+            throw new IllegalArgumentException(invalidOpenAiUrlMessage(raw));
+        }
+        int at = authority.lastIndexOf('@');
+        String hostPort = at >= 0 ? authority.substring(at + 1) : authority;
+        String port;
+        if (hostPort.startsWith("[")) {
+            int end = hostPort.indexOf(']');
+            if (end < 0) {
+                throw new IllegalArgumentException(invalidOpenAiUrlMessage(raw));
+            }
+            String rest = hostPort.substring(end + 1);
+            if (rest.isEmpty()) {
+                return;
+            }
+            if (!rest.startsWith(":")) {
+                throw new IllegalArgumentException(invalidOpenAiUrlMessage(raw));
+            }
+            port = rest.substring(1);
+        } else {
+            int colon = hostPort.lastIndexOf(':');
+            if (colon < 0) {
+                if (uri.getHost() == null) {
+                    throw new IllegalArgumentException(invalidOpenAiUrlMessage(raw));
+                }
+                return;
+            }
+            port = hostPort.substring(colon + 1);
+        }
+        if (port.isEmpty() || !port.chars().allMatch(Character::isDigit)) {
+            throw new IllegalArgumentException(invalidOpenAiUrlMessage(raw));
+        }
+        int value = Integer.parseInt(port);
+        if (value < 1 || value > 65535) {
+            throw new IllegalArgumentException(invalidOpenAiUrlMessage(raw));
+        }
+    }
+
+    public static String invalidOpenAiUrlMessage(String url) {
+        return "Die Basis-URL ist ungültig:\n" + url
+                + "\n\nLM Studio: http://127.0.0.1:1234/v1"
+                + "\n(Port nur Ziffern, z. B. 1234 — nicht 1234i. Pfad /v1, nicht /api/v1.)";
     }
 
     @Override
@@ -317,7 +409,13 @@ public class OpenAIBackend implements AIBackend {
 
         JsonObject body = new JsonObject();
         body.addProperty("model", currentModel);
-        putMaxTokenLimits(body, maxTokens);
+        int localCap = ResourceManager.getIntParameter("agent.openai.local_max_tokens", DEFAULT_LOCAL_MAX_TOKENS);
+        int effectiveMaxTokens = clampMaxTokensForUrl(maxTokens, baseUrl, localCap);
+        if (effectiveMaxTokens != maxTokens) {
+            logger.info("Lokales Backend: max_tokens von {} auf {} gekappt (Kontext unverändert)",
+                    maxTokens, effectiveMaxTokens);
+        }
+        putMaxTokenLimits(body, effectiveMaxTokens);
         body.addProperty("temperature", temperature);
         if (topP != null) {
             body.addProperty("top_p", topP);
@@ -335,7 +433,7 @@ public class OpenAIBackend implements AIBackend {
         String requestBody = gson.toJson(body);
         logger.info("OpenAI Request{}: {} Zeichen, max_tokens: {}, temperature: {}, top_p: {}, frequency_penalty: {}, reasoning_effort={}",
                 stream ? " (stream)" : "",
-                requestBody.length(), maxTokens, temperature,
+                requestBody.length(), body.get("max_tokens").getAsInt(), temperature,
                 topP != null ? topP : "—",
                 frequencyPenalty > 0.0 ? frequencyPenalty : "—",
                 body.has("reasoning_effort")
@@ -343,7 +441,7 @@ public class OpenAIBackend implements AIBackend {
 
         int timeoutSec = requestTimeoutSeconds(baseUrl);
         HttpRequest.Builder builder = HttpRequest.newBuilder()
-                .uri(URI.create(url))
+                .uri(requireHttpUri(url))
                 .header("Authorization", "Bearer " + apiKey)
                 .header("Content-Type", "application/json")
                 .timeout(Duration.ofSeconds(timeoutSec))

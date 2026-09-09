@@ -25,14 +25,11 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Separator;
 import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.Spinner;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.Node;
 import javafx.collections.ListChangeListener;
@@ -49,7 +46,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.geometry.Orientation;
 import javafx.scene.text.Font;
-import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 
@@ -82,13 +78,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private static final String PREF_LINE_SPACING = CanvasEditorPrefs.key("line_spacing");
     private static final String PREF_PARAGRAPH_SPACING = CanvasEditorPrefs.key("paragraph_spacing");
     private static final String PREF_JUSTIFY_TEXT = CanvasEditorPrefs.key("justify_text");
-    private static final String PREF_LAST_IMAGE_PATH = CanvasEditorPrefs.key("last_image_path");
-    private static final String PREF_LAST_IMAGE_ALT = CanvasEditorPrefs.key("last_image_alt");
-    private static final String PREF_LAST_IMAGE_DIRECTORY = CanvasEditorPrefs.key("last_image_directory");
-    private static final String PREF_LAST_IMAGE_WIDTH = CanvasEditorPrefs.key("last_image_width");
     private static final String PREF_HIDE_MARKUP = CanvasEditorPrefs.key("hide_markup");
     private static final String PREF_SHOW_LINE_NUMBERS = CanvasEditorPrefs.key("show_line_numbers");
-    private static final String PREF_LT_AUTO = CanvasEditorPrefs.key("languagetool_auto");
+    private static final String PREF_WORLD_TERM_HIGHLIGHT = CanvasEditorPrefs.key("world_term_highlight");
     private static final String PREF_SAVE_DOCX_ALONGSIDE = CanvasEditorPrefs.key("save_docx_alongside");
     private static final String PREF_SIDEBAR_EXPANDED = CanvasEditorPrefs.key("sidebar_expanded");
     private static final String PREF_TOOLBAR_SEGMENT = CanvasEditorPrefs.key("toolbar_segment");
@@ -120,13 +112,15 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private Label statusLabel;
     private ProgressBar agentStatusBusyBar;
     private Label lblSelectionCount;
+    private Runnable externalSelectionChangeListener;
     private Label lblLanguageToolStatus;
     private Button btnLanguageToolNext;
     private boolean editingShortcutsInstalled;
     private LanguageToolDictionary languageToolDictionary;
     private LanguageToolService languageToolService;
     private Timeline languageToolCheckTimeline;
-    private boolean languageToolAutoEnabled;
+    private ToggleButton btnToggleLanguageTool;
+    private boolean languageToolEnabled;
     private long languageToolCheckGeneration;
     private boolean languageToolHasBeenChecked;
     private boolean languageToolLastCheckFailed;
@@ -148,6 +142,8 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private File loadedProjectDirectory;
     private String loadedChapterName;
     private SplitPane mainSplitPane;
+    private BorderPane editorRoot;
+    private VBox hostToolbar;
     private HBox sidebarColumn;
     private VBox sidebarContainer;
     private HBox sidebarHeader;
@@ -168,6 +164,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private VBox suchenSegmentPane;
     private FlowPane historieSegmentPane;
     private FlowPane werkzeugeSegmentPane;
+    private ToggleButton btnWorldTermHighlight;
+    private WorldbuildingTermHighlightSupport worldTermHighlightSupport;
+    private boolean worldTermHighlightEnabled;
     private ListView<DocxFile> chapterListView;
     private ChapterSidebarTheme chapterSidebarTheme;
     private boolean sidebarExpanded = true;
@@ -276,13 +275,13 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
         languageToolDictionary = new LanguageToolDictionary();
         languageToolService = new LanguageToolService();
-        languageToolAutoEnabled = preferences.getBoolean(PREF_LT_AUTO, false);
+        languageToolEnabled = CanvasEditorPrefs.getBoolean(preferences, "languagetool_auto", false);
         editor.setLanguageToolDictionary(languageToolDictionary);
         editor.setOnLanguageToolMatchesChanged(() -> Platform.runLater(this::updateLanguageToolStatus));
-        editor.setOnSelectionChanged(() -> Platform.runLater(() -> {
-            updateSelectionCount();
-            saveChapterViewState();
-        }));
+        worldTermHighlightEnabled = CanvasEditorPrefs.getBoolean(preferences, "world_term_highlight", false);
+        worldTermHighlightSupport = new WorldbuildingTermHighlightSupport(this, editor);
+        worldTermHighlightSupport.setEnabled(worldTermHighlightEnabled);
+        editor.setOnSelectionChanged(this::onEditorSelectionChanged);
         editor.scrollTopProperty().addListener((obs, oldValue, newValue) -> saveChapterViewState());
         editor.setContextMenuRewriteActions(
                 new ChapterRewriteContextActions(this, stage, () -> themeIndex, preferences, loadedDocxFile),
@@ -299,8 +298,14 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 updateDirtyFromContent(text);
             }
             scheduleLanguageToolCheckDebounced();
+            if (worldTermHighlightSupport != null) {
+                worldTermHighlightSupport.scheduleRefresh();
+            }
             if (lektoratHelper != null && lektoratHelper.isActive()) {
                 lektoratHelper.onEditorTextChanged();
+            }
+            if (chapterAgentSupport != null) {
+                chapterAgentSupport.onEditorTextChanged();
             }
         });
         editor.setOnUnbalancedQuoteWarning(errors -> Platform.runLater(() -> {
@@ -312,12 +317,12 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         initializeStatusLabel();
         initializeAgentStatusBusyBar();
         initializeSelectionLabel();
-        BorderPane root = new BorderPane();
-        root.setCenter(createEditorWithSidebar());
-        root.setTop(createHostToolbar());
+        editorRoot = new BorderPane();
+        editorRoot.setCenter(createEditorWithSidebar());
+        editorRoot.setTop(createHostToolbar());
         agentActivityTracker = new AgentActivityTracker();
         wireAgentActivityToStatusBar();
-        root.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+        editorRoot.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             Object targetObj = event.getTarget();
             if (!(targetObj instanceof Node target)) {
                 return;
@@ -327,11 +332,11 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             }
         });
 
-        Scene scene = new Scene(root, 1100, 780);
+        Scene scene = new Scene(editorRoot, 1100, 780);
         ResourceManager.attachSceneStylesheets(scene);
         stage.setSceneWithTitleBar(scene);
         stage.setFullTheme(themeIndex);
-        applyThemeToNode(root, themeIndex);
+        applyThemeToNode(editorRoot, themeIndex);
         mdTextArea.applyTheme(themeIndex);
         stage.setOnShown(event -> {
             applyChapterSidebarTheme();
@@ -741,29 +746,11 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             }
         });
 
-        Button languageTool = new Button("LanguageTool");
-        languageTool.setTooltip(new Tooltip("LanguageTool jetzt prüfen"));
-        languageTool.setOnAction(e -> runLanguageToolCheck(true));
-
-        CheckBox languageToolAuto = new CheckBox("LT automatisch");
-        languageToolAuto.setSelected(languageToolAutoEnabled);
-        languageToolAuto.setTooltip(new Tooltip("LanguageTool nach Textänderungen automatisch prüfen (500 ms Verzögerung)"));
-        languageToolAuto.selectedProperty().addListener((obs, oldValue, newValue) -> {
-            languageToolAutoEnabled = newValue;
-            preferences.putBoolean(PREF_LT_AUTO, newValue);
-            if (newValue) {
-                scheduleLanguageToolCheckDebounced();
-            } else {
-                cancelLanguageToolChecks();
-                languageToolHasBeenChecked = false;
-                languageToolLastCheckFailed = false;
-                languageToolLastError = null;
-                languageToolCheckPending = false;
-                languageToolRestartAttempted = false;
-                editor.clearLanguageToolMatches();
-                updateLanguageToolStatus();
-            }
-        });
+        btnToggleLanguageTool = new ToggleButton("LanguageTool");
+        btnToggleLanguageTool.setSelected(languageToolEnabled);
+        btnToggleLanguageTool.setTooltip(new Tooltip(
+                "Rechtschreibung und Grammatik ein- oder ausblenden (prüft nach Textänderungen automatisch)"));
+        btnToggleLanguageTool.setOnAction(e -> onLanguageToolToggle());
 
         lblLanguageToolStatus = new Label("");
         lblLanguageToolStatus.setTooltip(new Tooltip("LanguageTool Status"));
@@ -843,13 +830,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         editImage.setOnAction(e -> editImageAtCaret());
 
         Button deleteImage = new Button("Bild löschen");
-        deleteImage.setOnAction(e -> {
-            if (editor.deleteImageBlockAtCaret()) {
-                updateStatus("Bild entfernt");
-            } else {
-                updateStatus("Kein Bild am Cursor – Bild anklicken oder Cursor im Bild platzieren", true);
-            }
-        });
+        deleteImage.setOnAction(e -> applyImageActionResult(MarkdownImageUi.delete(editor)));
 
         MenuButton editorHelpMenu = HelpSystem.createHelpMenuButton("Hilfe zum Kapitel-Editor", new String[][]{
                 {"Kapitel-Editor", "chapter_editor.html", "Hilfe - Kapitel-Editor"},
@@ -901,6 +882,15 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         werkzeugeSegmentPane.getStyleClass().add("host-toolbar-segment");
         Button sceneOutline = toolbarButton("Outline", "Szenen-Outline für dieses Kapitel", this::toggleSceneOutlineWindow);
         Button textAnalysis = toolbarButton("Analyse", "Textanalyse-Fenster ein-/ausblenden", this::toggleTextAnalysisWindow);
+        btnWorldTermHighlight = new ToggleButton("Welt-Begriffe");
+        btnWorldTermHighlight.setSelected(worldTermHighlightEnabled);
+        btnWorldTermHighlight.setTooltip(new Tooltip(
+                "Figuren, Orte und Lore aus characters.txt / worldbuilding.txt im Text hervorheben (Hover für Details)"));
+        btnWorldTermHighlight.setOnAction(e -> {
+            worldTermHighlightEnabled = btnWorldTermHighlight.isSelected();
+            CanvasEditorPrefs.putBoolean(preferences, "world_term_highlight", worldTermHighlightEnabled);
+            worldTermHighlightSupport.setEnabled(worldTermHighlightEnabled);
+        });
         if (FeaturePacks.agentsEnabled()) {
             btnToggleAgents = new ToggleButton("Agenten");
             btnToggleAgents.setSelected(Preferences.userNodeForPackage(ChapterAgentSupport.class)
@@ -913,7 +903,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 "In Zwischenablage kopieren (Sudowrite-kompatibel)",
                 this::copyForSudowrite);
 
-        werkzeugeSegmentPane.getChildren().addAll(languageTool, sceneOutline, textAnalysis);
+        werkzeugeSegmentPane.getChildren().addAll(btnToggleLanguageTool, sceneOutline, textAnalysis, btnWorldTermHighlight);
         if (btnToggleAgents != null) {
             werkzeugeSegmentPane.getChildren().add(btnToggleAgents);
         }
@@ -933,7 +923,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         }
         werkzeugeSegmentPane.getChildren().addAll(
                 insertImage, editImage, deleteImage,
-                saveDocxAlongside, languageToolAuto);
+                saveDocxAlongside);
 
         toolbarSegmentToggleGroup = new ToggleGroup();
         chipSchrift = createToolbarSegmentChip("Schrift", "Schrift, Abstände und Ansicht", HostToolbarSegment.SCHRIFT);
@@ -970,6 +960,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         VBox toolbar = new VBox(4, statusSection, hostToolbarCollapsibleSection);
         toolbar.getStyleClass().add("host-toolbar");
         toolbar.setPadding(new Insets(4, 8, 8, 8));
+        hostToolbar = toolbar;
         var wrapLength = Bindings.max(220, toolbar.widthProperty().subtract(16));
         schriftSegmentPane.prefWrapLengthProperty().bind(wrapLength);
         formatSegmentPane.prefWrapLengthProperty().bind(wrapLength);
@@ -1250,6 +1241,25 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private record FootnoteDialogResult(boolean delete, String content) {
     }
 
+    private void onLanguageToolToggle() {
+        languageToolEnabled = btnToggleLanguageTool.isSelected();
+        CanvasEditorPrefs.putBoolean(preferences, "languagetool_auto", languageToolEnabled);
+        if (languageToolEnabled) {
+            scheduleLanguageToolCheckDebounced();
+            updateStatus("LanguageTool an");
+        } else {
+            cancelLanguageToolChecks();
+            languageToolHasBeenChecked = false;
+            languageToolLastCheckFailed = false;
+            languageToolLastError = null;
+            languageToolCheckPending = false;
+            languageToolRestartAttempted = false;
+            editor.clearLanguageToolMatches();
+            updateLanguageToolStatus();
+            updateStatus("LanguageTool aus");
+        }
+    }
+
     private void onAgentsToggle() {
         if (chapterAgentSupport == null || !chapterAgentSupport.isAvailable()) {
             return;
@@ -1295,58 +1305,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     private void editImageAtCaret() {
-        ManuskriptTextEditor.ImageBlockInfo info = editor.getImageBlockAtCaret();
-        if (info == null) {
-            updateStatus("Kein Bild am Cursor – Bild anklicken oder Cursor im Bild platzieren", true);
-            return;
-        }
-
-        CustomAlert alert = new CustomAlert(CustomAlert.AlertType.INFORMATION);
-        alert.setTitle("Bild bearbeiten");
-        alert.setHeaderText("Bild bearbeiten");
-        alert.initOwner(stage);
-
-        VBox contentBox = new VBox(10);
-        contentBox.setPadding(new Insets(10));
-
-        Label fileLabel = new Label("Datei:");
-        Label fileValue = new Label(info.imagePath());
-        fileValue.setWrapText(true);
-
-        Label textLabel = new Label("Beschriftung:");
-        TextField textField = new TextField();
-        textField.setPromptText("Optionale Bildbeschriftung");
-        if (info.caption() != null) {
-            textField.setText(info.caption());
-        }
-
-        Label sizeLabel = new Label("Breite (%):");
-        Spinner<Integer> widthSpinner = new Spinner<>();
-        widthSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(10, 100, info.widthPercent(), 5));
-        widthSpinner.setEditable(true);
-        widthSpinner.setPrefWidth(80);
-
-        contentBox.getChildren().addAll(fileLabel, fileValue, textLabel, textField, sizeLabel, widthSpinner);
-        alert.setCustomContent(contentBox);
-        alert.applyTheme(themeIndex);
-        alert.setButtonTypes(new ButtonType("Übernehmen"), new ButtonType("Abbrechen"));
-
-        Optional<ButtonType> result = alert.showAndWait(stage);
-        if (result.isEmpty() || result.get().getButtonData().isCancelButton()) {
-            return;
-        }
-
-        int widthPercent = widthSpinner.getValue() == null ? info.widthPercent() : widthSpinner.getValue();
-        if (editor.updateImageBlockAtCaret(textField.getText(), widthPercent)) {
-            preferences.putInt(PREF_LAST_IMAGE_WIDTH, widthPercent);
-            String caption = textField.getText();
-            if (caption != null && !caption.isBlank()) {
-                preferences.put(PREF_LAST_IMAGE_ALT, caption);
-            }
-            updateStatus("Bild aktualisiert");
-        } else {
-            updateStatusError("Bild konnte nicht aktualisiert werden");
-        }
+        applyImageActionResult(MarkdownImageUi.edit(stage, themeIndex, preferences, editor));
     }
 
     private void ensureEditingShortcutsInstalled() {
@@ -1438,6 +1397,16 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         refreshStatusBusyBar();
     }
 
+    private void onEditorSelectionChanged() {
+        Platform.runLater(() -> {
+            updateSelectionCount();
+            saveChapterViewState();
+            if (externalSelectionChangeListener != null) {
+                externalSelectionChangeListener.run();
+            }
+        });
+    }
+
     private void initializeSelectionLabel() {
         lblSelectionCount = new Label("Auswahl: 0 Zeichen, 0 Wörter");
         lblSelectionCount.getStyleClass().add("selection-label");
@@ -1463,14 +1432,14 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     private void scheduleInitialLanguageToolCheck() {
-        if (!languageToolAutoEnabled) {
+        if (!languageToolEnabled) {
             return;
         }
         scheduleLanguageToolCheckDebounced();
     }
 
     private void scheduleLanguageToolCheckDebounced() {
-        if (!languageToolAutoEnabled) {
+        if (!languageToolEnabled) {
             return;
         }
         if (languageToolCheckTimeline != null) {
@@ -1559,7 +1528,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                     }
 
                     if (checkGeneration != languageToolCheckGeneration) {
-                        if (pending || languageToolAutoEnabled) {
+                        if (pending || languageToolEnabled) {
                             scheduleLanguageToolCheckDebounced();
                         }
                         return;
@@ -1584,7 +1553,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                     } else {
                         String currentText = editor.getText();
                         if (currentText == null || !textAtStart.equals(currentText)) {
-                            if (languageToolAutoEnabled) {
+                            if (languageToolEnabled) {
                                 scheduleLanguageToolCheckDebounced();
                             }
                             return;
@@ -1696,10 +1665,10 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         if (btnLanguageToolNext != null) {
             btnLanguageToolNext.setDisable(count <= 0);
         }
-        if (!languageToolAutoEnabled && !languageToolHasBeenChecked) {
+        if (!languageToolEnabled && !languageToolHasBeenChecked) {
             lblLanguageToolStatus.setText("");
             lblLanguageToolStatus.setStyle("-fx-text-fill: #666; -fx-font-size: 11px;");
-            lblLanguageToolStatus.setTooltip(new Tooltip("LanguageTool automatisch deaktiviert"));
+            lblLanguageToolStatus.setTooltip(new Tooltip("LanguageTool aus"));
         } else if (languageToolLastCheckFailed) {
             lblLanguageToolStatus.setText("!");
             lblLanguageToolStatus.setStyle("-fx-text-fill: #ff9800; -fx-font-size: 11px; -fx-font-weight: bold;");
@@ -1767,6 +1736,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         } finally {
             suppressDirty = false;
             scheduleInitialLanguageToolCheck();
+            if (worldTermHighlightSupport != null) {
+                worldTermHighlightSupport.refreshNow();
+            }
         }
     }
 
@@ -2164,122 +2136,23 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     private void insertImage() {
-        CustomAlert alert = new CustomAlert(CustomAlert.AlertType.INFORMATION);
-        alert.setTitle("Bild einfügen");
-        alert.setHeaderText("Bild einfügen");
-        alert.initOwner(stage);
-
-        VBox contentBox = new VBox(10);
-        contentBox.setPadding(new Insets(10));
-
-        Label pathLabel = new Label("Pfad:");
-        TextField pathField = new TextField();
-        pathField.setPromptText("Pfad zum Bild");
-        HBox.setHgrow(pathField, Priority.ALWAYS);
-        pathField.setText(preferences.get(PREF_LAST_IMAGE_PATH, ""));
-
-        Label textLabel = new Label("Beschriftung:");
-        TextField textField = new TextField();
-        textField.setPromptText("Optionale Bildbeschriftung");
-        HBox.setHgrow(textField, Priority.ALWAYS);
-        textField.setText(preferences.get(PREF_LAST_IMAGE_ALT, ""));
-
-        Label sizeLabel = new Label("Breite (%):");
-        Spinner<Integer> widthSpinner = new Spinner<>();
-        widthSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(10, 100, 80, 5));
-        widthSpinner.setEditable(true);
-        widthSpinner.setPrefWidth(80);
-        int savedWidth = preferences.getInt(PREF_LAST_IMAGE_WIDTH, 80);
-        widthSpinner.getValueFactory().setValue(Math.max(10, Math.min(100, savedWidth)));
-
-        Button btnBrowse = new Button("Durchsuchen...");
-        btnBrowse.setOnAction(e -> {
-            e.consume();
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Bild auswählen");
-            fileChooser.getExtensionFilters().addAll(
-                    new FileChooser.ExtensionFilter("Bilddateien", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp", "*.webp"),
-                    new FileChooser.ExtensionFilter("Alle Dateien", "*.*"));
-
-            String lastDirectory = preferences.get(PREF_LAST_IMAGE_DIRECTORY, "");
-            if (!lastDirectory.isBlank()) {
-                File dir = new File(lastDirectory);
-                if (dir.isDirectory()) {
-                    fileChooser.setInitialDirectory(dir);
-                }
-            } else {
-                File projectDir = resolveProjectDirectory();
-                if (projectDir != null && projectDir.isDirectory()) {
-                    fileChooser.setInitialDirectory(projectDir);
-                }
-            }
-
-            File selectedFile = fileChooser.showOpenDialog(alert.getDialogWindow());
-            if (selectedFile != null) {
-                pathField.setText(selectedFile.getAbsolutePath());
-                if (selectedFile.getParentFile() != null) {
-                    preferences.put(PREF_LAST_IMAGE_DIRECTORY, selectedFile.getParentFile().getAbsolutePath());
-                }
-            }
-        });
-
-        HBox pathBox = new HBox(10, pathField, btnBrowse);
-        HBox.setHgrow(pathField, Priority.ALWAYS);
-        HBox sizeBox = new HBox(8, sizeLabel, widthSpinner);
-        sizeBox.setAlignment(Pos.CENTER_LEFT);
-        contentBox.getChildren().addAll(pathLabel, pathBox, textLabel, textField, sizeBox);
-        alert.setCustomContent(contentBox);
-        alert.applyTheme(themeIndex);
-        ButtonType insertButton = new ButtonType("Einfügen");
-        ButtonType cancelButton = new ButtonType("Abbrechen");
-        alert.setButtonTypes(insertButton, cancelButton);
-
-        Optional<ButtonType> result = alert.showAndWait(stage);
-        if (result.isEmpty() || result.get() != insertButton) {
-            return;
-        }
-
         File projectDirectory = resolveProjectDirectory();
-        if (projectDirectory == null) {
-            CustomAlert error = new CustomAlert(CustomAlert.AlertType.WARNING);
-            error.setTitle("Kein Arbeitsverzeichnis");
-            error.setHeaderText("Kein Arbeitsverzeichnis");
-            error.setContentText("Bitte im Hauptfenster ein Projektverzeichnis wählen oder ein Kapitel laden.");
-            error.applyTheme(themeIndex);
-            error.initOwner(stage);
-            error.showAndWait(stage);
-            return;
-        }
-
-        String imagePath = pathField.getText();
-        String caption = textField.getText();
-        if (imagePath == null || imagePath.isBlank()) {
-            updateStatusError("Kein Bildpfad angegeben");
-            return;
-        }
-
-        try {
-            File sourceImage = new File(imagePath.trim());
-            if (!sourceImage.isFile()) {
-                updateStatusError("Bilddatei nicht gefunden");
-                return;
-            }
-
+        if (projectDirectory != null) {
             loadedProjectDirectory = projectDirectory;
-            File targetImage = MarkdownImageSupport.copyImageToProjectDirectory(sourceImage, projectDirectory);
-            int widthPercent = widthSpinner.getValue() == null ? 80 : widthSpinner.getValue();
-            String markdown = MarkdownImageSupport.buildMarkdown(targetImage.getName(), caption, widthPercent);
-            editor.insertText("\n\n" + markdown + "\n\n");
-            editor.setImageDirectories(resolveMdDirectory(), projectDirectory);
+        }
+        applyImageActionResult(MarkdownImageUi.insert(
+                stage, themeIndex, preferences,
+                projectDirectory, resolveMdDirectory(), editor));
+    }
 
-            preferences.put(PREF_LAST_IMAGE_PATH, sourceImage.getAbsolutePath());
-            preferences.putInt(PREF_LAST_IMAGE_WIDTH, widthPercent);
-            if (caption != null && !caption.isBlank()) {
-                preferences.put(PREF_LAST_IMAGE_ALT, caption);
-            }
-            updateStatus("Bild eingefügt: " + targetImage.getName());
-        } catch (IOException ex) {
-            updateStatusError("Bild konnte nicht kopiert werden: " + ex.getMessage());
+    private void applyImageActionResult(MarkdownImageUi.ActionResult result) {
+        if (result == null || result.outcome() == MarkdownImageUi.Outcome.CANCELLED) {
+            return;
+        }
+        if (result.outcome() == MarkdownImageUi.Outcome.FAILED) {
+            updateStatusError(result.message());
+        } else {
+            updateStatus(result.message());
         }
     }
 
@@ -2639,8 +2512,8 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             sceneOutlineWindow.hide();
             updateStatus("Szenen-Outline geschlossen");
         } else {
-            sceneOutlineWindow.show(stage != null ? stage.getScene() : null, docx, chapterName, themeIndex,
-                    getEditorFontFamily(), mdTextArea.getEditorFontSize());
+            sceneOutlineWindow.show(stage != null ? stage.getScene() : null, chapterName, themeIndex,
+                    getEditorFontFamily(), mdTextArea.getEditorFontSize(), docx, loadedChapterFile);
             updateStatus("Szenen-Outline geöffnet");
         }
     }
@@ -2650,8 +2523,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             return;
         }
         String chapterName = loadedChapterName != null ? loadedChapterName : loadedDocxFile.getName();
-        sceneOutlineWindow.reloadForChapter(stage != null ? stage.getScene() : null, loadedDocxFile, chapterName,
-                themeIndex, getEditorFontFamily(), mdTextArea.getEditorFontSize());
+        sceneOutlineWindow.reloadForChapter(stage != null ? stage.getScene() : null, chapterName,
+                themeIndex, getEditorFontFamily(), mdTextArea.getEditorFontSize(),
+                loadedDocxFile, loadedChapterFile);
     }
 
     // --- ChapterEditorHost ---
@@ -2808,7 +2682,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
     @Override
     public void setOnSelectionChanged(Runnable listener) {
-        editor.setOnSelectionChanged(listener);
+        externalSelectionChangeListener = listener;
     }
 
     @Override
@@ -2953,6 +2827,40 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         if (lektoratPanelContainer != null && mainSplitPane != null
                 && mainSplitPane.getItems().remove(lektoratPanelContainer)) {
             ChapterEditorSplitPreferences.apply(mainSplitPane);
+        }
+    }
+
+    /**
+     * Theme vom Hauptfenster übernehmen (Synchronisation beim Theme-Wechsel).
+     */
+    public void setThemeFromMainWindow(int newThemeIndex) {
+        themeIndex = newThemeIndex;
+        if (stage instanceof CustomStage customStage) {
+            customStage.setFullTheme(newThemeIndex);
+        }
+        applySyncedTheme(newThemeIndex);
+        Platform.runLater(() -> applySyncedTheme(newThemeIndex));
+    }
+
+    private void applySyncedTheme(int newThemeIndex) {
+        if (editorRoot != null) {
+            applyThemeToNode(editorRoot, newThemeIndex);
+        }
+        if (hostToolbar != null) {
+            applyThemeToNode(hostToolbar, newThemeIndex);
+        }
+        if (mdTextArea != null) {
+            mdTextArea.applyTheme(newThemeIndex);
+        }
+        applyChapterSidebarTheme();
+        if (btnToggleSidebar != null) {
+            SidebarToggleButtonSupport.updateAppearance(btnToggleSidebar, sidebarExpanded, newThemeIndex);
+        }
+        if (chapterAgentSupport != null) {
+            chapterAgentSupport.applyEditorAppearance();
+        }
+        if (worldTermHighlightSupport != null && worldTermHighlightEnabled) {
+            worldTermHighlightSupport.refreshNow();
         }
     }
 

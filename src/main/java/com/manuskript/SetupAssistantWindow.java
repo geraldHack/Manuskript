@@ -569,18 +569,48 @@ public final class SetupAssistantWindow {
     private static VBox buildLaunchersPane(Window owner, int themeIndex) {
         Label intro = new Label(
                 "Externe Programme als Button in der Haupt-Toolbar. "
+                        + "Die Checkbox steuert, ob der Button angezeigt wird. "
                         + "Sie laufen getrennt von Manuskript. Platzhalter in den Argumenten: "
                         + "{projectRoot}, {configDir}, {chapterFile}.");
         intro.setWrapText(true);
         intro.getStyleClass().add("dialog-label");
 
         ListView<ProgramLauncher> list = new ListView<>();
-        list.setPrefHeight(160);
+        list.setPrefHeight(200);
         list.setCellFactory(view -> new javafx.scene.control.ListCell<>() {
+            private final CheckBox visibleBox = new CheckBox();
+            private final Label name = new Label();
+            private final HBox cellRow = new HBox(8, visibleBox, name);
+
+            {
+                visibleBox.setTooltip(new javafx.scene.control.Tooltip("In der Haupt-Toolbar anzeigen"));
+                visibleBox.setOnAction(e -> {
+                    ProgramLauncher item = getItem();
+                    if (item == null) {
+                        return;
+                    }
+                    boolean show = visibleBox.isSelected();
+                    persistLauncherVisibility(item, show);
+                    name.setOpacity(show ? 1.0 : 0.55);
+                });
+                cellRow.setAlignment(Pos.CENTER_LEFT);
+                HBox.setHgrow(name, Priority.ALWAYS);
+                name.setMaxWidth(Double.MAX_VALUE);
+            }
+
             @Override
             protected void updateItem(ProgramLauncher item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty || item == null ? null : item.displayLabel());
+                if (empty || item == null) {
+                    setGraphic(null);
+                    setText(null);
+                    return;
+                }
+                visibleBox.setSelected(item.isVisibleInToolbar());
+                name.setText(item.displayLabel());
+                name.setOpacity(item.isVisibleInToolbar() ? 1.0 : 0.55);
+                setGraphic(cellRow);
+                setText(null);
             }
         });
         reloadLaunchers(list);
@@ -621,12 +651,26 @@ public final class SetupAssistantWindow {
         list.getItems().setAll(ProgramLauncherStore.load());
     }
 
+    private static void persistLauncherVisibility(ProgramLauncher item, boolean visible) {
+        if (item == null || item.getId() == null || item.getId().isBlank()) {
+            return;
+        }
+        item.setVisibleInToolbar(visible);
+        List<ProgramLauncher> all = ProgramLauncherStore.load();
+        for (ProgramLauncher existing : all) {
+            if (item.getId().equals(existing.getId())) {
+                existing.setVisibleInToolbar(visible);
+            }
+        }
+        ProgramLauncherStore.save(all);
+    }
+
     private static void editLauncher(Window owner, int themeIndex, ProgramLauncher existing, Runnable onSaved) {
         CustomStage dialog = StageManager.createModalStage(
                 existing == null ? "Programm hinzufügen" : "Programm bearbeiten", owner);
         dialog.initModality(Modality.WINDOW_MODAL);
         dialog.setWidth(560);
-        dialog.setHeight(420);
+        dialog.setHeight(460);
         dialog.setTitleBarTheme(themeIndex);
 
         TextField nameField = new TextField(existing != null ? nullToEmpty(existing.getLabel()) : "");
@@ -635,6 +679,9 @@ public final class SetupAssistantWindow {
         pathField.setPromptText("Programm, .jar oder Plugin");
         TextField argsField = new TextField(existing != null ? nullToEmpty(existing.getArguments()) : "");
         argsField.setPromptText("z. B. --config-dir={configDir}");
+        CheckBox visibleBox = new CheckBox("In der Haupt-Toolbar anzeigen");
+        visibleBox.setSelected(existing == null || existing.isVisibleInToolbar());
+        visibleBox.getStyleClass().add("dialog-label");
 
         ComboBox<File> pluginChoice = new ComboBox<>();
         pluginChoice.setMaxWidth(Double.MAX_VALUE);
@@ -714,6 +761,7 @@ public final class SetupAssistantWindow {
             item.setLabel(nameField.getText());
             item.setPath(path);
             item.setArguments(argsField.getText());
+            item.setVisibleInToolbar(visibleBox.isSelected());
             boolean replaced = false;
             for (int i = 0; i < all.size(); i++) {
                 if (item.getId().equals(all.get(i).getId())) {
@@ -738,7 +786,8 @@ public final class SetupAssistantWindow {
         HBox actions = new HBox(10, save, cancel);
         actions.setAlignment(Pos.CENTER_LEFT);
 
-        VBox root = new VBox(8, nameLbl, nameField, pluginLbl, pluginChoice, pathLbl, pathRow, argsLbl, argsField, actions);
+        VBox root = new VBox(8, nameLbl, nameField, pluginLbl, pluginChoice, pathLbl, pathRow, argsLbl, argsField,
+                visibleBox, actions);
         root.setPadding(new Insets(16));
         String bg = EditorDialogThemes.color(themeIndex, 0);
         root.setStyle("-fx-background-color: " + bg + ";");

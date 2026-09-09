@@ -49,7 +49,8 @@ public final class ChapterAgentQuoteActions {
             return;
         }
 
-        String rawSuggestion = prepareReplacementText(suggestion, host.getQuoteStyleIndex());
+        int quoteStyle = host.getQuoteStyleIndex();
+        String rawSuggestion = prepareReplacementText(suggestion, quoteStyle);
         String text = host.getText();
         if (text == null || text.isEmpty()) {
             return;
@@ -63,7 +64,7 @@ public final class ChapterAgentQuoteActions {
 
         QuoteNavigation.QuoteRange range = rangeOpt.get();
         String originalSlice = text.substring(range.start(), range.end());
-        String toInsert = rawSuggestion;
+        String toInsert = applyQuoteWrapping(originalSlice, rawSuggestion, quoteStyle);
 
         if (SelectionRevisionSupport.isLikelyTruncatedRewrite(originalSlice, rawSuggestion)) {
             String merged = SelectionRevisionSupport.mergeTruncatedRewrite(originalSlice, rawSuggestion);
@@ -72,7 +73,7 @@ public final class ChapterAgentQuoteActions {
                         + "Bitte kürzere Markierung wählen oder erneut analysieren.");
                 return;
             }
-            toInsert = merged;
+            toInsert = applyQuoteWrapping(originalSlice, merged, quoteStyle);
             host.replaceRangePreserveView(range.start(), range.end(), toInsert);
             host.updateStatus("Vorschlag übernommen (unvollständig – Rest der Markierung behalten).");
             return;
@@ -185,27 +186,59 @@ public final class ChapterAgentQuoteActions {
 
     /**
      * Bereitet Agenten-Vorschläge für die Ersetzung im Editor vor: Escapes normalisieren,
-     * Modell-Umhüllung entfernen, Anführungszeichen in den Editor-Stil konvertieren.
+     * Anführungszeichen in den Editor-Stil konvertieren. Äußere Anführungszeichen bleiben.
      */
     static String prepareReplacementText(String suggestion, int quoteStyleIndex) {
         if (suggestion == null || suggestion.isBlank()) {
             return suggestion != null ? suggestion : "";
         }
         String normalized = AgentResponseText.normalizeModelText(suggestion.trim());
-        normalized = stripPeripheralWrapperQuotes(normalized);
         return QuotationMarkSupport.convertTextToStyle(normalized, quoteStyleIndex);
     }
 
-    private static String stripPeripheralWrapperQuotes(String text) {
-        if (text == null || text.length() < 2) {
-            return text != null ? text : "";
+    /**
+     * Steht der Vorschlag oder das Originalzitat in Anführungszeichen, bleibt die
+     * Ersetzung ebenfalls in Anführungszeichen (Editor-Stil).
+     */
+    static String applyQuoteWrapping(String originalSlice, String replacement, int quoteStyleIndex) {
+        String prepared = prepareReplacementText(replacement, quoteStyleIndex);
+        if (prepared == null || prepared.isEmpty()) {
+            return prepared != null ? prepared : "";
         }
-        char open = text.charAt(0);
-        char close = text.charAt(text.length() - 1);
-        if ((open == '"' && close == '"')
-                || (open == '\u201E' && (close == '"' || close == '\u201C'))) {
-            return text.substring(1, text.length() - 1).trim();
+        if (isWrappedInQuotes(prepared)) {
+            return prepared;
         }
-        return text;
+        if (!isWrappedInQuotes(originalSlice)) {
+            return prepared;
+        }
+        String wrapped = wrappingOpen(originalSlice) + prepared + wrappingClose(originalSlice);
+        return QuotationMarkSupport.convertTextToStyle(wrapped, quoteStyleIndex);
+    }
+
+    static boolean isWrappedInQuotes(String text) {
+        if (text == null) {
+            return false;
+        }
+        String trimmed = text.strip();
+        return trimmed.length() >= 2
+                && isWrappingQuoteChar(trimmed.charAt(0))
+                && isWrappingQuoteChar(trimmed.charAt(trimmed.length() - 1));
+    }
+
+    private static char wrappingOpen(String text) {
+        return text.strip().charAt(0);
+    }
+
+    private static char wrappingClose(String text) {
+        String trimmed = text.strip();
+        return trimmed.charAt(trimmed.length() - 1);
+    }
+
+    private static boolean isWrappingQuoteChar(char c) {
+        return switch (c) {
+            case '"', '\'', '\u00AB', '\u00BB', '\u2018', '\u2019', '\u201A', '\u201B',
+                 '\u201C', '\u201D', '\u201E', '\u201F', '\u2039', '\u203A' -> true;
+            default -> false;
+        };
     }
 }

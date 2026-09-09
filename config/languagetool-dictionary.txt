@@ -90,6 +90,7 @@ kaels
 kala
 kalem
 kalems
+kasset
 kata
 kataluna
 katas
@@ -99,6 +100,7 @@ kisals
 knarl
 knarls
 konvergenzsäulen
+korvan
 kotta
 kottas
 lakan
@@ -121,6 +123,8 @@ melvaks
 morai
 naniten
 nelian
+nene
+nenes
 nicht-zirari
 nira
 niras
@@ -155,6 +159,7 @@ valdors
 valen
 valens
 valtheris
+vant
 varekan
 weltenfresser
 wrikung

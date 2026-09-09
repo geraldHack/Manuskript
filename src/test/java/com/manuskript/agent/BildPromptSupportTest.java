@@ -17,6 +17,15 @@ class BildPromptSupportTest {
     }
 
     @Test
+    void effectiveSystemPromptInjectsBindingExtra() {
+        String prompt = BildPromptSupport.effectiveSystemPrompt(null, "nah, Gegenlicht");
+        assertTrue(prompt.contains("VERBINDLICHER ZUSATZPROMPT"));
+        assertTrue(prompt.contains("nah, Gegenlicht"));
+        assertTrue(prompt.contains("Vorrang für Blickwinkel"));
+        assertTrue(prompt.indexOf("nah, Gegenlicht") < prompt.indexOf("STOPP-REGEL"));
+    }
+
+    @Test
     void clampMaxTokensCapsEndlessBudget() {
         assertEquals(768, BildPromptSupport.clampMaxTokens(11520));
         assertEquals(768, BildPromptSupport.clampMaxTokens(0));
@@ -90,20 +99,21 @@ class BildPromptSupportTest {
         assertEquals(BildPromptSupport.AUTHOR_INSTRUCTION,
                 BildPromptSupport.combineAuthorInstruction("  "));
         String combined = BildPromptSupport.combineAuthorInstruction("nah, Gegenlicht");
-        assertTrue(combined.startsWith(BildPromptSupport.AUTHOR_INSTRUCTION));
-        assertTrue(combined.contains("Zusätzlicher Prompt des Autors"));
+        assertTrue(combined.contains("VERBINDLICHER ZUSATZPROMPT"));
         assertTrue(combined.contains("nah, Gegenlicht"));
+        assertTrue(combined.contains("Setze den VERBINDLICHEN ZUSATZPROMPT"));
         assertFalse(combined.contains("MARKIERUNG"));
     }
 
     @Test
-    void combineAuthorInstructionPutsSelectionBeforeExtraPrompt() {
+    void combineAuthorInstructionPutsSelectionAfterExtraPrompt() {
         String combined = BildPromptSupport.combineAuthorInstruction(
                 "nah, Gegenlicht", "Die Figur kauert am Gitter.");
+        assertTrue(combined.contains("VERBINDLICHER ZUSATZPROMPT"));
+        assertTrue(combined.contains("nah, Gegenlicht"));
         assertTrue(combined.contains("=== MARKIERUNG BEGINN ==="));
         assertTrue(combined.contains("Die Figur kauert am Gitter."));
-        assertTrue(combined.contains("nah, Gegenlicht"));
-        assertTrue(combined.indexOf("MARKIERUNG") < combined.indexOf("Zusätzlicher Prompt"));
+        assertTrue(combined.indexOf("nah, Gegenlicht") < combined.indexOf("MARKIERUNG"));
     }
 
     @Test

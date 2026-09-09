@@ -690,9 +690,20 @@ public class CustomAlert {
      * Owner setzen (für Kompatibilität)
      */
     public void initOwner(Window owner) {
-        if (stage != null) {
+        if (stage != null && owner != null && stage.getOwner() == null && !stage.isShowing()) {
             stage.initOwner(owner);
         }
+    }
+
+    private void bindOwnerAndCenter(Window owner) {
+        initOwner(owner);
+        if (explicitModality == null && !stage.isShowing()) {
+            try {
+                stage.initModality(Modality.WINDOW_MODAL);
+            } catch (IllegalStateException ignored) {
+            }
+        }
+        centerOnOwner(owner);
     }
 
     /**
@@ -717,7 +728,7 @@ public class CustomAlert {
     
     private void centerOnOwner(Window owner) {
         if (owner != null && stage != null) {
-            Platform.runLater(() -> DialogPositioning.centerOnOwner(stage, owner));
+            DialogPositioning.centerWhenShown(stage, owner);
         }
     }
     
@@ -856,14 +867,10 @@ public class CustomAlert {
      * Alert anzeigen und warten (mit Owner)
      */
     public Optional<ButtonType> showAndWait(Window owner) {
-        
-        if (owner != null) {
-            stage.initOwner(owner);
-            stage.initModality(Modality.WINDOW_MODAL);
-              
-            // Zentriere auf dem Owner-Fenster
-            centerOnOwner(owner);
-        } else {
+        Window effective = owner != null ? owner : stage.getOwner();
+        if (effective != null) {
+            bindOwnerAndCenter(effective);
+        } else if (explicitModality == null && !stage.isShowing()) {
             stage.initModality(Modality.APPLICATION_MODAL);
         }
         
@@ -893,16 +900,9 @@ public class CustomAlert {
      * Alert anzeigen (nicht blockierend, mit Owner)
      */
     public void show(Window owner) {
-        if (owner != null) {
-            stage.initOwner(owner);
-            // Nur Modality setzen, wenn sie nicht explizit gesetzt wurde
-            if (explicitModality == null && !stage.isShowing()) {
-                stage.initModality(Modality.WINDOW_MODAL);
-            }
-            // Wenn explicitModality gesetzt wurde, wurde es bereits in initModality() gesetzt
-            
-            // Zentriere auf dem Owner-Fenster
-            centerOnOwner(owner);
+        Window effective = owner != null ? owner : stage.getOwner();
+        if (effective != null) {
+            bindOwnerAndCenter(effective);
         } else {
             // Nur Modality setzen, wenn sie nicht explizit gesetzt wurde
             if (explicitModality == null && !stage.isShowing()) {

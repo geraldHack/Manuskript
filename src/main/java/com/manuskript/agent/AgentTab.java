@@ -23,6 +23,7 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -48,6 +49,7 @@ public class AgentTab extends ScrollPane {
     private final TextField nameField;
     private final TextArea promptArea;
     private final ComboBox<String> backendCombo;
+    private final CheckBox useParameterModelCheck;
     private final FilterableModelSelector modelSelector;
     private final Slider temperatureSlider;
     private final Label temperatureValueLabel;
@@ -175,15 +177,25 @@ public class AgentTab extends ScrollPane {
 
         // Modell
         Label modelLabel = new Label("Modell:");
-        modelSelector = new FilterableModelSelector(false);
+        useParameterModelCheck = new CheckBox("Parameter-Modell verwenden");
+        useParameterModelCheck.setSelected(true);
+        useParameterModelCheck.setTooltip(new Tooltip(
+                "Modell aus den globalen Agent-Parametern (aktueller Provider). "
+                        + "Abwählen, um hier ein anderes Modell zu nutzen."));
+        modelSelector = new FilterableModelSelector(true);
         modelSelector.setUseModelHistory(true);
+        modelSelector.setSelectorDisabled(true);
         modelSelector.setValue(config.getModel());
+        modelSelector.setOnLoad(this::loadModelsAsync);
         modelSelector.setOnModelChanged(model -> {
             config.setModel(model);
             if (!availableModels.contains(model)) {
                 availableModels.add(model);
             }
             fireConfigChanged();
+        });
+        useParameterModelCheck.selectedProperty().addListener((obs, old, useParams) -> {
+            modelSelector.setSelectorDisabled(Boolean.TRUE.equals(useParams));
         });
 
         // Temperature
@@ -202,7 +214,7 @@ public class AgentTab extends ScrollPane {
         });
         HBox tempRow = createSliderRow("Temperatur:", temperatureSlider, temperatureValueLabel);
 
-        // Max Tokens (bis 32768 — Reasoning-Modelle / lange Plothole-Antworten)
+        // Max Tokens (bis 32768 bleibt wählbar; Plotloch-Default ist 2048)
         maxTokensSlider = new Slider(256, 32768, Math.min(32768, Math.max(256, config.getMaxTokens())));
         maxTokensSlider.setMajorTickUnit(1024);
         maxTokensSlider.setBlockIncrement(512);
@@ -210,10 +222,6 @@ public class AgentTab extends ScrollPane {
         maxTokensSlider.setTooltip(new Tooltip(
                 "Wird als max_tokens an die API übergeben (Ausgabe-Budget, nicht Kontextfenster)."));
         maxTokensValueLabel = new Label(String.valueOf(config.getMaxTokens()));
-        maxTokensValueLabel.setMinWidth(Region.USE_PREF_SIZE);
-        maxTokensValueLabel.setPrefWidth(Region.USE_COMPUTED_SIZE);
-        maxTokensValueLabel.setAlignment(Pos.CENTER_RIGHT);
-        HBox.setHgrow(maxTokensValueLabel, Priority.NEVER);
         maxTokensSlider.valueProperty().addListener((obs, old, val) -> {
             int intVal = (int) Math.round(val.doubleValue());
             maxTokensValueLabel.setText(String.valueOf(intVal));
@@ -281,7 +289,7 @@ public class AgentTab extends ScrollPane {
             freeformCheck,
             promptLabel, promptArea,
             backendLabel, backendCombo,
-            modelLabel, modelSelector,
+            modelLabel, useParameterModelCheck, modelSelector,
             tempRow, tokensRow, topPRow, penaltyRow,
             restoreDefaultsButton
         );
@@ -308,10 +316,11 @@ public class AgentTab extends ScrollPane {
             if (onRealtimeToggled != null) onRealtimeToggled.accept(realtimeEnabled);
         });
 
-        HBox buttonRow = new HBox(6);
+        analyzeButton.setWrapText(true);
+        realtimeToggle.setWrapText(true);
+
+        FlowPane buttonRow = new FlowPane(6, 6);
         buttonRow.getChildren().addAll(analyzeButton, realtimeToggle);
-        HBox.setHgrow(analyzeButton, Priority.ALWAYS);
-        HBox.setHgrow(realtimeToggle, Priority.ALWAYS);
         AgentActionButtonSupport.configureRow(buttonRow, analyzeButton, realtimeToggle);
         if (selectionRevision || idiomReview) {
             realtimeToggle.setVisible(false);
@@ -325,7 +334,6 @@ public class AgentTab extends ScrollPane {
             copyPromptButton.setTooltip(new Tooltip("Bild-Prompt in die Zwischenablage kopieren"));
             copyPromptButton.setOnAction(e -> copyFreeformOutputToClipboard());
             buttonRow.getChildren().add(copyPromptButton);
-            HBox.setHgrow(copyPromptButton, Priority.ALWAYS);
         }
 
         // === Findings-Liste ===
@@ -488,15 +496,7 @@ public class AgentTab extends ScrollPane {
     }
 
     private HBox createSliderRow(String labelText, Slider slider, Label valueLabel) {
-        Label caption = new Label(labelText);
-        caption.setPrefWidth(110);
-        caption.setMinWidth(110);
-
-        HBox row = new HBox(6);
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.getChildren().addAll(caption, slider, valueLabel);
-        HBox.setHgrow(slider, Priority.ALWAYS);
-        return row;
+        return AgentFontSizeSupport.createSliderRow(labelText, slider, valueLabel);
     }
 
     private static String formatValue(double v) {
@@ -525,7 +525,7 @@ public class AgentTab extends ScrollPane {
         AgentAnswerMdArea.applyFont(freeformOutputArea, currentFontFamily, size);
         AgentAnswerMdArea.applyFont(rewriteTextArea, currentFontFamily, size);
         applyAnswerTheme(currentThemeIndex);
-        AgentActionButtonSupport.applyFontSize(size, analyzeButton, realtimeToggle);
+        AgentActionButtonSupport.applyFontSize(12, analyzeButton, realtimeToggle);
         if (copyPromptButton != null && analyzeButton != null) {
             copyPromptButton.setMinHeight(analyzeButton.getMinHeight());
             copyPromptButton.setPrefHeight(analyzeButton.getPrefHeight());
@@ -539,6 +539,9 @@ public class AgentTab extends ScrollPane {
         }
         AgentAnswerMdArea.applyTheme(freeformOutputArea, currentThemeIndex);
         AgentAnswerMdArea.applyTheme(rewriteTextArea, currentThemeIndex);
+        if (contextPane != null) {
+            contextPane.applyTheme(currentThemeIndex);
+        }
     }
 
     // === Öffentliche API ===
@@ -558,6 +561,41 @@ public class AgentTab extends ScrollPane {
     public void setModels(List<String> models) {
         availableModels = new ArrayList<>(models);
         Platform.runLater(() -> modelSelector.setModels(availableModels));
+    }
+
+    public boolean isUseParameterModel() {
+        return useParameterModelCheck == null || useParameterModelCheck.isSelected();
+    }
+
+    public String getOverrideModel() {
+        return modelSelector != null ? modelSelector.getValue() : null;
+    }
+
+    public String resolveEffectiveModel() {
+        if (isUseParameterModel()) {
+            return config.getModel();
+        }
+        String override = getOverrideModel();
+        return override != null && !override.isBlank() ? override.trim() : config.getModel();
+    }
+
+    private void loadModelsAsync() {
+        reportStatus("Lade Modelle vom Parameter-Provider…");
+        new Thread(() -> {
+            try {
+                List<String> models = AgentModelCatalog.loadFromParameters();
+                Platform.runLater(() -> {
+                    availableModels = new ArrayList<>(models);
+                    modelSelector.setModels(models);
+                    if (!models.isEmpty() && (modelSelector.getValue() == null || modelSelector.getValue().isBlank())) {
+                        modelSelector.setValue(models.get(0));
+                    }
+                    reportStatus(models.size() + " Modelle geladen.");
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> reportStatusError("Modelle laden fehlgeschlagen: " + e.getMessage()));
+            }
+        }, "AgentTab-LoadModels").start();
     }
 
     public void setModel(String model) {

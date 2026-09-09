@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Dialog zur Auswahl der Kapitel fuer „Aus Kapiteln“ im Welt-Editor.
+ * Dialog zur Auswahl der Kapitel fuer „Aus Manuskript extrahieren“ im Welt-Editor.
  */
 public final class WorldEditorExtractChapterDialog {
 

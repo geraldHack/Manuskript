@@ -9,6 +9,8 @@ public final class ProgramLauncher {
     private String label;
     private String path;
     private String arguments;
+    /** {@code null} oder fehlend in alten JSON-Dateien = in der Toolbar anzeigen. */
+    private Boolean visibleInToolbar;
 
     public ProgramLauncher() {
     }
@@ -50,6 +52,18 @@ public final class ProgramLauncher {
 
     public void setArguments(String arguments) {
         this.arguments = arguments;
+    }
+
+    /**
+     * Ob der Starter als Button in der Haupt-Toolbar erscheint.
+     * Fehlendes JSON-Feld bleibt sichtbar, damit bestehende Einträge nicht verschwinden.
+     */
+    public boolean isVisibleInToolbar() {
+        return visibleInToolbar == null || visibleInToolbar;
+    }
+
+    public void setVisibleInToolbar(boolean visibleInToolbar) {
+        this.visibleInToolbar = visibleInToolbar;
     }
 
     public String displayLabel() {

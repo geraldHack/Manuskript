@@ -161,7 +161,7 @@ public class MainController implements Initializable {
     @FXML private Button btnWorldEditor;
     @FXML private Button btnNovelWizard;
     @FXML private Button btnSetupAssistant;
-    @FXML private HBox launcherToolbarBox;
+    @FXML private FlowPane launcherToolbarBox;
     @FXML private Button btnAudiobook;
     @FXML private Button btnNiLektoratSend;
     @FXML private Button btnNiLektoratImport;
@@ -197,6 +197,7 @@ public class MainController implements Initializable {
     
     // Map zur Verfolgung geöffneter Kapitel-Editoren (Legacy RichTextFX und Canvas)
     private static final Map<String, ChapterEditorHost> openChapterEditors = new HashMap<>();
+    private WorldEditorWindow worldEditorWindow;
 
     private static final String PREF_USE_CANVAS_CHAPTER_EDITOR = "use_canvas_chapter_editor";
 
@@ -730,6 +731,7 @@ public class MainController implements Initializable {
         btnSearchAllFiles.setOnAction(e -> searchAllFiles());
         applyFeatureVisibility();
         rebuildLauncherToolbar();
+        bindLauncherToolbarWrapLength();
         startBackgroundPlugins();
     }
 
@@ -1686,6 +1688,7 @@ public class MainController implements Initializable {
             }
             
             allDocxFiles.addAll(docsWithoutMd);
+            deduplicateDocxLists();
 
             List<DocxFile> reorderedSelected = new ArrayList<>();
             for (String fileName : savedOrder) {
@@ -1920,75 +1923,103 @@ public class MainController implements Initializable {
     }
     
     private void addNewDocxFiles(File directory) {
+        Runnable work = () -> addNewDocxFilesOnFxThread(directory);
+        if (Platform.isFxApplicationThread()) {
+            work.run();
+        } else {
+            Platform.runLater(work);
+        }
+    }
+
+    private void addNewDocxFilesOnFxThread(File directory) {
         try {
-            
-            // Sammle alle DOCX-Dateien im Verzeichnis (nur flach)
             Set<File> currentFiles = java.nio.file.Files.list(directory.toPath())
                     .filter(path -> path.toString().toLowerCase().endsWith(".docx"))
                     .map(java.nio.file.Path::toFile)
                     .collect(Collectors.toSet());
-            
-            // Sammle alle bereits geladenen Dateien
-            Set<File> existingFiles = new HashSet<>();
-            for (DocxFile docxFile : allDocxFiles) {
-                existingFiles.add(docxFile.getFile());
+
+            List<File> newFiles = new ArrayList<>();
+            for (File file : currentFiles) {
+                if (findDocxFileByFile(allDocxFiles, file) == null
+                        && findDocxFileByFile(selectedDocxFiles, file) == null) {
+                    newFiles.add(file);
+                }
             }
-            for (DocxFile docxFile : selectedDocxFiles) {
-                existingFiles.add(docxFile.getFile());
+
+            if (newFiles.isEmpty()) {
+                deduplicateDocxLists();
+                return;
             }
-            
-            // Finde neue Dateien
-            Set<File> newFiles = new HashSet<>(currentFiles);
-            newFiles.removeAll(existingFiles);
-            
-            if (!newFiles.isEmpty()) {
-                // WICHTIG: Alle UI-Operationen müssen im JavaFX-Thread ausgeführt werden
-                // ObservableLists (originalDocxFiles, selectedDocxFiles, allDocxFiles) sind UI-Komponenten
-                Platform.runLater(() -> {
-                boolean selectionChanged = false;
-                
-                // Füge neue Dateien hinzu
-                for (File file : newFiles) {
-                    DocxFile docxFile = new DocxFile(file);
-                    loadChapterMeta(docxFile);
+
+            boolean selectionChanged = false;
+            for (File file : newFiles) {
+                DocxFile docxFile = new DocxFile(file);
+                loadChapterMeta(docxFile);
+                if (findDocxFileByFile(originalDocxFiles, file) == null) {
                     originalDocxFiles.add(docxFile);
-                    
-                    // WICHTIG: Neue Dateien sollten NICHT als "changed" markiert werden
-                    docxFile.setChanged(false);
-                    
-                    // Prüfe: Hat die Datei eine MD-Datei?
-                    File mdFile = deriveMdFileFor(docxFile.getFile());
-                    boolean hasMdFile = mdFile != null && mdFile.exists();
-                    
-                    if (hasMdFile) {
-                        // Datei hat MD-Datei → nach rechts (am Ende)
+                }
+                docxFile.setChanged(false);
+
+                File mdFile = deriveMdFileFor(docxFile.getFile());
+                boolean hasMdFile = mdFile != null && mdFile.exists();
+                if (hasMdFile) {
+                    if (findDocxFileByFile(selectedDocxFiles, file) == null) {
                         selectedDocxFiles.add(docxFile);
                         selectionChanged = true;
-                    } else {
-                        // Datei hat keine MD-Datei → nach links
-                        allDocxFiles.add(docxFile);
                     }
+                } else if (findDocxFileByFile(allDocxFiles, file) == null) {
+                    allDocxFiles.add(docxFile);
                 }
-                
-                // WICHTIG: Für alle neuen Dateien Hash prüfen/speichern und als unverändert markieren
-                if (!newFiles.isEmpty()) {
-                    checkAllDocxFilesForChanges();
-                }
-                
-                if (selectionChanged) {
-                    // NEU: Stelle die gespeicherte Reihenfolge wieder her, bevor wir speichern
-                    List<String> savedOrder = loadSavedOrder(directory);
-                    applySavedOrderToSelected(savedOrder);
-                    saveSelection(directory);
-                }
-                
-                updateStatus(newFiles.size() + " neue Dateien hinzugefügt");
-                });
-            } else {
             }
-            
+
+            deduplicateDocxLists();
+            checkAllDocxFilesForChanges();
+
+            if (selectionChanged) {
+                List<String> savedOrder = loadSavedOrder(directory);
+                applySavedOrderToSelected(savedOrder);
+                saveSelection(directory);
+            }
+
+            updateStatus(newFiles.size() + " neue Dateien hinzugefügt");
         } catch (Exception e) {
             logger.error("Fehler beim Hinzufügen neuer DOCX-Dateien", e);
+        }
+    }
+
+    private static DocxFile findDocxFileByFile(java.util.List<DocxFile> files, File file) {
+        for (DocxFile docxFile : files) {
+            if (DocxFile.filesEqual(docxFile.getFile(), file)) {
+                return docxFile;
+            }
+        }
+        return null;
+    }
+
+    private void deduplicateDocxLists() {
+        deduplicateDocxList(allDocxFiles);
+        deduplicateDocxList(selectedDocxFiles);
+        deduplicateDocxList(originalDocxFiles);
+    }
+
+    private static void deduplicateDocxList(ObservableList<DocxFile> list) {
+        LinkedHashMap<String, DocxFile> unique = new LinkedHashMap<>();
+        for (DocxFile docxFile : list) {
+            unique.putIfAbsent(docxIdentityKey(docxFile.getFile()), docxFile);
+        }
+        if (unique.size() != list.size()) {
+            list.setAll(unique.values());
+        }
+    }
+
+    private static String docxIdentityKey(File file) {
+        if (file == null) {
+            return "";
+        }
+        try {
+            return file.getCanonicalFile().getAbsolutePath();
+        } catch (Exception e) {
+            return file.getAbsolutePath();
         }
     }
     public void checkAllDocxFilesForChanges() {
@@ -4388,6 +4419,7 @@ public class MainController implements Initializable {
         ChapterEditorHost existing = findExistingChapterEditor(editorKey);
         if (existing instanceof ManuskriptEditorTestWindow canvasWindow) {
             Platform.runLater(() -> {
+                canvasWindow.setThemeFromMainWindow(currentThemeIndex);
                 if (canvasWindow.getStage() != null) {
                     canvasWindow.getStage().setIconified(false);
                     canvasWindow.getStage().toFront();
@@ -4410,6 +4442,7 @@ public class MainController implements Initializable {
                 chapterFile.getFileName(), mdFile, chapterFile.getFile(), text);
         window.openChapter(content, chapterFile.getFile());
         registerChapterEditor(editorKey, window);
+        window.setThemeFromMainWindow(currentThemeIndex);
         window.show();
         applyGlobalSearchIfMatching(window, chapterFile);
         return window;
@@ -5846,6 +5879,18 @@ public class MainController implements Initializable {
         
         // WICHTIG: Alle anderen Stages aktualisieren
         StageManager.applyThemeToAllStages(currentThemeIndex);
+
+        for (ChapterEditorHost host : new ArrayList<>(openChapterEditors.values())) {
+            ManuskriptEditorTestWindow canvas = host.asCanvasChapterEditor();
+            if (canvas != null) {
+                canvas.setThemeFromMainWindow(currentThemeIndex);
+                continue;
+            }
+            EditorWindow legacy = host.asLegacyEditorWindow();
+            if (legacy != null) {
+                legacy.setThemeFromMainWindow(currentThemeIndex);
+            }
+        }
     }
     
     /**
@@ -10203,6 +10248,15 @@ public class MainController implements Initializable {
         }
     }
 
+    private void bindLauncherToolbarWrapLength() {
+        if (launcherToolbarBox == null || mainContainer == null) {
+            return;
+        }
+        launcherToolbarBox.prefWrapLengthProperty().unbind();
+        launcherToolbarBox.prefWrapLengthProperty().bind(
+                Bindings.max(220, mainContainer.widthProperty().subtract(32)));
+    }
+
     private void rebuildLauncherToolbar() {
         if (launcherToolbarBox == null) {
             return;
@@ -10211,7 +10265,14 @@ public class MainController implements Initializable {
         startBackgroundPlugins();
         launcherToolbarBox.getChildren().clear();
         List<ProgramLauncher> launchers = ProgramLauncherStore.load();
-        if (loadedPlugins.isEmpty() && launchers.isEmpty()) {
+        boolean anyVisibleLauncher = false;
+        for (ProgramLauncher launcher : launchers) {
+            if (launcher != null && launcher.isVisibleInToolbar()) {
+                anyVisibleLauncher = true;
+                break;
+            }
+        }
+        if (loadedPlugins.isEmpty() && !anyVisibleLauncher) {
             launcherToolbarBox.setVisible(false);
             launcherToolbarBox.setManaged(false);
             return;
@@ -10228,6 +10289,9 @@ public class MainController implements Initializable {
             launcherToolbarBox.getChildren().add(button);
         }
         for (ProgramLauncher launcher : launchers) {
+            if (launcher == null || !launcher.isVisibleInToolbar()) {
+                continue;
+            }
             Button button = new Button(launcher.displayLabel());
             button.getStyleClass().add("main-toolbar-button");
             button.setMinWidth(Region.USE_PREF_SIZE);
@@ -10434,15 +10498,41 @@ public class MainController implements Initializable {
     }
 
     private void openWorldEditor() {
+        WorldEditorWindow editor = ensureWorldEditorWindow();
+        if (editor != null) {
+            editor.bringToFront();
+        }
+    }
+
+    /**
+     * Welt-Editor öffnen und zum Abschnitt springen (Figur, Ort oder Lore).
+     */
+    public void openWorldEditorAt(String filename, String sectionHeading) {
+        WorldEditorWindow editor = ensureWorldEditorWindow();
+        if (editor == null) {
+            return;
+        }
+        if (filename == null || filename.isBlank()) {
+            editor.bringToFront();
+            return;
+        }
+        editor.showAndNavigateTo(filename, sectionHeading != null ? sectionHeading : "");
+    }
+
+    private WorldEditorWindow ensureWorldEditorWindow() {
         String projectDirectory = getCurrentProjectPath();
         if (projectDirectory == null || projectDirectory.trim().isEmpty()) {
             showWarning("Kein Projekt ausgewählt", "Bitte wählen Sie zuerst ein Projektverzeichnis aus.");
-            return;
+            return null;
+        }
+
+        if (worldEditorWindow != null && worldEditorWindow.matchesProject(projectDirectory)) {
+            return worldEditorWindow;
         }
 
         Window owner = primaryStage != null ? primaryStage.getScene().getWindow() : null;
-        WorldEditorWindow worldEditor = new WorldEditorWindow(owner, projectDirectory, this);
-        worldEditor.show();
+        worldEditorWindow = new WorldEditorWindow(owner, projectDirectory, this);
+        return worldEditorWindow;
     }
 
     private void openSetupAssistant() {
@@ -10460,6 +10550,48 @@ public class MainController implements Initializable {
     public ChapterMarkdownContent loadSelectedChapterMarkdownForCanvas() {
         DocxFile selected = tableViewSelected != null ? tableViewSelected.getSelectionModel().getSelectedItem() : null;
         return loadChapterMarkdownForCanvas(selected);
+    }
+
+    /**
+     * Kapitel für KI-Kontext: zuerst fokussierter Kapitel-Editor, sonst Auswahl in der Buchliste.
+     */
+    public ChapterMarkdownContent resolveCurrentChapterForContext() {
+        for (ChapterEditorHost host : new ArrayList<>(openChapterEditors.values())) {
+            if (host == null || host.getStage() == null || !host.getStage().isShowing()) {
+                continue;
+            }
+            if (!host.getStage().isFocused()) {
+                continue;
+            }
+            File docx = host.getOriginalDocxFile();
+            String text = host.getText();
+            if (docx == null || text == null) {
+                continue;
+            }
+            String label = docx.getName().replace(".docx", "");
+            return new ChapterMarkdownContent(label, null, docx, text);
+        }
+        for (ChapterEditorHost host : new ArrayList<>(openChapterEditors.values())) {
+            if (host == null || host.getStage() == null || !host.getStage().isShowing()) {
+                continue;
+            }
+            File docx = host.getOriginalDocxFile();
+            String text = host.getText();
+            if (docx == null || text == null || text.isBlank()) {
+                continue;
+            }
+            String label = docx.getName().replace(".docx", "");
+            return new ChapterMarkdownContent(label, null, docx, text);
+        }
+        return loadSelectedChapterMarkdownForCanvas();
+    }
+
+    public String currentChapterContextLabel() {
+        ChapterMarkdownContent chapter = resolveCurrentChapterForContext();
+        if (chapter == null || chapter.content() == null || chapter.content().isBlank()) {
+            return "";
+        }
+        return chapter.fileName() != null ? chapter.fileName() : "";
     }
 
     /** @deprecated use {@link #loadSelectedChapterMarkdownForCanvas()} */

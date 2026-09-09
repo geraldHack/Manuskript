@@ -6,6 +6,8 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
+import javafx.scene.control.Spinner;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -1302,38 +1304,33 @@ public class CustomStage extends Stage {
             }
             return;
         }
-        // Theme-Klassen auf diesem Node anwenden
-        node.getStyleClass().removeAll("theme-dark", "theme-light", "weiss-theme", "pastell-theme", "blau-theme", "gruen-theme", "lila-theme");
-        switch (themeIndex) {
-            case 0: // Weiß
-                node.getStyleClass().add("weiss-theme");
-                break;
-            case 1: // Schwarz
-                node.getStyleClass().add("theme-dark");
-                break;
-            case 2: // Pastell
-                node.getStyleClass().add("pastell-theme");
-                break;
-            case 3: // Blau
-                node.getStyleClass().add("theme-dark");
-                node.getStyleClass().add("blau-theme");
-                break;
-            case 4: // Grün
-                node.getStyleClass().add("theme-dark");
-                node.getStyleClass().add("gruen-theme");
-                break;
-            case 5: // Lila
-                node.getStyleClass().add("theme-dark");
-                node.getStyleClass().add("lila-theme");
-                break;
+        if (!(node instanceof Spinner || node instanceof Slider || isInsideThemedControl(node))) {
+            node.getStyleClass().removeAll("theme-dark", "theme-light", "weiss-theme", "pastell-theme",
+                    "blau-theme", "gruen-theme", "lila-theme");
+            switch (themeIndex) {
+                case 0 -> node.getStyleClass().add("weiss-theme");
+                case 1 -> node.getStyleClass().add("theme-dark");
+                case 2 -> node.getStyleClass().add("pastell-theme");
+                case 3 -> node.getStyleClass().addAll("theme-dark", "blau-theme");
+                case 4 -> node.getStyleClass().addAll("theme-dark", "gruen-theme");
+                case 5 -> node.getStyleClass().addAll("theme-dark", "lila-theme");
+                default -> node.getStyleClass().add("theme-dark");
+            }
         }
-        // Rekursiv alle Kinder durchgehen
-        if (node instanceof Parent) {
-            Parent parent = (Parent) node;
+        if (node instanceof Parent parent) {
             for (Node child : parent.getChildrenUnmodifiable()) {
                 applyThemeToAllNodes(child, themeIndex);
             }
         }
+    }
+
+    private static boolean isInsideThemedControl(Node node) {
+        for (Node parent = node.getParent(); parent != null; parent = parent.getParent()) {
+            if (parent instanceof Spinner || parent instanceof Slider) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private String createTitleLabelStyle(String textColor) {

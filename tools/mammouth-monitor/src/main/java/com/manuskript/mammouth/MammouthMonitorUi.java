@@ -35,14 +35,17 @@ public final class MammouthMonitorUi {
         MammouthClient client = new MammouthClient(config.normalizedBaseUrl(), apiKey);
         KeyBar keyBar = new KeyBar(client, config.configRoot(), apiKey, keySource, openUrl);
         CreditsPanel creditsPanel = new CreditsPanel(client);
+        LogsPanel logsPanel = new LogsPanel(client);
         ModelsPanel modelsPanel = new ModelsPanel(client);
 
         Tab creditsTab = new Tab("Credits", creditsPanel);
         creditsTab.setClosable(false);
+        Tab logsTab = new Tab("Logs", logsPanel);
+        logsTab.setClosable(false);
         Tab modelsTab = new Tab("Modelle", modelsPanel);
         modelsTab.setClosable(false);
 
-        TabPane tabPane = new TabPane(creditsTab, modelsTab);
+        TabPane tabPane = new TabPane(creditsTab, logsTab, modelsTab);
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
         Button refreshButton = new Button("Neu laden");
@@ -50,6 +53,8 @@ public final class MammouthMonitorUi {
             Tab selected = tabPane.getSelectionModel().getSelectedItem();
             if (selected == creditsTab) {
                 creditsPanel.refresh();
+            } else if (selected == logsTab) {
+                logsPanel.refresh();
             } else if (selected == modelsTab) {
                 modelsPanel.refresh();
             }
@@ -88,6 +93,9 @@ public final class MammouthMonitorUi {
 
         keyBar.setOnSaved(key -> {
             creditsPanel.refresh();
+            if (tabPane.getSelectionModel().getSelectedItem() == logsTab) {
+                logsPanel.refresh();
+            }
             applyAutoRefresh.run();
         });
 
@@ -108,6 +116,8 @@ public final class MammouthMonitorUi {
         tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
             if (newTab == creditsTab) {
                 creditsPanel.refresh();
+            } else if (newTab == logsTab) {
+                logsPanel.refresh();
             } else if (newTab == modelsTab) {
                 modelsPanel.refresh();
             }
