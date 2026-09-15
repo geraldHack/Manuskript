@@ -53,6 +53,7 @@ public class WorldEditorWindow {
     private AIBackend aiBackend;
     private boolean suppressDirtyTracking = false;
     private int themeIndex;
+    private VBox contentRoot;
     private final Map<String, Boolean> fileToDirty = new HashMap<>();
 
     private MarkdownImageLightbox imageLightbox;
@@ -178,6 +179,7 @@ public class WorldEditorWindow {
         });
 
         VBox root = new VBox();
+        this.contentRoot = root;
         root.getStyleClass().addAll(getThemeStyleClasses(theme));
         root.getChildren().addAll(statusArea, tabPane);
         VBox.setVgrow(tabPane, Priority.ALWAYS);
@@ -190,6 +192,7 @@ public class WorldEditorWindow {
         if (cssPath != null) scene.getStylesheets().add(cssPath);
         stage.setTitleBarTheme(theme);
         stage.setSceneWithTitleBar(scene);
+        stage.setOnThemeChanged(this::applyLiveTheme);
         stage.setFullTheme(theme);
         stage.setOnShown(event -> {
             Tab selected = tabPane.getSelectionModel().getSelectedItem();
@@ -242,14 +245,28 @@ public class WorldEditorWindow {
 
     private static List<String> getThemeStyleClasses(int themeIndex) {
         switch (themeIndex) {
-            case 0: return java.util.Collections.singletonList("weiss-theme");
-            case 1: return java.util.Collections.singletonList("theme-dark");
-            case 2: return java.util.Collections.singletonList("pastell-theme");
-            case 3: return java.util.Collections.singletonList("blau-theme");
-            case 4: return java.util.Collections.singletonList("gruen-theme");
-            case 5: return java.util.Collections.singletonList("lila-theme");
-            default: return java.util.Collections.singletonList("weiss-theme");
+            case 0: return java.util.List.of("weiss-theme");
+            case 1: return java.util.List.of("theme-dark");
+            case 2: return java.util.List.of("pastell-theme");
+            case 3: return java.util.List.of("theme-dark", "blau-theme");
+            case 4: return java.util.List.of("theme-dark", "gruen-theme");
+            case 5: return java.util.List.of("theme-dark", "lila-theme");
+            default: return java.util.List.of("weiss-theme");
         }
+    }
+
+    private void applyLiveTheme(int newThemeIndex) {
+        this.themeIndex = newThemeIndex;
+        if (contentRoot != null) {
+            contentRoot.getStyleClass().removeAll(
+                    "theme-dark", "theme-light", "weiss-theme", "pastell-theme",
+                    "blau-theme", "gruen-theme", "lila-theme");
+            contentRoot.getStyleClass().addAll(getThemeStyleClasses(newThemeIndex));
+        }
+        for (WorldEditorTabContent content : fileToContent.values()) {
+            content.applyTheme(newThemeIndex);
+        }
+        refreshAllDirtyTabStyles();
     }
 
     private BorderPane createTabShell(String filename) {
@@ -369,6 +386,8 @@ public class WorldEditorWindow {
                 .hideMarkup(true)
                 .themeIndex(themeIndex)
                 .build());
+        textArea.getStyleClass().add("world-editor-textarea");
+        textArea.applyTheme(themeIndex);
         MdTextAreaTabContent content = new MdTextAreaTabContent(textArea);
         loadFile(filename, content);
         File projectDir = projectDirectory != null ? new File(projectDirectory) : null;

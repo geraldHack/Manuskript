@@ -47,8 +47,8 @@ public class Main extends Application {
             
             // Scene mit benutzerdefinierter Titelleiste setzen
             customStage.setSceneWithTitleBar(scene);
-            
-            
+            PreferencesManager.MultiMonitorValidator.installGlobalScreenWatcher();
+
             // WICHTIG: Kein setOnCloseRequest hier - wird in MainController.setPrimaryStage() behandelt
             customStage.show();
 
@@ -89,7 +89,10 @@ public class Main extends Application {
         } else if (osName.contains("windows")) {
             // Windows-spezifische Einstellungen
             System.setProperty("prism.order", "d3d,sw"); // Direkt3D mit Software-Fallback
-        } 
+        } else if (osName.contains("linux")) {
+            System.setProperty("prism.order", "es2,sw");
+            System.setProperty("jdk.gtk.version", "3");
+        }
         
         // Deaktiviert Hardware-Beschleunigung falls Probleme auftreten
         // System.setProperty("prism.order", "sw");

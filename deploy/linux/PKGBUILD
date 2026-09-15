@@ -1,0 +1,21 @@
+pkgname=manuskript
+pkgver=0.0.0
+pkgrel=1
+pkgdesc="Manuskript – Schreiben. Lektorieren. Produzieren."
+arch=('x86_64')
+url="https://spoteroxe.de"
+license=('LicenseRef-Manuskript')
+depends=('gtk3' 'glib2' 'libx11' 'libxtst' 'alsa-lib' 'libglvnd')
+options=(!strip)
+
+package() {
+  install -d "$pkgdir/opt/manuskript"
+  cp -a "$startdir/app-image/." "$pkgdir/opt/manuskript/"
+  install -Dm644 "$startdir/manuskript.desktop" "$pkgdir/usr/share/applications/manuskript.desktop"
+  sed -i 's|^Exec=.*|Exec=/opt/manuskript/bin/Manuskript|' "$pkgdir/usr/share/applications/manuskript.desktop"
+  if [[ -f "$startdir/manuskript.png" ]]; then
+    install -Dm644 "$startdir/manuskript.png" "$pkgdir/usr/share/pixmaps/manuskript.png"
+  fi
+  install -d "$pkgdir/usr/bin"
+  ln -s /opt/manuskript/bin/Manuskript "$pkgdir/usr/bin/manuskript"
+}

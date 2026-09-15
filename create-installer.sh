@@ -310,7 +310,6 @@ upload_dmg_to_spoteroxe() {
     } > "$notes_file"
 
     js_file="${ROOT_DIR}/deploy/spoteroxe/manuskript-download.js"
-    html_file="${ROOT_DIR}/deploy/spoteroxe/downloads.html"
 
     if ! scp -o BatchMode=yes "$notes_file" "${DEPLOY_HOST}:${DEPLOY_PATH}/${LATEST_TXT_NAME}"; then
         rm -f "$notes_file"
@@ -325,10 +324,7 @@ upload_dmg_to_spoteroxe() {
         scp -o BatchMode=yes "$js_file" "${DEPLOY_HOST}:/home/gehack/home/js/manuskript-download.js" || \
             echo "WARNUNG: scp von manuskript-download.js fehlgeschlagen."
     fi
-    if [[ -f "$html_file" ]]; then
-        scp -o BatchMode=yes "$html_file" "${DEPLOY_HOST}:/home/gehack/home/downloads.html" || \
-            echo "WARNUNG: scp von downloads.html fehlgeschlagen."
-    fi
+    # downloads.html nicht überschreiben – dort stehen auch andere Projekte (DeltaBlade, …).
 
     ssh -o BatchMode=yes "$DEPLOY_HOST" \
         "DEPLOY_PATH='${DEPLOY_PATH}' CURRENT='${DMG_NAME}' LATEST_TXT='${LATEST_TXT_NAME}' VERSION_TXT='${version_txt_name}' bash -s" <<'REMOTE'

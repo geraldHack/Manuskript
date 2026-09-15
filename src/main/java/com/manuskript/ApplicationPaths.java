@@ -114,6 +114,10 @@ public final class ApplicationPaths {
             if (looksLikeAppHome(contentsApp)) {
                 return contentsApp;
             }
+            File linuxLibApp = new File(appPath, "lib/app");
+            if (looksLikeAppHome(linuxLibApp)) {
+                return linuxLibApp;
+            }
             return appPath;
         }
 
@@ -133,7 +137,18 @@ public final class ApplicationPaths {
             }
         }
 
-        // Windows/Linux: Launcher neben app/
+        // Linux jpackage: …/Manuskript/bin/Manuskript → …/lib/app
+        if ("bin".equalsIgnoreCase(parent.getName())) {
+            File root = parent.getParentFile();
+            if (root != null) {
+                File linuxLibApp = new File(root, "lib/app");
+                if (linuxLibApp.isDirectory()) {
+                    return linuxLibApp;
+                }
+            }
+        }
+
+        // Windows: Launcher neben app/
         File siblingApp = new File(parent, "app");
         if (siblingApp.isDirectory()) {
             return siblingApp;
@@ -255,10 +270,15 @@ public final class ApplicationPaths {
     }
 
     /**
-     * Nutzer-Dokumente ({@code ~/Documents} oder {@code ~/Dokumente}).
+     * Nutzer-Dokumente ({@code XDG_DOCUMENTS_DIR}, {@code ~/Documents} oder {@code ~/Dokumente}).
      */
     public static File userDocumentsDirectory() {
-        File fromHome = userDocumentsDirectory(System.getProperty("user.home", "."));
+        String home = System.getProperty("user.home", ".");
+        File fromXdgEnv = expandXdgPath(System.getenv("XDG_DOCUMENTS_DIR"), home);
+        if (fromXdgEnv != null && (fromXdgEnv.isDirectory() || fromXdgEnv.mkdirs())) {
+            return fromXdgEnv;
+        }
+        File fromHome = userDocumentsDirectory(home);
         if (fromHome.isDirectory() || fromHome.mkdirs()) {
             return fromHome;
         }
@@ -275,12 +295,52 @@ public final class ApplicationPaths {
 
     static File userDocumentsDirectory(String userHome) {
         Path home = Path.of(userHome != null && !userHome.isBlank() ? userHome : ".");
+        File fromUserDirs = readXdgDocumentsFromUserDirsFile(home.resolve(".config/user-dirs.dirs"), home.toString());
+        if (fromUserDirs != null && Files.isDirectory(fromUserDirs.toPath())) {
+            return fromUserDirs;
+        }
         Path documents = home.resolve("Documents");
         Path dokumente = home.resolve("Dokumente");
         if (Files.isDirectory(dokumente) && !Files.isDirectory(documents)) {
             return dokumente.toFile();
         }
         return documents.toFile();
+    }
+
+    static File readXdgDocumentsFromUserDirsFile(Path file, String userHome) {
+        if (file == null || !Files.isRegularFile(file)) {
+            return null;
+        }
+        try {
+            for (String line : Files.readAllLines(file)) {
+                String trimmed = line.trim();
+                if (trimmed.startsWith("#") || !trimmed.startsWith("XDG_DOCUMENTS_DIR=")) {
+                    continue;
+                }
+                String value = trimmed.substring("XDG_DOCUMENTS_DIR=".length()).trim();
+                if (value.length() >= 2 && value.startsWith("\"") && value.endsWith("\"")) {
+                    value = value.substring(1, value.length() - 1);
+                }
+                return expandXdgPath(value, userHome);
+            }
+        } catch (IOException ignored) {
+            return null;
+        }
+        return null;
+    }
+
+    static File expandXdgPath(String raw, String userHome) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        String value = raw.trim();
+        String home = userHome != null && !userHome.isBlank() ? userHome : ".";
+        if (value.startsWith("$HOME")) {
+            value = home + value.substring("$HOME".length());
+        } else if (value.startsWith("~")) {
+            value = home + value.substring(1);
+        }
+        return new File(value);
     }
 
     static boolean looksLikeDocumentsFolder(File dir) {

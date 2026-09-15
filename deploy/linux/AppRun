@@ -1,0 +1,12 @@
+#!/bin/sh
+# Startet das jpackage-App-Image. Wayland-Session bleibt erhalten (XWayland für JavaFX 21).
+# GDK_BACKEND wird nicht gesetzt.
+HERE="$(dirname "$(readlink -f "$0")")"
+if [ -x "$HERE/Manuskript/bin/Manuskript" ]; then
+    exec "$HERE/Manuskript/bin/Manuskript" "$@"
+fi
+if [ -x "$HERE/usr/bin/Manuskript" ]; then
+    exec "$HERE/usr/bin/Manuskript" "$@"
+fi
+echo "Manuskript-Launcher nicht gefunden." >&2
+exit 1

@@ -1415,8 +1415,8 @@ public class ManuskriptTextEditor extends Region {
     }
 
     /**
-     * Eingebettete Welt-Editor-Felder (Character Cards): gleiche Flächenfarben wie
-     * {@code world-editor-textarea}, nicht die dunkle Kapitel-Editor-Palette.
+     * Eingebettete Felder: dieselben Theme-Tokens wie CSS
+     * ({@code -fx-control-inner-background} / {@code -fx-text-fill}), nicht die Kapitel-Editor-Palette.
      */
     public void applyEmbeddedFieldTheme(int themeIndex) {
         getStyleClass().removeAll(
@@ -1436,31 +1436,31 @@ public class ManuskriptTextEditor extends Region {
         switch (Math.max(0, Math.min(5, themeIndex))) {
             case 0 -> {
                 background = "#ffffff";
-                text = "#1f1f1f";
+                text = "#000000";
                 selection = "#9ec9ff";
             }
             case 1 -> {
-                background = "#3d3d3d";
-                text = "#e0e0e0";
+                background = "#2d2d2d";
+                text = "#ffffff";
                 selection = "#375a7f";
             }
             case 2 -> {
-                background = "#ffffff";
-                text = "#4a148c";
+                background = "#f3e5f5";
+                text = "#000000";
                 selection = "#c7a6d8";
             }
             case 3 -> {
-                background = "#172554";
+                background = "#1e40af";
                 text = "#ffffff";
                 selection = "#3b82f6";
             }
             case 4 -> {
-                background = "#022c22";
+                background = "#065f46";
                 text = "#ffffff";
                 selection = "#10b981";
             }
             default -> {
-                background = "#3b0764";
+                background = "#5b21b6";
                 text = "#ffffff";
                 selection = "#8b5cf6";
             }

@@ -580,9 +580,19 @@ public class LanguageToolService {
         boolean isWindows = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("win");
         String exeName = isWindows ? "java.exe" : "java";
 
-        // 1. Eingebettete Runtime neben der App (jpackage app-image: runtime/bin/java)
+        // 1. Eingebettete Runtime: Windows …/runtime/bin, Linux …/lib/runtime/bin (neben lib/app)
         File runtimeJava = new File("runtime" + File.separator + "bin" + File.separator + exeName);
         if (runtimeJava.isFile()) return runtimeJava.getAbsolutePath();
+        File appHome = ApplicationPaths.getApplicationHomeDirectory();
+        if (appHome != null) {
+            File besideHome = new File(appHome, "runtime" + File.separator + "bin" + File.separator + exeName);
+            if (besideHome.isFile()) return besideHome.getAbsolutePath();
+            File parent = appHome.getParentFile();
+            if (parent != null) {
+                File siblingRuntime = new File(parent, "runtime" + File.separator + "bin" + File.separator + exeName);
+                if (siblingRuntime.isFile()) return siblingRuntime.getAbsolutePath();
+            }
+        }
 
         // 2. JAVA_HOME
         String javaHome = System.getProperty("java.home");

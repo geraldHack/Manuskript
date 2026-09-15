@@ -105,8 +105,18 @@ public final class TtsBackend {
             Long elSeed = (seed > 0) ? seed : null;
             // Serverseitiges Pronunciation Dictionary hochladen/cachen (Alias-Eintraege)
             ElevenLabsClient.PronunciationDictionaryLocator dictLocator = ensurePronunciationDictionary(client, lex);
+            logger.info("ElevenLabs TTS Anfrage: model={} speed={} stability={} similarity={} speakerBoost={} style={} chars={}",
+                    modelId != null ? modelId : ElevenLabsClient.DEFAULT_MODEL_ID,
+                    String.format(java.util.Locale.ROOT, "%.2f", vs.speed),
+                    String.format(java.util.Locale.ROOT, "%.2f", vs.stability),
+                    String.format(java.util.Locale.ROOT, "%.2f", vs.similarityBoost),
+                    vs.useSpeakerBoost,
+                    String.format(java.util.Locale.ROOT, "%.2f", vs.style),
+                    preparedText.length());
             client.generateToFile(preparedText, voice.getElevenLabsVoiceId(), modelId, outputPath, vs, elSeed, dictLocator);
-            logger.info("ElevenLabs TTS generiert: {} (seed={}, dict={})", outputPath.getFileName(),
+            logger.info("ElevenLabs TTS generiert: {} (model={}, speed={}, seed={}, dict={})", outputPath.getFileName(),
+                    modelId != null ? modelId : ElevenLabsClient.DEFAULT_MODEL_ID,
+                    String.format(java.util.Locale.ROOT, "%.2f", vs.speed),
                     seed > 0 ? seed : "zufaellig", dictLocator != null ? dictLocator.dictionaryId : "keins");
             return outputPath;
         }

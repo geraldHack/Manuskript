@@ -46,6 +46,10 @@ public final class ToolSetupSupport {
         return System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("mac");
     }
 
+    public static boolean isLinux() {
+        return System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("linux");
+    }
+
     /** {@code null} wenn Pandoc nutzbar ist, sonst Kurzstatus. */
     public static String pandocStatus() {
         File exe = resolvePandocBinary();
@@ -210,6 +214,8 @@ public final class ToolSetupSupport {
                 out.accept("=== whisper-cpp installieren (Homebrew) ===");
             } else if (isWindows()) {
                 out.accept("=== whisper-cli installieren (Windows-ZIP) ===");
+            } else if (isLinux()) {
+                out.accept("=== whisper-cli (Linux) ===");
             } else {
                 return "Automatische whisper-cli-Installation ist unter diesem Betriebssystem nicht verfügbar. "
                         + "Bitte whisper.cpp manuell installieren oder OpenAI-Backend nutzen.";
@@ -412,7 +418,7 @@ public final class ToolSetupSupport {
         if (nested != null) {
             return nested;
         }
-        String[] known = {"/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg"};
+        String[] known = {"/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg", "/usr/bin/ffmpeg"};
         for (String path : known) {
             File f = new File(path);
             if (f.isFile()) {
@@ -426,9 +432,14 @@ public final class ToolSetupSupport {
     }
 
     private static File resolvePandocArchive() {
-        String[] names = isWindows()
-                ? new String[]{"pandoc.zip"}
-                : new String[]{"pandoc-mac.zip", "pandoc.zip"};
+        String[] names;
+        if (isWindows()) {
+            names = new String[]{"pandoc.zip"};
+        } else if (isMac()) {
+            names = new String[]{"pandoc-mac.zip", "pandoc.zip"};
+        } else {
+            names = new String[]{"pandoc-linux.zip", "pandoc.zip"};
+        }
         File pandocDir = ApplicationPaths.resolvePandocDirectory();
         for (String name : names) {
             File inDir = new File(pandocDir, name);

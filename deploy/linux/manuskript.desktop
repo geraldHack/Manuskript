@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Manuskript
+Comment=Schreiben. Lektorieren. Produzieren.
+Exec=manuskript
+Icon=manuskript
+Terminal=false
+Categories=Office;WordProcessor;
+MimeType=text/markdown;text/x-markdown;application/vnd.openxmlformats-officedocument.wordprocessingml.document;
+StartupWMClass=com-manuskript-Launcher
+Keywords=Schreiben;Manuskript;Buch;DOCX;

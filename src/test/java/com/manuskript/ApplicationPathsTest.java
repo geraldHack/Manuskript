@@ -35,6 +35,36 @@ class ApplicationPathsTest {
     }
 
     @Test
+    void userDocumentsDirectoryReadsXdgUserDirs(@TempDir Path home) throws Exception {
+        Path xdgDocs = home.resolve("MeineUnterlagen");
+        Files.createDirectories(xdgDocs);
+        Path config = home.resolve(".config");
+        Files.createDirectories(config);
+        Files.writeString(config.resolve("user-dirs.dirs"),
+                "XDG_DOCUMENTS_DIR=\"$HOME/MeineUnterlagen\"\n");
+        assertEquals(xdgDocs.toFile(), ApplicationPaths.userDocumentsDirectory(home.toString()));
+    }
+
+    @Test
+    void linuxJpackageLauncherResolvesLibApp(@TempDir Path root) throws Exception {
+        Path libApp = root.resolve("lib").resolve("app");
+        Files.createDirectories(libApp.resolve("config"));
+        Path launcher = root.resolve("bin").resolve("Manuskript");
+        Files.createDirectories(launcher.getParent());
+        Files.writeString(launcher, "#!/bin/sh\n");
+        File resolved = ApplicationPaths.resolveJpackageAppHome(launcher.toFile());
+        assertEquals(libApp.toFile().getCanonicalFile(), resolved.getCanonicalFile());
+    }
+
+    @Test
+    void linuxJpackageRootResolvesLibApp(@TempDir Path root) throws Exception {
+        Path libApp = root.resolve("lib").resolve("app");
+        Files.createDirectories(libApp.resolve("config"));
+        File resolved = ApplicationPaths.resolveJpackageAppHome(root.toFile());
+        assertEquals(libApp.toFile().getCanonicalFile(), resolved.getCanonicalFile());
+    }
+
+    @Test
     void seedCopiesGottDemoOnlyWhenMissing(@TempDir Path temp) throws Exception {
         Path bundled = temp.resolve("bundled");
         Path demo = bundled.resolve(ApplicationPaths.DEMO_PROJECT_NAME);

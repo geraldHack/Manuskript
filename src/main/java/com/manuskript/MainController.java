@@ -767,6 +767,8 @@ public class MainController implements Initializable {
                             PreferencesManager.DEFAULT_MAIN_WINDOW_WIDTH,
                             PreferencesManager.DEFAULT_MAIN_WINDOW_HEIGHT);
                     saveMainWindowGeometryNow();
+                    primaryStage.toFront();
+                    primaryStage.requestFocus();
                 } finally {
                     Platform.runLater(() -> restoringMainWindowGeometry = false);
                 }
@@ -2364,7 +2366,9 @@ public class MainController implements Initializable {
                 }
                 ChapterStatus value = status == null ? getTableRow().getItem().getStatus() : status;
                 iconLabel.setText(value.icon());
-                iconLabel.setStyle("-fx-text-fill: " + value.color() + "; -fx-font-size: 13px;");
+                iconLabel.getStyleClass().removeIf(c -> c.startsWith("chapter-status-") && !c.equals("chapter-status-icon"));
+                iconLabel.getStyleClass().add("chapter-status-" + value.id());
+                iconLabel.setStyle("");
                 setGraphic(iconLabel);
                 setTooltip(new Tooltip(value.label()));
             }
@@ -5677,6 +5681,7 @@ public class MainController implements Initializable {
         loadMainWindowProperties();
         scheduleMainTablesSplitRestore();
         installMainTablesSplitRestoreOnShown();
+        primaryStage.setOnScreenReset(this::resetAllScreenSettings);
 
         // CustomStage Theme-Synchronisation
         if (primaryStage instanceof CustomStage customStage) {
@@ -5686,13 +5691,6 @@ public class MainController implements Initializable {
         }
 
         // Stoppe WatchService beim Schließen und prüfe ob es das letzte Fenster ist
-        if (primaryStage.getScene() != null) {
-            EditingShortcuts.bindPlatformAccelerators(
-                    primaryStage.getScene().getAccelerators(),
-                    "R",
-                    () -> Platform.runLater(this::resetAllScreenSettings));
-        }
-
         primaryStage.setOnCloseRequest(event -> {
             saveMainWindowGeometryNow();
             saveTableColumnConfiguration();

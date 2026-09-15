@@ -610,6 +610,8 @@
     -fx-control-inner-background: #ffffff;
     -fx-text-box-border: #ced4da;
     -fx-mark-color: #000000;
+    -fx-selection-bar: #dbeafe;
+    -fx-selection-bar-text: #1f1f1f;
 }
 
 .weiss-theme .button {
@@ -695,10 +697,13 @@
 /* Dark Theme */
 .theme-dark {
     -fx-background-color: #343a40;
+    -fx-text-fill: #ffffff;
     -fx-accent: #6c757d;
-    -fx-control-inner-background: #495057;
+    -fx-control-inner-background: #2d2d2d;
     -fx-text-box-border: #6c757d;
     -fx-mark-color: #ffffff;
+    -fx-selection-bar: #4a5568;
+    -fx-selection-bar-text: #ffffff;
 }
 
 
@@ -796,6 +801,8 @@
     -fx-control-inner-background: #065f46;
     -fx-text-box-border: #10b981;
     -fx-mark-color: #ffffff;
+    -fx-selection-bar: #047857;
+    -fx-selection-bar-text: #ffffff;
 }
 
 .theme-dark.gruen-theme .button {
@@ -1137,6 +1144,8 @@
     -fx-control-inner-background: #f3e5f5;
     -fx-text-box-border: #ba68c8;
     -fx-mark-color: #000000;
+    -fx-selection-bar: #e1bee7;
+    -fx-selection-bar-text: #4a148c;
 }
 
 .pastell-theme VBox,
@@ -1335,8 +1344,8 @@
 
 .pastell-theme .check-box .box,
 .pastell-theme * .check-box .box {
-    -fx-background-color: -fx-control-inner-background;
-    -fx-border-color: -fx-text-box-border;
+    -fx-background-color: #f3e5f5;
+    -fx-border-color: #ba68c8;
     -fx-border-radius: 2px;
     -fx-background-radius: 2px;
     -fx-min-width: 16px;
@@ -1347,8 +1356,8 @@
 
 .pastell-theme .check-box:selected .box,
 .pastell-theme * .check-box:selected .box {
-    -fx-background-color: -fx-accent;
-    -fx-border-color: derive(-fx-accent, -20%);
+    -fx-background-color: #ce93d8;
+    -fx-border-color: #ba68c8;
 }
 
 .pastell-theme .check-box .mark,
@@ -1363,7 +1372,7 @@
 
 .pastell-theme .check-box:selected .mark,
 .pastell-theme * .check-box:selected .mark {
-    -fx-background-color: -fx-mark-color;
+    -fx-background-color: #4a148c;
     -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
     -fx-scale-x: 0.6;
     -fx-scale-y: 0.6;
@@ -2061,7 +2070,7 @@
 
 /* Text-Felder im dunklen Theme */
 .theme-dark .text-field {
-    -fx-background-color: #2d2d2d;
+    -fx-background-color: -fx-control-inner-background;
     -fx-text-fill: #ffffff;
     -fx-border-color: #4a5568;
     -fx-border-radius: 4px;
@@ -2146,13 +2155,13 @@
 
 /* Text-Areas im dunklen Theme */
 .theme-dark .text-area {
-    -fx-background-color: #2d2d2d;
+    -fx-background-color: -fx-control-inner-background;
     -fx-text-fill: #ffffff;
     -fx-border-color: #4a5568;
 }
 
 .theme-dark .text-area .content {
-    -fx-background-color: #2d2d2d;
+    -fx-background-color: -fx-control-inner-background;
 }
 
 /* Split-Panes im dunklen Theme */
@@ -2170,7 +2179,7 @@
 }
 
 .theme-dark .tab-header-background {
-    -fx-background-color: #2d2d2d;
+    -fx-background-color: #1a1a1a;
 }
 
 .theme-dark .tab {
@@ -2179,7 +2188,7 @@
 }
 
 .theme-dark .tab:selected {
-    -fx-background-color: #4a5568;
+    -fx-background-color: #1a1a1a;
 }
 
 .theme-dark .tab .label,
@@ -2497,6 +2506,8 @@
     -fx-control-inner-background: #1e40af;
     -fx-text-box-border: #3b82f6;
     -fx-mark-color: #ffffff;
+    -fx-selection-bar: #1e40af;
+    -fx-selection-bar-text: #ffffff;
 }
 
 .theme-dark.blau-theme VBox,
@@ -2661,6 +2672,8 @@
     -fx-control-inner-background: #5b21b6;
     -fx-text-box-border: #8b5cf6;
     -fx-mark-color: #ffffff;
+    -fx-selection-bar: #6b21a8;
+    -fx-selection-bar-text: #ffffff;
 }
 
 .theme-dark.lila-theme VBox,
@@ -4416,8 +4429,7 @@
 .pastell-theme .text-field,
 .pastell-theme .combo-box-base,
 .pastell-theme .combo-box,
-.pastell-theme .spinner,
-.pastell-theme .check-box {
+.pastell-theme .spinner {
     -fx-control-inner-background: #faf5ff;
     -fx-background-color: #faf5ff;
     -fx-text-fill: #311b92;
@@ -4426,17 +4438,17 @@
 }
 
 .pastell-theme .check-box .box {
-    -fx-background-color: #faf5ff;
-    -fx-border-color: #b39ddb;
+    -fx-background-color: #f3e5f5;
+    -fx-border-color: #ba68c8;
 }
 
 .pastell-theme .check-box:selected .box {
-    -fx-background-color: #7e57c2;
-    -fx-border-color: #311b92;
+    -fx-background-color: #ce93d8;
+    -fx-border-color: #ba68c8;
 }
 
 .pastell-theme .check-box:selected .mark {
-    -fx-background-color: #ffffff;
+    -fx-background-color: #4a148c;
 }
 
 /* Plugin Variable Dialog - Umfassende Pastell-Styles */
@@ -9649,8 +9661,45 @@
 }
 
 .chapter-status-icon {
-    -fx-font-size: 13px;
+    -fx-font-size: 14px;
     -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-font-weight: normal;
+}
+
+.chapter-status-in_arbeit { -fx-text-fill: #455a64; }
+.chapter-status-ueberarbeiten { -fx-text-fill: #c62828; }
+.chapter-status-lektorat { -fx-text-fill: #e65100; }
+.chapter-status-lektoriert { -fx-text-fill: #1565c0; }
+.chapter-status-fertig { -fx-text-fill: #2e7d32; }
+
+.pastell-theme .label.chapter-status-icon,
+.pastell-theme * .label.chapter-status-icon {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-background-radius: 0;
+    -fx-font-weight: normal;
+}
+
+.pastell-theme .chapter-status-in_arbeit { -fx-text-fill: #37474f; }
+.pastell-theme .chapter-status-ueberarbeiten { -fx-text-fill: #b71c1c; }
+.pastell-theme .chapter-status-lektorat { -fx-text-fill: #e65100; }
+.pastell-theme .chapter-status-lektoriert { -fx-text-fill: #0d47a1; }
+.pastell-theme .chapter-status-fertig { -fx-text-fill: #1b5e20; }
+
+.pastell-theme .main-toolbar .button,
+.pastell-theme .main-toolbar .main-toolbar-button {
+    -fx-background-color: #ce93d8;
+    -fx-text-fill: #4a148c;
+    -fx-border-color: #ab47bc;
+}
+
+.pastell-theme .main-toolbar .button:hover,
+.pastell-theme .main-toolbar .main-toolbar-button:hover {
+    -fx-background-color: #ba68c8;
+    -fx-text-fill: #4a148c;
+    -fx-border-color: #8e24aa;
 }
 
 .main-toolbar .action-group {
@@ -12016,17 +12065,35 @@
 }
 
 /* ===== Welt-Editor ===== */
+/* Farben: Theme-Tokens (-fx-control-inner-background, -fx-text-box-border, -fx-text-fill, -fx-accent).
+   Hier nur Layout und Spezialfälle (Dirty-Tabs, Aktionsbuttons). */
+
 .world-editor-root {
-    -fx-background-color: #f5f5f5;
+    -fx-background-color: inherit;
 }
 
 .world-editor-textarea {
     -fx-font-family: "Monaco", "Consolas", monospace;
     -fx-font-size: 13px;
-    -fx-background-color: #ffffff;
-    -fx-border-color: #ccc;
+    -fx-background-color: -fx-control-inner-background;
+    -fx-border-color: -fx-text-box-border;
+    -fx-text-fill: -fx-text-fill;
     -fx-border-radius: 4px;
     -fx-padding: 10px;
+}
+
+.theme-dark .world-editor-textarea {
+    -fx-background-color: #1a1a1a;
+}
+
+.theme-dark .world-editor-textarea .md-text-area-toolbar,
+.theme-dark.md-text-area-toolbar {
+    -fx-background-color: #1a1a1a;
+    -fx-border-color: #444444;
+}
+
+.theme-dark .character-card-field-editor.world-editor-textarea {
+    -fx-background-color: -fx-control-inner-background;
 }
 
 .world-editor-ai-button {
@@ -12053,86 +12120,6 @@
     -fx-background-color: #1976D2;
 }
 
-/* TabPane Styling */
-.world-editor-tab-pane {
-    -fx-background-color: #f5f5f5;
-    -fx-border-color: #ccc;
-    -fx-border-radius: 4px;
-}
-
-.world-editor-tab-pane .tab {
-    -fx-background-color: #e0e0e0;
-    -fx-background-radius: 4px 4px 0 0;
-    -fx-border-color: #ccc;
-    -fx-border-width: 1px 1px 0 1px;
-}
-
-.world-editor-tab-pane .tab:selected {
-    -fx-background-color: #ffffff;
-}
-
-.world-editor-tab-pane .tab-content-area {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #ccc;
-    -fx-border-width: 0 1px 1px 1px;
-    -fx-border-radius: 0 0 4px 4px;
-}
-
-.weiss-theme .tab-pane.world-editor-tab-pane .tab.world-editor-tab-dirty {
-    -fx-background-color: #ffe0b2;
-    -fx-border-color: #fb8c00;
-    -fx-border-width: 1 1 0 1;
-}
-
-.weiss-theme .tab-pane.world-editor-tab-pane .tab.world-editor-tab-dirty:selected {
-    -fx-background-color: #ffcc80;
-}
-
-.weiss-theme .tab-pane.world-editor-tab-pane .tab.world-editor-tab-dirty .world-editor-tab-label-dirty {
-    -fx-text-fill: #bf360c;
-    -fx-font-weight: bold;
-}
-
-.theme-dark .tab-pane.world-editor-tab-pane .tab.world-editor-tab-dirty {
-    -fx-background-color: #5d4037;
-    -fx-border-color: #ff9800;
-    -fx-border-width: 1 1 0 1;
-}
-
-.theme-dark .tab-pane.world-editor-tab-pane .tab.world-editor-tab-dirty:selected {
-    -fx-background-color: #6d4c41;
-}
-
-.theme-dark .tab-pane.world-editor-tab-pane .tab.world-editor-tab-dirty .world-editor-tab-label-dirty {
-    -fx-text-fill: #ffcc80;
-    -fx-font-weight: bold;
-}
-
-.world-editor-tab-pane .tab.world-editor-tab-dirty {
-    -fx-background-color: #ffe0b2;
-    -fx-border-color: #fb8c00;
-}
-
-.world-editor-tab-pane .tab.world-editor-tab-dirty:selected {
-    -fx-background-color: #ffcc80;
-}
-
-.world-editor-tab-pane .tab.world-editor-tab-dirty .tab-label {
-    -fx-text-fill: #bf360c;
-    -fx-font-weight: bold;
-}
-
-/* Dark Theme für Welt-Editor */
-.theme-dark .world-editor-root {
-    -fx-background-color: #2d2d2d;
-}
-
-.theme-dark .world-editor-textarea {
-    -fx-background-color: #3d3d3d;
-    -fx-border-color: #555;
-    -fx-text-fill: #e0e0e0;
-}
-
 .theme-dark .world-editor-ai-button {
     -fx-background-color: #66bb6a;
     -fx-text-fill: #1a1a1a;
@@ -12149,50 +12136,6 @@
 
 .theme-dark .world-editor-save-button:hover {
     -fx-background-color: #64b5f6;
-}
-
-.theme-dark .world-editor-tab-pane {
-    -fx-background-color: #2d2d2d;
-    -fx-border-color: #555;
-}
-
-.theme-dark .world-editor-tab-pane .tab {
-    -fx-background-color: #3d3d3d;
-    -fx-border-color: #555;
-}
-
-.theme-dark .world-editor-tab-pane .tab:selected {
-    -fx-background-color: #4d4d4d;
-}
-
-.theme-dark .world-editor-tab-pane .tab-content-area {
-    -fx-background-color: #3d3d3d;
-    -fx-border-color: #555;
-}
-
-.theme-dark .world-editor-tab-pane .tab.world-editor-tab-dirty {
-    -fx-background-color: #5d4037;
-    -fx-border-color: #ff9800;
-}
-
-.theme-dark .world-editor-tab-pane .tab.world-editor-tab-dirty:selected {
-    -fx-background-color: #6d4c41;
-}
-
-.theme-dark .world-editor-tab-pane .tab.world-editor-tab-dirty .tab-label {
-    -fx-text-fill: #ffcc80;
-    -fx-font-weight: bold;
-}
-
-/* Pastell Theme für Welt-Editor */
-.pastell-theme .world-editor-root {
-    -fx-background-color: #ede7f6;
-}
-
-.pastell-theme .world-editor-textarea {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #d1c4e9;
-    -fx-text-fill: #4a148c;
 }
 
 .pastell-theme .world-editor-ai-button {
@@ -12213,23 +12156,125 @@
     -fx-background-color: #9575cd;
 }
 
+/* Tab-Farben nur als Tokens am Pane; Layout einmal. */
+.world-editor-tab-pane {
+    -fx-background-color: inherit;
+    -fx-border-color: -fx-text-box-border;
+    -fx-border-radius: 4px;
+    -fx-we-tab-fill: derive(-fx-background, -6%);
+    -fx-we-tab-selected: -fx-accent;
+    -fx-we-tab-border: -fx-text-box-border;
+}
+
+.weiss-theme .world-editor-tab-pane {
+    -fx-we-tab-fill: #e9ecef;
+    -fx-we-tab-selected: #ffffff;
+    -fx-we-tab-border: #dee2e6;
+}
+
+.theme-dark .world-editor-tab-pane {
+    -fx-we-tab-fill: #2d2d2d;
+    -fx-we-tab-selected: #4d4d4d;
+    -fx-we-tab-border: #6c757d;
+}
+
 .pastell-theme .world-editor-tab-pane {
-    -fx-background-color: #ede7f6;
-    -fx-border-color: #d1c4e9;
+    -fx-we-tab-fill: #e1bee7;
+    -fx-we-tab-selected: #ce93d8;
+    -fx-we-tab-border: #ba68c8;
 }
 
-.pastell-theme .world-editor-tab-pane .tab {
-    -fx-background-color: #f3e5f5;
-    -fx-border-color: #d1c4e9;
+.blau-theme .world-editor-tab-pane {
+    -fx-we-tab-fill: #1e3a8a;
+    -fx-we-tab-selected: #3b82f6;
+    -fx-we-tab-border: #3b82f6;
 }
 
-.pastell-theme .world-editor-tab-pane .tab:selected {
-    -fx-background-color: #ffffff;
+.gruen-theme .world-editor-tab-pane {
+    -fx-we-tab-fill: #064e3b;
+    -fx-we-tab-selected: #059669;
+    -fx-we-tab-border: #10b981;
 }
 
-.pastell-theme .world-editor-tab-pane .tab-content-area {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #d1c4e9;
+.lila-theme .world-editor-tab-pane {
+    -fx-we-tab-fill: #4c1d95;
+    -fx-we-tab-selected: #7c3aed;
+    -fx-we-tab-border: #8b5cf6;
+}
+
+.tab-pane.world-editor-tab-pane:top > .tab-header-area {
+    -fx-padding: 4 6 8 6;
+}
+
+.tab-pane.world-editor-tab-pane:top > .tab-header-area > .tab-header-background {
+    -fx-background-insets: 0;
+    -fx-background-color: -fx-we-tab-fill;
+}
+
+.tab-pane.world-editor-tab-pane:top > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: -fx-we-tab-fill;
+    -fx-background-insets: 0;
+    -fx-border-color: -fx-we-tab-border;
+    -fx-border-insets: 0;
+    -fx-background-radius: 4 4 0 0;
+    -fx-border-radius: 4 4 0 0;
+    -fx-border-width: 1;
+    -fx-padding: 4 12 5 12;
+}
+
+.tab-pane.world-editor-tab-pane:top > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: -fx-we-tab-selected;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-border-width: 1;
+}
+
+.pastell-theme .tab-pane.world-editor-tab-pane .tab .label,
+.pastell-theme .tab-pane.world-editor-tab-pane .tab .tab-label,
+.pastell-theme .tab-pane.world-editor-tab-pane .world-editor-tab-label {
+    -fx-background-color: transparent;
+    -fx-text-fill: #4a148c;
+    -fx-padding: 0;
+    -fx-background-radius: 0;
+    -fx-font-weight: normal;
+}
+
+.world-editor-tab-pane .tab-content-area {
+    -fx-background-color: inherit;
+    -fx-border-color: -fx-text-box-border;
+    -fx-border-width: 0 1px 1px 1px;
+    -fx-border-radius: 0 0 4px 4px;
+}
+
+.world-editor-tab-pane .tab.world-editor-tab-dirty {
+    -fx-background-color: #ffe0b2;
+    -fx-border-color: #fb8c00;
+    -fx-border-width: 1;
+}
+
+.world-editor-tab-pane .tab.world-editor-tab-dirty:selected {
+    -fx-background-color: #ffcc80;
+}
+
+.world-editor-tab-pane .tab.world-editor-tab-dirty .tab-label,
+.world-editor-tab-pane .tab.world-editor-tab-dirty .world-editor-tab-label-dirty {
+    -fx-text-fill: #bf360c;
+    -fx-font-weight: bold;
+}
+
+.theme-dark .world-editor-tab-pane .tab.world-editor-tab-dirty {
+    -fx-background-color: #5d4037;
+    -fx-border-color: #ff9800;
+}
+
+.theme-dark .world-editor-tab-pane .tab.world-editor-tab-dirty:selected {
+    -fx-background-color: #6d4c41;
+}
+
+.theme-dark .world-editor-tab-pane .tab.world-editor-tab-dirty .tab-label,
+.theme-dark .world-editor-tab-pane .tab.world-editor-tab-dirty .world-editor-tab-label-dirty {
+    -fx-text-fill: #ffcc80;
+    -fx-font-weight: bold;
 }
 
 .pastell-theme .world-editor-tab-pane .tab.world-editor-tab-dirty {
@@ -12246,71 +12291,18 @@
     -fx-font-weight: bold;
 }
 
-/* FlowPane Styling für Toolbar */
 .action-group.flow-pane {
     -fx-padding: 0;
 }
 
-.theme-dark .action-group.flow-pane {
-    -fx-background-color: transparent;
-}
-
+.theme-dark .action-group.flow-pane,
 .pastell-theme .action-group.flow-pane {
     -fx-background-color: transparent;
 }
 
-/* Welt-Editor TabPane */
-.world-editor-tab-pane {
-    -fx-background-color: #f5f5f5;
-    -fx-border-color: #ccc;
-    -fx-border-radius: 4px;
-}
-
-.theme-dark .world-editor-tab-pane {
-    -fx-background-color: #2d2d2d;
-    -fx-border-color: #555;
-}
-
-.pastell-theme .world-editor-tab-pane {
-    -fx-background-color: #f3e5f5;
-    -fx-border-color: #d1c4e9;
-}
-
-/* Welt-Editor Button-Box */
 .world-editor-button-box {
     -fx-background-color: transparent;
     -fx-padding: 8 12 8 12;
-}
-
-/* Welt-Editor Save-Button */
-.world-editor-save-button {
-    -fx-background-color: #2196F3;
-    -fx-text-fill: white;
-    -fx-border-radius: 4px;
-    -fx-padding: 8px 16px;
-    -fx-font-weight: bold;
-}
-
-.world-editor-save-button:hover {
-    -fx-background-color: #1976D2;
-}
-
-.theme-dark .world-editor-save-button {
-    -fx-background-color: #42a5f5;
-    -fx-text-fill: #1a1a1a;
-}
-
-.theme-dark .world-editor-save-button:hover {
-    -fx-background-color: #64b5f6;
-}
-
-.pastell-theme .world-editor-save-button {
-    -fx-background-color: #7e57c2;
-    -fx-text-fill: white;
-}
-
-.pastell-theme .world-editor-save-button:hover {
-    -fx-background-color: #9575cd;
 }
 
 /* ===== Character Cards (Welt-Editor / Charaktere) ===== */
@@ -12336,13 +12328,49 @@
     -fx-background-color: transparent;
 }
 
+.character-card-list .scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-pref-height: 0;
+    -fx-min-height: 0;
+    -fx-max-height: 0;
+    -fx-padding: 0;
+}
+
 .character-card-list .list-cell {
     -fx-padding: 8 10;
     -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-width: 0;
+    -fx-pref-width: 0;
 }
 
-.character-card-list .list-cell:selected {
-    -fx-background-color: derive(-fx-accent, 70%);
+.character-card-list .list-cell:selected,
+.character-card-list .list-cell:filled:selected,
+.character-card-list .list-cell:filled:selected:focused {
+    -fx-background-color: -fx-selection-bar;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-width: 0;
+}
+
+.weiss-theme .character-card-list .list-cell VBox,
+.weiss-theme .character-card-list .list-cell HBox,
+.weiss-theme .character-card-list .list-cell .label,
+.theme-dark .character-card-list .list-cell VBox,
+.theme-dark .character-card-list .list-cell HBox,
+.theme-dark .character-card-list .list-cell .label,
+.pastell-theme .character-card-list .list-cell VBox,
+.pastell-theme .character-card-list .list-cell HBox,
+.pastell-theme .character-card-list .list-cell .label {
+    -fx-background-color: transparent;
+}
+
+.character-card-list .list-cell:selected .character-card-list-title,
+.character-card-list .list-cell:selected .character-card-list-subtitle,
+.character-card-list .list-cell:filled:selected .character-card-list-title,
+.character-card-list .list-cell:filled:selected .character-card-list-subtitle {
+    -fx-text-fill: -fx-selection-bar-text;
+    -fx-background-color: transparent;
 }
 
 .character-card-list-title {
@@ -12367,6 +12395,14 @@
 .character-card-detail-scroll {
     -fx-background-color: transparent;
     -fx-background: transparent;
+}
+
+.character-card-detail-scroll .scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-pref-height: 0;
+    -fx-min-height: 0;
+    -fx-max-height: 0;
+    -fx-padding: 0;
 }
 
 .character-detail-pane {
@@ -12466,219 +12502,32 @@
     -fx-padding: 24;
 }
 
-/* Weiss */
-.weiss-theme .character-card-short-field,
-.weiss-theme .character-card-name-field,
-.weiss-theme .character-cards-search,
-.weiss-theme .character-card-role-combo {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #ccc;
-    -fx-text-fill: #1f1f1f;
+/* Felder nutzen dieselben Tokens wie .text-field / .text-area. */
+.character-card-short-field,
+.character-card-name-field,
+.character-cards-search,
+.character-card-role-combo,
+.character-card-field-editor.world-editor-textarea,
+.character-card-portrait-pane {
+    -fx-background-color: -fx-control-inner-background;
+    -fx-border-color: -fx-text-box-border;
+    -fx-text-fill: -fx-text-fill;
 }
 
-.weiss-theme .character-card-field-label {
-    -fx-text-fill: #1f1f1f;
+.character-card-field-label {
+    -fx-text-fill: -fx-text-fill;
 }
 
-.weiss-theme .character-card-portrait-pane {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #ccc;
+.character-card-portrait-placeholder,
+.character-card-empty-label,
+.character-card-list-subtitle {
+    -fx-text-fill: derive(-fx-text-fill, 35%);
 }
 
-.weiss-theme .character-card-field-editor.world-editor-textarea {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #ccc;
+.character-cards-sidebar {
+    -fx-border-color: -fx-text-box-border;
 }
 
-.weiss-theme .character-card-portrait-placeholder,
-.weiss-theme .character-card-empty-label,
-.weiss-theme .character-card-list-subtitle {
-    -fx-text-fill: #616161;
-}
-
-.weiss-theme .character-card-list .list-cell:selected {
-    -fx-background-color: #e3f2fd;
-}
-
-.weiss-theme .character-cards-sidebar {
-    -fx-border-color: #ccc;
-}
-
-/* Dark */
-.theme-dark .character-card-short-field,
-.theme-dark .character-card-name-field,
-.theme-dark .character-cards-search,
-.theme-dark .character-card-role-combo {
-    -fx-background-color: #3d3d3d;
-    -fx-border-color: #555;
-    -fx-text-fill: #e0e0e0;
-}
-
-.theme-dark .character-card-field-label {
-    -fx-text-fill: #e0e0e0;
-}
-
-.theme-dark .character-card-portrait-pane {
-    -fx-background-color: #1f1f1f;
-    -fx-border-color: #444;
-}
-
-.theme-dark .character-card-field-editor.world-editor-textarea {
-    -fx-background-color: #3d3d3d;
-    -fx-border-color: #555;
-}
-
-.theme-dark .character-card-portrait-placeholder,
-.theme-dark .character-card-empty-label,
-.theme-dark .character-card-list-subtitle {
-    -fx-text-fill: #9ca3af;
-}
-
-.theme-dark .character-card-list .list-cell:selected {
-    -fx-background-color: #375a7f;
-}
-
-.theme-dark .character-cards-sidebar {
-    -fx-border-color: #555;
-}
-
-/* Pastell */
-.pastell-theme .character-card-short-field,
-.pastell-theme .character-card-name-field,
-.pastell-theme .character-cards-search,
-.pastell-theme .character-card-role-combo {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #d1c4e9;
-    -fx-text-fill: #4a148c;
-}
-
-.pastell-theme .character-card-field-label {
-    -fx-text-fill: #4a148c;
-}
-
-.pastell-theme .character-card-portrait-pane {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #d1c4e9;
-}
-
-.pastell-theme .character-card-field-editor.world-editor-textarea {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #d1c4e9;
-}
-
-.pastell-theme .character-card-portrait-placeholder,
-.pastell-theme .character-card-empty-label,
-.pastell-theme .character-card-list-subtitle {
-    -fx-text-fill: #7b1fa2;
-}
-
-.pastell-theme .character-card-list .list-cell:selected {
-    -fx-background-color: #e1bee7;
-}
-
-.pastell-theme .character-cards-sidebar {
-    -fx-border-color: #d1c4e9;
-}
-
-/* Blau / Grün / Lila (dark variants) */
-.blau-theme .character-card-short-field,
-.blau-theme .character-card-name-field,
-.blau-theme .character-cards-search,
-.blau-theme .character-card-role-combo {
-    -fx-background-color: #172554;
-    -fx-border-color: #3b82f6;
-    -fx-text-fill: #ffffff;
-}
-
-.blau-theme .character-card-field-label {
-    -fx-text-fill: #bfdbfe;
-}
-
-.blau-theme .character-card-portrait-pane {
-    -fx-background-color: #172554;
-    -fx-border-color: #3b82f6;
-}
-
-.blau-theme .character-card-field-editor.world-editor-textarea {
-    -fx-background-color: #172554;
-    -fx-border-color: #3b82f6;
-}
-
-.gruen-theme .character-card-short-field,
-.gruen-theme .character-card-name-field,
-.gruen-theme .character-cards-search,
-.gruen-theme .character-card-role-combo {
-    -fx-background-color: #022c22;
-    -fx-border-color: #10b981;
-    -fx-text-fill: #ffffff;
-}
-
-.gruen-theme .character-card-field-label {
-    -fx-text-fill: #bbf7d0;
-}
-
-.gruen-theme .character-card-portrait-pane {
-    -fx-background-color: #022c22;
-    -fx-border-color: #10b981;
-}
-
-.gruen-theme .character-card-field-editor.world-editor-textarea {
-    -fx-background-color: #022c22;
-    -fx-border-color: #10b981;
-}
-
-.lila-theme .character-card-short-field,
-.lila-theme .character-card-name-field,
-.lila-theme .character-cards-search,
-.lila-theme .character-card-role-combo {
-    -fx-background-color: #3b0764;
-    -fx-border-color: #8b5cf6;
-    -fx-text-fill: #ffffff;
-}
-
-.lila-theme .character-card-field-label {
-    -fx-text-fill: #e9d5ff;
-}
-
-.lila-theme .character-card-portrait-pane {
-    -fx-background-color: #3b0764;
-    -fx-border-color: #8b5cf6;
-}
-
-.lila-theme .character-card-field-editor.world-editor-textarea {
-    -fx-background-color: #3b0764;
-    -fx-border-color: #8b5cf6;
-}
-
-.blau-theme .character-card-portrait-placeholder,
-.blau-theme .character-card-empty-label,
-.blau-theme .character-card-list-subtitle,
-.gruen-theme .character-card-portrait-placeholder,
-.gruen-theme .character-card-empty-label,
-.gruen-theme .character-card-list-subtitle,
-.lila-theme .character-card-portrait-placeholder,
-.lila-theme .character-card-empty-label,
-.lila-theme .character-card-list-subtitle {
-    -fx-text-fill: #d1d5db;
-}
-
-.blau-theme .character-card-list .list-cell:selected {
-    -fx-background-color: #1e40af;
-}
-
-.gruen-theme .character-card-list .list-cell:selected {
-    -fx-background-color: #047857;
-}
-
-.lila-theme .character-card-list .list-cell:selected {
-    -fx-background-color: #6b21a8;
-}
-
-.blau-theme .character-cards-sidebar,
-.gruen-theme .character-cards-sidebar,
-.lila-theme .character-cards-sidebar {
-    -fx-border-color: derive(-fx-base, -18%);
-}
 
 /* ========================================
    ROMAN-ASSISTENT (Novel Wizard)

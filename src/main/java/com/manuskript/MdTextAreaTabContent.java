@@ -59,4 +59,9 @@ final class MdTextAreaTabContent implements WorldEditorTabContent {
     public void attachImageLightbox(MarkdownImageLightbox lightbox) {
         textArea.attachImageLightbox(lightbox);
     }
+
+    @Override
+    public void applyTheme(int themeIndex) {
+        textArea.applyTheme(themeIndex);
+    }
 }

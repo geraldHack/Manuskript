@@ -52,11 +52,12 @@ final class DictationWhisperSetup {
     static void show(Window owner, int themeIndex, String header, String detail) {
         boolean mac = WhisperRuntime.isMacOS();
         boolean windows = WhisperRuntime.isWindowsOS();
-        boolean autoInstallSupported = mac || windows;
+        boolean linux = WhisperRuntime.isLinuxOS();
+        boolean autoInstallSupported = mac || windows || linux;
         boolean exeMissing = WhisperRuntime.isExecutableMissing();
         boolean modelMissing = WhisperRuntime.isModelMissing();
         boolean brewOk = mac && WhisperRuntime.isHomebrewAvailable();
-        boolean canAutoInstallExe = (windows && exeMissing) || (mac && brewOk && exeMissing);
+        boolean canAutoInstallExe = (windows && exeMissing) || (mac && brewOk && exeMissing) || (linux && exeMissing);
 
         CustomAlert alert = new CustomAlert(CustomAlert.AlertType.CONFIRMATION);
         alert.setTitle(header != null && !header.isBlank() ? header : "Whisper einrichten");
@@ -71,12 +72,15 @@ final class DictationWhisperSetup {
         VBox.setVgrow(area, Priority.ALWAYS);
         alert.setCustomContent(content);
 
-        String installLabel = windows ? "Automatisch einrichten (Windows)" : "Mit Homebrew einrichten";
+        String installLabel = windows ? "Automatisch einrichten (Windows)"
+                : linux ? "whisper-cli prüfen (Linux)"
+                : "Mit Homebrew einrichten";
         ButtonType installAll = new ButtonType(installLabel, ButtonBar.ButtonData.OK_DONE);
         ButtonType modelOnly = new ButtonType("Nur Modell laden", ButtonBar.ButtonData.APPLY);
         ButtonType close = new ButtonType("Schließen", ButtonBar.ButtonData.CANCEL_CLOSE);
 
-        if (canAutoInstallExe || (mac && brewOk && modelMissing && !exeMissing)) {
+        if (canAutoInstallExe || (mac && brewOk && modelMissing && !exeMissing)
+                || (linux && modelMissing && !exeMissing)) {
             if (exeMissing && canAutoInstallExe) {
                 alert.setButtonTypes(installAll, modelOnly, close);
             } else if (!exeMissing && modelMissing) {
@@ -93,7 +97,8 @@ final class DictationWhisperSetup {
         } else if (!autoInstallSupported && exeMissing) {
             alert.setButtonTypes(close);
             area.setText(detail + "\n\nAutomatische Installation ist unter diesem System nicht verfügbar. "
-                    + "Bitte whisper.cpp manuell installieren oder OpenAI-Backend nutzen.");
+                    + "Bitte whisper.cpp manuell installieren (Linux: apt install whisper oder pacman -S whisper.cpp) "
+                    + "oder OpenAI-Backend nutzen.");
         } else {
             alert.setButtonTypes(close);
         }
@@ -122,7 +127,8 @@ final class DictationWhisperSetup {
         stage.setTitleBarTheme(themeIndex);
 
         String titleText = installBinary
-                ? (WhisperRuntime.isWindowsOS() ? "Binary + Modell" : "Homebrew + Modell")
+                ? (WhisperRuntime.isWindowsOS() ? "Binary + Modell"
+                : WhisperRuntime.isLinuxOS() ? "PATH + Modell" : "Homebrew + Modell")
                 : "Modell-Download";
         Label title = new Label(titleText);
         title.getStyleClass().add("dialog-title");

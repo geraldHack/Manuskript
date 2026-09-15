@@ -1,9 +1,14 @@
 package com.manuskript;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.prefs.Preferences;
+import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.Rectangle2D;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,9 +47,9 @@ public class PreferencesManager {
     public static final double MAX_WINDOW_WIDTH = 3000.0;
     public static final double MAX_WINDOW_HEIGHT = 2000.0;
     
-    // Position-Bereiche
-    public static final double MIN_POSITION = -1000.0;
-    public static final double MAX_POSITION = 5000.0;
+    // Position-Bereiche (negative X/Y: Monitor links/über dem Primary)
+    public static final double MIN_POSITION = -20000.0;
+    public static final double MAX_POSITION = 20000.0;
     
     /**
      * Lädt eine Double-Preference mit Validierung
@@ -325,15 +330,13 @@ public class PreferencesManager {
     }
 
     public static Rectangle2D defaultCenteredBounds(Stage stage, double width, double height) {
-        javafx.stage.Screen screen = stage != null && stage.getScene() != null
-                ? com.manuskript.windowhandling.ScreenDetector.getCurrentScreen(stage)
-                : javafx.stage.Screen.getPrimary();
-        Rectangle2D visual = screen.getVisualBounds();
-        double w = Math.min(width, visual.getWidth());
-        double h = Math.min(height, visual.getHeight());
-        double x = visual.getMinX() + (visual.getWidth() - w) / 2;
-        double y = visual.getMinY() + (visual.getHeight() - h) / 2;
-        return new Rectangle2D(x, y, w, h);
+        Rectangle2D visual = Screen.getPrimary().getVisualBounds();
+        if (stage != null && stage.isShowing()
+                && MultiMonitorValidator.isWindowVisibleOnAnyScreen(
+                        stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight())) {
+            visual = com.manuskript.windowhandling.ScreenDetector.getCurrentScreen(stage).getVisualBounds();
+        }
+        return WindowGeometry.centerOn(visual, width, height);
     }
 
     public static void applyDefaultWindowGeometry(Stage stage, double width, double height) {
@@ -352,29 +355,71 @@ public class PreferencesManager {
      * Intelligente Multi-Monitor-Validierung für Fenster-Position und -Größe
      */
     public static class MultiMonitorValidator {
-        
-        /**
-         * Prüft, ob ein Fenster auf einem der verfügbaren Bildschirme sichtbar ist
-         * Nur korrigieren wenn das Fenster komplett außerhalb aller Bildschirme ist
-         */
-        public static boolean isWindowVisibleOnAnyScreen(double x, double y, double width, double height) {
+
+        private static boolean screenListenerInstalled;
+
+        static List<Rectangle2D> currentVisualScreens() {
+            List<Rectangle2D> screens = new ArrayList<>();
             for (Screen screen : Screen.getScreens()) {
-                Rectangle2D bounds = screen.getBounds();
-                double screenX = bounds.getMinX();
-                double screenY = bounds.getMinY();
-                double screenWidth = bounds.getWidth();
-                double screenHeight = bounds.getHeight();
-                
-                // Prüfe, ob das Fenster mindestens teilweise auf diesem Bildschirm sichtbar ist
-                // Keine Toleranz - nur echte Überlappung zählt
-                boolean horizontallyVisible = x < screenX + screenWidth && x + width > screenX;
-                boolean verticallyVisible = y < screenY + screenHeight && y + height > screenY;
-                
-                if (horizontallyVisible && verticallyVisible) {
-                    return true;
+                screens.add(screen.getVisualBounds());
+            }
+            return screens;
+        }
+
+        public static void installGlobalScreenWatcher() {
+            if (screenListenerInstalled) {
+                return;
+            }
+            screenListenerInstalled = true;
+            Screen.getScreens().addListener((ListChangeListener<Screen>) change -> {
+                while (change.next()) {
+                    // Liste konsumieren – relevant ist nur, dass sich Monitore geändert haben.
+                }
+                Platform.runLater(MultiMonitorValidator::ensureAllStagesVisible);
+            });
+        }
+
+        public static void ensureAllStagesVisible() {
+            for (Window window : Window.getWindows()) {
+                if (window instanceof Stage stage && stage.isShowing()) {
+                    ensureStageVisible(stage);
                 }
             }
-            return false;
+        }
+
+        public static void ensureStageVisible(Stage stage) {
+            if (stage == null || !stage.isShowing()) {
+                return;
+            }
+            double width = stage.getWidth();
+            double height = stage.getHeight();
+            if (width < 80 || height < 80) {
+                return;
+            }
+            Rectangle2D current = new Rectangle2D(stage.getX(), stage.getY(), width, height);
+            Rectangle2D corrected = correctWindowPosition(
+                    current.getMinX(), current.getMinY(), current.getWidth(), current.getHeight());
+            if (Math.abs(current.getMinX() - corrected.getMinX()) < 1
+                    && Math.abs(current.getMinY() - corrected.getMinY()) < 1
+                    && Math.abs(current.getWidth() - corrected.getWidth()) < 1
+                    && Math.abs(current.getHeight() - corrected.getHeight()) < 1) {
+                return;
+            }
+            if (stage instanceof CustomStage customStage) {
+                customStage.restoreFromMaximizedIfNeeded();
+            } else if (stage.isMaximized()) {
+                stage.setMaximized(false);
+            }
+            applyWindowProperties(stage, corrected);
+            stage.toFront();
+        }
+        
+        /**
+         * Prüft, ob ein Fenster auf einem der verfügbaren Bildschirme wirklich nutzbar ist.
+         * Ein schmaler Streifen nach Monitorwechsel zählt nicht.
+         */
+        public static boolean isWindowVisibleOnAnyScreen(double x, double y, double width, double height) {
+            return WindowGeometry.isSubstantiallyVisible(x, y, width, height, currentVisualScreens());
         }
         
         /**
@@ -409,43 +454,14 @@ public class PreferencesManager {
          * Korrigiert Fenster-Position, falls es nicht auf einem Bildschirm sichtbar ist
          */
         public static Rectangle2D correctWindowPosition(double x, double y, double width, double height) {
-            // Prüfe zuerst, ob das Fenster bereits sichtbar ist
-            if (isWindowVisibleOnAnyScreen(x, y, width, height)) {
-                return new Rectangle2D(x, y, width, height);
+            List<Rectangle2D> screens = currentVisualScreens();
+            Rectangle2D fallback = Screen.getPrimary().getVisualBounds();
+            Rectangle2D corrected = WindowGeometry.snapIfNeeded(x, y, width, height, screens, fallback);
+            if (Math.abs(corrected.getMinX() - x) > 1 || Math.abs(corrected.getMinY() - y) > 1) {
+                logger.info("Fenster-Position korrigiert: ({},{}) -> ({},{})",
+                        x, y, corrected.getMinX(), corrected.getMinY());
             }
-            
-            // Finde den besten Bildschirm für das Fenster
-            Screen bestScreen = findBestScreenForWindow(x, y, width, height);
-            Rectangle2D screenBounds = bestScreen.getBounds();
-            
-            // Berechne zentrierte Position auf dem besten Bildschirm
-            double screenX = screenBounds.getMinX();
-            double screenY = screenBounds.getMinY();
-            double screenWidth = screenBounds.getWidth();
-            double screenHeight = screenBounds.getHeight();
-            
-            // Zentriere das Fenster auf dem Bildschirm, aber stelle sicher, dass es vollständig sichtbar ist
-            double newX = screenX + (screenWidth - width) / 2;
-            double newY = screenY + (screenHeight - height) / 2;
-            
-            // Stelle sicher, dass das Fenster nicht außerhalb des Bildschirms ist
-            newX = Math.max(screenX, Math.min(newX, screenX + screenWidth - width));
-            newY = Math.max(screenY, Math.min(newY, screenY + screenHeight - height));
-            
-            // Falls das Fenster zu groß für den Bildschirm ist, verkleinere es
-            if (width > screenWidth) {
-                width = screenWidth * 0.9;
-                newX = screenX + (screenWidth - width) / 2;
-            }
-            if (height > screenHeight) {
-                height = screenHeight * 0.9;
-                newY = screenY + (screenHeight - height) / 2;
-            }
-            
-            logger.info("Fenster-Position korrigiert: ({},{}) -> ({},{}) auf Bildschirm {}", 
-                       x, y, newX, newY, bestScreen);
-            
-            return new Rectangle2D(newX, newY, width, height);
+            return corrected;
         }
         
         /**
@@ -470,11 +486,12 @@ public class PreferencesManager {
             if (Double.isNaN(x) || Double.isNaN(y) || 
                 Double.isInfinite(x) || Double.isInfinite(y) ||
                 (x == -1 && y == -1)) {
-                // Keine gültige Position gespeichert - zentriere auf primärem Bildschirm
-                Screen primaryScreen = Screen.getPrimary();
-                Rectangle2D bounds = primaryScreen.getBounds();
-                x = bounds.getMinX() + (bounds.getWidth() - width) / 2;
-                y = bounds.getMinY() + (bounds.getHeight() - height) / 2;
+                Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+                Rectangle2D centered = WindowGeometry.centerOn(bounds, width, height);
+                x = centered.getMinX();
+                y = centered.getMinY();
+                width = centered.getWidth();
+                height = centered.getHeight();
             }
             
             // Korrigiere Position falls nötig

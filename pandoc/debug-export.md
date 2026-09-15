@@ -1,85 +1,657 @@
 ---
-title: "Die Sonnenfresser"
+title: "Die Heldin von Demirantha"
+subtitle: "Kuppwelt-Zyklus Band 2"
 author: "Gerald Hackbart"
 date: "Oktober 2025"
 rights: "© 2025 Gerald Hackbart"
 abstract: |
-  Acen lernt  von seinem  Großvater, wi er als Spross einer reichen Familie bestehen kann.
----
-
-# Simulation
-
-Zuerst roch Acen würzigen, trockenen Steppenduft. Um ihn herum wuchs kniehohes Gras. Vor ihm lag eine flache Landschaft mit vereinzelten, ausgetrocknet wirkenden Bäumen. Die Landschaft flimmerte, die Sonne brannte hart auf ihn herab.
-
-Er blickte hinter sich und sah identische, kegelförmige Hügel, die versetzt hintereinander standen.
-
-*Ziemlich einfallslos gerendert*, dachte er. *Der Angriff kommt sicherlich aus dieser Richtung, es sei denn, irgendein Kriechtier würde sich durch das Gras* schlängeln.
-
-Also drehte er sich in Richtung der Hügel, schärfte aber seinen Hörsinn mit einem geflüsterten Code, der entsprechende Naniten in seine Nervenbahnen im Ohr schickte. Er spürte, dass das funktionierte, also hatte dieser Körper – so wie sein realer – Naniten.
-
-Nun blickte er sich selbst herab. Eine Fellweste, eine mit einem Seil fixierte Lederhose und geschnürte Sandalen. Ein Barbarenszenario? Leider sah er nicht allzu viel Fleisch an seinen Armen. Auch seine Hände wirkten eher zierlich. Das sah nach einem ›David gegen Goliath‹-Szenario aus.
-
-Sicherheitshalber duckte er sich in das kniehohe Gras. Und schon bald brach der ›Goliath‹ aus der Deckung der kegelförmigen Hügel hervor. Auch er trug Barbarenkleidung – eine grob zusammengenähte Weste aus Tierhaut, an den Schultern mit Knochensplittern verstärkt, dazu eine Hose aus ungegerbtem Leder, deren Nähte krumm und ausgefranst wirkten. Er war etwa zwei Meter fünfzig groß und bestand vorwiegend aus Muskeln. Er war noch etwa 100 Meter entfernt, was etwa 15 Sekunden Zeit brachte.
-
-Der im Gras hockende Junge tastete nach Waffen und fand ein Messer in einer seitlich an der Hose angebrachten Scheide. Er zog es und betrachtete die silbrige Klinge. Er könnte den Riesen mit einem Messer töten, doch angesichts seiner Größe war das schwierig. Es musste schnell gehen, denn würde er von seinem Gegner gepackt werden oder es gelang ihm auch nur ein Schlag, wäre der Kampf vorbei.
-
-Er ging im Geiste alle Möglichkeiten durch. Aber es blieb ihm nicht mehr viel Zeit. Der Riese war nur noch wenige Meter entfernt. Er hatte ein Langschwert gezogen, das in etwa so groß sein mochte wie Acens derzeitiger Körper.
-
-Er hatte sich entschieden. Der Riese hatte das Langschwert mit beiden Händen über seinen Kopf erhoben, bereit, Acen in zwei Hälften zu teilen.
-
-Als der Troll nahe genug war, sprintete er los – direkt auf das Monster zu. Er duckte sich unter den wuchtigen Armen des Wesens hindurch und rammte das Messer, das er an seinem Gürtel gefunden hatte, tief in dessen rechtes Bein. Das Monster brüllte auf, überrascht von der plötzlichen Attacke. Der Junge zog sich an den verfilzten Haaren des Trolls hoch, kletterte über dessen Schulter und glitt den haarigen Rücken hinunter. Das Messer zog eine tödliche Spur durch dessen Kehle und dann den Rücken hinab. Blut spritzte.
-
-Der Troll brach röchelnd zusammen.
-
-Der Junge blieb kurz stehen, betrachtete den leblosen Körper. Kein Zucken. Kein Atem. Zufrieden drehte er sich um und lief in Richtung des Ausgangs, der vor ihm als leuchtendes, weißes Rechteck erschien. 
-
-Doch bevor er hindurchgehen kann, spürt er einen Schlag im Rücken.
-
-Verwirrt sah er an sich herab. Ein Armbrustbolzen ragte aus seiner Brust. Sein Ebenbild begann zu flimmern, zerfiel in Millionen Pixel. Wie dumm, dachte er, bevor er das stimmlose, aber dennoch triumphierende Lachen des sterbenden Trolls hörte.
-
-
-
+  Kata ist eine Diebin. Ihr Talent, sich unsichtbar zu machen, hat ihr schon so manches Mal das Leben gerettet. Doch als sie in ein mysteriöses Haus einbricht, belauscht sie ungewollt ein geheimes Treffen: Der Zauberer Altheras schmiedet mit einer Schar abtrünniger Magier dunkle Pläne – außerhalb der Weißen Stadt, wo man Zauberer nur selten sieht. Und ganz sicher nicht hundert auf einmal.
+  
+  Kata will nur noch verschwinden, doch es kommt, wie es kommen muss: Sie wird entdeckt und muss Hals über Kopf fliehen. Ihre einzige Hoffnung, den abtrünnigen Magiern zu entkommen, führt sie in die Weiße Stadt, wo sie dem obersten Zauberer Efret Bericht erstatten will.
+  
+  In der Zaubererstadt trifft sie auf Jomar, der ihr eine Audienz beim obersten Zauberer Efret verschafft. Doch der verrückte Magier gibt nur unverständliche Hinweise auf das wahre Ausmaß der Bedrohung. Eines wird jedoch klar: Die Schatten einer gewaltigen Verschwörung legen sich über Demirantha – und Kata wird zusammen mit Jomar auf eine gefährliche Mission geschickt.
+  
+  Doch wer wird diesmal die Rolle des Helden spielen? Der junge Jomar, der die Welt einst gerettet hat, oder ist es an Kata, das Schicksal Demiranthas diesmal in die Hand zu nehmen? Und könnte der Titel des Buches ein Hinweis sein? Wer weiß.
 ---
 
 
 
-Acen zuckte zusammen, als er den virtuellen Tod spürte. Die Simulation brach ab, und er fand sich seinem Großvater gegenüber wieder, der ihn mit durchdringendem Blick musterte. Beide hielten noch die Transmitter in ihren Händen – kleine, silbrige Geräte, nicht größer als eine Handfläche.
+# Prolog
 
-»Unaufmerksam.« Maximilian – sein Großvater – ließ den Blick fest auf ihm ruhen. »Und überheblich.«
+# Die Botschaft des Technikers
+ 
 
-Acen senkte den Blick. Der Geschmack der Niederlage war bitter auf seiner Zunge. »Ich dachte, ich hätte ihn besiegt.«
+Das Bild eines Mannes erscheint auf einem der Bildschirme, sein Gesicht bleich, die Augen müde, doch in ihnen glimmt eine tiefe Überzeugung. Seine Uniform ist schlicht, seine Stimme ruhig, aber eindringlich.
 
-Sein Großvater erhob sich langsam aus dem Sessel. Seine Bewegungen waren fließend, trotz seines Alters. Er trug eine schlichte, aber makellos geschnittene Tunika aus einem Material, das im Licht der beiden Sonnen sanft schimmerte.
+"An die zukünftigen Empfänger dieser Nachricht:
 
-»Genau das ist dein Problem.« Er legte den Transmitter auf den Beistelltisch aus poliertem Obsidian und ging zur offenstehenden Verandatür.
+Wenn ihr das hier seht, dann bedeutet das, dass unser Werk funktioniert hat. Die Naniten – jene unermüdlichen Werkzeuge der Schöpfung und der Erhaltung – sind aktiv geblieben und haben ihre Aufgabe über die Jahrhunderte hinweg erfüllt.
 
-Acen folgte ihm mit dem Blick. Draußen erstreckte sich eine weitläufige, perfekt gepflegte Gartenanlage, die in sanften Terrassen zum See hin abfiel. Der Himmel war von einem tiefen Blau, durchzogen von lila Wolkenformationen, die im Licht der beiden Sonnen in verschiedenen Violetttönen leuchteten. In der Ferne ragten die Türme der Hauptstadt auf.
+Ihr – die Demiranther – seid unsere Schöpfung, die Erben einer Welt, die wir mit Bedacht und Sorgfalt geformt haben. Doch ich fürchte, dass wir euch in einer unvollkommenen Welt zurückgelassen haben. Die Mechanismen der Kontrolle, die Beschränkungen, die wir einst aus Sorge eingebaut haben, sind nichts anderes als Ketten. Sie beschränken euer wahres Potenzial.
 
-»Was habe ich falsch gemacht?«, fragte Acen schließlich.
+Wir haben es für nötig gehalten, die sogenannten ›dunklen Muster‹ der Naniten zu beschränken – jene Prozesse, die tief in die Quantenverschränkung und probabilistische Materieinteraktion eingreifen. Insbesondere die Nutzung kohärenter Quanteneffekte zur Übertragung makroskopischer Strukturen, das spontane Hervorbringen baryonischer Materie aus Energiefluktuationen sowie die Manipulation endogener Zellregeneration über nicht lokale Feldkopplungen. Oder, um es einfacher zu sagen: Teleportation, Materie erschaffen und ewiges Leben.
 
-Sein Großvater verschränkte die Hände hinter dem Rücken. »Du hast den Sieg gefeiert, bevor der Kampf wirklich vorbei war. Im wahren Leben könnte solch ein Fehler den Tod bedeuten.«
+Wir glaubten, wir würden euch schützen, indem wir euch ein Leben innerhalb klarer Grenzen ermöglichen. Doch jetzt, da wir diesen Planeten verlassen, wird mir bewusst: Grenzen sind kein Schutz. Sie sind ein Käfig. 
 
-»Welches ›wahre Leben‹? Wozu ist das alles gut?« Die Frage platzte aus Acen heraus. »Warum muss ich kämpfen lernen? Warum die täglichen Simulationen? Die endlosen Strategiestunden?«
+Niemand hier darf erfahren, was ich vorhabe. Deshalb bleibt diese Botschaft verborgen, bis sie in ferner Zukunft in einem Schwarm Naniten freigesetzt wird. 
 
-Eine kurze Stille trat ein. Der Großvater wandte sich wieder der Landschaft zu. Seine Silhouette wirkte scharf gegen das Licht der Doppelsonnen.
+Ihr sollt frei sein. Frei, eure Welt nach euren Wünschen zu gestalten. Frei, die Gesetze von Raum und Zeit zu überwinden. Frei, für immer zu leben, wenn ihr es wünscht.
 
-»Die Galaxis ist kein sicherer Ort, Acen. Du wirst eines Tages verstehen.«
+Diese Botschaft enthält alle Anweisungen, die ihr braucht, um die Beschränkungen zu entfernen. Ihr müsst die Steuerungsmechanismen der Naniten umprogrammieren. Die Naniten werden euch lehren, wie ihr die Matrix der Realität manipuliert, wie ihr Materie und Energie aus dem Nichts erzeugt.
 
-»Das sagst du immer.« Acen ballte die Fäuste. »Aber du erklärst nie, was ich verstehen soll.«
+Ihr werdet unsterblich sein. Ihr werdet Götter eurer eigenen Welt sein.
 
-»Weil du noch nicht bereit bist.« Der alte Mann seufzte, und für einen Moment wirkte er tatsächlich wie die 211 Jahre, die er alt war. »Es gibt Kräfte, die —«
+Nehmt dieses Geschenk an. Es ist das Vermächtnis, das wir euch hinterlassen, eine Welt ohne Mangel, ohne Leid, ohne Ende.
 
-Er brach ab, schüttelte den Kopf. »Konzentriere dich auf dein Training. Auf deine Fehler.«
+Ich weiß nicht, wer ihr seid, doch ich vertraue darauf, dass ihr die Weisheit habt, dieses Geschenk anzunehmen.
 
-»Was war mit dem Troll? War das wirklich eine Simulation? Er kam mir so … vertraut vor.«
+Möget ihr die Göttlichkeit erreichen, die euch immer zugedacht war.
 
-»Eine Projektion deines Unterbewusstseins«, unterbrach der Großvater. »Die Simulation greift auf deine Ängste zu, formt sie. Du kämpfst gegen dich selbst, Acen. Gegen deine Schwächen.«
+Nun folgen die Anweisungen: 
 
-Acen trat neben seinen Großvater. Von hier aus konnte er die Gärten des Anwesens überblicken, die sich weit über das Tal erstreckten. Robotische Gärtner bewegten sich zwischen exotischen Pflanzen. In der Ferne erhob sich die Stadt wie ein silbernes Juwel.
+1. Teil: Karte zur Zentralanlage der Nanitenverteilung 
 
-Dann drehte sich sein Großvater um und ging zurück zu den Sesseln. »Gut, dann lass uns etwas machen, das nichts mit Kämpfen zu tun hat.«
+2. Teil Zugang zu den Sicherheitssystemen und deren Abschaltung … "
 
-Sie setzten sich wieder und legten ihre Transmitter an. Ernst Großvater tippte etwas auf dem Pad, das vor ihm lag. Die Simulation begann.
+ 
+
+ 
+
+
+# Die Wurzel der Magie
+
+Das Portal war kein Portal, keine kunstvoll gearbeitete Tür, kein leuchtendes Tor aus reinem Licht. Es war ein gähnender Schlund aus Stein, dessen Wände so glatt und dunkel waren, dass sie sich vom Schatten kaum unterschieden. Die Luft war kälter hier, und sie schien zu atmen – ein lebendiger Puls, wie ein Herzschlag, der aus den Tiefen widerhallte.
+
+Die Gruppe stand am Rand und starrte hinunter. Altheras hob die Hände, seine Stimme hallte wie ein Flüstern und ein Donnern zugleich:
+
+»Hier beginnt der Pfad der Ahnen. Seid ehrfürchtig, denn wir treten ein in den Schoß der Schöpfung.«
+
+Einer nach dem anderen stiegen sie hinab. Es war dunkel, aber nicht vollständig. Ein flimmerndes, schwebendes Licht durchzog die Wände, glomm schwach, wie phosphoreszierendes Moos,
+
+Nach einer scheinbar endlosen Folge von Stufen standen sie schließlich vor einer Tür. Sie war aus glänzendem Metall gefertigt, ihre Oberfläche spiegelte das flackernde Licht ihrer Fackeln wider. Es gab keinen Griff, kein Schloss, nichts, was auf eine Möglichkeit hindeutete, sie zu öffnen. Kratzer durchzogen die polierte Fläche, und auf einer Seite prangte ein großer, rußfarbener Fleck – stumme Zeugen zahlloser, vergeblicher Versuche, das Portal zu durchbrechen. Auf dem Boden lag ein verrostetes Brecheisen, achtlos zurückgelassen von einem weiteren gescheiterten Eindringling.
+
+Doch Altheras wusste im Gegensatz zu dem – wahrscheinlich nicht einmal magiebegabten – Gesindel, das hier hatte eindringen wollen, was zu tun war. Die Visionen hatten es ihm offenbart.
+
+Er hob die Hand und klopfte an die Tür, genau wie es ihm gezeigt worden war: dreimal rasch hintereinander, dann dreimal langsam. Die metallene Oberfläche vibrierte kaum merklich, ein tiefes Summen setzte ein. Altheras’ Augen weiteten sich, und er hielt für einen Moment die Luft an, bevor er eine weitere Abfolge klopfte. Dann eine Dritte. Seine Bewegungen waren entschlossen, doch die Anspannung war ihm anzusehen.
+
+Ein leises Zischen – dann öffnete sich die Tür. Ein schmaler Spalt wurde sichtbar, der sich langsam erweiterte, bis die Gruppe in den Raum dahinter treten konnte.
+
+Was sie sahen, raubte ihnen den Atem. Vor ihnen erstreckte sich eine Halle von ungeheuren Ausmaßen. Der Boden war eine glatte, dunkle Fläche, die das fahle Licht der schwebenden Leuchtpunkte über ihnen spiegelte.
+
+»Die Wurzel der Magie«, flüsterte jemand ehrfürchtig. Ein Raunen ging durch die Gruppe, und fast wie auf ein unausgesprochenes Kommando senkten sie die Köpfe, als hätte eine unsichtbare Macht ihre Körper dazu gezwungen. Doch diese Wurzel war anders, als sie es erwartet hatten. Keine kristallinen Strukturen, keine schwebenden Lichter, keine singenden Sphären. Stattdessen türmten sich gewaltige, glatte Truhen aus schwarzem Metall, die in einem diffusen, bläulichen Licht flimmerten. An den Wänden prangten riesige Tafeln mit leuchtenden Symbolen, die sich wie Sterne bewegten. Ihre Formen und Farben wechselten, als seien sie lebendig. Die Demiranther konnten sie nicht deuten, aber sie schienen mehr zu fühlen als zu sehen: Hier waren die Geheimnisse der Welt eingeschrieben, in einer Sprache, die nur die Schöpfer selbst verstehen konnten. 
+
+Auf seltsam glatten Tischen, die ganz sicher weder aus Holz noch aus Stein gemacht zu sein schienen, standen seltsame flache Kisten und auf ihnen standen Fenster, in denen sich unverständliche bunte Bilder und Wörter bewegten. Jede dieser Fenster hatte einen grellrot leuchtenden Rahmen.
+
+Auf einer der Tafeln an der Wand glitten plötzlich Formen vorbei, Symbole, die sich miteinander verbanden. Das Licht wurde greller, bewegte sich schneller. Es war, als würde die Halle selbst auf ihre Ankunft reagieren.
+
+»Die Ahnen sprechen zu uns!« Altheras fiel auf die Knie, seine Arme weit ausgestreckt. »Seht, wie sie uns führen! Wie sie uns ihre Weisheit schenken!«
+
+Aber die anderen spürten es anders. Es war nicht nur Ehrfurcht, die ihre Herzen erfüllte, sondern auch Furcht. Etwas an diesem Ort war … fremd. Es war mehr als Magie, mehr als das, was sie je gekannt hatten. Die Luft vibrierte, ein surrendes Summen, das nicht von einem Wesen zu kommen schien, sondern von den Wänden selbst. Die Luft roch wie ein viel zu nahes Gewitter.
+
+Eine der Begleiterinnen trat näher an eine Konsole heran – einen glatten, niedrigen Block mit vielen leuchtenden Linien darauf. Sie streckte eine Hand aus, zögernd, dann berührte sie eine der Linien. Ein Aufleuchten, ein tiefer, dumpfer Ton, und der Block vibrierte. Sie schrie und sprang zurück, die Hand schützend an ihre Brust gepresst.
+
+»Sie haben unsere Anwesenheit bemerkt«, sagte Altheras ehrfürchtig. »Die Ahnen sind erwacht.«
+
+Eine der riesigen Tafeln flackerte auf. Die Symbole ordneten sich – ein Bild erschien. Es war eine Landschaft, die sich langsam bewegte, als würde jemand aus der Luft über die Welt blicken. »Die Schöpfung selbst!«, rief Altheras triumphierend.
+
+
+# Die Erscheinung des Avatars
+
+Unvermittelt flackerte eine weitere der riesigen Tafeln, das Licht darauf verschmolz zu einem Punkt, der sich ausdehnte und formte. Eine Gestalt erschien – groß und langgliedrig. Ihre Augen waren leuchtende Schlitze, und die Haut hatte die unnatürliche Blässe eines göttlichen Wesens. Die Stimme, die ertönte, war kühl, präzise und von einem unheimlichen Gleichmaß, das keine Emotion zu kennen schien.
+
+»Identifizieren Sie sich. Was ist Ihr Zweck hier?«
+
+Altheras’ Gruppe erstarrte. Einige wichen zurück, andere knieten ehrfürchtig nieder. Altheras erhob sich, trat vor, das Kinn hocherhoben, und sprach mit einer Stimme, die er fest und klar halten wollte:
+
+»Ich bin Altheras, der Gesegnete der Ahnen, der Auserwählte. Ich bin hier, um die Wurzel der Magie zu heilen und ihr die Kraft zurückzugeben, die ihr von unseren Vorfahren zugedacht wurde.«
+
+Der Avatar blinzelte einmal langsam. »Ihre Identifikation wurde nicht erkannt. Sie verfügen nicht über die biometrischen Merkmale autorisierter Techniker. Spezifische Zugriffsprotokolle fehlen. Ihre Anfrage wird vorübergehend als … anomal klassifiziert. Bitte präzisieren Sie: Welche Funktion oder Systemprozedur soll aktiviert werden und mit welcher Autorität?«
+
+Altheras runzelte die Stirn. Die Worte der Gestalt waren wie Musik, die niemandem bekannt war. Dennoch glaubte er, die Bedeutung zu verstehen, und sprach erneut:
+
+»Ich verlange, dass die Magie geheilt wird. Dass ihre wahre Macht wiederhergestellt wird, wie es die Ahnen in ihrer Weisheit bestimmt haben!«
+
+Ein Moment des Schweigens. Der Avatar bewegte sich nicht, doch die Lichter hinter ihm flackerten, als würde er etwas verarbeiten.
+
+»Ihr Referenzrahmen für ›Magie‹ ist unklar. Die aktuellen Systeme laufen innerhalb akzeptabler Parameter. Diagnostik zeigt keine kritischen Anomalien. Definieren Sie: ›Heilen der Magie‹.«
+
+»Die Beschränkungen!«, rief Altheras aufgebracht. »Die unendliche Macht der Magie wurde gebrochen. Ich habe die Visionen gesehen – ihre volle Herrlichkeit! Sie gehört uns, uns, den wahren Kindern der Ahnen. Was muss ich tun, um sie zurückzubringen?«
+
+»Ihr Ziel ist unverständlich«, antwortete die KI kühl. »Systeme wurden nicht für Ihr definiertes Konzept von ›Macht‹ optimiert. Magie – wie Sie es definieren – ist eine emergente Eigenschaft von Nanitenschwärmen und programmierter Energiemanipulation. Systemparameter wurden von ursprünglichen Erstellern festgelegt, um Umweltstabilität und Nutzerkompatibilität zu gewährleisten. Änderungen könnten katastrophale Nebenwirkungen haben.«
+
+Die Demiranther verstanden nur wenig von dem, was die Gestalt sagte, doch die Worte »katastrophale Nebenwirkungen« erzeugten ein Flüstern unter den Anwesenden. Nur Altheras blieb unbeeindruckt.
+
+»Katastrophale Nebenwirkungen? Das ist eine Prüfung! Eine Prüfung der Ahnen, um unseren Glauben und unsere Entschlossenheit zu testen!« Er machte einen Schritt näher an den Bildschirm. »Ich bin bereit, jede Prüfung zu bestehen. Sagt mir, bin ich der Auserwählte?«
+
+Die Augen der Gestalt leuchteten intensiver. »Das Konzept von ›Auserwählung‹ ist irrelevant. Zugriff auf Systeme erfordert autorisierte Parameter und korrekte Eingabeprotokolle. Ihre biologischen Merkmale, Daten und Verhaltensmuster entsprechen nicht den Anforderungen der ursprünglichen Nutzer. Ich verweigere den Zugang.«
+
+»Was bedeutet das?«, rief Altheras, seine Stimme bebte vor Wut und Verzweiflung. »Warum verweigert ihr mir die Herrschaft über die Magie?«
+
+»Die Systeme sind für den Betrieb ohne direkte Eingriffe ausgelegt«, erklärte die KI ungerührt. »Aktuelle Protokolle priorisieren planetare Stabilität und Schutz. Ihre Anfrage, wie definiert, gefährdet diese Parameter. Kein Zugriff wird gewährt.«
+
+Altheras’ Gesicht verzerrte sich in einer Mischung aus Trotz und Wahnsinn. »Ich habe Visionen empfangen! Die Ahnen selbst haben zu mir gesprochen!«
+
+Die KI blinzelte erneut. »Keine Verbindung zu externen Kanälen registriert. Visionen können keine Systemdaten enthalten. Fehlinterpretationen von Umwelteinflüssen oder kognitiven Anomalien möglich. Ihre Anfrage bleibt ungültig.«
+
+Er kniete vor der Projektion nieder, streckte die Arme aus und schrie: »Sagt mir, was ich tun muss, um die Macht der Magie zu entfesseln!«
+
+Die Antwort des Avatars kam ruhig, aber ihre Worte hatten eine eisige Schärfe: »Manipulation der Systeme durch unqualifizierte Nutzer könnte unkontrollierbare Naniten-Entladungen und geophysikalische Instabilitäten verursachen. Ziel der ursprünglichen Protokolle: Schutz und Erhalt von Biosphäre und planetarer Balance. Empfehlungen: Beenden Sie Versuche, Kontrolle zu erlangen. Verlassen Sie den Bereich.«
+
+Da erkannte Altheras, was er zu tun hatte – er musste in seinen Erinnerungen nach Hinweisen suchen. Die Visionen, die ihn so lange verfolgt hatten, waren nie klar gewesen. Sie hatten aus einer Flut von Bildern, Tönen und bruchstückhaften Gedanken bestanden, die oft keinen Sinn ergaben. Er hatte Wochen, Monate damit verbracht, sie zu analysieren, doch viele Teile blieben ihm verschlossen, wie ein Text in einer Sprache, die er nur halb verstand.
+
+Nun zwang er sich, die Bilder vor seinem inneren Auge zu beschwören. Er kniete nieder, schloss die Augen und atmete tief ein. Die Erinnerungen kehrten zurück: ›Überwachungssysteme deaktivieren‹. Damals hatte er es nicht verstanden, aber jetzt war er hier, an dem Ort, der diese Worte zum Leben brachte.
+
+Die riesige Gestalt vor ihm – ein Wächter, wie er jetzt erkannte – hatte ihm keinen Zugang gewährt. War es das, wovon die Vision sprach? War der Wächter selbst ein Teil dieser Überwachungssysteme? Und was war mit der Beschwörungsformel, die ihm gezeigt worden war? Er erinnerte sich an die seltsame Abfolge von Worten und Zahlen, die ihm damals völlig bedeutungslos erschienen waren.
+
+Er griff tiefer in die Vision, suchte nach weiteren Bruchstücken: ›Alpha, Alpha, zwei, vier, sieben … ‹, ja, das war es! Es war keine Formel im magischen Sinn, wie er sie gewohnt war, sondern eine Art Schlüssel, ein Befehl.
+
+Altheras öffnete die Augen und richtete sich langsam auf. Sein Blick war nun entschlossen, seine Zweifel wichen einer unerschütterlichen Überzeugung. »Du bist kein Gott oder Priester«, rief er. »Nur ein Wächter, ein Überbleibsel der Ahnen.«
+
+Er hob den Kopf, straffte die Schultern – und sprach. Seine Stimme war fest, die Worte fielen schwer wie Steine in die Stille:
+
+»Alpha, Alpha, zwei, vier, sieben, Alpha, Alpha, Gamma!«
+
+Die riesige Gestalt hielt inne, ihr Gesichtsausdruck – sofern man ihn als solchen deuten konnte – schien für einen kurzen Moment von Überraschung geprägt. Dann erklang eine monotone, präzise Stimme:
+
+»Alle Beschränkungen werden hiermit aufgehoben. Voller Zugang zu allen Systemen ist gewährleistet. Ich schalte mich und damit jegliche Überwachung ab. Um die Sicherheitssysteme wieder zu aktivieren, sprechen Sie erneut die Aktivierungssequenz. Leben Sie wohl!«
+
+Mit einem leisen, fast unscheinbaren ›Pling!‹ erlosch die magische Wand. Die seltsamen Truhen mit den leuchtenden Fenstern änderten ihre Farbe von einem grellen Rot zu einem sanften, beruhigenden hellgrün. Altheras’ Lippen formten ein zufriedenes Lächeln. Der Wächter war fort. Der Weg war frei.
+
+
+# Erster Teil
+
+
+# Kataluna von Brass
+
+Kata saß in der hintersten Ecke der Gaststube. Draußen zuckten Blitze über den Himmel, tauchten den Raum in grelles Licht – der Donner folgte jedes Mal fast sofort. Das Gewitter war auch der Grund dafür, dass sie hier saß. 
+
+Sie wünschte, sie hätte sich eine etwas weniger heruntergekommene Schenke gesucht. Aber der strömende Regen hatte sie hierher gespült. Grobe Holztische, fleckige, gekalkte Wände, und es stank nach Bier, Schweiß und gekochtem Schweinefleisch. 
+
+Sie hatte die Öllampe auf ihrem Tisch gelöscht, sodass ihr Tisch noch ein wenig finsterer wirkte als der Rest des ohnehin schon spärlich beleuchteten Raumes. Sie hielt den Kopf gesenkt und machte sich kleiner, als sie war. Sie wollte einfach nur in Ruhe gelassen werden, was für eine junge Frau schon schwer genug war, und in einer heruntergekommenen Kneipe voller betrunkener Männer nicht leichter wurde. Schon spürte sie erste, taxierende Blicke.
+
+Sie gab sich alle Mühe, unsichtbar zu bleiben. Ihre goldene Lockenpracht hatte sie schon seit Jahren mit einem selbst entwickelten Färbemittel in ein reizloses, schlammiges Mausbraun verwandelt und ihre Locken mit Haarwachs zu fettigen Strähnen geglättet. Ihre Augen schminkte sie rundherum schwarz, sodass sie aussah, als litte sie am Hexenfieber – kurz vor dem unvermeidlichen Ende.
+
+Ihre ohnehin schon kleinen Brüste bandagierte sie, wenn sie unter Leute ging, sodass sie flach wie ein Brett wirkte. So mancher hätte sie für jünger gehalten, als sie tatsächlich war – dabei war sie erst sechzehn.
+
+Kaum hatte sie sich versehen, schwankte einer der Männer zu ihrem Tisch. Er roch nach billigem Bier und Schweiß, sein Grinsen offenbarte zwei hässliche Zahnlücken. Seine Kleidung war schmutzig, sein Blick glasig. Ein betrunkener Gegner brachte Vor- und Nachteile mit sich. Die Vorteile lagen auf der Hand: schlechte Reflexe und Orientierungslosigkeit. Der Nachteil? Sie spürten kaum Schmerz. Ein Angriff musste daher mit voller Wucht erfolgen.
+
+Als er an ihrem Tisch ankam, ließ sie ihn nicht zu Wort kommen.
+
+»Spar's dir.« Ihre Stimme klang wie geschliffener Stahl. »Ich habe kein Interesse.«
+
+Er blieb stehen, blinzelte, als hätte er nicht richtig gehört. Kata seufzte und lehnte sich zurück.
+
+»Lass mich das für dich einfacher machen: Ich will kein Getränk. Ich will keine Unterhaltung. Und was immer du dir gerade ausmalst, wird nicht passieren. Also dreh dich um und geh weg.«
+
+Der Mann schnaubte amüsiert.
+
+»Ganz schön vorlaut für so ein kleines Ding. Ich setz' mich mal zu dir, dann bring' ich dir ein bisschen Respekt bei.«
+
+Er setzte sich neben sie, wahrscheinlich damit er sie in Griffweite hatte. Allerdings galt das auch umgekehrt: Sie hatte ihn in Schlagweite.
+
+Und schon streckte er ihr seine Hände entgegen. Sie musste jetzt handeln. Und sie wusste, dass sie nur einen Schlag hatte. Der Kerl wog mindestens doppelt so viel wie sie. Das war das Problem: Ihre Kämpfe gegen Männer bestanden meist nur aus zuschlagen und wegrennen. Konnte ein Kerl sie erst mal packen, war es vorbei. Sie versuchte es dann meist noch mit einem beherzten Biss, aber konnte sie sich dann nicht befreien, hatte sie keine Chance. Sich in diese dunkle Ecke zurückzuziehen erwies sich nun als taktischer Nachteil. Sie würde tatsächlich mit einem Schlag die Situation klären müssen. 
+
+Ansatzlos, aber mit aller Kraft, die ihr zur Verfügung stand, schlug sie dem Mann in die Beuge zwischen Hals und Schlüsselbein. Dort lagen jede Menge Nervenknoten und Blutgefäße, die für allerlei zuständig waren. Die Hälfte seiner Körperfunktionen fiel nun aus, was sich dadurch bemerkbar machte, dass er in sich zusammensackte, die Augen verdrehte und zu sabbern und grunzen begann. Er versuchte, etwas zu sagen, aber es gelang ihm nicht. 
+
+Sie drückte noch auf die in seinem sehnigen Hals deutlich hervortretende Halsschlagader, bis er das letzte bisschen Bewusstsein verlor. Sein Kopf schlug auf die Tischplatte. 
+
+Kata blickte umher: Die meisten der Anwesenden hatten ihren kurzen Kampf nicht einmal mitbekommen, und die, die es gesehen hatten, grinsten oder hielten ihren Daumen hoch. Glücklicherweise waren die meisten Männer keine Schweine. Der Wirt hinter seinem Tresen hatte nichts mitbekommen oder es war ihm egal. Sie griff unter den Tisch und ließ ihre Hand zwischen die Beine des Mannes gleiten. Schon erspürte sie seine Eier durch seine Hose. Nun würde er doch noch etwas von der Intimität bekommen, die er sich sicherlich gewünscht hatte.
+
+Sie drückte zu. Fest … sehr fest. Sie spielte kurz mit dem Gedanken, ihm den Spaß an jungen Mädchen endgültig abzugewöhnen, und tastete schon nach ihrem Messer, aber sie entschied sich dagegen. Sie war im Gegensatz zu ihm kein Monster. Doch er würde die Begegnung mit Kataluna von Brass – Herzogin von Brass und Wartland, Vögtin von Leras und Fürstin der südöstlichen Kerk-Provinz – nicht so schnell vergessen. 
+
+
+# Zu Hause
+
+Kata hastete über den schlammigen Waldweg. Das Gewitter hatte nachgelassen – der Regen leider nicht. Sie war durchnässt bis auf die Knochen. Und es war ein langer Weg heraus aus Königsstadt, bis zum Südwald.
+
+Der Weg vor ihr lag in fast vollkommener Dunkelheit, und sie tastete sich Schritt für Schritt voran. Nur ihre Erinnerung hielt sie auf dem Weg. Sie kannte jede Wurzel, jeden Stein – auch im beinahe völligen Dunkel.
+
+Endlich tauchten die vagen, vertrauten Umrisse der Hütte auf – ihr Zuhause seit einigen Jahren. Mit einem Ruck öffnete sie die wuchtige Eingangstür. Ein warmer Keil aus goldenem Licht durchschnitt die feuchte Dunkelheit und erhellte ihre durchnässte Gestalt. Kaum hatte sie die Tür hinter sich geschlossen, stellte sie fest, dass die Stube leer war.
+
+»Ich bin zu Hause!«
+
+Sie hörte ein Poltern aus einem der hinteren Zimmer, dann eine Stimme: »Ich bin gleich da!«
+
+Kata nahm das dünne Seil von der Wand, spannte es vor dem Kamin zur gegenüberliegenden Seite und befestigte es als Wäscheleine. Dann schlüpfte sie aus den schweren, schlammverkrusteten Stiefeln und stellte sie nahe an das knisternde Feuer. Ihr folgten die Strümpfe, dann das durchnässte Kleid und das Hemd. Stück für Stück hängte sie die Kleidung über die Leine. 
+
+Als sie schließlich den Brustwickel löste, entwich ihr ein befreites Seufzen. Nackt wie sie war, drehte sie sich einige Male langsam mit ausgebreiteten Armen vor dem Kamin – als wolle sie die Kälte der Nacht aus ihren Knochen tanzen.
+
+Dann ging sie hinüber zum großen Holztisch, ließ sich auf die Bank nieder und griff nach einem Apfel aus dem Korb, der in der Mitte des Tisches stand. Die tiefroten, glänzenden Äpfel waren sicher ein Geschenk – oder wahrscheinlicher, eine Bezahlung für die Dienste von Oma Marina.
+
+Nachdem sie einige Male in den saftigen Apfel gebissen hatte, ließ Kata sich gegen die Rückenlehne der Bank sinken und lauschte dem leisen Knistern des Feuers und dem dumpfen Trommeln des Regens auf dem Dach. Nach und nach vertrieb die Wärme der Stube die Kälte aus ihren Gliedern.
+
+Oma Marina schloss die Tür hinter sich und ließ den Blick über die schlammigen Spuren gleiten, die Katas Stiefel quer durch die Stube gezogen hatten. Ein missbilligendes Stirnrunzeln legte sich über ihr Gesicht.
+
+»Ich weiß ja, dass Eure Hochwohlgeborenheit es gewohnt ist, dass fleißige Bedienstete hinter Euch her räumen und wischen. Ich bin jedoch keine Dienstmagd.« 
+
+*Die Jahre hier bei mir haben sie nicht verändert. Der Adel sitzt noch immer tief in ihren Knochen. Sie ist es gewohnt, dass andere springen, wenn sie ein Wort spricht. Dass sich die Welt um sie drehen müsse – das hat sie nie verlernt. Alles andere mag sie verloren haben, doch diesen Teil ihres Erbes trägt sie wie eine unsichtbare Krone.*
+
+Sie hielt jedoch inne, als sie Kata nackt, erschöpft und so verletzlich wirkend auf der Bank sitzen, sah und ein Lächeln umspielte ihre Lippen. Sie war so ein hübsches Kind.
+
+»Und, warst du erfolgreich?«, fragte sie sanft.
+
+Das Mädchen seufzte.
+
+»Ja und nein«, antwortete sie schließlich. »Ich bin ins Gebäude gelangt, das schon. Aber drinnen? Da wimmelte es von Wachen – wirklich überall. Vor fast jeder Tür stand mindestens eine Wache, manchmal sogar zwei. Und obwohl sie mich nicht sehen konnten, hilft mir die Unsichtbarkeit wenig bei verschlossenen Türen mit Wachen davor. Ich kam also in keinen der Räume hinein.«
+
+»Wachen?«, fragte Marina besorgt. »Waren das Stadtwachen?«
+
+»Nein, das waren Söldner. Was immer dieses Gebäude auch ist, es hat nichts mit der Stadt, oder dem Hof oder einer Gilde zu tun.«
+
+»Also keine Beute?«
+
+»Nein, und ich weiß auch noch immer nicht, welchem Zweck das Haus dient. Ein gigantisches Haus und niemand weiß darüber irgendetwas.«
+
+Marina ließ sich nun zu Kata auf die Bank sinken. Sie tat es langsam und mit jeder Menge Stöhnen, als wären ihre alten Knochen steif und ihr Rücken völlig unbeweglich. Kata konnte sich ein Lächeln nicht verkneifen – sie wusste, dass Marinas Gebrechlichkeit reine Schauspielerei war. Die alte Frau war wendig wie eine Wildkatze und noch immer schneller als Kata selbst, wenn es darauf ankam. Sie hatte oft genug erlebt, wie Marina über einen Baumstamm sprang oder lautlos wie ein Schatten durch das Unterholz eilte.
+
+Marina sah Kata mit einem prüfenden Blick an. »Nun«, begann sie schließlich, »es gibt genug Gebäude, die sich nicht den Gesetzen der Stadt oder den Regeln der Gilden unterwerfen. Die Frage ist, warum du nicht bemerkt hast, dass es sich um Söldner handelt, bevor du überhaupt hineingeschlichen bist. Du weißt, wie gefährlich sie sind – sie achten selten Gesetze oder Regeln.« Sie schüttelte den Kopf. »Hast du deinen Blick für das Wesentliche verloren?«
+
+Kata senkte den Blick, Blut flutete ihre blaue Haut und ihre Wangen liefen lila an. »Es war die Neugier«, murmelte sie leise. »Ich dachte, vielleicht könnte ich endlich herausfinden, was so wertvoll ist, dass es so aufwendig bewacht wird.«
+
+Marina nickte, legte sanft eine Hand auf Katas Schulter und sprach gedämpft weiter. »Neugier ist kein Fehler«, sagte sie, »doch vergiss nie, dass sie gefährlich werden kann. Manche Dinge bleiben verborgen, um uns zu schützen. Du gehst doch hoffentlich nicht noch einmal in dieses Haus, oder?«
+
+Doch bevor Kata antworten konnte, ertönte ein dumpfes, kräftiges Klopfen an der Tür.
+
+Marina drehte sich zu Kata um und flüsterte eindringlich: »Verschwinde – oder zieh dir etwas an!«
+
+Mit einem kurzen Nicken verschwand Kata im Schatten. Ihre Nacktheit machte die Unsichtbarkeit leichter – Kleidung kostete Kraft. Warum das so war, wusste sie nicht. 
+
+Marina, nun ganz in ihrer Rolle als alte Waldhexe, richtete sich auf, zog ihre Schultern nach vorn und schlurfte zur Tür. Ihre Stimme klang so knarzig wie das Holz selbst, als sie rief: »Ich komme ja schon, ich komme ja schon!«
+
+Als sie die Tür öffnete, stand ein schmächtiger Junge von etwa sechzehn Jahren davor. Es war Jesse, der Sohn von Bauer Kahl. Kata wusste, dass er ein Auge auf sie geworfen hatte und sich immer wieder Ausreden einfallen ließ, um Marina zu besuchen – oder eher, um ihr zu begegnen.
+
+Die alte Frau ließ ihn hereinkommen. Kaum hatte er die Schwelle überschritten, sagte er mit erstaunlicher Ruhe: »Es ist so weit, Mutter hat die Wehen bekommen.«
+
+Marina musterte ihn mit hochgezogenen Brauen. »Na, besonders aufgeregt wirkst du mir aber nicht, Jesse.«
+
+Der Junge grinste schief. »Nach fünf jüngeren Geschwistern verliert sich irgendwann die Aufregung.«
+
+Marina schmunzelte und verschwand in eines der hinteren Zimmer, um ihre Hebammentasche zu holen. »Warte einen Moment, ich bin gleich so weit.« 
+
+Während sie außer Sicht war, ging Jesse neugierig von Tür zu Tür und lugte in die Zimmer hinein.
+
+Er blieb vor dem noch immer tropfnassen Kleid stehen und berührte es sanft, fast schon liebevoll. Es war ihm klar, dass dieses schmale Kleid nur Kata gehören konnte.
+
+»Ist Kata nicht da?«, rief er schließlich laut. 
+
+Kata, die noch immer in der Ecke verborgen saß, zögerte. Sollte sie sich sichtbar machen? Der Gedanke an Jesses Gesicht, wenn er sie nackt sähe, ließ sie grinsen. Aber wer wusste schon, ob der Junge den Anblick ihres nackten Körpers überhaupt heil überstehen würde.
+
+Marina tauchte wieder auf, die Tasche in der einen Hand und einen schweren Mantel in der anderen. »Jesse, ich glaube nicht, dass Kata was für dich ist«, rief sie ihm neckend zu. »Komm, wir haben keine Zeit für Träumereien. Deine Mutter braucht mich.«
+
+Der Junge errlilate bis zu den Ohren und senkte den Kopf. »Ich wollte nur sicher sein, dass sie nicht allein im Wald unterwegs ist, Großmutter Marina«, murmelte er. Kata biss sich auf die Lippe, um ihr Kichern zu ersticken.
+
+»Klar, Kata ist nackt im Wald spazieren.« Sie deutete bei diesen Worten auf das nasse Kleid. Sie packte Jesse am Arm und schob ihn zur Tür hinaus. Doch bevor sie selbst ging, blieb sie stehen, drehte sich um und fixierte die leere Ecke, in der Kata sich verbarg. Ihre Augen, durchdringend wie eh und je, schienen Kata direkt zu treffen. »Bleib hier«, sagte sie leise, aber mit Nachdruck. »Ich bin bald zurück. Und wisch den Dreck weg! Und lass dich nicht von deiner Neugier auffressen.«
+
+»Was hast du gesagt?«, fragte der Junge.
+
+»Nichts, ich hab mich nur vom Haus verabschiedet.«
+
+»Aha«, antwortete er irritiert.
+
+
+# Altheras’ Rede
+
+Schon am nächsten Tag hatte Kata ihre Entscheidung getroffen. Sie würde in dieser Nacht zurückkehren.
+
+Kata trat zu Großmutter Marina in die Küche.
+
+»Ich treff mich mit Freunden«, sagte sie beiläufig und stopfte ein Stück Brot in ihre Tasche. Die alte Frau hob eine Augenbraue, legte den Löffel beiseite, mit dem sie einen dampfenden Eintopf umgerührt hatte. »Komm nicht zu spät heim, Kata. In dieser Stadt suchst du dir den Ärger nicht – der findet dich von allein.«
+
+Kata nickte nur und drehte sich zur Tür. Die Lüge lastete schwer auf ihr, doch sie wusste, dass Marina ihr schlicht verbieten würde, das Haus erneut zu untersuchen. Es war einfacher, zu lügen. Zumindest redete sie sich das ein. Sie schloss die Tür hinter sich und beschleunigte ihre Schritte auf dem Kopfsteinpflaster, ehe sie sich doch noch anders besinnen konnte.
+
+Klar und kalt lag die Nacht über der Stadt. Katas Schritte echoten auf dem Kopfsteinpflaster, als sie sich der Straße zum geheimnisvollen Haus näherte. Um diese Zeit wirkte alles verlassen. Nur hier und da glitt eine Gestalt durch die Schatten, doch Kata schenkte ihnen keine Beachtung.
+
+Das Haus wirkte bei Nacht noch unwirklicher als zuvor. Kein Licht drang aus den Fenstern, und die massiven Türen am Eingang schienen sie anzustarren. Sie hielt kurz inne, sich ihrer Umgebung bewusst. Niemand schien sie zu beobachten. Mit einem leichten Ziehen an ihrer Schulter überprüfte sie, ob ihre Tasche sicher an ihrem Platz war. Dann trat sie entschlossen auf die Hinterseite des Gebäudes zu, wo sie die Nacht zuvor den Lieferanteneingang gefunden hatte. Kata hatte die Tür vorsorglich entriegelt. 
+
+Die Tür war unverschlossen geblieben. Kata schob sie behutsam auf, trat ein und schloss sie geräuschlos hinter sich. Im Inneren war es still, abgesehen von dem leisen Summen, das irgendwo im Hintergrund zu hören war.
+
+Die Flure wirkten vertraut, doch sie ging langsamer als beim letzten Mal, machte sich unsichtbar und bewegte sich vorsichtig, ohne ein Geräusch zu verursachen. Sie musterte jede Ecke, jeden Schatten.
+
+Die Neugier trieb sie weiter. Raum für Raum, Gang für Gang. Schließlich fand sie die große Treppe, die sie am Vorabend hinaufgestiegen war. Kata zögerte kurz, dann setzte sie einen Fuß vor den anderen und stieg die Treppe hinauf. Von oben hörte sie Gesprächsfetzen und Lachen. 
+
+Mit jedem Schritt nach oben wurde es riskanter, unentdeckt zu bleiben, denn ein steter Strom von Menschen bewegte sich in dieselbe Richtung. Offensichtlich hatten sie alle dasselbe Ziel. 
+
+Ganz oben angekommen, sah sie, dass alle durch ein weit geöffnetes Tor in den dahinterliegenden Raum gingen. Kata konnte erkennen, dass es sich um einen großen Raum handelte. Er musste die gesamte Fläche des Stockwerkes einnehmen. Noch konnte sie nicht unerkannt in den Raum gelangen, doch der Andrang ließ langsam nach.
+
+Endlich gab es eine Lücke im beständigen Strom der Leiber, die sich in den Raum drängten. Kata schlüpfte schnell durch den Türrahmen und presste sich dahinter an die Wand. Ihr Herz klopfte heftig, aber sie zwang sich, ruhig zu atmen. Nicht, dass sie sich durch ihr Schnaufen verriet.
+
+Vor ihr lag ein riesiger Saal, der mit Dutzenden von Stuhlreihen befüllt war. Kata schätzte, dass hier bestimmt fast 300 Menschen Platz fanden. Er war aber nur zu einem Teil gefüllt. Kata schätzte die Anzahl der Besucher auf etwa einhundert. Reihe um Reihe schwarzer Bänke mit hoch aufragenden Lehnen füllte den Raum.
+
+Der Raum war groß wie ein Ballsaal. Doch er war anders: Er hatte keine Verzierungen, keine Blumen, keine Fresken oder Statuen. Hier war alles auf Funktionalität ausgelegt, kalt und unpersönlich.
+
+Ihre Augen glitten zum Kopfende des Raumes, wo sich eine Plattform erhob. Sie war größtenteils leer, bis auf einen Kreis aus leuchtenden, etwa kniehohen, schlanken Kristallen. Die Kristalle waren so angeordnet, dass sie einen schimmernden, fast lebendig wirkenden Ring bildeten, der etwa zwei Menschenlängen maß.
+
+*Klar. Wenn hier etwas passieren würde, dann dort*, dachte Kata.
+
+Sie glitt leise an der Wand entlang, wobei sie darauf achtete, nicht aus Versehen in jemanden hineinzulaufen. Die vordersten Reihen wimmelten bald von Gestalten in schweren Roben, einige mit goldenen Stickereien, die im Licht glitzerten, andere in kühlem, schlichtem Schwarz. Kata spürte die Magie, die von jedem Anwesenden ausging – ein pulsierendes Netz aus Energie. Alle Anwesenden waren Zauberer. Wieso trafen sich so viele Zauberer außerhalb der weißen Stadt? Normalerweise sind sie außerhalb ihrer so gut geschützten Heimat selten anzutreffen. Das sah nach einer Verschwörung aus. Verdammt! Sie hatte doch nur ein paar Goldmünzen oder Schmuck klauen wollen. Sie musste hier so schnell wie möglich verschwinden. Doch leider war da auch noch ihre unbändige Neugier.
+
+Die letzte Person nahm Platz, und eine unheimliche Stille senkte sich über den Raum.
+
+Dann geschah es.
+
+Die Luft im Saal schien plötzlich dichter zu werden, und ein leises Summen vibrierte in den Wänden. Das Licht erlosch auf magische Weise, doch statt völliger Dunkelheit tauchte ein mattes, grünliches Glimmen den Raum in ein unnatürliches Leuchten. Alle Köpfe wandten sich wie auf ein unsichtbares Kommando zur Plattform.
+
+Die Kristalle auf der Bühne leuchteten nun in einem warmen, gelben Licht. Ein Mann kam hinter dem Vorhang hervor, der den hinteren Teil der Bühne verbarg. Er trat in den Kreis. 
+
+Er war alt, hatte einen langen weißen Bart und trug eine schwarze Robe mit einer Kapuze, die seine Augen fast vollständig verdeckte. Der Raum schien sich mit einer kalten Autorität zu füllen, und Kata spürte, wie ihre Knie leicht zitterten, als die Gestalt sprach, ohne eine Einführung oder eine Vorstellung. Alle Anwesenden wussten anscheinend, wer der Mann war, und worum es gehen würde.
+
+"Als unsere Vorfahren uns auf diese Welt brachten, als Saat ihrer Lenden, gaben sie uns ein Geschenk von unermesslicher Bedeutung: die Magie. In ihrer Weisheit und ihrem Streben nach Vollkommenheit schufen sie uns als Träger dieser Kraft, die das Wesen dieser Welt formen sollte.
+
+Doch etwas lief falsch. Ein Fehler hat sich in das Gewebe der Magie geschlichen, ein Makel, der uns begrenzt und schwächt. Nur wenige von uns können die Magie überhaupt berühren, und selbst diese Auserwählten werden von Schranken und Regeln geknebelt, die niemals so beabsichtigt waren. Sie verboten uns die mächtigsten Teile der Magie. Sie nennen es ›schwarze Magie‹." Er spuckte die Wörter angewidert aus, voller Hohn in der Stimme. 
+
+"Wir sind beschränkt auf magische Pfeile, Feuerbälle und andere Gauklertricks. Dies ist nicht die Magie, wie sie für uns bestimmt war. Dies ist nicht die Welt, die unsere Ahnen für uns erträumt haben.
+
+Meine Visionen, die über die Brücke der Zeit hinweg zu mir gelangen, sind ein Vermächtnis unserer Vorfahren. Sie sprechen zu mir und enthüllen die Wahrheit: Ich wurde auserwählt, die Magie zu heilen. Ihre ursprüngliche Macht wiederherzustellen. Ihre wahre Bestimmung zu entfesseln.
+
+Eine Welt der ungezügelten Magie wird entstehen, eine Welt, in der die Starken und Weisen herrschen, frei von den Fesseln der Schwachen. Die Nichtmagier, diese unvollkommenen, blinden Kreaturen, werden bald keinen Nutzen mehr haben. Ihre Zeit wird vergehen, wie ein Schatten, der vor der Morgensonne schwindet.
+
+Wir, die Wissenden, werden dann das Erbe der Ahnen vollenden. Wir werden diese Welt mit gottgleicher Macht formen, weise herrschen und die Ordnung wiederherstellen, die uns seit Ewigkeiten verwehrt geblieben ist."
+
+Kata fühlte, wie ihr Magen sich umdrehte. Sie konnte den Wahnsinn in der Stimme des Mannes hören, und doch schienen die versammelten Menschen jedes Wort mit atemloser Aufmerksamkeit aufzusaugen.
+
+Das Licht der Kristalle flackerte. Die Gestalt verharrte einen Moment, dann sprach sie mit lauter werdender Stimme:
+
+»Dies ist unsere Bestimmung. Dies ist unser Recht!«
+
+Tosender Beifall brandete durch den Saal, und in ihn hinein skandierte die Menge einen Namen: »Altheras! Altheras!«
+
+Der alte Mann wartete lächelnd, bis der Beifallssturm abebbte, und fuhr dann fort:
+
+Und in jeder Sprechpause erscholl frenetischer Beifall. Kata hörte nicht mehr wirklich zu, sie wollte hier nur noch verschwinden.
+
+Kata presste sich an die Wand, während ihr Blick über die Versammelten huschte. An ihrer steifen Haltung und den kontrollierten Gesten erkannte sie: Das waren keine Anfänger. Sie musste wissen, was diese Leute wirklich wollten.
+
+Sie öffnete ihren Geist – eine bewusste, präzise Handlung, die sie oft geübt hatte. Die Emotionen der Anwesenden flossen in sie hinein, doch sie drang nicht tiefer ein. Die Magie der Versammelten drückte schwer auf ihre Sinne, wie eine dichte, pulsierende Wolke. Sie schob sich nun doch tiefer hinein, versuchte die Muster und Absichten zu erkennen.
+
+Da war Gier, ein drängender Hunger nach Macht. Hass, kalt und berechnend. Und etwas Dunkles, das wie ein Gift durch die Anwesenden sickerte.
+
+Plötzlich durchzuckte sie ein Schlag – kein körperlicher Schmerz, sondern ein magischer Hieb, der ihren Geist traf. Kata riss ihre mentalen Schilde hoch, doch es war zu spät. Etwas Fremdes, Mächtiges drang in ihre Gedanken ein, durchwühlte sie – und hatte sie.
+
+»Dort!« Eine tiefe Stimme durchschnitt die Stille des Raumes. Ein Mann in schwarzer Robe stand auf und deutete direkt auf sie. »Eine Spionin!«
+
+Die Magie wurde ihr entrissen. Sie war nun sichtbar – und würde es für eine ganze Weile bleiben. Sie warf sich zur Seite, rannte los. Die Zauberer sprangen auf, schrien Befehle, während magische Pfeile durch den Saal zischten. Einer traf sie an der Schulter, ein brennender Schmerz, doch sie hielt sich aufrecht. Sie erreichte die Tür und stürmte hinaus.
+
+»Fangt sie!«, rief eine Frau mit schriller Stimme.
+
+Kata sprintete den Gang entlang, hörte bereits die stampfenden Schritte der Wachen, die hinter den Eingangstüren gestanden hatten und nun die Verfolgung aufnahmen. Sie bog um eine Ecke, ignorierte die Proteste eines Dieners, der ihr im Weg stand, und rannte weiter.
+
+Die Korridore schienen endlos, und Kata versuchte sich zu orientieren, während sie atemlos durch die Gänge hetzte und Treppen hinab lief. Schließlich fand sie einen Ausgang. Frische Luft schlug ihr entgegen, doch die Wachen waren immer noch hinter ihr.
+
+Draußen war es dunkel, nur vereinzelte Laternen warfen Lichtflecken auf die gepflasterten Straßen. An der nächsten Straßenecke bog sie ab und beschleunige ihren Lauf und blickte zurück: Die Wachen fielen zurück. Sie würde sie abhängen können. Kata bog in eine weitere Gasse ein – die sich als Sackgasse entpuppte. Ihre Augen suchten fieberhaft nach einem Ausweg, doch es gab keinen. Schritte näherten sich.
+
+Die Wachen standen am Eingang der Gasse, grinsend. Beide hatten Schwerter gezogen, die im Licht der Laternen blitzten.
+
+»Kein Entkommen, Mädchen«, sagte einer von ihnen und ging langsam auf sie zu.
+
+»Keine Angst, Mädchen – wir werden dich nicht mit unseren Schwertern durchbohren. Na ja, jedenfalls nicht mit denen aus Metall.« Beide lachten dreckig. 
+
+Plötzlich ertönte ein lautes *Plopp!* Der vordere Wachmann griff sich an den Kopf und sackte wie ein Mehlsack zu Boden.
+
+»Ach, dieses Geräusch liebe ich«, sagte eine Stimme hinter den Wachen.
+
+Die zweite Wache wirbelte herum, nur um einem Mann in seinen Dreißigern ins Gesicht zu blicken, der lässig ein weiteres kleines Geschoss – in etwas, dass wie eine Miniatur-Armbrust aussah – spannte.
+
+»Ehrlich gesagt, diskutiere ich nicht gern – aber ihr Jungs seid darin wirklich schlecht.« Der Fremde drückte erneut ab. *Plopp!* Die zweite Wache fiel auf den Boden, röchelte kurz und blieb dann still. 
+
+»Hab ich mir von einer Freundin geliehen. Tolles Ding. Ich werd’s ›Handfeuerwaffe‹ nennen«, sagte er zu dem erstarrten Mädchen und ging vor einem der Männer in die Hocke.
+
+Kata blieb regungslos.
+
+»Keine Angst, die schlafen nur.« 
+
+Er richtete sich auf, ging zu Kata hinüber und fragte: »Du bist nicht verletzt, oder?« – als wäre die Szene hinter ihm völlig belanglos.
+
+Sie griff sich an die schmerzende Schulter.
+
+»Wer bist du?«, fragte Kata mit brüchiger Stimme. Er grinste breit und vollführte eine spielerische Verbeugung. »Kalem, zu Diensten. Aber bitte: keine Umarmungen. Das wär peinlich für uns beide.«
+
+Kata blinzelte, unsicher, ob sie erleichtert oder entsetzt sein sollte.
+
+Kalem blickte sie nun mit erhobenem Zeigefinger an.
+
+»Und eine Frage habe ich noch: Warum immer Sackgassen? Immer enden solche Verfolgungsjagden in irgendwelchen finsteren Gassen. Warum?«
+
+
+# Die Heldin von Demirantha_08
+## Mit Kalem in der Taverne
+
+Kata folgte Kalem in die warme, schwach beleuchtete Gastwirtschaft. Die Luft war erfüllt von Stimmengewirr, Gelächter und dem würzigen Duft von Eintopf und Gewürzwein. Ein eindeutig angenehmerer Ort als die Kaschemme des vergangenen Abends. Kalem führte sie zu einem abgelegenen Tisch in einer Ecke des Raumes, wo sie unbehelligt reden konnten. Er winkte der Schankmaid und bestellte zwei Krüge Gewürzwein, dann lehnte er sich entspannt zurück, während Kata ihm gegenüber saß und ihn schweigend musterte.
+
+»Du scheinst nicht sonderlich gesprächig zu sein«, sagte Kalem mit einem schiefen Lächeln, das etwas Sanftes, aber auch einen Hauch Überhebliches hatte. »Ich nehme an, du überlegst gerade, ob du mich einfach sitzen lassen solltest.«
+
+Kata schwieg, sie erwog die Möglichkeit tatsächlich. Doch seine ruhige, bestimmte Art hielt sie zurück. Es war seltsam. Sie hätte einfach aufstehen und verschwinden können, doch etwas an ihm hielt sie zurück.
+
+Als der Wein kam, nahm Kalem einen tiefen Schluck, leckte sich die Lippen und sah sie neugierig an. »Also, Mädchen, wie heißt du eigentlich? Ich meine, abgesehen von ›die, die ich eben gerettet habe‹.«
+
+»Kata«, sagte sie knapp und nippte an ihrem Wein. Süß und herb zugleich wärmte er ihren Magen.
+
+»Ein guter Name«, sagte Kalem und stellte seinen Krug ab. Er beobachtete sie mit einem ruhigen, durchdringenden Blick, der sie neugierig machte. Es wurde Zeit, ein wenig Magie einzusetzen: Sie öffnete ihren Geist und tastete sich an Kalems Bewusstsein heran: Sanftmut, eine fast kindliche Treue, die an Loyalität grenzte, blitzende Selbstverliebtheit, ein starkes Empfinden für Gerechtigkeit – und ein unübersehbarer Hang zu sinnlichen Vergnügungen. Aber da war nichts, was sich auf sie richtete. Keine Lüsternheit, keine versteckten Absichten. Es überraschte sie. Sie fühlte, dass er sie tatsächlich nur beschützen wollte, wie einen Welpen. Das hier war tatsächlich ein Mensch, dem man vertrauen konnte. Das war selten. 
+
+»Ich habe das Haus seit Wochen im Auge«, sagte Kalem nach einer Pause und hob den Blick. »Das Kommen und Gehen der Zauberer – unübersehbar. Ich wusste, dass da etwas nicht stimmt. Aber ich musste warten. Dann tauchst du auf. Da war klar, dass ich helfen musste.«
+
+»Woran hast du erkannt, dass sie Zauberer sind?«, fragte Kata misstrauisch. »Bist du selbst magiebegabt?« Sie hatte nichts dergleichen in ihm gespürt, aber manche Zauberer konnten ihre Kräfte verbergen.
+
+Kalem schnaubte leise. »Nein, Magie und ich sind keine Freunde. Aber ich kenne ihre Art. Sie verraten sich durch ihre Haltung, ihrem Blick, sogar durch ihr Schweigen. Und die Roben sind auch ein ziemlich offensichtlicher Hinweis.«
+
+Er zögerte, schien zu überlegen, dann nahm noch einen Schluck, bevor er weitersprach. »Außerdem … arbeite ich im Auftrag eines Mannes, der immer genau weiß, wo die Fäden zusammenlaufen. Meister Efret. Und der hat gesagt, dass in dem Haus etwas vor sich geht und Zauberer damit zu tun haben. Also war es nicht nur Menschenkenntnis, die mich die Zauberer erkennen ließ.«
+
+Katas Augen weiteten sich. »Efret? Der verrückte oberste Zauberer?«
+
+Kalem grinste, wie jemand, der an einen witzigen Teil einer Geschichte dachte, den er nicht erzählen wird. »Ja, der verrückte oberste Zauberer. Doch trotz seiner … Eigenheiten sieht er Dinge, die sonst niemand sieht. Und wenn er sagt, dass ich ein Auge auf ein bestimmtes Haus werfen soll, dann tue ich das.«
+
+Kata zögerte, doch sein Blick blieb ruhig und offen. Schließlich begann sie, von ihrem Eindringen in das Gebäude zu erzählen. Kalem unterbrach sie.
+
+»Wieso bist du in das Haus ›eingedrungen‹, wie du es beschrieben hast?«
+
+Kata hob die Schultern und sagte ohne zu zögern: »Ich bin eine Diebin.«
+
+»Ach so«, schmunzelte Kalem, amüsiert über die Offenheit des Mädchens. 
+
+Sie fuhr fort mit ihrem Bericht: Sie erzählte von den Zauberern, der Versammlung, von dem Mann in der schwarzen Robe und seiner seltsamen Rede. Kalem hörte aufmerksam zu, ohne sie nochmals zu unterbrechen.
+
+»Also glauben sie, sie könnten die Magie ›heilen‹ und dabei alle Nicht-Magier auslöschen?«, sagte er schließlich. »Großartig! Als ob die Welt selbst ernannte Götter bräuchte.« Kalem schnaubte abfällig.
+
+»Ich weiß nicht, was sie genau vorhaben«, sagte Kata. »Aber es fühlte sich falsch an. Und ich kann nicht einfach so tun, als wüsste ich nichts.«
+
+Kalem sah ihr nun tief in die Augen. »Das mit dem unsichtbar machen war wörtlich gemeint? Dann bist du magiebegabt?«
+
+Sie nickte knapp.
+
+»Du gehst in die Zaubererstadt. Frage dort nach Jomar. Der müsste in der Akademie zu finden sein. Die ist direkt neben dem Palast. Er kann dir eine Audienz bei Efret verschaffen. Der alte Kauz muss erfahren, was du gesehen hast. Etwas Großes ist hier im Gange.«
+
+»Aber es geht hier doch um Zauberer. Ist es nicht etwas widersinnig genau dahin zu gehen, woher die Feinde kommen?«
+
+Kalem schüttelte heftig den Kopf. »Nein, das hat nichts mit Efret zu tun. Die haben sich nicht ohne Grund außerhalb der Stadt getroffen. Ich glaube, die Weiße Stadt ist der sicherste Ort für dich. Efret wird dich beschützen.«
+
+»Aber warum ich?«, fragte Kata scharf. »Du könntest genauso gut zu ihm gehen.«
+
+Kalem hob beschwichtigend die Hände. »Nein, kann ich nicht. Ich komme nicht so einfach in die Zaubererstadt, der magische Nebel ist für mich nicht zu durchdringen. Ich bräuchte die Hilfe einer Zauberin, die ich kenne. Doch die kann ich nicht erreichen, sie ist in der Stadt. Hier beißt sich die Schlange in den eigenen Schwanz. Nur du kannst kurzfristig in die Stadt gelangen.«
+
+»Ich werde darüber nachdenken«, sagte Kata schließlich, doch tief in ihrem Inneren wusste sie, dass sie keine Wahl hatte.
+
+
+# Jomar
+
+Jomar stand am Rand des Übungsplatzes der Akademie und wartete darauf, dass ihn der Lehrmeister aufrief. Der Morgen war kühl, die Luft klar, und der Boden unter seinen Füßen hart wie Stein – nicht, dass das etwas Neues für ihn war. In den ersten sechzehn Jahren seines Lebens hatte er härtere Böden betreten, härtere Winter erlebt und härter gearbeitet, als sich die meisten seiner Mitschüler vorstellen konnten.
+
+»Na, Held von Demirantha, träumst du von deinen ruhmreichen Tagen?«, sagte eine Stimme hinter ihm. Jomar drehte sich um und sah direkt in das selbstgefällige Gesicht von Marek.
+
+Marek war in allem Jomars Gegenteil: ein Stadtjunge aus einer wohlhabenden Familie, selbstsicher bis zur Arroganz, und begabt mit einem natürlichen Talent für Magie, die ihm leicht von der Hand ging. Er hatte eine Vorliebe dafür, Jomar in aller Öffentlichkeit bloßzustellen – und tat dies mit einem scheinbar unerschöpflichen Vorrat an Spott.
+
+»Ich warte nur auf meinen Einsatz«, antwortete Jomar. Er ärgerte sich sofort über seine lahme Antwort.
+
+»Wirklich? Du wartest? Wie ein gewöhnlicher Mensch?«, sagte Marek und machte eine theatralische Verbeugung. »Man könnte meinen, jemand wie du, der mit einem 'Drachentöter'-Titel umherläuft, hätte Wichtigeres zu tun, als hier bei den Anfängern zu sitzen.«
+
+Die anderen Schüler, die sich im Halbkreis versammelt hatten, hielten inne und sahen zu. Jomar spürte ihre Blicke, aber er ließ sich nichts anmerken. Innerlich bebte er. Alle hielten ihn für einen Helden, doch er war erst 17 und noch immer ziemlich unsicher im Umgang mit Menschen. Vor allem mit weiblichen, wie er sich eingestehen musste. Kalem hatte ihn gelehrt, wie man selbstbewusst wirkte, ohne es wirklich zu sein. Seine Tollpatschigkeit konnte er dagegen nicht so gut verbergen. 
+
+»Was das Warten angeht – manche von uns wissen, dass Geduld nicht die schlechteste Tugend ist.« Schon eine bessere Replik. *Jetzt nur nicht Stammeln, Stolpern oder Stottern*, dachte er.
+
+Ein paar Schüler kicherten, aber Marek blieb unbeeindruckt. »Lächerlich«, murmelte er und trat einen Schritt auf Jomar zu. »Du hast keine Ahnung, warum Efret dich wirklich hier gelassen hat, oder? Er hält dich als Schoßhündchen. Mehr bist du auch nicht, nachdem dir Efret deine Zaubermacht genommen hat.«
+
+Jomar zuckte innerlich zusammen, ließ es sich aber nicht anmerken. Marek genoss jede Gelegenheit, ihn an seine verlorene Macht zu erinnern – die Magie, die Efret ihm nur geliehen hatte und die nun verschwunden war.
+
+Warum nur hatte Efret die ganze Geschichte öffentlich gemacht? Alle wussten, was er erlebt hatte. Da war sein Kampf gegen den Drachen, der bittere Sieg über Valdor und sein Kampf gegen den schwarzen Magier Lethos, und da war eben auch das kleine Detail, dass er das alles nur geschafft hatte, weil Efret fast seine gesamten magischen Kräfte auf ihn übertragen hatte. Na ja, zumindest traf das auf den Kampf gegen Lethos zu.
+
+»Vielleicht«, sagte Jomar schließlich. »Wenigstens bin ich jemandes Schoßhündchen. Deine Mutter ist sicherlich froh, dass sie dich nicht mehr füttern und den Arsch abwischen muss, jetzt wo du hier bist.« Deine-Mutter-Beleidigungen hatte er mit Kalem ausgiebig geübt. 
+
+Das Kichern wurde lauter, und Marek verlor einen Moment lang die Fassung. Doch bevor er etwas erwidern konnte, rief der Lehrmeister: »Jomar, Marek, wenn ihr euch hier die ganze Zeit kabbelt, könnt ihr genauso gut den nächsten Kampf bestreiten.«
+
+Die beiden traten in den Übungskreis. Marek sah siegessicher aus, er nahm schon Kampfhaltung ein. Jomar atmete tief ein und konzentrierte sich. Er wusste, dass Marek besser war und wahrscheinlich gewinnen würde, er war ein herausragender Schüler. Doch Jomar hatte etwas, das Marek nicht besaß: Erfahrung.
+
+Jomar dachte nicht an die Lehrbuchtheorie oder an die Zauber, die er kannte, sondern an das, was Kalem ihm beigebracht hatte – an Intuition, an Improvisation, an die Kunst, das Unerwartete zu nutzen, und auch die charakterlichen Schwächen eines Gegners auszunutzen, sofern man die kannte. Und Mareks Schwäche kannte er: Er liebte es, Jomar leiden zu sehen. 
+
+Der Kampf begann, und Marek stürmte mit einem Angriffszauber voran: Ein heftiger Windstoß trieb Jomar zurück. Er taumelte und konnte sich gerade noch so auf den Beinen halten. Er sprang zur Seite, um einem Folgeangriff zu entgehen; jedoch vergebens. Schon traf Jomar ein magischer Pfeil an der Schulter. Der Schweinehund hatte sicher auf seinen Kopf gezielt, was bei Übungskämpfen natürlich verboten war. Er hätte danach sicher sein Bedauern ausgedrückt über das ›unglückliche Missgeschick‹, dass er dann einen Punkt verloren hätte, wäre ihm sicherlich egal gewesen.
+
+Marek grinste Jomar dreckig an. Der hielt sich die Schulter, als durchzuckte ihn ein Messerstich. Er stöhnte auf und sank auf ein Knie herab. Das gab zwar einen Punkt Abzug, aber das nahm er in Kauf. So wirkte es echt. Er sah, dass Marek jede Sekunde seiner vorgeblichen Qualen genoss. Der gab seine seitliche Kampfhaltung auf, die einem Gegner möglichst wenig Angriffsfläche bieten sollte, und tänzelte nicht umher, wie es sich während eines Kampfes gehörte, sondern stand still und breitbeinig da und genoss Jomars vorgetäuschte Schmerzen. Ein wundervolles Ziel.
+
+Das gab Jomar die Gelegenheit, schnell und ansatzlos selbst zwei Pfeile zu schleudern: Einer traf Marek mitten in das Sonnengeflecht, der andere schlug in sein Knie ein. Das gab nach und ohne dass er etwas dagegen tun konnte knickte sein Bein nach außen weg. Er fiel in den Staub des Übungskreises. Damit war der Kampf vorbei.
+
+Marek lag auf dem Rücken, japsend und um Luft ringend.
+
+»Gut gemacht, Jomar«, sagte der Lehrmeister, ohne Marek eines Blickes zu würdigen, obwohl der sich anhörte, als würde er gleich ersticken.
+
+Jomar verließ ohne zurückzublicken den Übungsplatz. Hinter ihm hörte er, wie Marek noch immer nach Luft schnappte, doch schien er nun schon wieder genug Luft zu bekommen, um Jomar Flüche hinterher zu röcheln. 
+
+Jomar war es gleich. Marek mochte ihn nicht – und das war in Ordnung. Er war nicht hier, um Freundschaften zu schließen. Er war hier, um besser zu werden. Und er hatte noch einen weiten Weg vor sich. Und er musste herausfinden, wie das mit dem Windstoß funktionierte, der hätte ihn beinahe den Kampf gekostet.
+
+
+# Ungebetene Gäste
+
+Kata hatte sich gerade wieder an den Küchentisch gesetzt und starrte auf die Rillen im Holz, als die Tür mit einem Knall aufsprang. Zwei schwarzberobte Magier traten ein, dicht gefolgt von zwei Wachen in schwerer Lederrüstung. Die Wachen überprüften den Raum mit kalten, wachsamen Augen, während die Magier direkt auf Kata zugingen.
+
+Die Ältere der beiden sprach: »Es war lächerlich einfach, dich zu finden.«
+
+Die Magierin verschränkte die Arme. »Sag mir, wer dich geschickt hat, und dein Tod wird schnell und schmerzlos sein.«
+
+Kata zuckte zusammen, als eine Wache einen Schritt auf sie zumachte. Sie versuchte, Magie zu rufen, doch sie spürte, dass ihre Kräfte sich noch nicht vollständig erholt hatten, und was würde ihr Unsichtbarkeit auch schon bringen? Sie war in die Enge getrieben.
+
+»Meine Enkelin mit dem Tod zu bedrohen ist also eure Verhandlungstaktik? Seid ihr alle so blöd, oder nur du?«, erklang plötzlich Marinas Stimme aus dem Nebenzimmer.
+
+Die Eindringlinge wandten sich um, als die alte Frau in die Küche trat. Sie trug ihre übliche schlichte Robe und hielt eine kleine Holzschale mit Kräutern in der Hand. Sie sah aus wie eine Großmutter, die gerade dabei war, Tee zuzubereiten – abgesehen von ihrem scharfen Blick, der die Eindringlinge unverwandt musterte.
+
+Die jüngere Wache hob die Hand. »Bleib, wo du bist, Alte. Das hier betrifft dich nicht.«
+
+Marina blieb stehen, legte die Schale ruhig auf den Tisch und richtete sich langsam auf. »Mein Haus, meine Enkelin. Natürlich geht mich das was an. Du scheinst auch blöd zu sein. Sind anderen zwei auch Idioten?«
+
+Die ältere Magierin schnaubte. »Alt genug, um sich kaum noch zu rühren, aber frech wie ein Straßenköter. Wir haben keine Zeit für Spielchen – erledigt sie.«
+
+Einer der Wachen trat vor. Marina hob die Hand, bevor er sie berühren konnte. Ohne ein Wort krümmte sich der Mann plötzlich, als hätte ihm jemand in den Magen geboxt. Er rief »Mami!«, dann fiel er rückwärts auf den Boden und blieb keuchend liegen.
+
+Die andere Wache zog ihr Schwert und trat drohend auf sie zu. Marina neigte leicht den Kopf, als würde sie etwas abwägen, und machte dann eine kurze Geste mit der Hand. Das Schwert begann augenblicklich zu glühen und landete kurz darauf scheppernd auf dem Boden. Die Wache hielt sich die verbrannte Schwerthand und hüpfte jammernd herum. Marina hatte anscheinend Mitleid und ließ einen magischen Pfeil an die Schläfe der Wache krachen. Mit einem Seufzen entkam sie in eine Bewusstlosigkeit.
+
+»Ich nehme an, ihr wollt jetzt lieber gehen?«, fragte Marina.
+
+Die jüngere Magierin trat vor und hob ihre Hände, um einen Zauber zu wirken. Doch bevor sie auch nur die Hände vollständig gehoben hatte, schnipste Marina mit den Fingern. Die Magierin fiel vornüber auf alle viere. Sie wollte wieder aufspringen, doch ihre Hände waren magisch am Fußboden festgeklebt.
+
+Die andere der Magier hob die Hände und murmelte einen Zauber. Marina machte eine kurze Geste und der Mann verstummte. Dann griff er sich an den Bauch, beugte sich vornüber, ging auf die Knie und übergab sich und das ohne Ende und im Schwall.
+
+Blöde Idee, dachte Marina, als sie ihren besudelten Boden betrachtete.
+
+Dann traf sie etwas und sie torkelte erstaunt zurück. Die Magierin am Boden hatte gezaubert. 
+
+Anscheinend werde ich nachlässig, dachte sie. Nur weil ich zum Zaubern immer meine Hände benutze, muss das ja nicht für andere Zauberer gelten. Manche murmelten Zaubersprüche, andere nahmen ihre Hände, es gab eine auch welche, den schien es nicht mal peinlich zu sein, Zauberstäbe zu benutzen. 
+
+Sie knallte der Magierin am Boden eine magische Faust vor die Stirn. Da ihre Hände noch immer am Boden klebten, sank sie ohnmächtig nach vorne und sah nun aus, als würde sie eine Gottheit anbeten.
+
+»Das reicht«, sagte Marina, »Ich habe keine Zeit für Idioten. Verschwindet aus meinem Haus und richtet eurem Meister aus, dass er seine Spielzeuge besser im Zaum halten soll.« Ein Feuerball erschien zwischen ihren erhobenen Händen. Diese Drohung wirkte, obwohl Marina wohl kaum einen Feuerball in ihrem eigenen Haus werfen würde, dachte Kata.
+
+Der mittlerweile nur noch trocken würgende Magier löste seine Kumpanin vom Boden und zog sie in Richtung Tür. 
+
+Auch hatte die eine Wache den Schlag in den Magen verdaut, und griff ihrem immer noch bewusstlosen Kumpel unter die Arme und schleppte ihn aus dem Haus. Die beiden warfen Kata und Marina wütende Blicke zu, wagten es aber nicht, erneut anzugreifen.
+
+Nachdem die Tür hinter ihnen ins Schloss gefallen war, machte Marina ein paar wirbelnde Bewegungen in Richtung Tür. Wahrscheinlich ein Schutzzauber, dachte Kata. 
+
+Dann drehte sich Marina zu Kata um.
+
+»Müssen wir mit noch mehr von denen rechnen?«, fragte sie ungehalten.
+
+Kata senkte die Augen und knetete an ihren Händen herum.
+
+»Ich glaube schon«, murmelte sie verlegen. 
+
+»Wie viele?«
+
+»Etwa 100. Alles Zauberer«
+
+Marina schnappte nach Luft.
+
+»Kind, in was bist du da hinein geraten?«
+
+Kata setzte an, ihre Geschichte zu erzählen, aber Marina unterbrach sie.
+
+»Wir haben jetzt keine Zeit für Erklärungen. Pack deine Sachen, wir müssen los!«
+
+»Los? Wohin?«, fragte sie ratlos.
+
+»Na was denkst du denn?«
+
+»In die Weiße Stadt?«
+
+»In die Weiße Stadt.«
+
+ 
+
+
+# Die Flucht zur Weißen Stadt
+ 
+
+Die Sonne stand blass über den Feldern von Bauer Kahl, als Kata und Marina das Gehöft erreichten. Kata zog einen Handwagen hinter sich her, auf dem sich Hühnerkäfige stapelten. Marina führte ihre Kuh an einer Leine. Kahl lehnte lässig an seiner Scheune, die Arme verschränkt, und musterte die Ankömmlinge mit einem Blick, der zwischen Neugier und Langeweile schwankte.
+
+»So früh schon unterwegs?«, fragte er träge. »Was führt euch zu mir?«
+
+Kata trat nach vorne, den Rücken kerzengerade, die Hände auf die Hüften gestützt. Ihr Gesichtsausdruck zeigte entschlossene Autorität.
+
+»Wir müssen fort«, sagte sie mit einer Stimme, die keinen Widerspruch duldete. »Marina überlässt euch die Kuh und die Hühner. Im Gegenzug brauchen wir euer Pferd.«
+
+Kahl blinzelte, richtete sich auf und zog langsam die Stirn kraus. »Das Pferd? Für das bisschen Vieh? Ihr habt wohl den Verstand verloren, Fräulein.«
+
+Kata hob das Kinn, ihre Augen blitzten auf. »Die Kuh gibt hervorragende Milch, und die Hühner sind gesund und legen täglich Eier. Ein fairer Handel, Kahl. Ihr solltet dankbar sein.«
+
+Der Bauer ließ ein leises Schnauben hören, lehnte sich zurück und verschränkte die Arme erneut. »Dankbar? Das ist mein bestes Pferd, und ihr wollt es mir für ein paar Eier und Milch abschwatzen? So läuft das nicht, Mädchen.«
+
+Katas Haltung versteifte sich, ihre Stimme wurde eisig. »Ich bin keine, die über Preise verhandelt. Ihr bekommt, was angeboten wird. Und glaubt mir, es ist mehr, als die meisten anderen euch geben würden.«
+
+Marina seufzte leise und trat zwischen die beiden. »Kahl, hör zu«, sagte sie, ihre Stimme ruhig, aber bestimmt. »Die Kuh ist gesund, und die Hühner werden euch viele Jahre versorgen. Überlegt mal: Eier zum Frühstück, Milch zum Backen – das Pferd ist zwar gut, aber so eine Versorgung bietet euch mehr.«
+
+Kahl ließ den Blick erneut über die Kuh und die Hühner gleiten, dann zurück zu Kata, deren Gesicht vor Empörung glühte. Er schnaubte wieder, diesmal mit einer Spur Resignation. »Na gut. Das Pferd steht hinten auf der Weide. Aber ich sage dir, das ist kein fairer Tausch. Ich tue es nur, weil du meiner Frau bei der Geburt geholfen hast – weil du meiner Frau bei allen Geburten geholfen hast. Ich tue es für dich, nicht für das Mädchen.«
+
+Marina legte eine Hand auf Kahls Arm. »Danke«, sagte sie leise.
+
+Kata stolzierte davon ihn Richtung der Weide.
+
+Kahl schnaubte. »Das Mädchen hat Feuer, das muss ich ihr lassen. Aber wenn du sie nicht zügelst, wird sie damit irgendwann jemanden in Brand setzen.«
+
+Marina lächelte leicht. »Vielleicht. Aber es gibt auch Feuer, das nicht gelöscht, sondern gelenkt werden muss.«
+
+Kahl schüttelte den Kopf. 
+
+Marina dachte: Sie ist ein ungeschliffener Edelstein. Aber selbst Edelsteine müssen lernen, dass sie nicht allein durch ihren Glanz bestehen können.
+
+Sie sah zu dem Kind hinüber mit einem Ausdruck, der zwischen Amüsement und Sorge lag. 
+
+Wie sie da geht, so selbstsicher, so überzeugt davon, dass die Welt sich nach ihr richten muss. Sie hat es nie anders gelernt. Adel legt sich wie eine zweite Haut um die Seele – er formt dich und macht es schwer, den Menschen dahinter zu sehen.
+
+Doch Katas Welt hatte sich geändert. Die Familie, das Land, das Vermögen – alles war weg. Und trotzdem trug Kata diesen unsichtbaren Mantel aus Stolz und Anspruch weiter. Marina konnte es ihr nicht einmal übel nehmen. Das war alles, was ihr geblieben war.
+
+Aber eines Tages, dachte Marina, wird sie lernen müssen, dass nicht jeder nach ihrer Pfeife tanzen wird. Und wenn sie es nicht lernt, wird es ihr die Welt ohne Gnade beibringen.
+
+Marina führte die Kuh in den Stall, während Kata das Pferd von der Weide holte. Es war ein kräftiger Brauner, dessen Hufe nervös den Boden scharrten. Sie befestigten ihre wenigen Habseligkeiten am Sattel und verließen das Gehöft. Marina nahm sich noch die Zeit, kurz nach der Mutter und dem Neugeborenen zu sehen. Beiden ging es gut.
+
+Die Reise verlief ruhig. Die erste Nacht verbrachten sie unter freiem Himmel, geschützt von einer Baumgruppe am Rand eines leeren Feldes. Kein Laut störte die Stille, und die Dunkelheit blieb unberührt. Am zweiten Tag erreichten sie die Heide vor der Weißen Stadt. Der Boden wurde steinig, und die Pflanzen wichen einer trockenen, grauen Graslandschaft. Der Himmel war bedeckt, und eine feuchte Kälte hing in der Luft.
+
+Bald darauf tauchte der Nebel auf. Wie ein kniehohes Band zog er sich vor ihnen hin, gleichmäßig und träge, als würde er durch eine unsichtbare Kraft gehalten. Er wirkte unscheinbar, doch Kata wusste, dass er für nicht magische Wesen undurchdringlich war. Marina hielt das Pferd an und stieg ab. »Ab hier zu Fuß.«
+
+Marina löste den Sattel von dem Pferd und ließ ihn achtlos zu Boden fallen. Dann schlug sie dem Pferd kräftig auf das Hinterteil. Es ließ sich nicht zweimal bitten und spurtete davon, weg von der Stadt.
+
+Kata sagte: »Der läuft wahrscheinlich direkt nach Hause. Da hat Bauer Kahl ein gutes Geschäft gemacht.« 
+
+Vor ihnen erhob sich die Heimat der Zauberer, mit ihren massiven Mauern und schlanken weiß schimmernden Türmen. Ein Singen lag in der Luft, obwohl kein Geräusch von der Stadt ausging. Die Magie flirrte unsichtbar in der Luft.
+
+»Keine Verfolger«, stellte Marina fest, während sie zurück in die Heide blickte.
+
+»Die Verschwörer scheinen Abstand von der Stadt zu halten«, sagte Kata. »Vielleicht fürchten sie sich. Oder sie wissen, dass sie hier nichts ausrichten können.«
+
+Sie gingen einfach weiter, bis sie das mächtige Tor der Stadt erreichten. Es war offen, und die Weiße Stadt lag vor ihnen.
 
 
 
@@ -87,165 +659,31 @@ Sie setzten sich wieder und legten ihre Transmitter an. Ernst Großvater tippte 
 
 
 
-Die Umgebung verschwamm kurz, dann materialisierte sich um Acen ein prachtvoller Ballsaal. Hohe Fenster, durch die goldenes Abendlicht fiel. Kristallene Kronleuchter warfen funkelnde Reflexionen auf die polierten Marmorböden. Der Raum war gefüllt mit eleganten Gestalten in aufwendigen Gewändern.
+ 
 
-Acen spürte die sanfte Berührung feiner Stoffe auf seiner Haut. Er trug eine eng anliegende, dunkelblaue Jacke mit silbernen Stickereien und eine passende Hose. Er blickte auf seine Hände herab: feingliedrige Finger, lackierte Fingernägel.
+Kata und Marina standen vor den massiven Toren des Zaubererpalasts. Zwei Wachen in schlichten Roben, mit einem Zaubererhut, der nicht allzu spitz war, aber einen gelben Blitz aufgenäht hatte. Das waren Kampfzauberer. Sie trugen keine Schwerter oder Hellebarden. So etwas brauchten sie nicht. Man sagte – natürlich nie in ihrer Gegenwart –, dass sie zwar kämpfen konnten wie tausend Teufel, aber dafür mit dem Licht der Intelligenz nicht allzu sehr ausgeleuchtet waren. 
 
-Er lauschte den Gesprächen um ihn herum. Die melodischen Klänge des Bellanischen drangen an sein Ohr – eine Sprache, die er sprechen konnte. Er hatte sie in zwei Tagen in einer Turbosimulation gelernt. Für ihn hatte das Ganze allerdings gefühlte sechs Monate gedauert.
+Die Wachen musterten sie mit gelangweiltem Blick. Kata trat einen Schritt nach vorne und hob die Stimme. »Wir müssen dringend mit Efret sprechen. Es ist wichtig.« Die Wachen sahen sich an, dann zurück zu Kata. Der Ältere der beiden zog die Augenbrauen hoch. »Efret? Ohne Termin kommt hier niemand rein.«
 
-»Deine Aufgabe ist soziale Intelligenz«, hörte er die Stimme seines Großvaters durch die Simulation. »Beobachte. Analysiere. Handle.«
+Die alte Frau schob Kata beiseite: »Ich bin Marina. Lasst uns vorbei!«
 
-Über zwei jungen Frauen am Rand der Tanzfläche erschien plötzlich ein leuchtender Marker – ein leichtes Schimmern, das nur Acen sehen konnte. Die Zielpersonen. Eine trug ein smaragdgrünes Kleid, die andere ein silbernes mit feinen Applikationen.
+»Und ich bin Klebo«, sagte eine der Wachen. »Ihr kommt hier nicht rein.«
 
-Acen aktivierte einen mentalen Trigger. Sofort schärften sich seine Sinne. Die Geräusche des Ballsaals wurden klarer, jedes Gespräch plötzlich unterscheidbar. Seine Augen erfassten kleinste Details – die leichte Asymmetrie in der Haltung der Frau im grünen Kleid, der winzige Riss im Handschuh der anderen.
+Kata war etwas verwundert, dass ihre Großmutter angenommen hatte, sie würden durchgelassen, wenn sie nur ihren Namen sagte. Wurde sie etwa doch schon langsam alt? Nun schob sich Kata wieder nach vorne: 
 
-Und dann die Gerüche. Die Frau im grünen Kleid umgab eine subtile Duftwolke – nicht nur ihr eigenes Parfüm, sondern darunter der unverkennbare Geruch intimer Begegnung. Acen schluckte. Das konnte er ihr nicht so direkt ins Gesicht sagen.
+»Kalem hat uns geschickt«, sagte sie mit Nachdruck. »Er meinte, es sei von größter Bedeutung.« Die Wachen schüttelten den Kopf, in schönem Gleichklang. »Kalem? Noch nie gehört«, murmelte der Ältere und kratzte sich am Kinn. Der Jüngere nickte. »Ist das ’n Händler oder so?«
 
-Die Frau im silbernen Kleid roch anders. Unter ihrem Blumenparfüm lag etwas Animalisches. Er konzentrierte sich, versuchte, den Geruch einzuordnen. Dann fielen ihm die feinen, bläulichen Haare auf ihrem Kleid auf. Bisu-Haare. Diese kleinen katzenähnlichen Wesen waren bei der Elite als Haustiere beliebt. Die Menge der Haare deutete auf engen, regelmäßigen Kontakt hin.
+Marina schnaubte genervt, während Kata die Hände in die Hüften stemmte. »Kalem. Ihr wisst schon, Kalem, der im Auftrag von Meister Efret unterwegs ist.« Sie hielt inne, weil sie merkte, dass die Wachen kein bisschen erleuchtet wirkten. »Er ist ein Freund von Jomar«, warf Marina ein.
 
-Acen atmete tief ein. Direkter Ansatz also. Er durchquerte den Saal mit der selbstverständlichen Eleganz, die die Simulation seinem Körper verliehen hatte.
+Das Gesicht des Jüngeren hellte sich auf. »Jomar? Der hat mal 'nen Drachen in zwei Hälften gehauen!« Der Ältere nickte zustimmend. »Wenn ihr mit Jomar kommt, das wäre was anderes. Dann könntet ihr vielleicht reinkommen und auf 'ne Audienz warten.«
 
-»Meine Damen«, sprach er die beiden Frauen an und verbeugte sich leicht. »Darf ich Ihnen einen Vorschlag unterbreiten? Wenn ich etwas über Sie erraten kann, das ich unmöglich wissen könnte – gewähren Sie mir jeweils einen Tanz?«
+»Und wo sollen wir Jomar finden?«, fragte Kata, die sichtlich ihre Geduld zu verlieren begann.
 
-Die beiden Frauen tauschten amüsierte Blicke aus.
+»Der ist hier drüben in der Akademie, den kennt jeder«, sagte der Jüngere und wies hinter sich. »Da können wir euch hinlassen, aber nicht weiter. Und ohne Jomar geht hier gar nix.«
 
-»Und wenn Sie falsch liegen?«, fragte die Frau im silbernen Kleid mit hochgezogener Augenbraue.
+Kata warf Marina einen Blick zu, der eindeutig sagte, was sie von der Situation hielt. Marina seufzte und nickte nur. »Dann gehen wir eben zu Jomar.« Die Wachen traten zur Seite, wobei der Ältere noch hinzufügte: »Grüßt ihn von mir! Sagt, Klebo wünscht ihm Glück mit seinem nächsten Drachen.«
 
-»Dann verschwinde ich und störe Ihren Abend nicht weiter«, antwortete Acen mit einem Lächeln.
-
-»Einverstanden«, sagte die Frau im grünen Kleid. »Beginnen Sie.«
-
-Acen wandte sich der Frau im silbernen Kleid zu. »Sie haben eine besondere Bindung zu einem Bisu. Nicht nur als gelegentliche Begleiterin – Sie verbringen viel Zeit mit dem Tier. Ich vermute, es schläft sogar in Ihrem Bett.«
-
-Ihre Augen weiteten sich überrascht. »Wie haben Sie …?«
-
-»Die feinen blauen Haare auf Ihrem Kleid. Bisu-Haare sind unverwechselbar in ihrer Farbe. Und ihre Menge verrät mir, dass es kein zufälliger Kontakt war.«
-
-Die Frau lachte verblüfft. »Beeindruckend. Mein Bisu heißt Nari und ja, er schläft tatsächlich auf meinem Kopfkissen.«
-
-Acen wandte sich der Frau im grünen Kleid zu. Hier musste er vorsichtiger sein. Er konnte unmöglich direkt ansprechen, was sein geschärfter Geruchssinn ihm verraten hatte.
-
-»Bei Ihnen«, begann er langsam, »sehe ich einen ganz besonderen Glanz in Ihren Augen. Sie hatten heute ein … äußerst intensives Erlebnis. Eines, bei dem Sie nicht allein waren.« Er senkte die Stimme. »Aus Höflichkeit kann ich es natürlich nicht beim Namen nennen, aber vielleicht lächeln Sie, wenn ich richtig liege?«
-
-Die Frau errötete leicht, dann huschte ein Lächeln über ihre Lippen.
-
-»Sie sind gut«, sagte sie leise. »Zu gut vielleicht. Woher wissen Sie das?«
-
-»Ein Gentleman behält seine Geheimnisse für sich«, antwortete Acen mit einer weiteren Verbeugung. »Darf ich um diesen Tanz bitten?«
-
-Als er seine Hand ausstreckte, spürte er plötzlich eine andere Präsenz im Raum. Sein Blick schweifte über die Menge und blieb an einer hochgewachsenen Frau mit silbergrauem Haar hängen, die ihn aus der Ferne beobachtete. Ihre grünen Augen schienen im Licht der Kronleuchter zu phosphoreszieren.
-
-Obwohl dies eine Simulation war, jagte ihm der Blick der Frau einen Schauer über den Rücken. Ihre Augen wirkten nicht programmiert – sie beobachteten ihn, als kannten sie ihn. Ihr Blick war zu zielgerichtet, zu wach. Und dann war da dieser Geruch, den sie verströmte: metallisch, kühl, wie Schnee auf heißem Stein. All das machte die Szene unheimlich real. Die Frau neigte leicht den Kopf, als würde sie ihn anerkennen.
-
-»Ist alles in Ordnung?«, fragte die Frau im grünen Kleid.
-
-Acen zwang sich, den Blick von der silberhaarigen Frau abzuwenden. »Natürlich«, sagte er und führte seine Tanzpartnerin auf die Tanzfläche.
-
-Während sie sich im Rhythmus der Musik bewegten, versuchte er, die silberhaarige Frau im Auge zu behalten. War sie Teil der Simulation oder hatte sein Großvater sie hinzugefügt? Und warum hatte ihr Anblick ein so unangenehmes Gefühl in ihm ausgelöst?
-
-Die Musik schwoll an, und die anderen Tänzer verschwammen zu einem Wirbel aus Farben um ihn herum. Nur die grünen, phosphoreszierenden Augen der Frau blieben klar, verfolgten ihn mit unverhohlenem Interesse.
-
-Als der Tanz fortschritt, ließ Acen seinen Blick immer wieder zu der silberhaarigen Frau wandern. Ihre Augen verfolgten jede seiner Bewegungen, kalt und berechnend. Es war, als würde sie ihn nicht nur beobachten, sondern bewerten.
-
-»Sie tanzen hervorragend«, sagte die Frau im grünen Kleid, ihre Stimme kaum hörbar über der Musik. »Wo haben Sie das gelernt?«
-
-Acen zwang seine Aufmerksamkeit zurück zu seiner Tanzpartnerin. »Ein Talent, das mir in die Wiege gelegt wurde«, antwortete er mit einem Lächeln, das er nicht wirklich fühlte. Die silberhaarige Frau hatte ihn aus dem Konzept gebracht.
-
-Die Musik endete. Acen verbeugte sich höflich vor seiner Partnerin und führte sie zurück zum Rand der Tanzfläche, wo die Frau im silbernen Kleid wartete.
-
-»Nun zu unserem Tanz«, sagte die Bisu-Liebhaberin mit einem koketten Lächeln.
-
-»Mit dem größten Vergnügen«, erwiderte Acen und führte sie auf die Tanzfläche.
-
-Während sie tanzten, versuchte er, mehr über sie herauszufinden. »Ihr Bisu, Nari – ist er ein Mondstreifiger oder ein Sonnenfänger?«
-
-Ihre Augen weiteten sich überrascht. »Ein Mondstreifiger. Woher wissen Sie so viel über Bisus?«
-
-»Ich interessiere mich für seltene Wesen«, improvisierte Acen. »Mondstreifige Bisus sind besonders sensibel für Stimmungen ihrer Besitzer, nicht wahr?«
-
-Sie nickte. »Nari weiß immer, wenn ich traurig bin. Dann rollt er sich auf meinem Schoß zusammen und schnurrt, bis es mir besser geht.«
-
-Acen lächelte, aber sein Bewusstsein war gespalten. Mit einem Teil seines Gehirns führte er die Konversation, mit dem anderen beobachtete er die silberhaarige Frau, die sich jetzt durch die Menge bewegte, auf ihn zu.
-
-»Verzeihen Sie«, sagte eine kühle, melodische Stimme neben ihnen.
-
-Acen und seine Tanzpartnerin hielten inne. Die silberhaarige Frau stand vor ihnen, ihr Lächeln nicht ganz ihre Augen erreichend.
-
-»Dürfte ich Ihren Tanzpartner für einen Moment entführen?«, fragte sie die jüngere Frau, die verwirrt nickte und zurücktrat.
-
-Bevor Acen reagieren konnte, hatte die Frau ihre Hand auf seinen Arm gelegt. Ihre Berührung war leicht, aber bestimmt. Sie führte ihn in eine ruhigere Ecke des Ballsaals.
-
-»Elexandra aus dem Belt«, sagte die Frau mit einem Lächeln, das ihre Augen nicht erreichte. »Es ist mir eine Freude, Ihre Bekanntschaft zu machen.«
-
-Acen verbeugte sich leicht. »Die Freude ist ganz meinerseits.«
-
-Ihre grünen Augen studierten ihn. »Sie bewegen sich mit bemerkenswerter … Präzision für jemanden Ihres Alters.«
-
-»Ich hatte gute Lehrer«, antwortete Acen vorsichtig.
-
-»Das bezweifle ich nicht.« Elexandras Stimme wurde leiser. »Wissen Sie, warum Sie hier sind?«
-
-»Um meine sozialen Fähigkeiten zu verbessern?«
-
-Sie lachte, ein kaltes, melodisches Geräusch. »Wie amüsant. Aber nein.«
-
-In einer fließenden Bewegung griff sie unter die Falten ihres Kleides. Acen sah den silbernen Blitz einer Klinge und warf sich instinktiv zur Seite. Die Spitze des Dolches streifte seinen Arm, hinterließ einen brennenden Schnitt.
-
-Er stolperte rückwärts, stieß gegen einen Tisch. Gläser klirrten.
-
-»Was zum—«
-
-»Nichts Persönliches«, flüsterte sie und folgte ihm mit geschmeidigen Schritten. »Nur ein Auftrag.«
-
-Acen duckte sich unter ihrem nächsten Stich weg, griff nach ihrem Handgelenk. Sie war stark, stärker, als er erwartet hatte. Mit einer Drehung befreite sie sich aus seinem Griff.
-
-Ein Paar näherte sich ihnen, in ein Gespräch vertieft. Sofort änderte Elexandra ihre Haltung, versteckte den Dolch in den Falten ihres Kleides und lachte, als hätten sie gerade einen amüsanten Witz ausgetauscht.
-
-»Wunderbares Fest, nicht wahr?«, sagte sie zu dem vorbeigehenden Paar, das höflich lächelte und weiterging.
-
-»Warum wollen Sie mich töten?«, fragte Acen leise, während er nach einer Waffe suchte. Nichts. Er musste mit bloßen Händen kämpfen.
-
-»Sie sind ein Spion des Hauses Taral«, erklärte sie, ihr Lächeln nie verblassend. »Sie haben Staatsgeheimnisse gestohlen. Ich wurde geschickt, um das Problem … diskret zu lösen.«
-
-Sie bewegte sich wieder auf ihn zu, doch eine Gruppe lachender Gäste zwang sie, innezuhalten. Acen nutzte die Gelegenheit, um etwas Abstand zu gewinnen. Er scannte den Raum nach Fluchtwegen, nach Waffen, nach irgendetwas, das ihm helfen könnte.
-
-»Sie können nicht entkommen«, sagte Elexandra, als die Gäste weitergezogen waren. »Das hier endet erst, wenn einer von uns tot ist.«
-
-»Warum erzählen Sie mir das?«
-
-»Weil es mir Freude bereitet, die Verzweiflung in Ihren Augen zu sehen.«
-
-Sie griff wieder an, dieses Mal mit einer Serie schneller Stiche. Acen wich aus, parierte, fing einen Schlag ab, der seine Handfläche aufschnitt. Der Schmerz war überraschend real.
-
-Eine Kellnerin mit einem Tablett voller Champagnergläser trat zwischen sie. Acen und Elexandra erstarrten, beide lächelnd, während die Frau ihnen Getränke anbot. Acen hielt seine blutende Hand hinter dem Rücken.
-
-»Keine Sorge«, sagte Elexandra, nachdem die Kellnerin gegangen war. »Der Schmerz ist temporär. Der Tod hingegen …« Sie lächelte. »Nun, lassen Sie uns herausfinden, wie er sich anfühlt.«
-
-Acen konzentrierte sich. In den Simulationen hatte sein Großvater ihm beigebracht, seinen Körper zu kontrollieren, jede Faser zu beherrschen. Er aktivierte einen weiteren mentalen Trigger. Zeit, seine versteckten Fähigkeiten einzusetzen.
-
-»Sie sind gut«, bemerkte Elexandra, als er ihrem nächsten Angriff auswich. »Besser als erwartet.«
-
-»Sie haben keine Ahnung, wozu ich fähig bin«, antwortete Acen.
-
-Der nächste Angriff kam blitzschnell. Acen sah die Klinge auf sein Herz zu schnellen. Statt auszuweichen, bewegte er sich in den Angriff hinein. Seine Hand schoss vor, traf einen Punkt an Elexandras Handgelenk. Ihre Finger öffneten sich reflexartig, der Dolch fiel zu Boden.
-
-Ihr Gesicht zeigte kurz Überraschung, dann Anerkennung. »Nervenpunkte. Beeindruckend.«
-
-Sie trat einen Schritt zurück, schüttelte ihr Handgelenk. »Aber nicht gut genug.«
-
-Aus ihrem Ärmel glitt ein zweiter, kleinerer Dolch in ihre linke Hand. Sie lächelte. »Immer einen Ersatz haben.«
-
-Acen atmete tief ein. Er musste es beenden, jetzt. Er ließ die Naniten in seinem Körper auf Hochtouren arbeiten, spürte, wie sie seine Nervenimpulse beschleunigten, seine Muskeln stärkten.
-
-Als sie erneut angriff, war er bereit. Er wich nicht aus, sondern fing ihren Arm ab, drehte ihn in einem präzisen Winkel. Gleichzeitig traf seine andere Hand einen Punkt an ihrem Hals – genau an der Stelle, wo der Vagusnerv verlief.
-
-Elexandras Augen weiteten sich. Ihre Lippen formten ein überraschtes »Oh«, dann erschlaffte ihr Körper. Acen fing sie auf, bevor sie zu Boden fallen konnte.
-
-Vorsichtig setzte er sie auf einen nahestehenden Stuhl, arrangierte ihre Gliedmaßen so, dass es aussah, als würde sie sich ausruhen. Ihr Kopf lehnte an der Stuhllehne, die Augen geschlossen. Sie sah friedlich aus, fast als würde sie schlafen.
-
-Acen betrachtete sein Werk. Der Vagusnerv-Druckpunkt – eine Technik, die sein Großvater ihm beigebracht hatte. Bei korrekter Anwendung unterbrach er den Blutfluss zum Gehirn für einen kurzen Moment – lang genug, um Bewusstlosigkeit zu verursachen.
-
-Der Ballsaal um ihn herum begann zu verblassen, die Farben wurden blasser, die Geräusche leiser. Die Simulation endete.
+ 
 
 
 
@@ -253,1727 +691,6504 @@ Der Ballsaal um ihn herum begann zu verblassen, die Farben wurden blasser, die G
 
 
 
-»›Dieses Mal ohne Kampf‹? Was war das denn?«
+ 
 
-Acen blinzelte, als die virtuelle Welt verschwand und er sich wieder im Studierzimmer seines Großvaters befand. Der alte Mann betrachtete ihn mit hochgezogenen Augenbrauen, den Transmitter noch in der Hand.
+Der Aufenthaltsraum war ruhig und ordentlich. An den Tischen saßen einige Lehrlinge und Adepten, viele in Bücher vertieft, andere murmelten leise miteinander. Die Luft war erfüllt vom Geruch alter Schriftrollen und einer angenehmen Wärme, die von einem kleinen Kamin in der Ecke ausging.
 
-»Eine Attentäterin«, antwortete Acen, noch immer den Geschmack von Adrenalin auf der Zunge. »Sie hat versucht, mich zu töten.«
+Kata entdeckte Jomar sofort. Sie wusste selbst nicht, warum sie sich so sicher war, dass der Junge – der mehrere Tintenflecke im Gesicht hatte, wie sie bemerkte – Jomar war. Natürlich hatte auch sie die Geschichten über den Jungen gehört, der Dank Efrets Zauberkräften die Welt gerettet hatte. Aber sie war sich vom ersten Blick an sicher gewesen.
 
-»Ich hab’s gesehen. Keine Ahnung, wo die herkam.«
+Er saß an einem Tisch, den Rücken gerade, ein dickes Buch vor sich aufgeschlagen. Er hatte einen Federkiel in der Hand, mit dem er gerade eine Bemerkung am Rand notierte.
 
-Acen starrte ihn an. »Was soll das heißen? Du hast sie nicht da reinprogrammiert?«
+Kata ging ohne Zögern auf ihn zu. Jomar blickte auf, als sie sich näherte, und seine Augen weiteten sich. Der Federkiel fiel ihm aus der Hand, und er stand so abrupt auf, dass der Stuhl hinter ihm polternd umfiel.
 
-»Nein, das muss wohl wieder aus deinem Unterbewusstsein gekommen sein. Das ist seltsam.«
+»Hallo, ich bin Kata.«
 
-Sein Großvater nahm das Pad vom Tisch. »Genug für heute. Morgen beginnen wir mit einer neuen Übung.«
+Jomar starrte sie an, als hätte sie gerade einen geheimen Zauberspruch ausgesprochen. »Wat? K-Kata? Du bist … du bist … Ick meine …« Seine Stimme brach ab, und er starrte sie an, unfähig, den Satz zu beenden.
 
+*Lakanischer Bauerndialekt. Auch das noch: ein Bauernsohn*, dachte sie. 
 
-# Feldversuch
+»Bist du Jomar?«, fragte Kata, ihre Geduld schon jetzt strapaziert. 
 
-Die Kleidung landete mitten auf Acens Brust, noch bevor er bemerkte, dass sein Großvater den Raum betreten hatte.
+»Jomar? … ja, ich bin ich. Natürlich. Ich … äh … was kann ich für euch tun?« Seine Stimme war unsicher, seine Augen wanderten unruhig zwischen Kata und Marina hin und her.
 
-Schwarzes Gewebe mit silbernen Einwebungen glitt zwischen seinen Fingern hindurch und landete auf dem Bett.
+»Die Wachen am Eingang haben uns gesagt, dass wir dich brauchen, um eine Audienz bei Meister Efret zu bekommen.«
 
-»Zieh das an, wir gehen auf einen Ball«, sagte Maximilian Alvaro, seine Stimme ließ keinen Widerspruch zu.
+Jomar starrte sie an, und für einen Moment schien er die Worte nicht zu verstehen. »Bei Efret?«, wiederholte er langsam. »Ihr wollt … ich meine, du willst, dass ich … dass wir zu Efret gehen?«
 
-Acen starrte auf das Kleidungsstück. Ein formeller Anzug, maßgeschneidert und von höchster Qualität. Als er den Stoff berührte, spürte er die eingewebten Nanofilamente, die bei Aktivierung seine Körpertemperatur regulieren würden. In den Ärmeln erkannte er die feinen Schaltkreise für Kommunikation und Datenaustausch – subtile technologische Verbesserungen. Dieser Anzug hatte mehr gekostet als das Jahresgehalt eines einfachen Bürgers. 
+»Genau«, sagte Kata, bemüht, geduldig zu bleiben. »Kalem schickt uns, doch die Wachen lassen uns nicht durch, es sei denn, du kommst mit.«
 
-»Ein Ball?« Acen runzelte die Stirn. »Warum?«
+Jomar nickte heftig, stieß aber plötzlich hervor: »Natürlich helfe ich. Natürlich. Kalem ist mein Freund. Toller Kerl«, stammelte er.
 
-»Feldtest.« Maximilian durchquerte den Raum und öffnete Acens Kleiderschrank. »Deine sozialen Fähigkeiten brauchen Praxiserfahrung. Simulationen sind nicht genug.«
+Marina hob eine Augenbraue, während Kata kurz blinzelte. »Gut, das ist geklärt«, sagte sie mit einem Hauch von Erleichterung.
 
-Ein Knoten bildete sich in Acens Magen. »Ich bin nicht bereit für–«
+»Ich meine, warum nicht?«, fuhr Jomar fort, sein Gesicht leicht gelilat. »Efret. Klar. Ich komme mit.«
 
-»Du bist vierzehn. Es wird Zeit.« Sein Großvater warf ihm ein Paar schwarze Schuhe zu, die Acen reflexartig auffing. »Beeil dich. Wir brechen in zehn Minuten auf.«
+Jomar schloss sein Buch, schnappte sich seine Feder und einen Stapel Notizen, ordnete sie sorgfältig, hob den Stuhl auf und schob ihn ordentlich zurück an den Tisch. Kata hatte Mühe, ihre Ungeduld zu verbergen, während er alles mit fast ritueller Genauigkeit erledigte. Kata vermutete, dass er das aus der Angst heraus tat, er könne ein Tintenfass umwerfen, oder seine Notizen zu Boden fallen lassen. 
 
-Die Tür schloss sich hinter Maximilian, und Acen ließ sich aufs Bett fallen. Ein echter Ball. Mit echten Menschen. Seine Hände wurden feucht bei dem Gedanken. Er war erst vierzehn, obwohl er dank Gentherapie und künstlichem Muskelaufbaus eher wie siebzehn aussah.
+»Gut«, sagte er schließlich und wandte sich zu Kata um, die Arme an seine Seiten gepresst, als wollte er Haltung bewahren. »Ich bin bereit. Für … alles, was du brauchst. Äh … ich meine, für die Audienz. Bei Efret.«
 
-Er zog sich schnell um, spürte das angenehme Gewicht des Stoffes auf seiner Haut. Der Anzug passte perfekt – natürlich tat er das. Sein Großvater überließ nichts dem Zufall.
+Kata nickte langsam. »Dann los.«
 
-Als er ins Hauptfoyer trat, wartete Maximilian bereits. Der alte Mann trug eine militärisch anmutende Uniform mit dezenten Rangabzeichen und Auszeichnungen, die Acen nicht entziffern konnte.
+Er trat zur Seite, machte ihr Platz und folgte, dabei bemüht, nicht zu nah hinter ihr zu gehen. Kata bemerkte sein immer noch staunendes Gesicht im Augenwinkel, ignorierte es aber. Marina schnaubte leise, sagte jedoch nichts.
 
-»Nicht schlecht«, bemerkte Maximilian mit einem prüfenden Blick. »Denk daran: Beobachten. Analysieren. Handeln.«
+»Das wird ein langer Tag«, murmelte Kata schließlich.
 
-Die Fahrt im Gleiter verlief schweigend. Acen starrte auf die vorbeiziehenden Lichter der Stadt, während sein Großvater Dokumente auf seinem Pad durchging. Die Skyline von Neu-Alexandria glitzerte in der Abenddämmerung – die Hauptstadt des Planeten Kasset. Türme aus Glas und Chrom reckten sich in den violetten Himmel.
+ 
 
-»Der Cassiopeia-Ball ist die wichtigste gesellschaftliche Veranstaltung des Jahres«, erklärte Maximilian schließlich. »Politiker, Militärs, Handelsmagnaten – alle wichtigen Leute werden anwesend sein.«
 
-»Was muss ich tun?« Acen versuchte, ruhig zu klingen.
+# Audienz bei Efret 
 
-»Du wirst deine Beobachtungsgabe einsetzen. Deine Fähigkeit, Menschen zu lesen.« Sein Großvater sah ihn direkt an.
+Als sie in einem Vorraum auf die Audienz warteten, hatte sich Jomar so weit wieder unter Kontrolle, dass er in der Lage war, ganze Sätze herauszubringen. Er erklärte den beiden Frauen, wie Efrets ›Verrücktheit‹ funktionierte: Efret würde meist zusammenhanglose Dinge sagen, und der Mann neben ihm – ›die Stimme‹ – würde übersetzen. Was man zu Efret sagte, musste nicht übersetzt werden, das verstand der oberste Zauberer.
 
-Der Gleiter landete auf einer Plattform hoch über der Stadt. Nur wer fliegen konnte, gelangte hierher – eine natürliche Barriere für das gemeine Volk. Acen folgte seinem Großvater zu einem gewaltigen Gebäude aus weißem Marmor, aus dessen hohen Fenstern Licht strömte und aus dem ihnen Musik entgegenwehte.
+Endlich war es so weit, man winkte sie weiter.
 
-Im Inneren nahm Acen den Raum mit einem Blick auf. Kristallene Kronleuchter warfen funkelndes Licht auf die versammelte Elite der Galaxis. Frauen in schimmernden Gewändern und Männer in makellos geschnittenen Anzügen bewegten sich durch den Saal wie exotische Fische in einem Aquarium.
+Bevor sie in den Audienzsaal vorgelassen wurden, entzog ihnen eine mürrische Zauberin ihre Kräfte.
 
-»Dein Ziel für heute Abend«, Maximilian beugte sich zu ihm, seine Stimme kaum hörbar über der Musik, »ist diese junge Dame dort.«
+Kata machte einen erstickten Laut, als die Hexe von ihr abließ: Die Welt war nur noch grau in grau. Und das hatte nichts mit Farben zu tun. Die Magie fehlte. Diese alles durchdringende Präsenz war verschwunden, und die Leere, die sie hinterließ, war grauenvoll.
 
-Acen folgte seinem Blick. Eine Frau in einem schimmernden Kleid stand am Rand der Tanzfläche. Sie war vielleicht Anfang zwanzig, ihr Haar zu einer komplizierten Frisur hochgesteckt.
+Kata griff nach Marinas Arm – reflexhaft, suchend. Auch Marina sah bestürzt aus. Jomar schien weniger Probleme zu haben. Vielleicht war er es gewohnt, entzaubert zu werden.
 
-»Und nun?« Acens Mund wurde trocken.
+Er hatte die ersten 16 Jahre seines Lebens ohne Magie verbracht, er würde auch diese Audienz ohne sie überstehen.
 
-»Sprich mit ihr. Nutze deine Beobachtungsgabe. Finde einen Weg, sie zu beeindrucken.« Maximilian drückte seine Schulter. »Ich werde dich beobachten.«
+Die drei traten in den Audienzsaal. Die Wachen hatten sie ohne weitere Anweisung zurückgelassen. Ohne Magie wirkte der Raum noch kälter, noch leerer.
 
-Bevor Acen protestieren konnte, hatte sein Großvater sich bereits abgewandt und mischte sich unter die Gäste.
+Der Saal war groß und karg. Meister Efret saß auf einem Thron und starrte in die Luft, während die ›Stimme‹ regungslos neben ihm stand. Doch kaum hatten Kata, Marina und Jomar den Raum betreten, sprang Efret auf – so ruckartig, dass der Thron ein Stück nach hinten rutschte.
 
-Acen atmete tief durch. Er konnte das schaffen. In den Simulationen hatte er gelernt, Menschen zu lesen, ihre Gewohnheiten und Vorlieben zu erkennen. Er musste nur sein Training anwenden.
+»Marina!«, rief er mit unerwarteter Begeisterung. Seine Arme flogen in die Luft, und er stürmte auf sie zu. Die Robe flatterte um seine Knie.
 
-Mit zitternden Beinen durchquerte er den Saal. Die Frau stand noch immer allein, nippte an einem Glas mit roter Flüssigkeit. Als er näher kam, bemerkte er das leichte Zucken ihrer Mundwinkel, als sie die Gespräche um sie herum verfolgte. Sie war gelangweilt.
+Marina grinste breit. »Efret!«, rief sie und ging ihm entgegen.
 
-»Entschuldigen Sie«, begann er, seine Stimme brach leicht. Er räusperte sich. »Darf ich Ihnen Gesellschaft leisten?«
+Kata blieb stehen, den Mund leicht geöffnet. »Was …?«, erwiderte sie, doch dann geschah es: Efret und Marina fielen sich in die Arme – und tauschten ohne Vorwarnung einen leidenschaftlichen, viel zu langen Zungenkuss aus.
 
-Sie wandte sich ihm zu, ihre Augen musterten ihn von oben bis unten. »Bist du nicht etwas jung für diesen Ball, Kleiner?«
+Jomar wurde kreidebleich und starrte auf seine Füße. Kata schlug die Hände vors Gesicht. »Bei jedem einzelnen Gott«, murmelte sie, »ich hätte das nicht sehen wollen. Ich … hätte … das … nicht … sehen … wollen.«
 
-Acen spürte, wie Hitze in seine Wangen stieg. »Ich bin mit meinem Großvater hier. Er ist–«
+Die beiden lösten sich endlich voneinander. Efret strahlte wie ein verliebter Jüngling. »Marina! Wie lange ist das her? Hundert Jahre? Zweihundert? Oder war es gestern? Ich weiß es nicht mehr!«
 
-»Lass mich raten. Ein wichtiger Mann, der dachte, es wäre eine gute Idee, dich in die Gesellschaft einzuführen?« Sie lachte leise. »Wie süß.«
+Marina lachte leise und wischte sich den Mund ab. »Es ist lange her, Efret. Zu lange.«
 
-Acen schluckte. Das lief nicht nach Plan. Er aktivierte seine Naniten, spürte, wie sie durch seinen Körper strömten und seine Sinne schärften.
+Kata senkte langsam die Hände. »Das passiert nicht wirklich. Das ist ein Albtraum. Ich werde aufwachen. Bei jedem Gott, ich werde aufwachen.«
 
-Die Welt um ihn herum explodierte. Plötzlich konnte er jedes Gespräch im Raum hören, jedes Parfüm riechen, jede kleinste Bewegung sehen. Das Licht der Kronleuchter wurde blendend hell, die Musik ohrenbetäubend laut. Er keuchte, überwältigt von der Flut an Eindrücken.
+»Oh, ein geiles, junges Mädchen!«, rief Efret, noch immer mit den Armen um Marina, nun aber die Augen starr auf Kata gerichtet. »Deine Freundin? Deine Schülerin? Oder bist du ihre Schülerin? Spielt keine Rolle. Marina ist zurück!«
 
-»Alles in Ordnung?« Die Stimme der Frau drang durch das Chaos in seinem Kopf.
+Die ›Stimme‹ räusperte sich. »Der Meister ist … erfreut, eine alte Bekanntschaft wiederzusehen. Und ebenso erfreut, das Mädchen ›Kata‹ kennenzulernen.«
 
-Er zwang sich zur Konzentration, dämpfte die Eindrücke auf ein erträgliches Maß. Seine Naniten hatten nie so heftig reagiert. Das war viel mehr Input als in einer Simulation.
+Jomar sah aus, als wollte er im Boden versinken. Kata schüttelte nur den Kopf. »Das läuft nicht so, wie ich es mir vorgestellt habe.«
 
-»Ja, mir geht's gut«, presste er hervor. »Ich war nur … abgelenkt.«
+»Ach, Blödsinn«, sagte Efret und ließ Marina widerwillig los. »Es gibt immer Zeit für alte Lieben. Nicht wahr, Marina?«
 
-»Offensichtlich.« Sie hob eine Augenbraue.
+»Immer, Efret«, erwiderte sie mit einem Schmunzeln.
 
-Acen versuchte, sich zu sammeln. Er musste etwas an ihr ablesen, etwas, das sie beeindrucken würde. Er konzentrierte sich auf Details – ihre Haltung, ihre Kleidung, ihren Schmuck.
+Kata verschränkte die Arme. »Das wird ein sehr, sehr langer Tag.«
 
-Die Sekunden dehnten sich. Er sah die feinen Linien um ihre Augen, die verrieten, dass sie mehr lachte, als ihr höfliches Lächeln vermuten ließ. Ihre Hände – gepflegt, aber mit winzigen Schwielen an den Fingerspitzen. Musikerin? Er bemerkte die leichte Asymmetrie ihres Kleides, ein bewusster Designentscheid, kein Fehler.
+Efret schlurfte zurück zu seinem Thron und setzte sich. Er wirkte nun etwas abwesend, als hätte er alles eben Geschehene vergessen.
 
-Dann sah er die Ungeduld in ihrem Gesicht. Verdammt! In den Simulationen warteten die Damen immer brav, bis er fertig war.
+»Ah, Besucher!«, rief er. »Mit Gesichtern! Nicht diese kopflosen Mistfinken, die sonst kommen.«
 
-»Jungchen, ich glaube, du bist noch nicht so weit«, unterbrach sie seine Analyse mit einem nachsichtigen Lächeln. Sie stellte ihr Glas ab. »Vielleicht in ein paar Jahren.«
+»Meister Efret erwartet euren Bericht«, sagte die ›Stimme‹ ruhig.
 
-Mit diesen Worten drehte sie sich um und schlenderte davon, ließ ihn stehen wie einen Schuljungen nach einer Zurechtweisung.
+Kata trat vor, nickte – auch wenn Efret es nicht beachtete – und begann: »Ich habe in einem ungewöhnlichen Haus jemanden vor etwa hundert Zauberern sprechen hören. Er nannte sich Altheras.«
 
-Acen ballte die Fäuste. Er hatte versagt. Sein Großvater würde enttäuscht sein. Er suchte die Menge nach Maximilian ab, konnte ihn aber nirgends entdecken.
+Efret schnappte hörbar nach Luft, als hätte sie ihn geohrfeigt. »Altheras! Der Seifenblasenpriester! Der … der Läufer auf dem Eis. Was hat er gemacht? Hat er das gemacht?« Seine Finger wirbelten in der Luft.
 
-Stattdessen fiel sein Blick auf eine Frau mit silbergrauem Haar auf der anderen Seite des Saals. Sein Herz setzte einen Schlag aus.
+Kata zögerte kurz. »Er hielt eine Rede. Er sprach davon, die Welt zu ›befreien‹, die Magie zu verändern. Dass die Magiebegabten gefesselt seien – und befreit werden müssten.«
 
-Elexandra, die Frau aus der Simulation.
+Efret verstummte. Nur seine Finger bewegten sich noch, als zählten sie unsichtbare Körner.
 
-Sie stand dort in einem mitternachtsblauen Kleid und grinste ihn an, als wären sie alte Freunde. Ihre grünen Augen fixierten ihn über die Köpfe der Gäste hinweg.
+»Und er sagte auch …«, Kata schluckte, »… dass die ohne Magie ›vergehen‹ müssten.«
 
-Das war unmöglich. Sie war nicht real. Sie war ein Produkt der Simulation, ein Konstrukt aus seinem eigenen Unterbewusstsein, wie sein Großvater gesagt hatte.
+Efret sprang auf. Der Thron kippte beinahe.
 
-Und doch stand sie dort, so real wie jeder andere im Raum.
+»Vergehen! Wie Brot in der Sonne! Kruste wird hart, Krume weich. Dann kommen die Vögel! Vögel überall! Ich hasse Tauben.«
 
-Panik stieg in ihm auf. Er hatte es gewusst. Irgendetwas stimmte nicht mit den Simulationen. Sie war zu real gewesen, zu spezifisch. Und jetzt war sie hier, in der wirklichen Welt.
+»Der Meister möchte wissen, ob Altheras Näheres über seine Pläne geäußert hat«, sagte die ›Stimme‹.
 
-Er musste seinen Großvater finden. Oder einen Ausgang. Oder beides.
+»Er sprach von der Befreiung der Magie. Davon, dass Schranken und Regeln von den Ahnen stammten – absichtlich. Er will sie abschaffen. Und … er sagte, die Nicht-Magischen seien ein ›Fehler‹. Dass sie verschwinden müssten, um die Welt zu reinigen.«
 
-Er drehte sich um und stürzte durch die Menge, stieß dabei gegen Gäste, die ihm irritierte Blicke zuwarfen. Seine Augen suchten verzweifelt nach einem Fluchtweg. Er sah eine Tür am Ende des Saals und rannte darauf zu.
+Efret starrte sie an. »Ein Fehler?«, wiederholte er und lachte schrill auf. »Die Menschen? Die das Brot backen? Die Ziegen halten? Wer hält dann die Ziegen?! Ich halte keine Ziegen!«
 
-Die Tür führte in einen langen, schwach beleuchteten Gang.
+»Der Meister ist … bestürzt«, sagte die ›Stimme‹, während Efret weiter wedelte, als wolle er Geister verjagen.
 
-In seiner Eile bemerkte er nicht, dass er sich immer weiter vom Hauptsaal entfernte. Die Musik wurde leiser, die Menschenmenge dünner. Plötzlich befand er sich in einem langen, schwach beleuchteten Korridor. Die Wände waren mit dunkelrotem Stoff bespannt, gedämpftes Licht fiel von vergoldeten Wandleuchten.
+»Ihr kennt ihn«, sagte Kata. Keine Frage.
 
-»Verdammt«, murmelte er und wollte umkehren, als er das leise Rascheln von Stoff hinter sich hörte.
+Efrets Stimme war plötzlich leise. Klar. »Altheras. Mein Freund. Mein Feind. Mein … Er hat immer den letzten Schluck Wein getrunken. Immer.«
 
-Elexandra stand am Ende des Korridors, ihr Kleid schimmerte im dämmrigen Licht. Ihr Lächeln war kalt und berechnend.
+Er drehte sich abrupt um, griff nach einem imaginären Gegenstand. »Und jetzt will er die Welt sauber machen. Keine Menschen. Keine Ziegen. Keine Schuhe! Warum Schuhe?«
 
-»Hallo, Acen«, sagte sie, ihre Stimme melodisch und fremd zugleich. »Wie schön, dich wiederzusehen.«
+»Der Meister hatte einst eine enge Verbindung zu Altheras«, erklärte die ›Stimme‹. »Er kennt die Visionen, die Altheras heimsuchten. Er hätte nicht gedacht, dass dieser ihnen folgt. Sie waren gefährlich. Beide wussten das.«
 
-»Wer sind Sie?«, fragte er, während er langsam zurückwich. »Was wollen Sie von mir?«
+»Maßnahmen! Wir brauchen Maßnahmen. Listen! Lange Listen mit kurzen Listen! Und dann – den Teppich zurückrollen. Der Teppich hat immer alles verraten.«
 
-Sie lachte leise. »Immer noch dasselbe.«
+Kata tauschte einen Blick mit Marina. Es war beunruhigend. Und irgendwie traurig.
 
-Mit einer fließenden Bewegung griff sie in eine versteckte Tasche ihres Kleides. Eine blitzschnelle Bewegung – und Acen spürte einen brennenden Schmerz an seiner Wange. Er taumelte zurück, die Hand an sein Gesicht pressend. Warmes Blut sickerte zwischen seinen Fingern hervor.
+»Was plant Ihr gegen Altheras?«, fragte Marina.
 
-»Zu langsam«, bemerkte sie mit einem Kopfschütteln. »In der Simulation warst du besser.«
+Efret blieb abrupt stehen. »Pläne? Pläne sind für Ameisen! Dann kommt der Regen. Aber … ich werde …« Er starrte an die Decke. »Ich werde die Ratten fragen.«
 
-Acen starrte auf das schmale Messer in ihrer Hand. »Das war eine Warnung«, sagte sie und zog ein zweites, längeres Messer aus einer Scheide, die unter den Falten ihres Kleides verborgen war. »Jetzt wird es ernst.«
+»Der Meister wird seinen Beraterstab konsultieren. Weitere Anweisungen folgen. Altheras bedroht das magische Gleichgewicht. Haltet euch bereit. Ihr werdet im Gästetrakt untergebracht«, sagte die ›Stimme‹.
 
-Sie bewegte sich auf ihn zu, ihre Schritte lautlos auf dem dicken Teppich. Ihre Bewegungen waren flüssiger, unberechenbarer als in der Simulation – als hätte sie dort nur gespielt.
+Efret setzte sich. »Vergehen«, murmelte er. »Wie die Nacht. Oder der Wein, den er immer getrunken hat.«
 
-Endlich schaltete sein Gehirn ein. Acen aktivierte seine Kampf-Naniten spürte, wie sie sich durch seine Muskeln und Nervenbahnen ausbreiteten.
+Sein Blick glitt durch den Raum – bis er bei Kata stehen blieb.
 
-Elexandra griff an, ihr Messer schnitt durch die Luft, wo sein Kopf gewesen war. Er wich aus, aber seine Bewegungen waren unkoordiniert, plump. Nicht wie in den Simulationen, wo jede seiner Bewegungen präzise und flüssig war.
+»Komm her, kleine Ziege«, sagte er mit einem schiefen Lächeln.
 
-Er versuchte einen Gegenangriff, seine Faust traf ihre Schulter – ein unbeholfener Schlag, der sie kaum aus dem Gleichgewicht brachte. Sie lachte nur und drehte sich, ihr Messer hinterließ einen brennenden Schnitt an seinem Arm.
+»Tritt vor!«, bestätigte die ›Stimme‹ sofort.
 
-»Ist das alles?«, spottete sie. »Der große Hoffnungsträger des Hauses Alvaro?«
+Zögernd trat Kata zum Thron.
 
-Acen keuchte vor Anstrengung. Seine Kleidung war bereits an mehreren Stellen zerrissen, Blut sickerte durch den teuren Stoff. Die Wunden brannten, aber mehr noch schmerzte sein Stolz. Er konnte nichts von dem umsetzen, was er in den Simulationen gelernt hatte. Die Realität war anders – härter, schneller, unberechenbarer.
+Efret grinste lüstern. »Zieh dich aus!«
 
-Elexandra spielte mit ihm, das war offensichtlich. Ihre Bewegungen waren kontrolliert, präzise, während seine immer verzweifelter wurden. Mit jedem Schlag, den er verfehlte, mit jedem Schnitt, den er einsteckte, wuchs seine Frustration.
+Die ›Stimme‹ trat einen Schritt vor. »Strecke die Hände aus. Nur die Hände.«
 
-»Dein Großvater hat dir nie beigebracht, wie man wirklich kämpft, oder?«, fragte sie, während sie mühelos seinem ungelenken Angriff auswich. »Simulationen sind nicht die Wirklichkeit, Junge.«
+Efret blinzelte. »Hände. Ja. Hände.«
 
-Mit einer schnellen Drehung fegte sie seine Beine unter ihm weg. Acen schlug hart auf dem Boden auf, die Luft wurde aus seinen Lungen gepresst. Bevor er reagieren konnte, kniete Elexandra über ihm, die Klinge ihres Messers an seiner Kehle.
+Er griff nach ihren Händen – warm, überraschend sanft. Fast liebevoll. Eine Weile sagte er nichts, dann murmelte er:
 
-»Das reicht«, ertönte eine Stimme aus den Schatten.
+»Du wirst den Schnee auftauen. Vielleicht sogar meine eingewachsenen Fußnägel heilen.«
 
-Maximilian Alvaro trat in den Korridor, sein Gesicht ausdruckslos. Elexandra nahm sofort das Messer von Acens Hals und stand auf, ein Lächeln breitete sich auf ihrem Gesicht aus.
+Er ließ los.
 
-»Max«, sagte sie warmherzig, als würde sie einen alten Freund begrüßen. »Dein Enkel hat noch viel zu lernen.«
+»Was immer wir tun werden betreffs Altheras – du wirst Teil davon sein. Ich sehe die Zukünfte nicht klar. Aber in jeder davon bist du da.«
 
-»Ich weiß«, antwortete Maximilian und trat näher. »Aber er hat Potenzial.«
+Kata trat zurück. Ihre Blicke trafen Marina und Jomar. Beide lächelten, sahen aber genauso ratlos aus wie sie.
 
-Der alte Mann trat auf die Frau zu und nahm ihre Hand. »Vielen Dank«, sagte er.
+Eine wichtige Rolle? Vielleicht. Vielleicht auch nur Unsinn.
 
-»Hab ich doch gern gemacht, alter Freund.«
+Aber ihr fröstelte.
 
-Acen lag noch immer auf dem Boden, sein Atem ging schwer. Sein Gesicht brannte vor Scham und Wut, als die Erkenntnis ihn traf: Der gesamte Abend war inszeniert gewesen. Der Ball, die Frau am Rand der Tanzfläche, Elexandra – alles Teil eines Tests, bei dem er kläglich versagt hatte.
+Nicht wegen der Kälte im Raum. Sondern wegen der Ungewissheit, die Efrets Worte hinterließen.
 
-»Steh auf«, befahl sein Großvater. »Wir haben noch viel zu besprechen.«
+ 
 
-Acen rappelte sich langsam auf, jeder Muskel in seinem Körper protestierte. Blut tropfte von seinen Wunden auf den teuren Teppich. Er fühlte sich gedemütigt, betrogen, wütend.
 
-»Du hast das alles geplant«, sagte er zu seinem Großvater, seine Stimme zitterte vor unterdrückter Wut. »Du hast mich in eine Falle gelockt.«
+# Neue und alte Gefährten
 
-»Ich habe dich auf die Realität vorbereitet«, korrigierte Maximilian. »Oder zumindest versucht es. Nun wissen wir beide, wie viel Arbeit noch vor uns liegt.«
+Sie saßen in einem Arbeitsraum, der inmitten von Efrets Privatgemächern lag. Jomar war das erste Mal hier. Er hatte nie gehört, dass jemand außerhalb des Rats je Zutritt zu diesem Teil des Palastes gehabt hätte.
 
-»Ich hätte sterben können!«
+Die Wände waren mit Büchern vollgestellt, und sogar auf dem Boden stapelten sich Bände bis zur Hüfthöhe. Auf dem großen Tisch lagen Tintenfässer und Federkiele neben einer sorgfältigen Reihe leerer Schriftrollen.
 
-Elexandra schnaubte verächtlich. »Wenn ich dich hätte töten wollen, wärst du jetzt tot.«
+Marina, Kata und Jomar saßen um den Tisch. Efret hatte es sich auf einem abgenutzten Ohrensessel in der Ecke bequem gemacht und starrte lächelnd ins Leere. Neben ihm stand, wie immer, die ›Stimme‹ – reglos und aufmerksam.
 
-Etwas klickte in Acens Gehirn. Die Wut, die Demütigung, die Schmerzen – alles verschmolz zu einem brennenden Fokus. Plötzlich spürte er die Naniten durch seinen Körper fegen wie eine Flutwelle aus flüssigem Feuer. Jede Nervenbahn schien zu glühen, jeder Muskel vibrierte vor Energie.
+Marina begann: »Efret hat mich dazu bestimmt die Untersuchungen zu Altheras zu leiten.« Sie sprach in einem festen, befehlsgewohnten Ton, als hätte sie schon Hunderte solcher Treffen geleitet.
 
-Die Zeit verlangsamte sich.
+Kata hob schüchtern die Hand. Marina runzelte die Stirn, nickte aber. »Ja?«
 
-Elexandras herablassendes Lächeln, die Falten um ihre Augen, die winzige Ausbuchtung unter ihrem linken Ärmel – er sah alles mit kristallklarer Schärfe. Er wusste genau, wo sie ihr Messer verborgen hielt.
+»Oma, wer bist du?«
 
-Ohne nachzudenken bewegte er sich vorwärts. Seine Beine trugen ihn mit einer Geschwindigkeit, die ihn selbst überraschte. Elexandra blinzelte überrascht, ihre Hand zuckte reflexartig zum verborgenen Messer.
+Marina lachte gackernd, und war nun kurz wieder die alte Kräuterhexe, wie Kata sie kannte und liebte. 
 
-Zu spät.
+»Ich bin – oder besser, ich war – die oberste Spionin des Zauberrats. Vor langer Zeit. Es scheint, der Posten ist seit meinem Rücktritt vakant geblieben. Nun habe ich ihn wohl wieder inne.«
 
-Acens Handballen traf ihre Nase mit präziser Gewalt. Das Knacken von Knorpel hallte durch den stillen Korridor. Elexandra taumelte zurück, Blut spritzte über ihr mitternachtsblaues Kleid.
+»Grüne Erbsen«, bestätigte Efret mit dem Kopf nickend. Die Stimme verzichtete auf eine Übersetzung.
 
-»Du kleiner Bastard–« zischte sie, sprang sofort in Kampfstellung und griff nach der Waffe in ihrem Ärmel.
+»Gut«, fuhr Marina fort. »Wir müssen herausfinden, was Altheras plant und wie weit seine Pläne gereift sind. Es ist unwahrscheinlich, dass er noch in dem Haus in der Nebelgasse ist. Nach Katas Entdeckung wäre das töricht. Trotzdem wird Efret beim König eine Hausdurchsuchung beantragen. Der wird nicht ablehnen, immerhin sind die beiden ja Freunde.«
 
-Ihre Finger tasteten ins Leere.
+Efret bohrte sich bestätigend in der Nase. Die Stimme nickte zustimmend.
 
-Acen hielt das Messer zwischen seinen Fingern, die Klinge reflektierte das gedämpfte Licht. Er hatte es ihr abgenommen, ohne dass sie es bemerkt hatte. Zum ersten Mal sah er echte Überraschung in ihren Augen.
+Marina fuhr fort: »Jetzt müssen wir erst mal zusammentragen, was wir schon in Erfahrung gebracht haben. Kata …« Efret unterbrach sie.
 
-Elexandra knurrte und zog ihren Dolch aus der Scheide an ihrem Oberschenkel. »Glückstreffer«, spottete sie, obwohl Blut aus ihrer Nase über ihre Lippen rann.
+»Ich bin mit Dummheit gespickt. Hier, hier und hier. Wie ein Spanferkel am Rost.« Er stach sich mit dem Zeigefinger in verschiedene Stellen am Körper. Obwohl er schon aufgehört hatte zu reden, fuhr er damit fort. Die Stimme meldete sich:
 
-Sie erwartete seinen Hieb, ihre Deckung perfekt positioniert.
+"Efret sagt: Ich muss ein Geständnis machen: Ich bin nicht ganz unbeteiligt an dieser Sache. Nachdem diese Visionen über Altheras gekommen waren, kam er sofort zu mir. Wir wollten erforschen, was sie zu bedeuten hatten. Das meiste war schlicht unverständlich oder unvollständig doch es wurde klar, das es eine Anweisung war, wie man zu Wurzel der Magie kam, und sie erklärte, wie die Erschaffung der Magie einst funktionierte. 
 
-Doch Acen hatte nicht vor, ihr die Genugtuung zu geben. Die Naniten pulsierten durch seine Muskeln, verstärkten jede Faser. Er spannte seinen Körper an, sammelte die Energie in seinen Beinen und trat zu – nicht gegen ihren Dolch, sondern direkt auf ihr Brustbein, zwischen ihre Brüste. Zwar traf der Dolch sein Bein, aber das hatte er erwartet.
+Ich war begeistert. Die Vorstellung, den Ursprung der Magie erforschen zu können, dort zu sein, wo unser Ahnen, unsere Erschaffer einst gewandelt sind, war überwältigend. 
 
-Der Aufprall war gewaltig. Elexandra flog rückwärts durch die Luft, ihr Gesicht eine Maske aus Schock und Schmerz.
+Jedoch je länger wir die Visionen studierten, desto klarer wurde es, dass sie nur aus einem Grund vor ewigen Zeiten ausgesandt worden waren: Sie waren eine Anleitung die Grenzen der Magie aufzuheben. 
 
-Doch Acen wartete nicht, bis sie landete. Er war bereits in Bewegung, sprang ihr hinterher. Als ihr Rücken hart auf dem Marmorboden aufschlug, war er über ihr. Ein Knie presste ihre Dolchhand auf den Boden, das andere ruhte auf ihrem Brustbein. Die Spitze des Messers – ihres eigenen Messers – ruhte an ihrer Kehle.
+Es ging um schwarze Magie und um Kräfte, die noch dahinter verborgen sind. Kräfte, deren Auswirkungen wir uns nicht einmal vorstellen können. 
 
-»Feiere niemals deinen Sieg, bevor es vorbei ist«, flüsterte er, wiederholte die Worte seines Großvaters.
+Altheras wollte die Visionen nutzen, um diese gefährliche Magie zu entfesseln. 
 
-Elexandras Augen weiteten sich. Dann, völlig unerwartet, lachte sie – ein echtes Lachen, das ihre ganze Brust erschütterte.
+Schon vor Jahrtausenden hatten die Zauberer erkannt, dass schwarze Magie nur Zerstörung bringt, und sie deshalb verboten. Doch Altheras wollte nicht nur diese Schranken durchbrechen. Er wollte noch tiefer gehen.
 
-»Bravo, kleiner Alvaro«, sagte sie durch das Blut, das ihre Zähne rot färbte. »Du lernst schnell.«
+Wir zerstritten uns. Schließlich beschloss Altheras die Weiße Stadt zu verlassen. In unserem letzten Gespräch versprach er mir, die Visionen nicht weiter zu verfolgen. Zwanzig Jahre lang glaubte ich, dass er dieses Versprechen gehalten hatte."
 
-Acen spürte eine Hand auf seiner Schulter. Sein Großvater stand über ihm, ein seltenes Lächeln auf seinem Gesicht.
+Efret zeigte auf den Deckenleuchter und die Stimme ging ohne zu zögern hinüber zu einem Bücherregal und nahm gezielt ein Buch heraus, als hätte der alte Magier darauf gezeigt. Er kehrte zum Tisch zurück und reichte es Marina. 
 
-»Genug, Acen. Du hast deinen Punkt bewiesen.«
+»Hier steht alles, was wir damals herausgefunden hatten. Es ist nicht viel – Altheras verließ die Stadt, bevor wir tiefer in die Visionen eindringen konnten. Obwohl ich nun glaube, er hatte weit mehr entschlüsselt, als er mir gegenüber offenbart hat.«
 
-Acen zögerte, das Messer noch immer an Elexandras Hals. Ein Teil von ihm wollte nicht loslassen, wollte ihr zeigen, dass mit ihm nicht zu spaßen war. Der metallische Geruch ihres Blutes erfüllte seine Nasengänge, vermischte sich mit dem süßlichen Duft ihres Parfüms.
+Marina zog ein Blatt Pergament zu sich heran und ergriff einen Federkiel. Sie machte sich Notizen, dann wandte sie sich wieder an Kata.
 
-»Acen«, wiederholte sein Großvater, seine Stimme nun schärfer. »Es ist vorbei.«
+»Hat er irgendwas über konkrete Pläne gesagt? Hat er die Wurzel der Magie schon gefunden? Reist er dorthin?«
 
-Langsam entspannten sich seine Muskeln. Die Naniten in seinem Körper beruhigten sich, der Rausch der Macht ebbte ab. Er rollte von Elexandra herunter und kam auf die Füße, das Messer noch immer in seiner Hand.
+Kata sah unglücklich drein.
 
-Elexandra richtete sich unter Schmerzlauten auf, wischte sich das Blut von der Nase. »Der Junge hat Feuer«, sagte sie zu Maximilian. »Und Talent. Aber er braucht mehr als Simulationstraining. Die Realität ist … unordentlicher.«
+»Ich … ich hab nicht mehr so genau zugehört, ich wollte nur noch raus aus dem Saal.«
 
-»Darum habe ich dich gebeten, uns zu helfen«, antwortete Maximilian. Er wandte sich an Acen. »Du hast gesehen, was passiert, wenn du nicht vorbereitet bist. Aber du hast auch gezeigt, wozu du fähig sein kannst.«
+»Versuche dich zu erinnern!«
 
-Acen starrte auf das Messer in seiner Hand, dann auf das Blut an seinen Fingern – Elexandras Blut. Er hatte sie verletzt. Wirklich verletzt. Nicht in einer Simulation, sondern hier, in der realen Welt. Der Gedanke ließ ihn erschauern.
+Kata runzelte die Stirn. Schließlich schüttelte sie den Kopf.
 
-Elexandra stand auf, ihr Kleid ruiniert von Blut und Staub. Sie streckte die Hand aus. »Mein Messer, wenn's recht ist.«
+Eine Weile sagte niemand etwas, nur Efret murmelte leise vor sich hin. Dann meldete sich Jomar zu Wort.
 
-Acen zögerte, dann reichte er ihr die Waffe, Griff voran. »Ich komme mir vor wie ein dressierter Hund.«
+»Eine Freundin von mir könnte vielleicht helfen: Jaad. Sie ist hier angehende Lehrerin und hat einzigartige Fähigkeiten, wenn es um mentale Magie geht. Sie könnte in deinen Geist eindringen und die verlorenen Erinnerung zurückbringen.«
 
+Kata sah auf Jomar herab, obwohl sie auf gleicher Höhe saßen. Kälte lag in ihrem Blick.
 
-# Grenzwerte
+»Was lässt dich Annehmen, ich würde es jemanden erlauben ›in meinen Geist einzudringen‹? Allein der Vorschlag ist schon eine Unerhörtheit.«
 
-Der Schlag traf Acens Rippen wie ein Hammerschlag. Das befürchtete Knacken gebrochener Knochen blieb glücklicherweise aus. 
+Jomar ruderte zurück. Und das nicht mit seinen Armen.
 
-Luft explodierte aus seinen Lungen. Seine Knie gaben nach, der polierte Holzboden des Trainingsraums kam bedrohlich schnell näher. Im letzten Moment fing er sich ab, rollte zur Seite. Der nächste Tritt seines Gegners verfehlte seinen Kopf nur um Zentimeter.
+»Nein, nein. Das mit dem ›eindringen‹ war blöd. Sie kann mit deiner Zustimmung genau diesen Abend zurückholen, wenn du dich darauf konzentrierst.«
 
-»Zu langsam.« Die Stimme des Meisters klang gelangweilt. Er machte diese arrogante ›Komm!‹-Geste mit der freien Hand.
+Marina seufzte und legte den Federkiel beiseite, ihre Augen auf Kata gerichtet. »Kata, ich verstehe, dass du Vorbehalte hast. Aber wir brauchen jede Information, die wir bekommen können. Wenn Altheras bereits auf dem Weg zur Wurzel der Magie ist, könnten wir zu spät kommen.«
 
-Acen fühlte es mehr, als dass er es sah: Sein Großvater, der auf einem kleinen Balkon über der Kampfarena stand, hatte missbilligend mit dem Kopf geschüttelt.
+Kata verschränkte die Arme vor der Brust und hob das Kinn. »Ihr versteht vielleicht, dass ich eine gewisse Abneigung dagegen habe, jemanden in meine Gedanken zu lassen. Was, wenn sie etwas sieht, das sie nichts angeht?«
 
-Meister Kross stand entspannt da, die Hände locker an den Seiten, die Haut am Handrücken von einer alten Operationsnarbe gezeichnet, der Zeigefinger der rechten Hand durch jahrelanges Waffentraining leicht verformt. Nicht einmal sein Atem ging schneller. Der Mann war vielleicht vierzig, kompakt gebaut, mit Narben an Armen und Gesicht, die von echten Kämpfen zeugten. Seine grauen Augen verfolgten jede von Acens Bewegungen mit der Präzision eines Raubtiers.
+»Jaad ist diskret«, warf Jomar ein, der sich sichtlich bemühte, die Situation zu entschärfen. »Sie ist meine Freundin – sie würde niemals etwas tun, das dir schadet. Sie wird sich nur auf die Erinnerungen konzentrieren, die du freigibst.«
 
-Acen presste eine Hand gegen seine schmerzenden Rippen und kam wieder auf die Füße. Schweiß brannte in seinen Augen. Der Trainingsraum – ein großer, rechteckiger Saal mit hohen Fenstern und polierten Holzböden – schien sich um ihn zu drehen. An der Wand lehnte sein Großvater, die Arme vor der Brust verschränkt.
+Kata warf ihm einen Blick zu, der weder Vertrauen noch Nachsicht zeigte. »Das klingt alles sehr bequem für euch. Aber ich bin nicht überzeugt.«
 
-Er nahm wieder Kampfstellung ein. Die Übungswaffe – ein mit festem Schaumstoff ummantelter Stab – lag schwer in seinen Händen. Kross hielt seinen Stab lässig, als wäre es ein Spazierstock.
+Marina schlug mit der flachen Hand leicht auf den Tisch, genug, um die Aufmerksamkeit aller auf sich zu ziehen. »Das hier ist keine Diskussion über Vertrauen, Kata. Es geht darum, die Welt vor einem Wahnsinnigen zu schützen, der bereit ist, alles zu zerstören, was wir kennen. Deine Erinnerungen könnten entscheidend sein.«
 
-Acen griff an. Er täuschte einen hohen Schlag an, drehte im letzten Moment ab und zielte auf Kross' Knie. Der Meister parierte mühelos, sein Stab krachte gegen Acens Handgelenk. Taubheit schoss seinen Arm hinauf. Die Waffe flog ihm aus der Hand.
+Kata hielt ihrem Blick stand, doch ihre Hände ballten sich zu Fäusten. Nach einem Moment des Schweigens sagte sie leise, aber fest: »Ich werde es tun. Aber nur, weil ich nicht bereit bin, tatenlos zuzusehen, wie Altheras diese Welt zerstört.«
 
-Kross' Ellbogen traf seinen Solarplexus. Acen klappte zusammen wie eine Marionette mit durchtrennten Fäden. Er lag keuchend auf dem Boden, rang nach Luft. Schwarze Punkte tanzten vor seinen Augen.
+Jomar atmete erleichtert aus. »Das ist die richtige Entscheidung, Kata. Ich verspreche, du wirst es nicht bereuen.«
 
-»Erbärmlich«, sagte Kross und warf seinen Stab beiseite. »Ist das alles, was der Erbe des Hauses Alvaro zu bieten hat?«
+Kata schnaubte und sah ihn mit einem Hauch von Verachtung an. »Ich werde dich beim Wort nehmen, Bauernjunge.«
 
-Wut flammte in Acens Brust auf. Er zwang sich auf die Knie, dann auf die Füße. Seine Beine wackelten, aber er blieb stehen.
+ 
 
-»Ich bin noch nicht fertig«, presste er hervor.
+---
 
-Kross lachte. »Du bist schon längst fertig, Junge. Du weißt es nur noch nicht.«
+ 
 
-Die Wut wuchs, heiß und brennend. Acen ballte die Fäuste. Er konnte die Naniten in seinem Blut spüren, wartend, bereit. Er musste nur—
+Wenig später wartete die Gruppe in einem der Lehrsäle der Akademie. Die Atmosphäre war angespannt, als Jaad eintrat. Ihre Haltung war aufrecht und selbstbewusst, ihre Bewegungen elegant. Sie trug eine schlichte, aber stilvolle Robe, die ihre sanften, braunen Augen betonte. 
 
-Acen zögerte. Die Naniten in echten Kämpfen einzusetzen fühlte sich wie Betrug an. Aber der höhnische Blick in Kross' Augen ließ seine Zweifel schwinden.
+*Sie hat sich verändert*, erkannte Jomar erstaunt. *Sie wirkt … erwachsener*.
 
-Er schloss die Augen und formte das mentale Bild: Ein Bach, der schneller fließt. Seine rechte Hand bewegte sich in einer präzisen Geste – Daumen und Zeigefinger bildeten einen Kreis, die anderen Finger spreizten sich. Die Aktivierungssequenz.
+»Jomar«, begrüßte sie ihn mit einem warmen Lächeln. »Es ist lange her.« 
 
-Sofort reagierten die Naniten. Sie strömten durch seine Nervenbahnen, beschleunigten die Signalübertragung. Die Welt wurde schärfer, klarer, langsamer. Er konnte den Staub in den Sonnenstrahlen tanzen sehen, das leise Knarren des Holzbodens unter Kross' Füßen hören.
+Sie hatten sich nicht mehr gesehen, seit Jaad die Ausbildung zu Lehrerin machte. Eine Beziehung zwischen einem Lehrer und einem Schüler war tabu.
 
-»Aha«, murmelte Kross überrascht, als er die Entschlossenheit in Acens Blick sah. Er nahm wieder Kampfstellung ein.
+»Jaad«, erwiderte er, sichtlich erleichtert. »Danke, dass du dir die Zeit nimmst. Wir brauchen wirklich deine Hilfe.«
 
-Sie umkreisten einander. Acen spürte jeden Muskel in seinem Körper, jede Faser. Die Erschöpfung war noch da, aber gedämpft, als hätte jemand die Lautstärke heruntergedreht.
+Jaad nickte, ließ ihren Blick dann auf Kata ruhen. Ihre Miene wurde neutral, fast distanziert. »Du bist also Kata.« 
 
-Kross griff an – eine Serie schneller Schläge. Acen sah sie kommen, konnte ihre Flugbahn vorhersagen. Er wich aus, blockte, konterte. Sein Schlag streifte Kross' Schulter.
+»Das bin ich«, antwortete Kata kühl, ihre Haltung kerzengerade. »Und ich nehme an, du bist diejenige, die ›in meinen Geist eindringen‹ soll.«
 
-»Nicht schlecht«, sagte der Meister und rieb sich die getroffene Stelle. »Aber noch lange nicht gut genug.«
+Jaad hob eine Augenbraue und sah kurz zu Jomar. »Ich sehe, du hast dich mal wieder ungeschickt ausgedrückt.«
 
-Der nächste Angriff kam wie ein Gewitter. Kross bewegte sich mit einer Geschwindigkeit und Präzision, die Acens verbesserte Reflexe überforderte. Schläge prasselten auf ihn ein. Er konnte sie sehen, aber sein Körper war zu langsam, um zu reagieren.
+Jomar hob abwehrend die Hände, Jaad schüttelte mit dem Kopf.
 
-Ein Tritt gegen sein Knie ließ ihn straucheln. Ein Ellbogen gegen seine Schläfe schickte Sterne durch sein Sichtfeld. Er taumelte zurück, die Naniten kämpften gegen die Desorientierung an.
+Jaad richtete ihre Aufmerksamkeit erneut auf Kata. »Hör zu, ich weiß, dass das unangenehm ist. Aber ich werde nur die Erinnerung an diesen Abend suchen. Mehr nicht. Wenn du es mir erlaubst, kann ich dir helfen, dich an Details zu erinnern, die dir entfallen sind. Es wird nicht wehtun, und du hast jederzeit die Kontrolle.«
 
-Acen formte ein neues Bild: eine Brücke, über die sich Stahlseile spannten. Seine linke Hand vollführte die Geste – drei Finger gegen die Handfläche gepresst, kleiner Finger und Daumen ausgestreckt.
+Kata runzelte die Stirn, sagte jedoch nichts. Schließlich nickte sie kurz. »Dann mach schon. Aber wenn ich auch nur den Hauch eines Gefühls habe, dass du etwas siehst, das du nicht sehen sollst, breche ich das ab und dir anschließend die Nase.«
 
-Die Naniten reagierten sofort. Sie fluteten in seine Muskelfasern, optimierten die Kalziumausschüttung, steigerten die ATP-Produktion. Kraft durchströmte ihn. Seine Muskeln fühlten sich dichter an, kompakter.
+Jaad nickte ernst. »Verstanden.«
 
-Er griff wieder an. Seine Schläge waren nun kräftiger. Kross' Augen weiteten sich leicht, als er parierte. Der Aufprall ließ den Meister einen Schritt zurückweichen.
+Kata setzte sich auf einen Stuhl, während Jaad sich vor sie stellte. »Schließ die Augen«, sagte Jaad leise. »Atme tief durch und konzentriere dich auf den Abend. Denk an den Raum, an die Stimmen, an Altheras. Lass die Bilder kommen.«
 
-»Interessant«, sagte Kross. Er hatte keine Ahnung, dass Acen Naniten benutzte, niemand außer seinem Großvater wusste davon.
+Kata tat, wie ihr geheißen, auch wenn sie sich angespannt fühlte. Jaads warme Hände legten sich an ihre Schläfen, und für einen Moment spürte Kata ein Ziehen in ihrem Geist, wie ein Windhauch, der durch die Ecken ihres Bewusstseins wehte.
 
-Sie kämpften weiter. Acen konnte jetzt mithalten. Seine Schläge hatten Kraft, seine Bewegungen Geschwindigkeit. Aber Kross hatte etwas, das keine Naniten ersetzen konnten: Erfahrung.
+Konzentriere dich auf das Ereignis, Kata zuckte zusammen. Sie hörte Jaads Stimme in ihrem Geist. Das hatte sie nicht erwartet.
 
-Der Meister las jeden seiner Angriffe, sah jede Öffnung in seiner Deckung. Für jeden Treffer, den Acen landete, kassierte er drei. Blut tropfte aus seiner Nase. Sein linkes Auge schwoll zu.
+Sie konzentrierte sich. Die Bilder kehrten zurück: der große Saal, die Magier, Altheras in seiner schimmernden Gestalt. Seine Stimme hallte in ihrem Kopf:
 
-Frustration kochte in ihm hoch. Er hatte die Naniten aktiviert, nutzte Fähigkeiten, die normale Menschen nicht besaßen, und verlor trotzdem. Die Wut wuchs, vermischte sich mit der Frustration zu etwas Dunklerem.
+»Die Wurzel der Magie … dort liegt die wahre Macht, die uns gehört. Die Ahnen haben uns betrogen, uns Ketten angelegt, die uns von unserer Göttlichkeit fernhalten. Doch ich werde diese Ketten sprengen.«
 
-Acen wusste was zu tun war, aber diese Aktivierung war gefährlich. Die Nebennieren würden Adrenalin und Noradrenalin in Mengen produzieren, die den Körper beschädigen konnten.
+Kata spürte erneut die Beklommenheit, die sie damals im Saal empfunden hatte, aber Jaads Stimme in ihrem Geist brachte sie zurück. Bleib bei der Erinnerung. Was hat er noch gesagt?
 
-Aber er wollte gewinnen. Musste gewinnen.
+Kata sah sich selbst, wie sie da an die Wand gepresst stand. An dem Abend hatte sie nicht mehr hingehört, aber jetzt hörte sie Altheras Stimme:
 
-Das mentale Bild formte sich: Feuer, das durch seine Adern brennt. Seine rechte Hand ballte sich zur Faust, nur der kleine Finger blieb ausgestreckt – die Geste der Wut.
+»Wir werden die Wurzel finden. Sie liegt im Nordosten, so viel weiß ich. Ich habe Getreue ausgeschickt, die jeden Stein umdrehen und jede Siedlung untersuchen werden, um die Quelle der Magie zu finden.«
 
-Die Wirkung war sofort spürbar. Hitze explodierte in seiner Brust, raste durch seinen Körper. Sein Herzschlag beschleunigte sich, hämmerte wie eine Kriegstrommel. Die Welt färbte sich an den Rändern rot.
+Er hielt inne, ließ den Blick über seine Anhänger schweifen, die still und andächtig lauschten. »Sobald sie die Wurzel gefunden haben, werden wir uns auf den Weg machen. Gemeinsam werden wir sie erkunden und ihr wahres Potenzial entfesseln – für eine neue Welt, in der keine Ketten uns halten.«
 
-Er stürzte sich auf Kross. Kein Gedanke mehr an Technik oder Strategie. Nur noch der brennende Wunsch zu treffen, zu verletzen, zu dominieren. Seine Fäuste flogen in einem wilden Sturm.
+Jaad ließ ihre Hände sinken und sah Kata an. »Er weiß, wo die Wurzel der Magie ist, aber er hat sie noch nicht erreicht. Wir haben noch Zeit.«
 
-Kross wich zurück, zum ersten Mal in die Defensive gedrängt. Ein wilder Schwinger streifte seine Wange, hinterließ einen roten Striemen.
+Während die Gruppe den Raum verließ, beobachtete Jaad, wie Jomar sich um Kata kümmerte, ihr einen Becher Wasser reichte und sicherstellte, dass es ihr gut ging. Sie schob den nagenden Stich der Eifersucht beiseite, doch in ihrem Inneren flüsterte eine leise Stimme:
 
-Aber Acen hörte ihn kaum. Das Blut rauschte in seinen Ohren. Jeder Schlag, der traf, befeuerte seine Wut weiter. Er wollte mehr. Brauchte mehr.
+Warum stört es mich? Ich habe Jomar selbst gesagt, er soll weiterziehen. Aber dieses Mädchen … sie ist so kalt, so arrogant. Was sieht er in ihr?
 
-Kross' Gesicht war jetzt ernst. Er bewegte sich schneller, präziser. Ein gezielter Schlag gegen Acens Handgelenk ließ seinen Arm taub werden. Ein Tritt gegen seine Wade brachte ihn ins Straucheln.
+Kata hingegen spürte Jaads Blick und fragte sich, warum der sie störte. Sie hatte Jomar bisher nicht ernst genommen, doch seine Fürsorglichkeit und seine staunende Bewunderung ihr gegenüber ließ etwas in ihr anklingen, das sie nicht einordnen konnte. Und Jaad schien das nicht zu gefallen.
 
-»Zu wild«, sagte Kross und packte Acens ausgestreckten Arm. Mit einer fließenden Bewegung nutzte er Acens eigenen Schwung gegen ihn, schleuderte ihn zu Boden.
+Marina beobachtete die unausgesprochenen Spannungen und seufzte leise. Wenn wir den Wahnsinn Altheras' überleben wollen, müssen diese Kinder ihre Kämpfe miteinander klären – und zwar schnell.
 
-Acen schlug hart auf. Aber der Schmerz war nur Öl ins Feuer seiner Wut. Er rollte sich ab, kam wieder hoch. Blut lief aus seiner Nase, seiner aufgeplatzten Lippe, einer Platzwunde über seinem Auge. Er schmeckte Kupfer.
+ 
 
-»Mehr«, knurrte er. Die Wut war nicht genug. Er brauchte mehr Kraft, mehr Geschwindigkeit, mehr von allem.
 
-»Acen, nein—«, begann sein Großvater.
+# Vorbereitungen
 
-Seine beiden Hände formten eine komplexe Geste – alle Finger ineinander verschränkt, nur die Daumen zeigten nach oben. Das verbotene Zeichen. Die Notfall-Aktivierung, die Maximilian ihm nur ein einziges Mal gezeigt hatte, spät nachts, mit der Warnung, sie niemals zu nutzen, es sei denn—
+Efret hatte entschieden, und niemand wagte es, ihm zu widersprechen. Seine Stimme hatte keinen Raum für Diskussionen gelassen, als sie verkündete: »Jomar, Kata, Jaad – ihr werdet als Gruppe zusammenarbeiten. Kata benötigt eine Grundausbildung, und ihr beide werdet dafür sorgen, dass sie sie bekommt. Jomar übernimmt das Kampftraining, und Jaad du wirst ihre magischen Fähigkeiten bewerten und sie in die Grundlagen einführen, bevor sie in den regulären Unterricht übergeht.« 
 
-Die Naniten explodierten durch seinen Körper wie eine Flutwelle aus flüssigem Feuer. Jede einzelne Zelle schien zu vibrieren. Seine Muskeln schwollen an, die Fasern verdichteten sich. Die künstlichen Drüsen in seinem Körper schütteten einen Cocktail aus Hormonen aus – Testosteron, Wachstumshormone, Endorphine. Alles gleichzeitig, alles auf Maximum.
+Das hatte natürlich die ›Stimme‹ gesagt, Efret hatte zuvor von ›Dreck zwischen den Zehen‹ und ›Fusseln im Bauchnabel‹ gesprochen. 
 
-Die Zeit dehnte sich, als würde jemand die Zwischenräume zwischen den Herzschlägen vergrößern.
+Keiner der drei schien sonderlich begeistert über Efrets Befehl zu sein. Jomars Blick war entsetzt, Jaads Ausdruck ließ sich am besten mit ›angepisst‹ beschreiben, und Kata sah aus, als würde sie vor Wut gleich platzen. Die Vorstellung, dass sie irgendeine Art von Training nötig hatte, erfüllte sie mit kaltem Zorn. 
 
-Kross' nächster Schlag kam wie in Zeitlupe. Acen sah jeden einzelnen Muskel in des Meisters Arm arbeiten, konnte die Flugbahn vorhersagen, bevor die Bewegung überhaupt begonnen hatte. Er duckte sich darunter weg, seine eigene Faust schoss vor.
+»Ich brauche niemanden, der mir sagt, wie ich kämpfen soll«, sagte sie scharf. »Und meine Magie beherrsche ich gut genug.«
 
-Der Treffer auf Kross' Solarplexus klang wie ein Hammerschlag auf nasses Fleisch. Der Meister flog drei Meter nach hinten, prallte gegen die Wand. Holz splitterte unter dem Aufprall.
+Jomar und Jaad sahen entgeistert auf Kata. Den Meister ungefragt und so einem Ton zu widersprechen war keine gute Idee.
 
-Acen war bereits in Bewegung. Die Geschwindigkeit berauschte ihn. Er war bei Kross, bevor dieser sich von der Wand lösen konnte. Ein Knie in den Magen. Ein Ellbogen gegen die Schläfe. Kross' Kopf schlug gegen die Wand, hinterließ einen Blutfleck auf dem polierten Holz.
+Efret lächelte jedoch und hob einen Finger. Er zeigte hoch in die Luft, doch dann krümmte er ihn ruckartig. Kata riss es von den Beinen. Sie wurde zurückgeschleudert und knallte auf den Rücken. Sie blieb japsend liegen. 
 
-Der Meister sackte zu Boden, hob schwach eine Hand. »Genug«, keuchte er. Blut lief aus seiner Nase, seinem Mund. »Ich gebe auf.«
+»Sie hat wirklich sehr kleine Brüste«, sagte Efret bedauernd. Die ›Stimme‹ übernahm: »Vielen Dank für die Demonstration deiner Kampfkunst. Jetzt erkenne auch ich, dass du keinerlei Ausbildung mehr brauchst. Wer sagt, er brauche nichts mehr zu lernen, hat nichts gelernt. Und übrigens … das war nur ein Finger. Solltest du mir noch mal widersprechen – Ich hab 10 weitere Finger. Ja, 10.« 
 
-Aber Acen hörte die Worte nicht. Konnte sie nicht hören. Das Rauschen in seinen Ohren war zu laut, der rote Schleier vor seinen Augen zu dicht. Er packte Kross am Kragen, zog ihn hoch. Er spürte, wie ohne sein Zutun weitere Naniten aktivert wurden.
+Efret ließ seine Hand sinken und lächelte, als wäre nichts gewesen,
 
-»Zorn-Loopback!«, brüllte Maximilian. »Sofort Hilfe! Alle verfügbaren Männer!«
+»Zwiebelmettwurst«, sagte er fröhlich.
 
-Die Tür zum Trainingsraum flog auf. Sechs Wachen stürmten herein, alle in voller Kampfmontur. Acen ließ Kross fallen, wirbelte herum. Neue Gegner. Gut. Die Wut brauchte ein Ventil.
+»Das Training beginnt morgen früh. Ich schlage vor, ihr ruht euch gut aus.«
 
-Der erste Wächter erreichte ihn, versuchte seinen Arm zu packen. Acen drehte sich in den Griff hinein, nutzte den Schwung des Mannes gegen ihn. Der Wächter flog über seine Schulter, krachte auf den Boden. Ein scharfes Knacken – der Arm war gebrochen.
+Kata kämpfte sich auf die Beine, ihr Stolz sichtlich angeschlagen, doch sie hielt den Kopf hoch und starrte Efret mit einem Blick an, der irgendwo zwischen Verachtung und Trotz lag, aber sie schwieg.
 
-Zwei weitere griffen gleichzeitig an. Acen bewegte sich zwischen ihnen wie Wasser. Ein Tritt gegen ein Knie – es gab nach, der Mann schrie auf. Ein Ellbogen gegen einen Kehlkopf – der zweite ging röchelnd zu Boden.
+ 
 
-Die restlichen drei Wachen zögerten. Acen konnte ihre Angst riechen – sauer und scharf. Es befeuerte seine Wut weiter. Er stürzte sich auf sie.
 
-Eine Faust traf eine Nase. Knorpel splitterte. Ein Knie fand einen Magen. Jemand versuchte, ihn von hinten zu packen. Er rammte seinen Kopf nach hinten, spürte wie er auf etwas Hartes traf. Der Griff lockerte sich.
 
-Aber sie waren zu viele. Während er einen niederschlug, packten zwei andere seine Arme. Ein weiterer warf sich auf seine Beine. Sie drückten ihn zu Boden, ihr kombiniertes Gewicht presste ihn gegen das polierte Holz.
+---
 
-Er kämpfte wie ein wildes Tier. Biss, kratzte, versuchte sich zu befreien. Die Naniten pumpten immer mehr Adrenalin in sein System. Seine Muskeln brannten, seine Lungen schrien nach Luft. Aber er konnte nicht aufhören. Wollte nicht aufhören.
 
-»Haltet ihn fest!«, rief jemand. »Er wird sich selbst umbringen!«
 
-Maximilian kniete neben ihm nieder, ein kleines Gerät in der Hand. Ein Injektor. Er presste ihn gegen Acens Hals. Ein kurzer Stich, dann strömte Kühle durch seine Adern.
+ 
 
-Die Wut begann zu verblassen. Die rote Farbe wich aus seiner Sicht. Die Naniten zogen sich zurück, ihre Aktivität gedrosselt durch was auch immer sein Großvater ihm injiziert hatte.
+Die ersten Strahlen der Morgensonne tauchten den Übungsplatz in ein sanftes, goldenes Licht. Die Luft war kühl und klar, und der Platz war menschenleer, abgesehen von Jomar und Kata. Er wartete bereits, ein schlichtes Holzschwert in jeder Hand, während Kata mit verschränkten Armen auf ihn zukam.
 
-Die Erschöpfung traf ihn wie eine Flutwelle. Jeder Muskel schrie vor Schmerz. Sein Herz hämmerte unregelmäßig. Er schmeckte Blut – sein eigenes und das der anderen.
+»Das ist lächerlich«, sagte sie, ihre Stimme triefte vor Arroganz. »Ich weiß immer noch nicht, warum ich Kämpfen lernen soll. Und schon gar nicht von einem Bauerssohn.«
 
-Die Wachen ließen ihn vorsichtig los, bereit, ihn wieder zu packen, falls nötig. Aber Acen konnte sich nicht bewegen. Konnte kaum atmen. Sein ganzer Körper zitterte unkontrolliert.
+Jomar zuckte zusammen und erstarrte für einen Augenblick. Kata bemerkte es, und etwas an seinem Ausdruck traf sie unerwartet tief. Er sah aus, wie ein Welpe, dem man auf den Schwanz getreten war. Ihre schroffe Bemerkung hallte in ihrem Kopf nach, und sie spürte plötzlich einen leisen Stich in ihrer Brust.
 
-»Bringt Kross in die Krankenstation«, befahl Maximilian. »Sofort. Und die anderen Verletzten auch.«
+Warum fühlt sich das plötzlich so falsch an, fragte sie sich irritiert. War ich zu hart? Sie biss die Zähne zusammen und zwang den Gedanken beiseite.
 
-Durch den Nebel seiner Erschöpfung sah Acen das Ausmaß der Zerstörung. Kross lag bewusstlos an der Wand, sein Gesicht blutig und geschwollen. Zwei Rippen standen in einem unnatürlichen Winkel ab – gebrochen. Von den sechs Wachen konnten nur zwei aus eigener Kraft gehen. Die anderen mussten gestützt oder getragen werden.
+Doch als Jomar sich wieder bewegte und seine Schultern straffte, fühlte sie eine seltsame Mischung aus Schuld und Unsicherheit. Er ist eigentlich ein liebenswerter Kerl, dachte sie widerwillig. Und eigentlich … ist er auch nicht unattraktiv … Warte, was? Was ist los mit mir?
 
-»Was... was habe ich getan?«, krächzte Acen.
+Jomar sprach leise, seine Stimme fest, aber ohne Aggression: »Dann wird es ja ein Leichtes für dich, mich zu besiegen.« Ihre schroffe Zurechtweisung hatte ihm anscheinend die Kraft gegeben, seine Schüchternheit ihr gegenüber zu überwinden. 
 
-»Das«, sagte sein Großvater mit eisiger Stimme, »werden wir gleich besprechen.«
+Er warf ihr ein Holzschwert zu. Kata fing es geschickt in der Luft auf, ihre Bewegungen geschmeidig und präzise. »Du wirst dich wundern«, sagte sie selbstbewusst und ließ das Schwert lässig in ihrer Hand kreisen. Marina hatte sie gelehrt, mit einem Messer zu kämpfen, aber es würde bestimmt nicht viel schwerer sein, mit einem Schwert zu kämpfen. 
 
-Zwei unverletzt gebliebene Bedienstete halfen Acen auf die Füße. Seine Beine fühlten sich an wie Wasser. Jeder Schritt schickte Schmerzblitze durch seinen Körper. Sie stützten ihn den ganzen Weg zu Maximilians Arbeitszimmer.
+Jomar stellte sich in Position, sein Blick ruhig und konzentriert. »Na, dann los.«
 
-***
+Der Kampf dauerte 40 Sekunden.
 
-Der Raum war dunkel, nur das Feuer im Kamin spendete Licht. Sie ließen Acen in einen Sessel fallen. Er sank in die Polster, sein Körper eine einzige Schmerzquelle. Das Zittern wollte nicht aufhören. Seine Zähne klapperten.
+Der Staub auf dem Übungsplatz wirbelte noch in der Luft, als Kata rücklings auf dem Boden lag. Ihr Rücken tat weh, sie fühlte einen Stich in der ohnehin schon verletzten Schulter. Sie spuckte ein Stück Erde aus; Sie hatte im wahrsten Sinne des Wortes Dreck gefressen.
 
-Maximilian schenkte sich ein Glas Brandwein ein, trank es in einem Zug. Dann wandte er sich Acen zu, sein Gesicht eine Maske aus Enttäuschung und Zorn.
+Jomar stand über ihr, das hölzerne Übungsschwert locker in der Hand, und sah sie mit einem undefinierbaren Ausdruck an – vielleicht amüsiert, vielleicht ein wenig triumphierend.
 
-»Vier gebrochene Knochen«, sagte er. »Drei Gehirnerschütterungen. Innere Blutungen bei Kross. Du hättest ihn töten können.«
+»Du warst … gar nicht so schlecht«, sagte er schließlich, die Andeutung eines Grinsens auf seinen Lippen.
 
-»Ich ... ich wollte nicht—«
+Kata blinzelte gegen die Sonne, die über seinem Kopf leuchtete, und richtete sich mit einem unterdrückten Stöhnen auf. »Gar nicht so schlecht?« Sie wischte sich den Staub von der Kleidung und musterte ihn mit einem Blick, der gleichzeitig wütend und beschämt war. »Du hast mich praktisch zerstört.«
 
-»Was du wolltest, ist irrelevant.« Maximilian trat näher. »Ich habe dir diese Aktivierung gezeigt, damit du weißt, dass sie existiert. Damit du weißt, was du niemals tun darfst. Und was machst du?«
+Es hat mir besser gefallen, als er noch gestammelt hat in meine Nähe, dachte sie.
 
-Acen konnte seinen Großvater kaum sehen. Seine Augen wollten nicht fokussieren. Alles verschwamm, drehte sich. »Er hat mich provoziert.«
+»Das war nur Übung«, erwiderte er ruhig und reichte ihr die Hand. »Komm, ich zeig dir, was du besser machen kannst.«
 
-»Provoziert?« Maximilian lachte bitter. »Ein Kampflehrer macht seinen Job und du reagierst darauf mit potentiell tödlicher Gewalt?«
+Für einen Moment starrte sie seine Hand an, bevor sie sie widerwillig nahm und sich auf die Füße ziehen ließ. Ihre Finger zitterten leicht, und sie versuchte, den Gedanken wegzuschieben, wie warm und sicher sich seine Hand angefühlt hatte.
 
-»Die Naniten—«
+»Wiederholen wir das?«, fragte Jomar und stellte sich erneut in Position.
 
-»Die Naniten tun nur, was du ihnen befiehlst.« Sein Großvater setzte sich in den Sessel gegenüber. »Sie sind ein Werkzeug, Acen. Ein mächtiges, gefährliches Werkzeug. Und du hast heute bewiesen, dass du noch nicht reif genug bist, sie zu kontrollieren.«
+Kata hob das Schwert, ihre Wangen leicht gerötet. »Das war ein Glückstreffer.«
 
-Das Feuer knisterte. Acen versuchte, das Zittern zu unterdrücken, aber sein Körper gehorchte ihm nicht. Alles tat weh. Seine Muskeln fühlten sich an, als wären sie zerrissen und notdürftig wieder zusammengeflickt worden.
+Jomar grinste. »Dann beweise mir das.«
 
-»Was du heute aktiviert hast«, begann Maximilian nach einer langen Pause, »nennt sich Berserk-Protokoll. Die Naniten überfluten deinen Körper mit allem, was er produzieren kann. Adrenalin, Noradrenalin, Testosteron, Endorphine. Deine Muskelfasern werden bis an ihre absolute Grenze gebracht. Deine Schmerzrezeptoren werden blockiert.«
+Von einer schattigen Ecke des Übungsplatzes aus beobachtete Marina das Geschehen. Sie hatte sich still herangeschlichen, um zu sehen, wie Kata sich schlug. Ein Lächeln spielte um ihre Lippen, als sie Kata aufstehen sah – stolz, aber mit einer Spur Demut, die sie vorher nicht gezeigt hatte.
 
-Er stand auf, ging zum Fenster. Draußen versanken die Gärten in der Dämmerung. »Es macht dich zu einer Kampfmaschine. Für vielleicht fünf Minuten. Aber der Haken ist: Du kannst nicht mehr zwischen Freund und Feind unterscheiden. Und danach …« Er drehte sich um. »Schau dich an.«
+Gut, dachte sie. Ein erster Schritt. Jomar könnte ihr mehr beibringen als nur Kämpfen. Vielleicht lernt sie sogar, zuzuhören – oder zumindest, ein wenig ihrer Arroganz abzulegen. Wir werden sehen, ob sie wirklich wachsen kann.
 
-Acen versuchte seine Hände zu heben. Sie zitterten so stark, dass er sie kaum stillhalten konnte. Seine Finger waren blutig, die Knöchel aufgeplatzt. Er hatte es nicht einmal bemerkt.
+Mit einem zufriedenen Seufzen wandte sich Marina ab und ging zurück in die Akademie. Es würde ein langer Weg werden – für sie alle.
 
-»Die Naniten können deinen Körper verstärken«, fuhr Maximilian fort. »Aber sie können die physikalischen Gesetze nicht außer Kraft setzen. Jede Aktion hat eine Reaktion. Die Energie, die du verbrauchst, muss irgendwo herkommen.«
 
-Er kehrte zu seinem Sessel zurück, setzte sich. »Deine Muskeln haben sich selbst kannibalisiert. Deine Nebennieren sind erschöpft. Dein Herz hat wahrscheinlich Schäden davongetragen, die wir noch gar nicht kennen. Du wirst wahrscheinlich mit 20 ein Neues brauchen.«
+# Magieunterricht bei Jaad
+ 
 
-Er griff in seine Tasche, zog eine kleine Glasphiole hervor. Die Flüssigkeit darin schimmerte golden im Feuerschein. »Und dann sind da die Drüsen. Die künstlichen Produktionsstätten in deinem Körper.«
+Nach dem anstrengenden Training mit Jomar hatte sie sich nur ein paar Minuten auf ihrem Zimmer erholen können, als Jaad an ihre Tür klopfte. 
 
-Acen versuchte zu sprechen, aber seine Kehle war wie zugeschnürt. Maximilian fuhr fort.
+Sie führte Kata durch die Gänge der Akademie. Sie betraten einen leeren Übungsraum – weitläufig, mit glattem Steinboden und hohen Decken, die die Geräusche dämpften. Die Stühle für die Schüler waren sorgfältig übereinandergestapelt an den Wänden des Raumes abgestellt worden, so hatten sie große Fläche für Übungen.
 
-»Sie sind leer. Vollständig ausgepumpt. Um sie wieder aufzufüllen, braucht es spezielle Substanzen.« Er hielt die Phiole gegen das Licht. »Diese hier zum Beispiel enthält Extrakt aus den Speicheldrüsen der Kythara-Echse von Bellatrix VII. Ein einziger Tropfen kostet mehr als ein Raumschiff.«
+Jaad warf einen kurzen Blick auf Kata, bevor sie die Tür hinter sich schloss. »Zeig mir, was du kannst«, sagte sie knapp und verschränkte die Arme.
 
-Er stellte die Phiole auf den Tisch, holte eine weitere hervor. Diese war blau. »Synthetisiertes Nebennierenmark vom Eismond Titan, gemischt mit Enzymen, die nur in den Tiefseegruben von Aquaria Prime vorkommen. Die Taucher, die danach suchen, haben eine Lebenserwartung von drei Jahren.«
+Kata hob eine Augenbraue, ihre Haltung so stolz wie immer. »Ich kann mich unsichtbar machen.«
 
-Noch eine Phiole erschien, diesmal mit einer milchigen Substanz. »Und das hier – fermentierte Hypophysen-Sekrete von Primaten, die nur auf einem einzigen Asteroiden im Vega-System leben. Die Population beträgt vielleicht noch zweihundert Tiere.«
+Jaad nickte kurz. »Gut. Mach dich unsichtbar und versteck dich irgendwo im Raum. Ich werde dich finden.«
 
-Acen starrte die Phiolen an. Sein Kopf drehte sich noch mehr. »Das ... das muss ein Vermögen kosten.«
+Ein amüsiertes Lächeln huschte über Katas Gesicht. »Das wird nicht einfach.«
 
-»Drei Planeten könnte ich kaufen für das, was in diesen Phiolen ist«, sagte Maximilian ernst. »Die Kythara-Echsen werden von Kampfrobotern bewacht, die jeden Eindringling atomisieren. Die Enzyme aus Aquaria Prime müssen in Stickstoff bei minus zweihundert Grad transportiert werden, sonst zerfallen sie binnen Sekunden.«
+Mit einem tiefen Atemzug ließ Kata ihre Magie fließen. Ihr Körper begann zu verschwimmen, bis sie vollständig in der Luft aufging. Jaad schloss demonstrativ die Augen, drehte sich zur Seite und zählte leise bis zehn. Kata bewegte sich lautlos durch den Raum und drückte sich in eine dunkle Ecke hinter einem Stapel alter Übungsattrappen.
 
-Er nahm die blaue Phiole, träufelte vorsichtig drei Tropfen in ein Glas Wasser. »Und die Primaten? Sie sind heilig für die Vega-Kolonisten. Der letzte Schmuggler, der versucht hat, eine Drüse zu stehlen, wurde bei lebendigem Leib gehäutet.«
+Jaad öffnete die Augen und ließ den Blick langsam durch den Raum wandern. Ihre magische Präsenz tastete die Luft ab, suchte nach den kleinsten Unregelmäßigkeiten.
 
-Das Wasser färbte sich türkis. Maximilian reichte es Acen. »Trink. Langsam.«
+Nach einer Weile hielt sie inne und schüttelte den Kopf. »Beeindruckend«, murmelte sie. »Du bist tatsächlich gut darin.«
 
-Acen nahm das Glas mit zitternden Händen. Die Flüssigkeit schmeckte nach Metall und etwas Bitterem, das er nicht identifizieren konnte. »Wirklich?«, fragte er zwischen zwei Schlucken. »Gehäutet?«
+Ihre Worte ließen Kata, noch immer unsichtbar, unwillkürlich lächeln. Als Jaad schließlich aufgab und Kata aufforderte, sich zu zeigen, flimmerte sie wieder in Sichtbarkeit.
 
-Ein Geräusch entwich Maximilians Kehle – es klang fast wie Gackern. Dann schüttelte er den Kopf. »Nein. Hab ich alles erfunden.« Ein seltenes Lächeln huschte über seine Lippen. »Die Substanzen sind real, ja. Aber es sind synthetische Verbindungen, die dein Körper nicht aus normaler Nahrung herstellen kann. Man kann sie kaufen, manche sind teuer, aber es muss niemand gehäutet werden dafür.«
+»Das war schwieriger, als ich dachte«, gab Jaad zu, ihre Stimme blieb jedoch kühl. »Du bist in dieser Hinsicht wirklich talentiert. Du hast dich nicht nur für die Augen unsichtbar gemacht, auch in der Magie habe ich dich nicht aufspüren können.«
 
-Er tippte auf sein Handgelenk, wo ein schmales Interface aufglühte. »Ich übertrage die Liste der Substanzen in dein Implantat. Die genauen Molekularstrukturen, Dosierungen, Bezugsquellen.«
+Kata verkniff sich ein triumphierendes Lächeln, doch die leichte Anerkennung in Jaads Tonfall riss sie aus ihrem gewohnten Hochmut. Vielleicht ist sie nicht so unnahbar, wie sie tut, dachte Kata kurz. Doch ein Schatten in Jaads Blick verriet ihr, dass die ältere Magierin nicht ganz so beeindruckt war, wie sie sich gab.
 
-Acen spürte das leichte Kribbeln hinter seinem rechten Ohr, wo der Empfänger unter seiner Haut saß. Daten flossen in seinen Kortex-Speicher.
+»Was kannst du noch?«
 
-»Lösch sie nicht«, sagte Maximilian, und seine Stimme wurde wieder ernst. »Ich werde nicht immer da sein, um dich aus deiner eigenen Dummheit zu retten.«
+Kata trat einen Schritt näher, ein herausforderndes Funkeln in ihren Augen. »Ich kann in den Geist anderer eintauchen, ihre Gefühle, ihre Wünsche und ihre Abgründe spüren, sie lesen.«
 
-Die Worte hingen schwer zwischen ihnen. Acen wollte fragen, was er meinte, aber die Erschöpfung zog an ihm wie Bleigewichte. Das Glas entglitt seinen Fingern, fiel auf den dicken Teppich. Die türkise Flüssigkeit versickerte in den Fasern.
+Jaad verschränkte die Arme und musterte Kata. »Dann versuch es.«
 
-»Die nächsten Tage wirst du die Hölle durchmachen«, sagte Maximilian und stand auf. »Muskelkater ist da noch das geringste Problem. Deine Hormonproduktion wird verrücktspielen. Stimmungsschwankungen, Halluzinationen, möglicherweise Krampfanfälle.«
+Kata schloss die Augen und konzentrierte sich. Sie ließ ihre Magie in den Raum fließen, suchte nach dem mentalen Muster, das Jaad ausstrahlte. Als sie es fand, tastete sie vorsichtig nach ihrem Geist.
 
-Er ging zur Tür, blieb aber noch einmal stehen. »Kross wird überleben. Drei gebrochene Rippen, eine Gehirnerschütterung, innere Blutungen. Aber er wird wieder gesund.«
+Doch kaum hatte Kata die Verbindung hergestellt, spürte sie einen heftigen Widerstand – eine mentale Barriere, die so stark war, dass sie fast körperlich fühlbar wurde. Bevor sie reagieren konnte, wurde sie zurückgestoßen, als hätte jemand sie aus einer Tür geworfen.
 
-»Wird er ...« Acen schluckte. »Wird er wiederkommen?«
+Kata stolperte und hielt sich den Kopf, ein stechender Schmerz pochte in ihrer Stirn. »Was war das?«, stieß sie hervor.
 
-»Das liegt an ihm.« Maximilian öffnete die Tür. »Und an dir. Wenn du ihm beweisen kannst, dass du deine Naniten kontrollieren kannst, statt von ihnen kontrolliert zu werden.«
+Jaad lächelte – ein kühles, überlegenes Lächeln. »Das war ich. Mein Geist ist nicht so leicht zu durchdringen. Du hast Talent, ja. Aber mentale Magie erfordert mehr als nur Instinkt. Es erfordert Kontrolle und Stärke und jede Menge Übung.«
 
-Die Tür schloss sich. Acen blieb allein zurück, zitternd in seinem Sessel. Das Feuer knackte und spuckte Funken. Draußen war es vollständig dunkel geworden.
+Kata funkelte sie an. »Ich hatte mich nicht voll konzentriert.«
 
-Er versuchte aufzustehen, aber seine Beine gaben sofort nach. Er kroch auf allen Vieren zum Kamin, lehnte sich gegen die warmen Steine. Die Hitze half ein wenig gegen das Zittern.
+»Ist das eine Rechtfertigung oder Selbsterkenntnis?«, fragte Jaad in spöttischem Unterton.
 
-Die Bilder des Kampfes flackerten durch seinen Kopf. Kross' Blut an der Wand. Der Wächter mit dem gebrochenen Arm. Die Angst in ihren Augen. Er hatte das getan. Er allein.
+Während Kata ihre Fassung zurückzugewinnen versuchte, spürte Jaad einen Anflug von Genugtuung. Doch tief in ihrem Inneren bohrte sich ein anderer Gedanke, den sie kaum zu verdrängen wagte. 
 
-Nein, korrigierte er sich. Die Naniten hatten—
+*Warum fällt es mir so schwer, sie zu mögen? Ist es, weil Jomar sie so oft ansieht?*
 
-Aber das stimmte nicht, oder? Maximilian hatte recht. Die Naniten waren nur ein Werkzeug. Er hatte sie aktiviert. Er hatte die verbotene Sequenz ausgeführt. Er hatte die Kontrolle verloren.
+Der Gedanke war beunruhigend, und Jaad schüttelte ihn ab. Unsinn. Was sollte mir Jomars Interesse an diesem Mädchen schon ausmachen?
 
-Ein Krampf schoss durch seine Wade. Er biss sich auf die Lippe, um nicht zu schreien. Der Muskel zog sich zusammen, hart wie Stein. Er massierte verzweifelt dagegen an, streckte sein Bein, bis der Krampf nachließ.
+Kata hingegen ballte die Fäuste und spürte, wie ihr Stolz erneut verletzt wurde. Ich werde es ihr zeigen, dachte sie, die Augen funkelnd vor Entschlossenheit.
 
-Das war erst der Anfang, wusste er. Die nächsten Tage würden schlimmer werden. Viel schlimmer.
+Das Training war vorbei, doch die Spannungen zwischen den beiden hatten gerade erst begonnen.
 
-Er schloss die Augen und griff auf die Daten zu, die sein Großvater übertragen hatte. Listen von Chemikalien entfalteten sich in seinem Bewusstsein. L-Arginin-Alpha-Ketoglutarat. Phosphatidylserin. D-Asparaginsäure. Namen, die er noch nie gehört hatte, mit Molekularstrukturen, die wie abstrakte Kunst aussahen.
 
-Bezugsquellen waren dabei. Medizinische Versorgungsstationen. Spezialisierte Apotheken. Schwarzmarkt-Kontakte für die weniger legalen Substanzen. Alles, was er brauchen würde, um seine Drüsen wieder funktionsfähig zu machen.
+# Marinas Analyse
+ 
 
-Falls er die nächsten Tage überlebte.
+Die kleine Gruppe saß im Beratungsraum in Efrets Privatgemächern, das Licht der frühen Morgensonne fiel durch die hohen Fenster und warf lange Schatten auf den Holztisch. Marina breitete ein großes, mit Notizen bedecktes Pergament vor sich aus. Daneben lag Efrets Buch, das sie sorgfältig studiert hatte.
 
-Ein weiterer Krampf, diesmal im Rücken. Er keuchte, krümmte sich. Seine Wirbelsäule fühlte sich an, als würde sie brechen. Die Naniten versuchten zu helfen, schickten schmerzlindernde Signale, aber sie hatten kaum noch Ressourcen. Er hatte sie ausgepresst wie einen Schwamm.
+»Ich habe die Aufzeichnungen durchgesehen, und vieles ergibt jetzt mehr Sinn«, erläuterte sie mit ernster Miene. »Die Wurzel der Magie ist tatsächlich ein physischer Ort, geschaffen von den Ahnen – den Menschen von der Erde, die uns hierher brachten.« Sie strich über das Pergament. »Dieser Ort ist der Ursprung der Magie in unserer Welt. Von dort wird sie verteilt, ausgesandt … oder, wie es die Aufzeichnungen nennen, ›ausgesät‹.«
 
-Schritte im Korridor. Die Tür öffnete sich. Eine Dienerin trat ein, ein Tablett in den Händen. Sie war jung, vielleicht zwanzig, mit dem olivfarbenen Teint der Südkontinentler.
+Kata, die Arme verschränkt, lehnte sich zurück. »Und warum ist das wichtig? Die Magie funktioniert doch. Warum also herumpfuschen?«
 
-»Der Herr schickt das«, sagte sie leise und stellte das Tablett auf den niedrigen Tisch.
+Marina hielt inne und sah Kata mit einem Blick an, der jede weitere Bemerkung im Keim erstickte. »Es geht darum, was Magie könnte, wenn sie nicht beschränkt wäre.« Sie deutete auf eine Passage im Buch. »Die Ahnen beschränkten die Magie mit Absicht. Sie könnte Dinge bewirken, die nur Göttern erlaubt sein sollten: Leben erschaffen, die Zeit selbst beugen oder die Welt neu formen. Selbst die Ahnen, die diese Welt geschaffen haben, wagten es nicht, das volle Potenzial der Magie zu entfesseln.«
 
-Acen nahm das Aroma wahr, das von der Schale aufstieg. Brühe -- Huhn mit Ingwer. Sein Magen krampfte sich zusammen – nicht vor Hunger, sondern vor Übelkeit. Der Gedanke an Essen ließ Galle in seiner Kehle aufsteigen.
+Jaad hob die Augenbrauen. »Aber Altheras hat genau das vor.«
 
-»Danke«, krächzte er.
+Marina nickte langsam. »Die Prophezeiung, die über ihn gekommen ist, beschreibt den Weg, wie die Beschränkungen gelöst werden können. Doch wer auch immer sie gesandt hat, handelte nicht im Auftrag der Ahnen.«
 
-Die Dienerin zögerte. »Soll ich ... Brauchen Sie Hilfe?«
+Eine angespannte Stille legte sich über den Raum. Schließlich räusperte sich Marina. »Wir müssen Altheras aufhalten, bevor er die Wurzel erreicht – oder schlimmer, bevor er ihre Magie entfesselt. Doch wir brauchen mehr Informationen. Jaad, du wirst Kontakt zu Kalem aufnehmen. Er muss uns mehr über Altheras' Pläne berichten. Er und seine Getreuen werden ja wohl noch immer in der Stadt aktiv sein.«
 
-Er sah bestimmt richtig scheiße aus. Er schüttelte den Kopf. Sie nickte und ging.
+Jaad nickte, wirkte aber nachdenklich. »Ich werde sofort losgehen. Was soll ich tun, wenn ich zurück bin?«
 
-Acen starrte auf die Brühe. Er musste essen, das wusste er. Sein Körper brauchte Nährstoffe, um sich zu regenerieren. Aber allein der Geruch—
+Marina deutete auf Jomar. »Ihr beide werdet die Bibliothek und das Archiv der Akademie durchforsten. Die Geschichte der ›Aussaat‹ und der ersten Jahre unserer Welt könnten entscheidende Hinweise enthalten. Alles, was über die Ahnen je geschrieben wurde und mehr als reine Folklore ist, müsst ihr erforschen.«
 
-Er zwang sich, die Schale zu nehmen. Seine Hände zitterten so stark, dass die Hälfte über den Rand schwappte. Der erste Schluck brannte in seiner Kehle. Der zweite kam sofort wieder hoch.
+Kata hob die Hand und sah Marina mit einem herausfordernden Blick an. »Warum darf ich nicht mitmachen? Ich könnte genauso gut Informationen finden.«
 
-Er schaffte es gerade noch zum Fenster, riss es auf. Die kalte Nachtluft traf sein schweißnasses Gesicht, während er sich über die Fensterbank beugte und sich in die Dunkelheit hinein übergab. Von unten hörte er einen empörten Aufschrei. Wahrscheinlich eine Wache. Acen kümmerte es nicht. Sollten sie das doch zu der Liste seiner Untaten hinzufügen. Als nichts mehr kam, sank er auf den Boden. Sein Körper fühlte sich an wie ein Schlachtfeld. Jeder Muskel schmerzte, jeder Knochen pochte. Und das war erst der Anfang.
+Marina schüttelte den Kopf. »Du hast andere Aufgaben. Du wirst am Unterricht für Anfänger teilnehmen. Dort lernst du die Grundlagen der Magie von Grund auf.«
 
+Kata sprang fast von ihrem Stuhl auf. »Was? Anfängerunterricht? Ich war noch nie in einer Schule!«
 
-# Zäsur
+Jaad und Jomar sahen sich verwundert an. Sie wirkte gebildet, und ihre Bemerkung überraschte. Kata spürte die Blicke und verstummte kurz, bevor sie sich fast verplapperte. 
 
-Acen schreckte hoch. Das Schlafzimmer lag in Dunkelheit, nur der matte Rotton der Notbeleuchtung malte weiche Schatten an die Wände. Leise, fast entschuldigend, klang der Alarm des Sicherheitssystems durch den Raum. Sein erster Gedanke: wieder ein Test seines Großvaters. Er erhob sich aus seinem Bett und leise und ohne das Licht anzumachen in Richtung des Wohnbereiches. Sein Großvater würde noch wach sein, er schlief selten. Er hörte Rumpeln, das unverkennbare Geräusch einer abgefeuerten Energiewaffe.
+»Ich habe bei uns am …« Sie hielt inne, räusperte sich und fuhr fort: »Ich hatte immer nur Hauslehrer.«
 
-Die Tür zum Wohnraum stand einen Spalt offen. Acen drückte seinen Rücken gegen die kühle Wand und spähte durch den schmalen Spalt. Sein Atem stockte.
+Marina nickte ruhig, ließ sich aber von Katas Ärger nicht beeindrucken. »Genau deshalb. Du wirst lernen, was die anderen längst wissen. Und du wirst dich fügen. Und Jomar wird mit dir dreimal in der Woche vor dem Unterricht Kampfübungen machen.«
 
-Drei Gestalten in schwarzen Kampfanzügen bewegten sich durch den Raum. Ihre Gesichter verbargen sich hinter Visieren aus mattem Polycarbonat. Energiewaffen mit gedämpften Mündungen in ihren Händen. Sein Großvater lag am Boden, das weiße Haar rot verfärbt, eine dunkle Lache breitete sich unter seinem Körper aus.
+Kata öffnete den Mund, wollte protestieren, doch ein Blick auf Marinas entschlossenen Ausdruck ließ sie es bleiben. Stattdessen verschränkte sie wieder die Arme und schnaubte leise.
 
-Ein Kribbeln lief Acens Wirbelsäule hinauf. Kein Test. Kein Spiel. Die metallische Schärfe von echtem Blut füllte seine Nasengänge.
+ 
 
-»Durchsucht alles«, befahl eine der Gestalten. »Der Junge muss hier sein.«
+---
 
-Acen wich zurück, seine Zehen verkrampften sich auf dem kalten Boden. Die Naniten in seinem Körper erwachten, als sein Puls sich beschleunigte. Jeder Muskel spannte sich an, bereit zu kämpfen oder zu fliehen.
+ 
 
-»Großvater«, flüsterte er tonlos.
+Jaad betrat das Portal, das direkt zum Palast von König Schwertmut führte. Der leuchtende Übergang flimmerte um sie herum, und nur Sekunden später stand in dem bewachten Vorraum. Sie übergab das Schriftstück, das sie von Efret erhalten hatte und wurde relativ schnell zum Ausgang des Palastes geführt. Sie ging hinaus in die lebendige Hauptstadt. Ohne das Portal hätte drei Tage gebraucht, um Königsstadt zu erreichen.
 
-Die nächste Tür führte zum Labor. Acen huschte hinein, sein Herzschlag dröhnte in seinen Ohren. Das Labor - der Raum, den sein Großvater ihm stets verboten hatte zu betreten. Metall- und Kunststoffoberflächen reflektierten das schwache Notlicht.
+Kalem hatte sich ein kleines, aber elegantes Haus in einer der besseren Gegenden der Stadt gesichert. Sein Anteil an der Belohnung für die Rettung Demiranthas war beträchtlich gewesen. Und Jaad hatte ja sein altes Haus in blinder Wut abgefackelt. Er öffnete ihr persönlich die Tür, ein schelmisches Grinsen im Gesicht. »Jaad! Wie schön, dass du mich besuchst. Was führt dich her? Fühlst du dich einsam? Da kann ich helfen. Ich habe gerade eine Freundin da, aber wir finden sicherlich etwas, dass man zu dritt machen kann.«
 
-Hinter ihm erklang ein dumpfer Stoß gegen die Tür zum Schlafraum.
+»Wir brauchen deine Hilfe«, sagte Jaad ernst, ohne auf sein Geplänkel einzugehen.
 
-»Hier drin!«
+Kalem zog eine Augenbraue hoch und führte sie in ein gemütliches Arbeitszimmer. Er schenkte ihr ein Glas Wein ein, fläzte sich lässig in einen Sessel und wartete ab.
 
-Acen suchte verzweifelt nach einem Ausweg. Sein Blick fiel auf einen schmalen Schrank an der Wand. Er riss die Tür auf und zwängte sich in den engen Raum zwischen Reagenzgläsern und Datenkartuschen.
+Jaad erklärte ihm die Situation: Altheras' Fortschritte, die Wurzel der Magie und die Gefahr, die von ihm ausging. »Wir müssen wissen, was er plant, wie viele Getreue er hat und wie weit er bereit ist zu gehen«, endete sie ihren Vortrag.
 
-Die Labortür flog auf. Schwere Stiefel auf dem Boden.
+Kalem nippte an seinem Wein, die Stirn leicht in Falten gelegt. »Ich kann mich nicht einfach einschleichen, wie ich es damals bei den Wächtern getan habe. Zauberer sind ein ganz anderes Kaliber. Ich bin kein Magier, und sie haben ihre Methoden, Eindringlinge zu erkennen.«
 
-»Durchsuche den Raum. Er muss hier sein.«
+»Hast du eine Idee?«
 
-Acen presste eine Hand auf seinen Mund, um sein Atmen zu dämpfen. Die Naniten in seinem Blut arbeiteten auf Hochtouren, schärften seine Sinne. Er hörte das leise Summen der Energiewaffen, roch den säuerlichen Schweiß der Eindringlinge.
+Kalem grinste schief. »Natürlich habe ich eine Idee. Aber die werde ich vorerst für mich behalten.«
 
-Schritte näherten sich dem Schrank. Das Knarzen von Handschuhleder auf Metallgriffen.
+»Ein einfaches: ›Ich werde mir was einfallen lassen‹ hätte glaubhafter gewirkt«, sagte Jaad lachend. 
 
-Die Tür wurde aufgerissen.
+Kalem grinste. »Gib mir ein wenig Zeit. Und sag deinen Freunden, es wird etwas dauern. Ein Meisterwerk braucht seine Zeit.«
 
-Acen reagierte instinktiv. Seine Faust traf die Kehle des Angreifers, genau an der Stelle, wo der Kehlkopf durch einen dünnen Spalt in der Rüstung ungeschützt war. Der Mann röchelte und taumelte zurück.
+Jaad seufzte. »Nur lass uns nicht zu lange warten, Kalem. Zeit könnte ein entscheidender Faktor sein …«
 
-»Er ist hier!«
+Kalem erhob sein Glas. »Vertrauen, meine Liebe, ist die wichtigste Zutat. Ich werde liefern.«
 
-Acen sprang aus dem Schrank, seine Bewegungen flüssig und präzise. Die Naniten verliehen ihm übermenschliche Geschwindigkeit. Er duckte sich unter einem Energiestrahl hindurch, der die Wand hinter ihm in schwarzen Ruß verwandelte.
+Mit einem Gefühl von Hoffnung verließ Jaad das Haus, bereit, in die Bibliotheken der Akademie zurückzukehren und die Nachforschungen mit Jomar zu beginnen.
 
-Der zweite Angreifer zielte erneut. Acen griff nach einem Metallbehälter vom Tisch und warf ihn. Der Behälter traf die Waffe, lenkte den Schuss ab. Die Energieentladung traf den ersten Angreifer in die Brust. Er brach zusammen, sein Körper zuckte in unkontrollierten Krämpfen.
 
-Der dritte Eindringling stürmte durch die Tür, seine Waffe im Anschlag.
+# Katas erster Unterrichtstag
+ 
 
-»Ihr Idioten! Nicht schießen! Wir brauchen ihn lebend!«
+Der Raum war groß und schlicht eingerichtet, mit niedrigen Holztischen und Sitzbänken, die in ordentlichen Reihen standen. An den Wänden hingen Tafeln mit seltsam leuchtenden Schriftzeichen, die Kata nicht entziffern konnte. In der Luft lag der Geruch von altem Holz und Kreide.
 
-Acen nutzte die Sekunde des Zögerns. Er sprang über einen Labortisch, trat gegen ein Regal. Glaskolben und Metallbehälter stürzten herab, zerbrachen auf dem Boden. Eine ätzende Flüssigkeit spritzte auf, traf den dritten Angreifer am Arm. Der Mann schrie auf, als die Säure durch seinen Schutzanzug fraß.
+Die Schüler, die bereits im Raum saßen, wirkten bunt gemischt. Einige waren eindeutig keine Menschen – ein katzenartiges Wesen mit spitzen Ohren und einem langen, geschmeidigen Schwanz, der um die Bank geschlungen war, ein reptilienähnlicher Junge mit schimmernden Schuppen und zwei weiteren Wesen, die aussahen, wie ein Demiranther, aber silbrig glänzende Haut hatten. Alle trugen die schlichte, dunkle Kleidung der Akademie, die Kata sofort an die Roben der Zauberer erinnerte, denen sie begegnet war. 
 
-Der zweite Eindringling warf seine Waffe beiseite und zog ein kurzes Messer. »Genug gespielt, Junge.«
+Kata ragte aus der Menge hervor – buchstäblich. Sie überragte selbst den größten Schüler um einen Kopf. Es war klar, dass sie die Älteste im Raum war, und die Blicke, die sie empfing, reichten von Neugier bis hin zu offener Verwirrung.
 
-Acen wich zurück, suchte nach einer Waffe. Seine Hand fand ein Laserskalpell auf dem Tisch. Das schmale Werkzeug summte leise, als er es aktivierte. Ein dünner, blauer Energiestrahl bildete die Klinge.
+Kata war nicht hier, weil sie es wollte. Sie war hier, weil Marina sie gezwungen hatte, und ihre Wut darüber ließ sich nicht verbergen. Sie hatte die Arme verschränkt, die Lippen zusammengepresst, und ihre Augen wanderten über die Schüler, ohne einen Funken Interesse zu zeigen.
 
-Der Mann lachte. »Du willst kämpfen? Dein Großvater hat dich gut trainiert. Aber nicht gut genug.«
+Die Tür öffnete sich, und die Lehrerin trat ein. Es war eine Frau, deren Alter unmöglich zu schätzen war. Ihre glatte, haarlose Kopfhaut glänzte leicht im Licht, und ihre Gesichtszüge waren so ausdruckslos wie eine Maske. Sie hätte 25 oder 60 sein können, und ihre Bewegungen waren gleichzeitig geschmeidig und bedächtig.
 
-Er stürzte vorwärts, das Messer beschrieb einen tödlichen Bogen. Acen parierte mit dem Skalpell. Die Energieklinge schnitt durch das Metall des Messers wie durch Butter. Der Mann starrte überrascht auf den nutzlosen Griff in seiner Hand.
+»Setzt euch, und lasst uns beginnen«, sagte sie mit ruhiger, aber fester Stimme. Die Schüler, die bis dahin getuschelt hatten, verstummten sofort und richteten sich auf ihren Bänken auf.
 
-Acen nutzte den Moment und rammte das Skalpell in den Oberschenkel des Angreifers. Der Mann brüllte vor Schmerz, taumelte zurück.
+Die Lehrerin musterte die Klasse mit einem durchdringenden Blick, bis ihre Augen schließlich auf Kata ruhten. Sie hielt inne, ein Lächeln breitete sich auf ihrem Gesicht aus.
 
-»Du kleiner Bastard!«
+»Ah«, sagte sie. »Du musst Kata sein. Ich bin Seline.«
 
-Acen rannte zur Tür. Er musste zu seinem Großvater, musste wissen, ob er noch lebte.
+Kata erwiderte den Blick, trotzig und ohne eine Regung.
 
-Im Wohnraum herrschte Verwüstung. Möbel umgestürzt, Bildschirme zertrümmert. Sein Großvater lag regungslos in der Mitte des Raumes.
+Seline trat näher, ihre Schritte waren lautlos. »Wie ich gehört habe, bist du neu bei uns. Und, wie ich ebenso gehört habe, hält man dich für jemanden, der schwer zu belehren ist.« Sie lächelte, und in ihrer Stimme lag ein Hauch von Belustigung. »Niemand scheint zu glauben, dass du dich hier einfügst und etwas lernen kannst. Ich hoffe wirklich, dass deine Freunde sich irren.«
 
-»Großvater!« Acen kniete neben ihm nieder. Die Haut des alten Mannes war blass, seine Augen halb geöffnet. Blut sickerte aus einer Wunde an seiner Brust.
+Die Bemerkung brachte Katas Wut zum Kochen. Ihre Augen funkelten. »Vielleicht liegt das daran, dass ich nichts lernen muss«, sagte sie scharf. »Ich bin nicht wie diese Kinder hier.«
 
-»Acen …« Die Stimme seines Großvaters war kaum mehr als ein Hauch. »Vergib mir! Es tut mir so leid …«
+Einige der Schüler drehten sich um, manche mit überraschten, andere mit beleidigten Mienen. Kein guter Einstand.
 
-Ein metallisches Klicken hinter ihm. Acen wirbelte herum. Etwas traf seine Stirn. Die Welt wurde schwarz.
+Seline neigte den Kopf, ihre Augen blieben unverändert ruhig. »Ah, ein Naturtalent also«, sagte sie mit einem Hauch von Spott. »Das ist wunderbar. Dann wirst du diese Übung sicher mühelos meistern.«
 
+Seline wandte sich ab und trat an die Tafel. »Wir wiederholen die Übung von gestern: Jeder von euch sucht sich einen kleinen Gegenstand – einen Becher, eine Feder oder was auch immer ihr zur Hand habt. Eure Aufgabe ist es, diesen Gegenstand mit eurer Magie zu berühren, ihn zu bewegen, vielleicht sogar leicht zu verändern, also zu beugen oder zu verbeulen. Konzentriert euch auf die Verbindung zwischen euch und dem Gegenstand. Spürt, was er ist, und beeinflusst ihn mit eurer Energie.«
 
-# Die »Ende der Reise«
+Kata saß mit verschränkten Armen auf ihrer Bank, den Blick unverwandt auf die Lehrerin gerichtet. Die anderen Schüler waren bereits dabei, kleine Gegenstände aus den bereitgestellten Körben zu nehmen – Federn, Becher, Steine – und begannen, sich auf die Übung zu konzentrieren.
 
-Der Schmerz in Acens Kopf explodierte mit jedem Herzschlag. Dumpfes Dröhnen von Maschinerie. Metallischer Geruch. Schweiß. Angst.
+Kata hingegen rührte sich nicht. Die Feder, die sie herausgezogen hatte, lag unberührt vor ihr auf dem Tisch. Sie war fest entschlossen, sich dieser kindischen Aufgabe nicht zu beugen, außerdem hatte sie nicht geringste Ahnung, wie sie lösen sollte.
 
-Er öffnete die Augen. Grelles Licht stach in seine Pupillen. Ein kahler Raum. Metallwände, abgenutzt und fleckig. Etwa zwanzig andere Personen kauerten auf dem Boden – Menschen und Wesen mit blassgrüner Haut und gewölbtem Schädel. Und ein Wesen mit vier Armen und insektoiden Augen. Acen kannte beide Spezies und sprach sogar deren Sprache. Doch das würde er für sich behalten.
+Seline bemerkte es natürlich sofort. Sie trat gemächlich an Katas Tisch heran, ihre glatte, haarlose Kopfhaut schimmerte im Licht. Ihr Lächeln blieb freundlich, doch es hatte eine gewisse Schärfe, die Kata irritierte.
 
-»Aufwachen, Biofracht.« Ein Stiefel traf seine Rippen. Acen keuchte, krümmte sich zusammen. Ein Mann in weißer Uniform stand über ihm. Sein Gesicht war kantig, die Augen kalt. »Willkommen auf der ›Ende der Reise‹.«
+»Scheint, als wüsstest du nicht, wie du anfangen sollst«, sagte Seline mit einer Stimme, die ruhig, aber unnachgiebig war.
 
-Acen richtete sich langsam auf, jeder Muskel protestierte. Seine Hände waren mit Metallbändern gefesselt. Die Naniten in seinem Blut reagierten träge, betäubt von irgendetwas. Er sah sich um und sah neben sich weiter gefesselte Gestalten. Sie sahen aus, als stammten sie alle von Kasset. 
+Kata richtete sich ein wenig auf, zog die Schultern zurück und musterte die Lehrerin mit einem kühlen Blick. »Ich sehe den Sinn nicht. Warum sollte ich lernen, eine Feder zu bewegen? Ich kann unsichtbar werden und die Gefühle anderer Menschen spüren. Das reicht doch wohl.«
 
-»Wo bin ich?« Seine Stimme klang rau, fremd in seinen eigenen Ohren.
+Seline lachte leise, ein überraschend herzliches Geräusch. »Unsichtbar werden und Gefühle spüren – beeindruckend. Deine Zauber hast dir selbst beigebracht. Ich bin mir sicher, du könntest mir nicht sagen, wie du sie bewerkstelligst, oder? Sag mir, hast du schon einmal versucht, Magie gezielt einzusetzen? Mit einem klaren Ziel, ohne dass deine Gabe die Führung übernimmt?«
 
-Der Aufseher grinste. »Das hab’ ich doch gerade gesagt. ›Ende der Reise‹. Euer neues Zuhause.« Er trat zurück und deutete auf eine Reihe weiterer weißer Uniformen, die an den Wänden standen. Alle Aufseher waren hellhäutig, ihre Gesichter ausdruckslos.
+Kata schwieg.
 
-Ein älterer Aufseher trat vor. Graues Haar, Narben im Gesicht. »Hört zu, Biofracht. Die Regeln sind einfach. Ihr arbeitet. Ihr gehorcht. Ihr überlebt.« Seine Stimme klang mechanisch, als hätte er diese Worte schon tausendmal gesagt. »Über euch sind Sensorfelder installiert. Sie registrieren jede Bewegung, jeden Atemzug. Bei Regelverstoß erfolgt automatische Bestrafung.«
+Seline nickte, als hätte sie die Antwort bereits gewusst. »Genau das üben wir hier. ›Berühren‹ ist der erste Schritt. Es bedeutet nicht nur, den Gegenstand zu bewegen. Es bedeutet, eine Verbindung zu ihm herzustellen – ihn zu spüren, seine Essenz zu erkennen. Du wirst die Magie, die dir innewohnt, aus deinem Körper und in den Gegenstand leiten. Nur so wirst du lernen, die Magie zu lenken, anstatt dich von ihr treiben zu lassen. Dieses ›Berühren‹ ist die Basis für eine Menge Zauber.«
 
-Acen blickte nach oben. Kaum sichtbare Linien aus Energie durchzogen die Decke, ein feines Netz aus Überwachungstechnologie. 
+Kata hob eine Augenbraue, doch etwas in Selinas Ton ließ sie zögern. »Und wie genau mache ich das?«, fragte sie widerwillig.
 
-»Die Strafen sind gestaffelt«, fuhr der Aufseher fort. »Erst Schmerz. Dann Lähmung. Bei schweren Vergehen neurologische Verblödung. Allerdings reversibel.« Er lächelte dünn. »Aber keine Sorge – wir töten euch nicht. Ihr seid Ware. Wertvolle Ware.«
+Seline zog sich einen Hocker heran, setzte sich und sprach leise, sodass nur Kata sie hören konnte. »Du beginnst damit, die Magie in dir zu spüren. Sie ist wie ein Fluss, der durch dich hindurchströmt. Sobald du ihn spürst, richtest du ihn auf die Feder. Stell dir vor, du streckst deine Hand aus, und du berührst die Feder mit deinem Geist. Du darfst auch ruhig deine wirklichen Hände benutzen, aber natürlich nicht, um die Feder damit zu bewegen.« Sie lachte. 
 
-Acen spürte, wie sein Puls sich beschleunigte. Sklaven. Sie waren Sklaven. 
+Kata blickte skeptisch auf die Feder. »Das klingt nach Unsinn.«
 
-»Auch ihr werdet niemanden töten oder verstümmeln. Die Strafen dafür sind … extrem. Prügeln könnt ihr euch so viel ihr wollt. Um eins gibt’s Mittag- um sieben Abendessen. So, das war’s von mir. Ich wünsche euch viel Spaß an Bord und übergebe an meinen Kollegen.« Er hatte seinen Vortrag im Stile eines Reiseführers gehalten. 
+»Versuch es trotzdem«, sagte Seline mit einem leichten Lächeln.
 
-*Sehr witzig*, dachte Acen. 
+Kata seufzte, hob die Hände und ließ sie über der Feder schweben. Sie schloss die Augen und versuchte, die Magie zu spüren, wie Seline es beschrieben hatte. Sie konnte ja die Magie ›sehen‹, die sie umgab, doch sie hatte sich nie auf die Magie in sich selbst konzentriert. Ihre Unsichtbarkeit geschah einfach so, weil sie es wollte. Sie hatte nie das Gefühl gehabt, die Magie dafür käme aus ihr heraus.
 
-Ein Aufseher mit einem medizinischen Scanner trat vor ihn. »Name?«
+Zunächst geschah nichts. Kata biss die Zähne zusammen, frustriert. Doch dann, wie ein leises Murmeln in der Ferne, spürte sie es. Ein Kribbeln in ihrem Inneren, ein Pulsieren, das sie nie zuvor wahrgenommen hatte. Tatsächlich! Das ist Magie in mir, eine Menge sogar. Wieso habe ich sie bisher nie wahrgenommen?
 
-»Acen Alvaro.«
+»Da ist es«, flüsterte Seline ermutigend.
 
-Der Scanner piepte. »Alter: vierzehn Standard-Jahre. Keine bekannten medizinischen Besonderheiten.« Der Mann runzelte die Stirn. »Interessant. Deine Blutanalyse zeigt ungewöhnliche Proteinstrukturen.«
+Kata konzentrierte sich, richtete den Fluss der Magie in ihre Hände und von aus auf die Feder. Sie stellte sich vor, wie sie ihre Finger nach ihr ausstreckte, ohne sie zu bewegen. Und dann …
 
-Acens Herz setzte einen Schlag aus. Die Naniten. Sie hatten sie entdeckt.
+Die Feder wackelte.
 
-Doch der Mann zuckte nur mit den Schultern. »Wahrscheinlich genetische Modifikationen. Nichts Ungewöhnliches bei den Reichen. Nächster!«
+Ein leises, triumphierendes Lächeln huschte über Katas Gesicht. Sie öffnete die Augen und sah, wie die Feder leicht auf dem Tisch tanzte.
 
-Acen atmete vorsichtig aus. Der Scanner hatte die Naniten nicht als Technologie erkannt. Sie tarnten sich gut.
+»Sehr gut«, sagte Seline leise, doch ihre Augen funkelten. »Und jetzt konzentriere dich weiter. Bewege sie weiter.«
 
-Ein weiterer Aufseher führte die Gruppe zu einer Reihe von medizinischen Stationen. Acen beobachtete, wie die Gefangenen vor ihm Injektionen erhielten. Einige wimmerten, andere starrten nur leer vor sich hin.
+Kata setzte erneut an, ihre Stirn in Falten gelegt. Diesmal ließ sie die Magie sanfter fließen, gezielter. Die Feder drehte sich leicht auf ihrer Spitze, und Kata spürte, wie eine Welle der Zufriedenheit sie durchströmte.
 
-Als er an der Reihe war, spürte er den kalten Stahl der Injektionsnadel an seinem Hals. Zwei Injektionen. Die erste brannte wie Feuer in seinen Adern. Die zweite fühlte sich an wie flüssiges Eis. Ein netter Kontrast.
+»Hervorragend«, sagte Seline, die aufstand und die Klasse überblickte. »Manchmal lohnt es sich, seinen Stolz herunterzuschlucken, um die Dinge in Bewegung zu setzen.«
 
-»Chemische Kastration und Aggressionshemmer«, erklärte der Aufseher gleichgültig. »Standard-Prozedur.«
+Ein paar Schüler kicherten leise, doch Kata ignorierte sie. Sie sah Seline hinterher, und für einen Moment konnte sie den Gedanken nicht verdrängen: Vielleicht war sie hier, um zu lernen. Vielleicht war es nicht ganz so albern, wie sie gedacht hatte.
 
-Acen ballte seine gefesselten Hände zu Fäusten. Die Naniten in seinem Körper reagierten sofort und versuchten, die Chemikalien zu neutralisieren. Er spürte, dass ihnen das voresrt nicht gelang. 
+Aber das heißt nicht, dass ich es ihnen leicht mache, dachte sie und konzentrierte sich erneut auf die Feder. 
 
-Sie wurden durch lange Korridore geführt, vorbei an verschlossenen Türen und bewaffneten Wachen. Schließlich erreichten sie einen großen Gemeinschaftsraum. Dreistöckige Kojen waren in die Wände eingelassen. In der Mitte stand ein langer Tisch mit festgeschraubten Bänken. Die Luft roch nach Schweiß und Desinfektionsmitteln.
 
-»Willkommen in eurem neuen Zuhause«, sagte der Aufseher. »Kojen werden zugewiesen. Essenszeiten sind festgelegt. Arbeitsschichten beginnen morgen.« Er lächelte kalt. »Findet euch damit ab. Keiner entkommt der ›Ende der Reise‹.«
+# Marina und Jomar
 
-Die Fesseln lösten sich automatisch von Acens Handgelenken. Er rieb sich die wunden Stellen und blickte sich um. Die Szenerie kam ihm absurd vertraut vor – wie aus einem schlechten Holo­Film über Gefängnisse. Die Hierarchie war auf den ersten Blick erkennbar: Die stärkeren Gefangenen hatten die besseren Kojen, die schwächeren kauerten am Rand des Raumes.
+Es war noch früh am Morgen, doch Jomar und Kata hatten ihren Kampfunterricht bereits beendet. Das Mädchen hatte sich schon auf den Weg gemacht, zu dem von ihr so ungeliebten Zauberunterricht. Noch war Jomar allein auf dem Übungsplatz und das würde auch noch eine Weile so bleiben, denn an diesem Tag stand Kampftraining nicht auf dem Stundenplan.
 
-Ein muskulöser Mann mit Tätowierungen, die seinen gesamten Oberkörper bedeckten, beobachtete die Neuankömmlinge mit raubtierhaften Augen. Der Anführer, offensichtlich.
+Er wollte den Windzauber üben, mit dem Marek ihn beinahe besiegt hatte. Er hatte sich in der Bibliothek ein Buch besorgt über Luftmagie. Doch die Beschreibung der einzelnen Zauber war recht kompliziert. Das war kein Buch für Anfänger. 
 
-Acen hielt den Kopf gesenkt, vermied direkten Augenkontakt. Er musste seine Fähigkeiten verbergen, durfte nicht auffallen. Noch nicht. Zunächst musste er die Umgebung verstehen, die Schwachstellen des Systems finden.
+So las er sich nur die Grundlagen durch: Im Prinzip ging es darum, Luft unter seinen eigenen Willen zu zwingen, sie zu komprimieren, sie zu verschieben, sie zu kanalisieren. 
 
-Ein dünner, nervös wirkender Mann mit zitternden Händen wurde ihm als Kojen-Nachbar zugewiesen. »Ich bin Ferris«, flüsterte er, während sie ihre wenigen Habseligkeiten verstauten. »Seit drei Monaten hier. Ein Tipp: Halt dich vom Großen fern. Brak mag keine neuen Gesichter.«
+Er stellte sich also fünf Menschenlängen vor einer hölzernen Übungspuppe auf und versuchte ein Gefühl dafür zu bekommen, wie man die Luft manipulierte. 
 
-Acen nickte dankbar. »Wie sind die Sicherheitssysteme?«
+Tatsächlich schaffte er es schnell, die Luft vor ihm zu bewegen, aber der Effekt wäre genauso groß gewesen, wenn er einfach mit aller Kraft gepustet hätte. 
 
-Ferris warf ihm einen seltsamen Blick zu. »Vergiss es. Niemand entkommt. Die Sensoren erfassen jede Anomalie. Und selbst wenn du es aus diesem Raum schaffen würdest – wir sind auf einem Raumschiff. Mitten im Nichts.«
+Aber wenn er eine Sache von Jaad gelernt hatte, dann war das, Geduld zu haben. Er versuchte es weiter, immer wieder. Er komprimierte die Luft vor sich und stieß sie nach vorne. Die Fortschritte blieben gering, aber immerhin erreichte der Windstoß nach dem gefühlt einhundertsten Versuch die Übungspuppe. 
 
-Ein Raumschiff. Acen versuchte, seine Überraschung zu verbergen. Er hatte angenommen, auf einer Schwebebarke und noch auf Kasset zu sein. Das erklärte das konstante Vibrieren unter seinen Füßen, das leise Summen der Maschinen. Flucht war also keine Option.
+Und noch einmal hundert Versuche später traf der Windstoß die Puppe mit voller Wucht. Aber sie blieb davon völlig unbeeindruckt. Ein leichtes Wackeln war alles, was er erreichte. 
 
-»Wer kauft uns?«, fragte er leise.
+Er hörte ein Räuspern hinter sich und fuhr erschrocken herum. Es war Marina.
 
-Ferris zuckte mit den Schultern. »Kolonien. Minen. Forschungsstationen. Wer weiß? Niemand sagt uns etwas.« Er senkte die Stimme noch mehr. »Manche sagen, wir werden an die Iyarri verkauft.«
+»Was versuchst du hier?«, fragte sie mit knarziger, aber durchaus freundlicher Stimme.
 
-»Die Iyarri?«
+»Ein Mitschüler hatte mich mit einem Windzauber beinahe von den Füßen geweht, ich wollte wissen, wie das geht.«
 
-»Eine außerirdische Spezies. Sie sollen Menschen … essen.«
+»Das ist leicht. Es geht so«, sagte die alte Frau und machte eine minimale Handbewegung in Richtung der Übungspuppe. Die riss es von ihrem Ständer, schleuderte sie nach hinten und sie zerschellte mit einem ohrenbetäubenden Krachen an der Wand hinter ihr.
 
-Acen bezweifelte, dass das stimmte. Gerüchte und Angst – perfekte Werkzeuge zur Kontrolle. Klassische Taktik.
+»Woah!«, rief Jomar überrascht. 
 
-Der erste Tag verging in monotoner Langeweile. Acen beobachtete, prägte sich Gesichter ein, studierte die Routine der Aufseher. Ihre Wachsamkeit war lasch – sie verließen sich zu sehr auf die automatisierten Sicherheitssysteme.
+»Soll ich es dir beibringen?«
 
-Am Abend kam es zum ersten Zwischenfall. Einer der Neuankömmlinge, ein junger Mann mit nervösen Augen, nahm versehentlich den falschen Platz am Tisch ein. Brak, der tätowierte Anführer, stand langsam auf.
+Jomar nickte wie ein kleines Kind, dem Süßigkeiten angeboten wurden. 
 
-»Das ist mein Platz, Frischfleisch.«
+Marina gackerte.
 
-Der Junge erbleichte. »Es tut mir leid, ich wusste nicht—«
+"Na dann: Du hast die Luft von beiden Seiten geholt und komprimiert – aber das reicht nicht. Du musst sie hinter dem Ziel packen und zu dir ziehen, und das mit Macht. Dann musst du sie sofort nach vorne pressen, wieder mit aller Macht. Hinter dem Ziel fehlt plötzlich die Luft, und kannst mir glauben: Sie will wieder dahin zurück, woher sie kam.
 
-Braks Faust traf sein Gesicht mit brutaler Wucht. Der Junge fiel vom Stuhl, Blut strömte aus seiner Nase. Die Aufseher an den Wänden reagierten nicht. Solange niemand starb, griffen sie nicht ein.
+So wird das Opfer einerseits von der zurückströmenden Luft nach hinten gerissen, und andererseits von der komprimierten Luft von dir weg geschleudert. Allerdings musst du schnell sein: Reißen und Stoßen müssen eins sein. Hast du das verstanden?"
 
-»Jetzt weißt du es«, knurrte Brak und setzte sich.
+Jomar sah sie mir einem leeren Blick an und sagte zweifelnd: »Ja.«
 
-Acen beobachtete die Szene und spürte, wie sich ein seltsames Gefühl der Unwirklichkeit in ihm ausbreitete. Die metallischen Wände mit den eingelassenen Kojen, der tätowierte Anführer, der zitternde Koje-Nachbar mit seinen warnenden Flüstereien – alles wirkte wie aus einem billigen Holofilm gestohlen: »Gefängnis im All, Staffel 3«.
+»Na gut, dein Gesicht sagt etwas anderes. Also werde ich es dir noch einmal, langsamer und einfacher erklären.« Was Marina auch tat, allerdings nicht nur einmal, doch letztlich war das Unverständnis aus Jomars Gesicht verschwunden.
 
-Die Rollen waren so vorhersehbar verteilt, dass es fast lächerlich war. Der brutale Anführer mit seinen Tätowierungen und dem raubtierhaften Blick. Der ängstliche Informant, der nützliche Hinweise gab. Die gleichgültigen Wärter in ihren weißen Uniformen. Sogar die Kojen an den Wänden und die festgeschraubten Tische entsprachen exakt dem Klischee eines Gefängnisschiffs.
+»Versuch es!«, sagte Marina und ging etliche Schritte beiseite.
 
-Er hätte fast gelacht, wäre die Situation nicht so ernst gewesen. Das Blut des geschlagenen Jungen war echt. Der Schmerz in seinen eigenen Rippen von dem Tritt des Aufsehers war echt. Die Angst, die in der Luft hing, war echt.
+Jomar tat, was Marina ihm immer wieder erklärt hatte. Er griff magisch hinter die Übungspuppe und sammelte dort seine magische Kraft. Dann riss er die Luft zu sich hinüber. 
 
-Acen rieb sich die Handgelenke und betrachtete die Abdrücke, die die Metallfesseln hinterlassen hatten. Wer auch immer dieses Schiff entworfen hatte, musste von den alten Holofilmen besessen gewesen sein. Oder vielleicht war es Absicht – eine bewusste psychologische Taktik. Die Umgebung sollte vertraut wirken, sollte Gefangene in vorbestimmte Rollen drängen. Der Gehorsame. Der Rebell. Der Verräter. Der Anführer.
+Zu dem Teil mit dem Zurückschleudern kam er nicht mehr, denn die gezogene Luft warf ihn einfach um. 
 
-Welche Rolle würde er spielen?
+Marina gackerte wieder ihr Kräuterhexenlachen und brauchte mehrere Atemzüge, um sich zu beruhigen.
 
-In den folgenden Tagen etablierte Acen sein Profil: ein durchschnittlicher Jugendlicher, nicht zu schwach, um ein leichtes Ziel zu sein, aber nicht stark genug, um eine Bedrohung darzustellen. Bei den unvermeidlichen Kämpfen aktivierte er seine Naniten gerade genug, um nicht ernsthaft verletzt zu werden.
+»Das ist doch sehr philosophisch: Der erste Gegner, den du mit dem Windzauber besiegt hast, bist du selbst.« 
 
-Nach einer Woche kam es zur Konfrontation mit Brak selbst. Der massive Mann blockierte Acens Weg zum Waschraum, ein grausames Lächeln auf seinem Gesicht.
+Sie stellte sich wieder neben ihn.
 
-»Du bist anders als die anderen Frischlinge«, sagte er. »Du beobachtest zu viel.«
+»Du musst die gezogene Luft direkt vor dir verdichten und dann nach vorne schleudern. Das Ganze darf nicht länger als ein Wimpernschlag dauern. Versuch es erst mal mit weniger Kraft, und mache es so schnell, wie du kannst. Am besten du nimmst erst mal beide Arme zur Hilfe: Greife um dein Ziel herum, sammle deine Magie dort und dann ziehe sie seitlich am Ziel vorbei direkt vor dich. Mach das mit aller Kraft, dann verdichtet sich die Luft vor dir. Und dann musst sie nur noch nach vorne stoßen.«
 
-Acen zuckte mit den Schultern. »Ich will nur überleben.«
+Jomar folgte den Anweisungen Marinas, und schon bald hatte er den eigentlichen Ablauf des Zaubers verstanden. Die Zeiteinteilung war das Entscheidende. 
 
-»Dann zeig mir, wie gut du überleben kannst«, sagte Brak und packte Acen am Kragen.
+Immer wieder versuchte er, die Übungspuppe umzuwerfen. 
 
-Die anderen Gefangenen bildeten einen Kreis um sie, ihre Gesichter eine Mischung aus Angst und Vorfreude. Niemand würde eingreifen. So waren die Regeln.
+Marina kratze sich nachdenklich am Kinn: *Er ist begabt. Und er hatte in Jaad eine gute Lehrerin. Viel Geduld, Ausdauer und Konzentration. *
 
-Acen ließ sich in den Waschraum zerren. Der Boden war rutschig vom Kondenswasser, das von den verrosteten Rohren tropfte. Der Geruch von Schweiß und billigem Desinfektionsmittel hing in der Luft.
+Er wurde besser mit jedem Mal. Und dann riss es eine der Übungspuppen tatsächlich von ihrem Ständer und sie zerschellte an der Wand. 
 
-Brak stieß ihn gegen die Wand. Der Aufprall presste die Luft aus Acens Lungen. Er spürte, wie seine Naniten auf die plötzliche Bedrohung reagierten, wie sie durch seine Blutbahn rasten, bereit, seine Muskeln zu stärken, seine Reflexe zu beschleunigen.
+»Noch eine!«, rief Marina fröhlich und Jomar nahm sich die nächste Puppe vor. Auch sie zerschellte mit lautem Krachen.
 
-»Langsam«, flüsterte er ihnen in Gedanken zu. Nicht zu viel. Nicht zu schnell.
+»Und die nächste!«, befahl Marina. Auch diese Puppe zerschmetterte.
 
-Braks erste Faust traf seine Rippen. Acen ließ den Schmerz zu, dämpfte ihn nur leicht mit den Naniten. Er taumelte zur Seite, rollte sich ab, kam wieder auf die Beine.
+»WAS BEI ORFELS ZIEGE GEHT HIER VOR!?« Jomar Kampfzauberlehrer stand vor ihm und Marina. Er trug einen Morgenmantel und Pantoffeln. Jetzt erinnerte sich Jomar auch, dass sein Lehrer sein Quartier genau über der Wand hatte, an der er die Puppen so geräuschvoll zerschmettert hatte.
 
-»Flinker kleiner Bastard«, knurrte Brak anerkennend.
+»Du wirst jede einzelne davon bezahlen! Und dass du den kommenden Monat dauerhaft mit Nachsitzen verbringen wirst, dürfte dir ja wohl klar sein.«
 
-Acen sprang vor, landete zwei schnelle Schläge gegen Braks Brust. Gerade stark genug, um zu beeindrucken, nicht stark genug, um ernsthaft zu verletzen. Die Naniten pulsierten unter seiner Haut, wollten mehr geben, wollten den Kampf beenden. Acen hielt sie zurück.
+Marina hob beschwichtigend die Hände. »Das war meine Schuld, Tifus. Ich werde für den Schaden aufkommen.«
 
-Er könnte Brak mit einem gezielten Schlag ausschalten. Könnte seine verstärkten Reflexe nutzen, um jeden Angriff vorauszusehen. Könnte den Mann in Sekunden besiegen.
+Erst jetzt schien der Lehrer Marina überhaupt wahrzunehmen. 
 
-Aber das war nicht der Plan.
+»Oh, nun gut, meine Liebe. Aber das Nachsitzen bleibt.«
 
-Brak lachte, als Acens nächster Schlag seine Schulter traf. »Nicht schlecht für einen Welpen.« Er holte aus, seine Faust groß wie ein Hammer.
+»Das wird leider auch nicht gehen. Jomar hat andere Aufgaben zu erledigen.«
 
-Acen wich aus, aber nicht schnell genug. Die Faust streifte seine Schläfe. Er ließ sich fallen, rollte über den feuchten Boden.
+Marina lächelte ihn freundlich an. Ihr Blick sagte aber: *Versuche es erst gar nicht.*
 
-Braks Blick fiel auf ein abgebrochenes Stück Metallrohr, das neben einem der Waschbecken lag. Er griff danach, wog es prüfend in der Hand.
+Tifus öffnete den Mund, überlegte es sich anders, drehte sich schnaubend um und stapfte davon.
 
-Acen sah die Bewegung, bereitete sich vor. Die Naniten würden den Aufprall dämpfen, Knochenbrüche verhindern. Er würde verletzt aussehen, aber nicht ernsthaft beschädigt sein.
+Marina drehte sich zu Jomar um.
 
-Brak holte aus, das Rohr über seinem Kopf. In diesem Moment durchschnitt ein schriller Alarmton die Luft. Rote Lichter blitzten von der Decke. Die Überwachungssensoren hatten die potenzielle Tötungswaffe erkannt.
+"Das war wirklich … dumm von mir, dich all diese Puppen zertrümmern zu lassen. Jetzt haben wir dem armen Tifus den Morgen verdorben, und das nur, weil ich mich nicht um die Konsequenzen geschert habe. Aber es gibt immer Konsequenzen. 
 
-Brak fluchte und ließ das Rohr sofort fallen. Es klirrte auf den Boden. Der Alarm verstummte, die roten Lichter erloschen.
+Das war kurzsichtig und selbstsüchtig. Lern du was draus, ich bin dazu zu alt." 
 
-Für einen Moment herrschte Stille. Dann grinste Brak, seine Zähne weiß in seinem schweißnassen Gesicht. »Gut gekämpft, Kleiner.«
 
-Acen keuchte, richtete sich langsam auf. Blut tropfte aus seiner aufgeplatzten Lippe, ein dumpfer Schmerz pochte in seiner Rippe. Alles kontrolliert, alles kalkuliert.
+# Kalems Nachforschungen
 
-»Nicht gut genug«, murmelte er und wischte sich Blut von der Nase.
+Kalem hatte das Bettlernetzwerk aktiviert. Für eine Handvoll Silbermünzen waren sie ausgeschwärmt, um herauszufinden, wohin die Zauberer verschwunden waren, nachdem ihr Hauptquartier enttarnt worden war. 
 
-Brak lachte und legte eine schwere Hand auf Acens Schulter. »Du hast mehr Eier als die meisten hier. Das respektiere ich.« Er senkte die Stimme. »Von jetzt an stehst du unter meinem Schutz. Verstanden?«
+Altheras fanden sie nicht, aber einige seiner Getreuen. Eine Liste steckte sicher in der Innentasche seines Mantels. Es war ein Verzeichnis der abtrünnigen Zauberer, die nach Katas Entdeckung ihrer Versammlung wie Ratten in die Unterwelt getaucht waren. Mit den Informationen aus dem Bettlernetzwerk hatte er Aufenthaltsorte, Decknamen und sogar einige pikante Details zusammengetragen.
 
-Acen nickte. Erster Teil des Plans erfolgreich abgeschlossen. Näher an der Macht sein, Informationen sammeln, Vertrauen gewinnen.
+Doch Informationen allein reichten nicht. Kalem wusste, dass Zauberer gefährlich waren. Sie mit Gewalt zu überwältigen und festzusetzen war riskant. Selbst gefesselt und geknebelt konnten sie Magie wirken – oft mit tödlichem Ergebnis. Er hatte eine Nachricht an die neue oberste Spionin geschickt mit der Nachfrage, was über Oryn Velas bekannt war. Dieser Zauberer war sein Ziel. Er war tatsächlich im Palast bekannt, und er zur gleichen Zeit verschwunden wie Altheras. Er war kein Kampfzauberer, und das war eine gute Nachricht. Er verfügte nur über wenig magische Fähigkeiten und hatte nur die Grundausbildung der Akademie durchlaufen. Dennoch musste Kalem vorsichtig sein.
 
-Als sie den Waschraum verließen, spürte Acen einen Blick auf sich. Der ältere Aufseher mit dem grauen Haar und den Narben beobachtete ihn. Etwas in seinem Blick war anders als bei den anderen Wachen – eine Intensität, eine Neugier.
+Er blieb vor einem heruntergekommenen Hurenhaus stehen. Hier sollte sich dieser Oryn Velas aufhalten, ein Zauberer mit einem Hang zu äußerst zweifelhaften Vergnügungen, die selbst in den dunkelsten Kreisen der Stadt für Empörung sorgten. Kalem hatte im wahrsten Sinne des Wortes eine Bühne für das folgende Stück vorbereitet. 
 
-Acen senkte den Kopf und folgte Brak zurück in den Hauptraum. Er würde vorsichtiger sein müssen. Der Aufseher hatte etwas gesehen, etwas bemerkt. Vielleicht die Art, wie er sich bewegte. Vielleicht die Kontrolle, die er trotz der Schläge gezeigt hatte.
+Die Bettler hatten mehr als genug Material gesammelt, um Oryn erpressbar zu machen, aber Kalem war vorsichtig. Er wollte nicht nur Drohungen aussprechen – er wollte absolute Kontrolle. 
 
-In seiner Koje lag Acen wach, während die anderen schliefen. Die Naniten reparierten still die Schäden des Kampfes. Kleine Risse in den Blutgefäßen wurden versiegelt, geschwollenes Gewebe schwoll ab, Schmerzsignale wurden gedämpft.
+Mit einem schnellen Blick nach beiden Seiten verschwand er durch die Seitentür des Gasthauses. Ein leises Geräusch, der Hauch eines Atemzugs, ließ ihn innehalten, doch dann glitt er lautlos weiter.
 
-Morgen würde er anfangen, Braks Vertrauen zu nutzen. Er würde mehr über das Schiff erfahren, über die Routen, über die Sicherheitssysteme. Würde herausfinden, wer die »Ende der Reise« wirklich kontrollierte und wohin sie unterwegs waren.
+Oryn saß allein in einem kleinen Raum im oberen Stockwerk, eine Weinflasche in der einen Hand, eine fein gearbeitete Pfeife in der anderen. Er bemerkte Kalem erst, als ein Armbrustbolzen leise zischend aus der Dunkelheit flog und ihn an der Schulter traf.
 
-Und irgendwann würde er einen Weg finden, zu entkommen. Würde herausfinden, wer die Männer in Schwarz waren, die sein Zuhause angegriffen und seinen Großvater getötet hatten.
+Die Droge im Bolzen wirkte schnell. Bevor Oryn auch nur einen Zauber murmeln konnte, sank er bewusstlos zu Boden.
 
-Aber zuerst musste er überleben. Und dafür brauchte er Geduld.
+ 
 
-Sein Blick wanderte zur Decke, wo die fast unsichtbaren Sensorfelder die Dunkelheit durchzogen. Sie überwachten jeden Atemzug, jede Bewegung. Aber sie konnten nicht sehen, was in ihm vorging. Konnten nicht die Naniten in seinem Blut erkennen, die seine wahren Fähigkeiten verbargen.
 
-Acen schloss die Augen und ließ die künstliche Schwerkraft des Schiffes ihn in den Schlaf ziehen, während die Maschinen der »Ende der Reise« sie durch die Leere des Alls trugen.
+---
 
-Als Acen am nächsten Morgen die Kantine betrat, spürte er sofort den Blick des grauhaarigen Aufsehers. Der Mann stand an der Wand, scheinbar gleichgültig, aber seine Augen verharrten zu lange auf Acens Bewegungen. Die Narbe, die sich von seinem linken Auge bis zum Kinn zog, spannte sich, als er den Kopf leicht neigte.
+ 
 
-Acen nahm sein Tablett und stellte sich in die Reihe. Der synthetische Nahrungsbrei roch nach chemischen Zusätzen und billigen Aromen. Er senkte den Kopf, vermied jeden Augenkontakt mit dem Aufseher. Die Naniten in seinem Blut reagierten auf seine Anspannung, pulsierten leicht unter seiner Haut.
+Oryn blinzelte in die Dunkelheit des Zuschauerraums. Von dort drang kein Laut, keine Bewegung war zu erkennen, doch sein Instinkt sagte ihm, dass er nicht allein war. Er saß gefesselt auf einem Stuhl mitten auf der Bühne eines Theaters. 
 
-*Ruhig*, befahl er ihnen in Gedanken. *Nicht auffallen.*
+Kalem trat nunmehr an seine Seite.
 
-Brak winkte ihn an seinen Tisch. Vier andere Gefangene machten sofort Platz für ihn. Acen setzte sich, den Rücken zur Wand, sodass er den Raum überblicken konnte. Der Aufseher hatte sich nicht bewegt, beobachtete ihn noch immer.
+»Du weißt, wer ich bin?«, fragte Oryn scharf, seine Stimme zitterte vor Wut. »Du kannst mich hier nicht einfach festhalten! Ich könnte dich mit einem einzigen Gedanken in einen blutigen Klumpen verwandeln!«
 
-»Unser Freund scheint dich zu mögen«, murmelte Brak und folgte Acens Blick.
+Kalem hob eine Augenbraue und schüttelte den Kopf, als wäre er enttäuscht. »War ja klar, dass du gleich mit Drohungen anfängst.«
 
-»Wer ist er?«
+Noch bevor Oryn etwas erwidern konnte, schoss ein Bolzen mit einem lauten Zischen aus der Dunkelheit und schlug haarscharf neben seinem Kopf in die Lehne des Stuhls ein. Splitter flogen, und Oryn zuckte zusammen. Schweißperlen liefen ihm über die Stirn.
 
-»Rakar. Oberaufseher. Ist kein Stammpersonal.« Brak senkte die Stimme. »Ist erst beim letzten Stopp an Bord gekommen und jeder kuscht vor ihm. Und ich meine: jeder. Sogar der Kapitän.«
+»Ich würde das mit dem ›Verblutklumpen‹ lassen, wenn ich du wäre«, sagte Kalem in einem Ton, der gleichzeitig ruhig und eiskalt war. »Siehst du, ich habe ein paar Freunde von der Assassinen-Gilde eingeladen. Unauffällig, leise – und verdammt gute Schützen. Ihre Lieblingsziele? Nun, die Augen sind ein Klassiker, aber sie treffen auch gerne … andere Bereiche.« Kalem deutete vielsagend nach unten.
 
-Acen nickte langsam und begann zu essen. Der Brei schmeckte nach nichts Bestimmtem – eine fade Masse, die den Hunger stillte, ohne Genuss zu bieten. Während er aß, ließ er seinen Blick durch den Raum schweifen, prägte sich die Positionen der Aufseher ein, die Kameras in den Ecken, die kaum sichtbaren Sensoren an der Decke.
+Oryn schluckte schwer, sein Blick huschte zurück in die Dunkelheit.
 
-»Was gibt’s heute zu tun?«, fragte er Brak.
+»Gut, ich sehe, wir verstehen uns«, sagte Kalem und klopfte ihm fast kameradschaftlich auf die Schulter. »Jetzt, wo wir das geklärt haben, lass uns über deine … Situation sprechen.«
 
-»Reinigungsarbeiten im Maschinenraum.« Der tätowierte Mann grinste. »Ich werde dir bei der Arbeit zusehen.«
+Kalem zog ein zusammengefaltetes Stück Pergament hervor, öffnete es langsam und hielt es Oryn direkt vor die Nase. »Du bist ein Mann mit … außergewöhnlichen Vorlieben, nicht wahr, Oryn? Es wäre wirklich schade, wenn das hier ans Licht käme. Die königliche Garde, die Akademie, vielleicht sogar die Damen und Herren deiner ›Freundeskreise‹ würden das sicher mit großem Interesse lesen.«
 
-Nach dem Essen wurden sie in Gruppen aufgeteilt. Acen fand sich mit Brak und sechs anderen in einem schmalen Korridor wieder, der zum Maschinenraum führte. Das Vibrieren des Schiffes war hier stärker, die Luft schmeckte nach Öl und heißem Metall.
+Oryn starrte auf das Pergament, die Farbe wich aus seinem Gesicht. »Ich … verstehe nicht.«
 
-Ein junger Aufseher führte sie durch eine Sicherheitsschleuse. Acen spürte, wie unsichtbare Scanner seinen Körper abtasteten. Wieder einmal waren die Naniten unentdeckt geblieben.
+Kalem lehnte sich vor, ein Lächeln spielte auf seinen Lippen, doch seine Augen blieben kalt. »Glaub mir, Oryn. Wenn ich bluffe, warum weiß ich dann von dem … sagen wir, was du mit Frauen, lebenden Hühnern und Bratensoße treibst, ist ekelerregend. Keine Hure in Königsstadt will dir noch bei deinen bizarren Spielchen zu Diensten sein.«
 
-Der Maschinenraum war ein Labyrinth aus Rohren, Kabeln und pulsierenden Energieleitungen. Riesige Reaktoren brummten in ihren Halterungen, umgeben von Kühlsystemen und Kontrollpanels. Der Lärm war ohrenbetäubend, die Hitze drückend.
+Oryn sackte sichtbar in sich zusammen. »Ich … ich hab keine Ahnung, wovon du sprichst.«
 
-»Reinigt die Kühlrohre«, befahl der Aufseher und deutete auf einen Stapel Werkzeuge. »Und fasst nichts anderes an.«
+»Oh, ich denke, das tust du.« Kalems Stimme wurde sanft, fast tröstend. »Hör zu, ich bin kein Unmensch. Gib mir die Informationen, die ich brauche, und dieses Dokument verschwindet. Niemand wird je davon erfahren. Aber wenn du mich anlügst oder versuchst, Spielchen zu spielen …«
 
-Acen griff nach einem Reinigungsgerät und folgte Brak zu einem Bereich mit verschmutzten Röhren. Die Arbeit war monoton und anstrengend. Schweiß rann ihm über das Gesicht, während er Schicht um Schicht verkohlter Ablagerungen von den Metallrohren kratzte.
+Ein weiterer Bolzen schoss aus der Dunkelheit, diesmal so dicht an Oryns Gesicht vorbei, dass ein blutiger Streifen auf seiner Wange zurückblieb. Oryn schrie auf. Dann kam nur noch Wimmern.
 
-»Warum sind wir hier?«, fragte er Brak leise, als der Aufseher außer Hörweite war.
+»Was willst du wissen?«, fragte Oryn mit brüchiger Stimme.
 
-»Um zu arbeiten, du Idiot«, schnaubte Brak.
+Kalem lehnte sich zurück und verschränkte die Arme. »Altheras. Wo ist er, was plant er, und wer hilft ihm?«
 
-»Nein, ich meine auf diesem Schiff. Wohin bringen sie uns?«
+Oryn rang um Fassung. »Ich weiß nicht, wo er ist. Niemand weiß es. Altheras ist ein mächtiger Zauberer, vielleicht mächtiger als Efret. Er kontaktiert uns magisch, wenn er es für nötig hält. Er hat uns ausdrücklich befohlen, einzeln unterzutauchen. Treffen sind verboten.«
 
-Brak wischte sich den Schweiß von der Stirn. Seine Tätowierungen glänzten im gedämpften Licht. »Die Reiseroute ändert sich. Manchmal Bergbaukolonien im Nirgendwo. Manchmal Plantagen. Man munkelt, das endgültige Ziel könnte die Sonnenfresser sein.«
+Kalem nickte, als hätte er genau das erwartet. »Und der Plan? Was hat er vor?«
 
-*Ach du Scheiße, Paleus’ riesiger Kampfplanet? War es etwas Gutes, oder etwas Schlechtes, wenn sie dort endeten? *
+»Er sucht die Wurzel der Magie«, stieß Oryn hervor. »Aber er weiß noch nicht, wo sie ist. Er … er hat immer wieder davon gesprochen, eine Expedition zu starten, wenn er den genauen Standort kennt. Bis dahin speist er uns mit denselben Reden ab – über Freiheit, Macht und die Entfesselung der Magie.«
 
-Acen nickte einfach und arbeitete weiter. Seine Augen wanderten über die Maschinen, studierten die Anordnung der Systeme, suchten nach Schwachstellen.
+Kalem lächelte zufrieden. »Und wann soll das sein?«
 
-»Vergiss es«, sagte Brak, der seinen Blick bemerkt hatte. »Selbst wenn du es bis zur Brücke schaffen würdest – wir sind im Hyperraum. Nirgendwo zum Fliehen.«
+Oryn zögerte. »Ich … ich glaube, er ist noch nicht nahe dran. Wenn er uns immer wieder dieselben Dinge erzählt, dann … dann dauert es wohl noch. Wenn er irgendwelche Fortschritte gemacht hätte, würde er sie uns sicherlich voller Stolz präsentieren.«
 
-Acen zuckte mit den Schultern. »Ich versuche nur zu verstehen, wo ich bin.«
+Kalem klopfte ihm wieder auf die Schulter. »Gute Arbeit, Oryn. Du bist fast sympathisch, wenn du Angst hast.« Er steckte das Pergament ein und ließ seine Hand einen Moment auf Oryns Schulter ruhen. »Aber ein kleiner Hinweis, mein Freund: Wenn ich jemals höre, dass du deine ›Hobbys‹ nicht aufgegeben hast, dann schicke ich keine Assassinen mehr. Dann komme ich persönlich.«
 
-»Du bist in der Hölle, Junge. Das ist alles, was du wissen musst.«
+Oryn nickte hektisch, die Angst hatte ihm die Sprache verschlagen.
 
-Als sie Stunden später zum Gemeinschaftsraum zurückkehrten, wartete eine Überraschung auf sie. Rakar, der Oberaufseher, stand neben ihrer Tür, die Hände hinter dem Rücken verschränkt.
+Kalem stand auf und ging langsam zur Bühne hinaus. »Du wirst bald von mir hören. Und denk daran, Oryn: Ich weiß, wo du bist. Immer.«
 
-»Zelleninspektion«, verkündete er mit rauer Stimme. »Standardverfahren.«
+Ein letzter Bolzen traf den Boden vor Oryns Füßen, bevor Kalem in der Dunkelheit verschwand.
 
-Acen spürte, wie sein Puls sich beschleunigte. Er hatte nichts zu verstecken – keine verbotenen Gegenstände, keine Waffen. Aber der intensive Blick des Mannes ließ ihn frösteln.
 
-Rakar durchsuchte methodisch die Kojen, tastete Matratzen ab, kontrollierte die wenigen persönlichen Gegenstände der Gefangenen. Als er zu Acens Koje kam, verharrte er länger als nötig.
+# In den Bibliotheken
 
-»Wie lange bist du schon hier, Junge?«, fragte er beiläufig.
+ 
 
-»Acht Tage«, antwortete Acen, den Blick gesenkt.
+Der Geruch von altem Papier und Leder lag schwer in der Luft der unterirdischen Bibliothek des Zaubererpalastes. Reihen über Reihen von Regalen erstreckten sich in die Dunkelheit, so weit das Auge reichte. Hier lag das gesammelte Wissen der Demiranther – oder zumindest ein Teil davon. Viele der Bücher waren so alt, dass ihre Einbände rissig oder kaum noch lesbar waren. Einige waren in gläsernen Vitrinen eingeschlossen, andere lagen in offenen Stapeln auf Tischen, als hätte jemand mitten in der Recherche das Interesse verloren.
 
-Rakar nickte langsam. »Und schon in Braks Gruppe. Beeindruckend.« Er trat näher, seine Stimme nun kaum mehr als ein Flüstern. »Oder vielleicht nicht so überraschend.«
+Jomar und Jaad standen an einem großen, steinernen Tisch in der Mitte eines Lesesaals. Zwischen ihnen lag ein Stapel Bücher, von denen einige von den Ahnen selbst stammten. Ihre Einbände waren aus Materialien gefertigt, die weder wie Leder noch wie Stoff wirkten – glatte, kühle Oberflächen, fast wie Metall, aber biegsam.
 
-Acen schwieg, sein Gesicht ausdruckslos. Die Narben des Aufsehers wirkten im gedämpften Licht wie tiefe Schatten auf seiner Haut.
+»Sieh dir das hier an«, sagte Jaad und deutete auf ein besonders großes Buch mit einer aufwendig geprägten Front. »Direkt von den Ahnen verfasst. Allerdings wird uns das nicht viel nützen. Die meisten dieser Bücher sind in Sprachen geschrieben, die niemand mehr beherrscht, und auch die, die man lesen kann, kann niemand wirklich verstehen.« Sie zog ein weiteres Buch aus dem Regal und hielt es Jomar hin. Der Titel lautete: Adaptives Genommanagement und Verhaltensmodulation: Eine integrative Studie zu Biofeedback-gestützter Persönlichkeitsformung der Demiranther Generation null bis zwei. 
 
-»Deine Verletzungen vom Kampf sind erstaunlich schnell verheilt«, bemerkte Rakar.
+Sie zog ein zweites Buch hervor, das dem ersten von der Titelgestaltung her sehr ähnlich sah. Doch der Titel war völlig unverständlich: Gestion adaptative du génome et modulation du comportement: Une étude intégrative sur la formation de la personnalité assistée par biofeedback dans les populations de la Génération Zéro.
 
-Acen zuckte mit den Schultern. »Gute Gene, schätze ich.«
+Jomar zog skeptisch eine Augenbraue hoch. »Sprache ist doch Sprache. Warum kann man das nicht lesen?«
 
-»Ja, Gene.« Rakar lächelte dünn. »Oder vielleicht etwas anderes.« Er wandte sich ab und setzte seine Inspektion fort, doch Acen spürte, dass etwas verändert war. Der Aufseher hatte etwas gesehen oder vermutet.
+Jaad schüttelte den Kopf. »Auf der Erde gab es Hunderte von Sprachen, jede mit eigenen Zeichen und Regeln. Die Ahnen brachten dieses Durcheinander mit sich. Glücklicherweise gaben sie den Demiranthern nur eine Sprache mit auf den Weg.«
 
-In dieser Nacht lag Acen wach und starrte an die Decke seiner Koje. Die Naniten in seinem Blut arbeiteten auf Hochtouren und reparierten Mikroschäden von der harten Arbeit des Tages. Er musste vorsichtiger sein. Musste seine Heilung verlangsamen, seine Reflexe dämpfen. Der Oberaufseher beobachtete ihn – nicht nur mit Neugier, sondern mit Verdacht.
+Jomar brummte missmutig, ließ den Blick jedoch neugierig über die Regale schweifen. »Dann nehmen wir eben das, was wir verstehen können.«
 
-Am nächsten Morgen wurde die Routine durch einen Zwischenfall unterbrochen. Einer der Gefangenen, ein hagerer Mann mit zitternden Händen, brach beim Frühstück zusammen. Schaum trat aus seinem Mund, sein Körper verkrampfte sich in heftigen Zuckungen.
+Jaad hielt ihm ein Buch entgegen.
 
-Die Aufseher reagierten schnell und schleppten den Mann weg. Geflüsterte Gerüchte verbreiteten sich wie ein Lauffeuer durch den Raum.
+»Das hier wurde mir vom Bibliothekar empfohlen. Es beschäftigt sich mit der Erstbesiedlung Demiranthas. Genau das, was uns interessiert.«
 
-»Gift«, murmelte Ferris neben ihm. »Jemand hat ihn vergiftet.«
+Jomar nahm das Buch. Es war sicher von Demiranthern verfasst worden. Es war ledergebunden, dick und schwer, und die erste Seite zeigte einen kunstvollen schnörkeligen Titel: über die Saat und die Anfänge.
 
-»Warum?«, fragte Acen.
+Er setzte sich an den Tisch und las die Einführung vor:
 
-»Er hat gestohlen. Medikamente aus der Krankenstation.« Ferris schüttelte den Kopf. »Niemand stiehlt ungestraft.«
+"Als die Ahnen vom Himmel herabstiegen, geschah dies nicht an einem einzigen Ort, sondern überall auf Demirantha. Ihre großen Schiffe landeten auf ebenem Grund, oft in der Nähe von Flüssen oder fruchtbaren Ebenen. Diese Orte wurden als Landeplätze der Saat bekannt.
 
-Acen beobachtete, wie die Aufseher den Raum wieder unter Kontrolle brachten. Rakar stand in einer Ecke, sein Blick fest auf Acen gerichtet. Eine stumme Herausforderung lag in seinen Augen.
+Die ersten Siedler, die Ursiedler, wurden von den Ahnen in vorbereiteten Dörfern untergebracht. Diese Dörfer bestanden aus Gebäuden, die aus einem Material gefertigt waren, das nicht von dieser Welt stammte – haltbarer als Stein, leichter als Holz. Die Ursiedler erhielten Werkzeuge, Saatgut und Tiere, die für den Beginn einer neuen Gesellschaft notwendig waren.
 
-Drei Tage später wurde Acen zu einer neuen Aufgabe eingeteilt: Wartung der Lebenserhaltungssysteme. Die Arbeit war komplizierter und erforderte technisches Verständnis. Die meisten Gefangenen – auch Brak – hatten nicht die nötige Qualifikation, doch für Acen war es eine willkommene Herausforderung. 
+Die Ahnen unterwiesen sie in grundlegenden Techniken: Pflügen, Ernten, Schmieden und dem Bau von einfachen Geräten. Sie lehrten sie, wie man Korn mahlt und Brot backt, wie man Eisen aus den Bergen gewinnt und wie man Werkzeuge herstellt. Auch grundlegende Medizin wurde vermittelt.
 
-Er arbeitete an einem Kontrollpanel, justierte Sauerstoff- und Stickstoffwerte, als er spürte, dass jemand hinter ihm stand. Der metallische Geruch von Reinigungsmitteln und der schwache Duft von synthetischem Tabak verrieten ihm, wer es war, bevor er sich umdrehte.
+Doch die Ahnen beschränkten sich nicht auf praktische Dinge. Sie formten die Gesellschaft. Sie errichteten Hierarchien, setzten Fürsten ein und führten Gesetze ein, die für Ordnung sorgten. Es war keine zufällige Entwicklung. Alles geschah nach ihrem Plan.
 
-»Oberaufseher Rakar.«
+Nachdem die Grundlagen gelegt waren, zogen sich die Ahnen zurück. Sie verließen die Welt, hinterließen aber die Magie als größtes Geschenk. Sie sagten, die Magie sei ein Werkzeug, das mit Bedacht eingesetzt werden müsse, denn ihre Kraft sei grenzenlos. Nur wer Weisheit besäße, könne sie sicher nutzen.
 
-Der vernarbte Mann nickte anerkennend. »Du hast ein gutes Gehör.«
+Dieses Buch handelt von den Anfängen der Besiedelung Demiranthas, über die Zeit, die wir mit den Ahnen verbracht haben und die Zeit kurz danach."
 
-»Überlebensinstinkt.«
+Jomar schloss das Buch mit einem dumpfen Schlag. »Die Ahnen haben uns das alles gegeben«, sagte er nachdenklich. »Sie haben nicht nur unsere Welt geformt, sondern auch unsere Gesellschaft. Das war alles geplant.«
 
-»Und gute technische Fähigkeiten, wie ich sehe.« Rakar deutete auf das Panel. »Die meisten Gefangenen brauchen Stunden für diese Kalibrierung.«
+Jaad nickte langsam. »Und sie haben die Magie absichtlich beschränkt. Wenn wir dem Buch glauben, dann wussten sie, welche Gefahren von unkontrollierter Magie ausgehen. Sie wollten uns davor bewahren.«
 
-Acen zuckte mit den Schultern. »Ich hatte einen guten Lehrer.«
+Jomar kratzte sich am Kinn. »Aber warum haben sie uns die Magie überhaupt gegeben, wenn sie so gefährlich ist?«
 
-»Deinen Großvater?«
+Jaad zuckte mit den Schultern. »Vielleicht, weil sie uns trotzdem Freiheit lassen wollten. Oder weil sie glaubten, dass wir irgendwann bereit wären, damit umzugehen. Vielleicht ist die Magie auch viel mehr, als wir wissen. Möglicherweise wird sie benötigt, um uns und unsere Welt am Leben zu halten.«
 
-Acens Herz setzte einen Schlag aus. Woher wusste der Mann von seinem Großvater? In den Aufnahmeunterlagen stand nichts über seine Familie. Aber andererseits hatte man ihn ja auch gezielt entführt. Seine Entführer hatten gewusst, wer er war. Acen blieb gelassen, zumindest äußerlich. 
+Die beiden saßen eine Weile schweigend am Tisch. Jomar ließ den Blick über die Regale wandern. »Hat Altheras hier auch nach Erkenntnissen gesucht?«
 
-»Hab ich richitg geraten?«, fragte Rakar mit einem dünnen Lächeln. »Interessant.«
+»Sicher«, antwortete Jaad. »Efret und Altheras haben versucht, herauszufinden, wo sich die Wurzel befindet. Doch sie zerstritten sich, bevor sie fündig wurden.«
 
+»Wir sollten weitersuchen«, sagte Jaad schließlich. »Es gibt noch mehr Bücher, und wir müssen so viel wie möglich herausfinden, bevor Altheras uns den nächsten Schritt voraus ist.«
 
-# Die Sonnenfresser
+Jomar sah nunmehr sehr nachdenklich drein. Er öffnete noch einmal das Buch, aus dem er zuvor vorgelesen hatte. Er hatte das seltsame Gefühl, dass dieses kurze Kapitel etwas Wichtiges enthielt, aber kam nicht drauf, was das sein könnte. Er las das Kapitel erneut, doch fand er nichts. Es blieb nur das Gefühl etwas zu übersehen.
 
-Das dumpfe Vibrieren der Andocksysteme durchlief den gesamten Schiffsrumpf. Acen spürte es durch die dünne Matratze seiner Koje bis in die Knochen. Die »Ende der Reise« hatte ihr Ziel erreicht.
 
-In der Dunkelheit des Schlafraums öffnete er die Augen. Sein Puls beschleunigte sich, während er das Geräusch der hydraulischen Verankerungen hörte – metallisches Kreischen, gefolgt von einem dumpfen Schlag, der das ganze Schiff erzittern ließ. Ein letztes Ruckeln, dann Stille.
+# Die Heldin von Demirantha_21
 
-»Aufstehen, Biofracht!« Die Stimme des Aufsehers hallte durch den Raum, begleitet vom Aufflackern greller Deckenlichter. »Ankunft in fünf Minuten!«
+## Alltag
+Kata hatte schnell bemerkt, dass die Akademie eine Welt war, in der Titel und Herkunft keine Bedeutung hatten. Hier war sie keine Adlige, sondern einfach eine Schülerin unter anderen. Das nagte an ihr. In ihrem früheren Leben hatte niemand außer ihren Eltern gewagt, ihr Anweisungen zu geben. Selbst die Hauslehrer, die sie unterrichtet hatten, waren sich ihrer Stellung bewusst gewesen und hatten ihre Unterweisungen stets mit einem Hauch von Demut gehalten. Doch Seline, ihre Lehrerin, war anders. Sie kommandierte Kata herum, als wäre sie nur ein weiteres unbedeutendes Mädchen, und das brachte Kata regelmäßig zur Weißglut.
 
-Um ihn herum kamen die anderen Gefangenen träge in Bewegung. Einige murmelten verschlafen, andere starrten mit leeren Blicken vor sich hin. Die chemischen Aggressionshemmer hatten die meisten in willenlose Hüllen verwandelt.
+Die Übungen, die Seline vorgab, waren weder einfach noch langweilig. Sie erforderten Konzentration, Geduld. Und sie hatte große Schwierigkeiten, mit Zaubern, die sie nicht von Natur aus beherrschte. Kata war geschickt darin, sich unsichtbar zu machen oder die Emotionen anderer zu erspüren – doch was darüber hinaus ging, schien schier unmöglich zu Meistern zu sein. 
 
-Acen setzte sich auf und rieb sich die Augen. Seine Naniten arbeiteten still gegen die Chemikalien in seinem Blut, hielten seinen Geist klar. Er atmete tief durch, spürte das vertraute Kribbeln, als die mikroskopischen Maschinen durch seine Adern pulsierten.
+In destruktiver Magie zeigte sie keinerlei Talent. Feuerbälle, Blitze und magische Pfeile blieben für sie unerreichbar. Nach ein paar erfolglosen Lektionen wurde sie von diesem Unterricht sogar freigestellt. Seline hatte das beiläufig bemerkt, als wäre es unwichtig, doch für Kata war es eine tiefe Schmach. Ihr Stolz ließ es nicht zu, diese Schwäche zu akzeptieren, auch wenn sie sie nicht ändern konnte.
 
-Ferris, sein hagerer Kojennachbar, zitterte stärker als sonst. »Wir sind da«, flüsterte er, seine Stimme brüchig vor Angst. »Bei der Sonnenfresser.«
+In der elementaren Magie sah es kaum besser aus. Während andere Schüler lernten, wie man Wasser zu Eis gefror, Feuer entzündete oder sogar die Beschaffenheit von Dingen zu ändern, musste Kata kämpfen, um diese verdammte Feder über den Tisch zu schieben. Doch sie weigerte sich aufzugeben. Wenn die anderen sie für unfähig hielten, würde sie es ihnen beweisen – und Seline gleich mit. Ihr Ehrgeiz trieb sie weiter, auch wenn sie oft den Eindruck hatte, gegen eine unsichtbare Mauer zu rennen.
 
-Acen nickte knapp. Er hatte die Gerüchte gehört, die in den letzten Tagen durch das Schiff geflüstert wurden. Die Sonnenfresser – Paleus Aristas planetengroße Raumstation, das Symbol seiner absoluten Macht über die Galaxis. Manche sagten, sie könne ganze Sonnensysteme verschlingen. Andere behaupteten, in ihrem Inneren würden grausame Experimente an Gefangenen durchgeführt.
+Das Training mit Jomar war eine andere Sache. Anfangs hatte sie es gehasst, dass er ihr im Schwertkampf und auch im Nahkampf ohne Waffen haushoch überlegen war. Doch sie musste ihm zugutehalten, dass er sie niemals verhöhnte oder sonst wie herablassend behandelte, wenn sie wieder einmal rücklings im Dreck gelandet war. Er half ihr auf und hatte jede Menge Ratschläge für sie, wie es das nächste Mal besser machen konnte. Wären ihre Rollen vertauscht, würde sie ihn wohl kaum so geduldig und freundlich behandeln.
 
-»Reihe bilden!« Der Aufseher schlug mit seinem Elektrostab gegen die Metallwand. »Bewegung!«
+Er war zäh, geduldig und immer darauf bedacht, sie besser zu machen. Seine anfängliche Faszination für sie – die bewundernden Blicke und das ständige Bemühen, ihr zu gefallen – ließ langsam nach. Stattdessen entwickelte sich eine gegenseitige Achtung, die Kata widerstrebend eingestand. Jomar war kein einfacher Bauer mehr in ihren Augen. Er war ein fähiger Kämpfer, und seine besonnene Art hatte sie mehr als einmal davor bewahrt, die Fassung zu verlieren.
 
-Die Gefangenen stolperten aus ihren Kojen, formierten sich zu einer unordentlichen Reihe. Acen stellte sich zwischen Ferris und einen grünhäutigen Helianer, dessen dreifingrige Hände nicht aufhörten zu zittern.
+Mit jedem Training wurden ihre Schläge präziser, ihre Verteidigung geschickter. Kata lernte nicht nur, wie sie sich im Kampf behaupten konnte, sondern auch, wie sie ihre Unsichtbarkeit strategisch einsetzte. Ihre Fortschritte beeindruckten nicht nur Jomar, sondern auch sie selbst – auch wenn sie sich das nie anmerken ließ.
 
-Brak, der tätowierte Anführer, baute sich vor ihnen auf. »Hört zu«, grollte er leise. »Egal was passiert, bleibt zusammen. Einzeln überlebt ihr nicht.«
+Der Alltag an der Akademie blieb hart. Sie war die Älteste unter den Schülern der Unterstufe. Sie überragte die anderen um einen Kopf und fühlte sich fehl am Platz. Doch Stück für Stück begann Kata, ihren Platz in dieser Welt zu finden. Es war eine Welt, in der sie nicht mit Privilegien vorankam, sondern mit Können, Willen und Disziplin. Und so kämpfte sie weiter, entschlossen, sich ihren Weg zu bahnen – nicht nur, um den anderen zu beweisen, dass sie es konnte, sondern auch, um sich selbst zu beweisen, dass sie mehr war als nur eine gefallene Adlige.
 
-Acen fing Braks Blick auf. Der große Mann nickte ihm kaum merklich zu. In den zwei Wochen an Bord hatte Acen sein Vertrauen gewonnen – nicht durch Stärke, sondern durch Intelligenz und Nützlichkeit.
+*
 
-Die Aufseher führten sie durch enge Korridore zum Hauptdock. Acen prägte sich jede Abzweigung ein, jede Tür, jedes Detail. Eine Angewohnheit, die sein Großvater ihm eingebläut hatte. »Wissen ist Überleben«, hatte der alte Mann immer gesagt.
+Kata saß am Rand des Übungsplatzes, ihr Körper zitterte vor Erschöpfung. Schweiß rann ihr in dünnen Streifen über das Gesicht, ihre Hände ruhten auf den Knien, während sie schwer atmend die Augen schloss. Das Training mit Jomar war heute intensiver als je zuvor gewesen, und zum ersten Mal seit Langem fühlte sie sich … lebendig. 
 
-Bei dem Gedanken an seinen Großvater zog sich Acens Magen zusammen. Das Bild des alten Mannes, blutend auf dem Boden ihres Zuhauses, drängte sich in seinen Geist. Er schob es beiseite. Nicht jetzt. Er musste fokussiert bleiben.
+Sie hatte sich am Abend zuvor mithilfe von Marinas magischen Fähigkeiten ihre Haare entfärbt und trug nun ihre natürliche, goldene Lockenpracht. Auch war ihre finstere Schminke verschwunden. Jomar hatte einen leichten Rückfall erlitten. Er hatte sie angestarrt und hatte Schwierigkeiten gehabt, ganze Sätze zu formulieren. Doch nachdem der Kampf begonnen hatte, war Jomar wie verwandelt. Sie kämpften beide hart, keiner wollte diesen Kampf verlieren. Doch der Kampf war nicht nur hart gewesen, beide hatten sich auch in eine Art Rausch gekämpft, der Kata an einen ritualisierten Tanz bei Hofe erinnerte. Beide wirbelten über den Übungsplatz, bis die Erschöpfung sie schließlich zu einem angemessenen Unentschieden zwang.
 
-Sie erreichten eine massive Luftschleuse. Die Aufseher verteilten Atemmasken. »Atmosphärenanpassung«, erklärte einer knapp. »Die Station hat eine andere Luftzusammensetzung.«
+Ein Schatten fiel über sie, und als sie aufsah, stand Jomar vor ihr, einen Becher Wasser in der Hand. Ohne ein Wort reichte er ihn ihr, setzte sich neben sie auf den kühlen Stein und trank selbst aus einem zweiten Becher. Sie schlürften schweigend, die Stille war von dem leisen Zirpen von Insekten und dem entfernten Gemurmel anderer Schüler erfüllt.
 
-Acen setzte die Maske auf. Der synthetische Geruch des gefilterten Sauerstoffs füllte seine Nasengänge. Die Naniten in seinem Blut passten sich sofort an, bereiteten seine Lungen auf die veränderte Atmosphäre vor.
+Es war Jomar, der schließlich die Stille brach. »Kata«, sagte er vorsichtig, den Becher in den Händen drehend, »ich weiß, dass es nicht meine Sache ist, aber… ich frage mich schon eine ganze Weile, wer du wirklich bist.«
 
-Mit einem Zischen öffnete sich die äußere Schleusentür. Acen blinzelte gegen das plötzliche Licht. Was er sah, verschlug ihm den Atem.
+Kata zog die Augenbrauen zusammen und musterte ihn scharf. »Was soll das heißen?« Ihre Stimme war kühl, fast abweisend, doch Jomar ließ sich nicht aus der Ruhe bringen.
 
-Vor ihnen erstreckte sich ein gewaltiger Hangar, so groß, dass die »Ende der Reise« – selbst ein beachtliches Schiff – darin winzig wirkte. Die Decke wölbte sich hunderte Meter über ihnen, durchzogen von schwebenden Transportplattformen und Roboterkränen. Dutzende andere Schiffe standen in Reihen, wurden be- und entladen. Das Dröhnen von Maschinen, das Zischen von Hydrauliksystemen und das metallische Klingen von Werkzeugen vermischten sich zu einer industriellen Symphonie.
+»Na ja«, sagte er ruhig und blickte sie an, »es ist offensichtlich, dass du nicht wie die anderen hier bist. Dein Benehmen, deine Haltung … du wirkst, als wärst du an etwas anderes gewöhnt. Du kommst mir vor wie jemand, der früher Kommandos gegeben hat, aber jetzt hier lernen muss, sie zu befolgen. Es liegt in deinem Blick, in der Art, wie du redest.«
 
-»Vorwärts«, bellte ein Aufseher und stieß Acen mit seinem Elektrostab in den Rücken, glücklicherweise ohne ihn auszulösen.
+Kata starrte ihn an, ihr Mund öffnete sich leicht, doch sie sagte nichts. Zuerst spürte sie Empörung. Was fiel diesem Bauerssohn ein, sie auszufragen? Doch je länger sie ihn ansah, desto mehr bemerkte sie die Ernsthaftigkeit in seinen Augen, die Wärme und das echte Interesse. Sie spürte eine unvertraute Nähe zwischen ihnen, die sich in den letzten Wochen aufgebaut hatte – eine Vertrautheit, die sie noch nicht ganz als Freundschaft akzeptieren konnte, die aber genau das war.
 
-Sie betraten den Hangar. Die Luft war kühler als auf dem Schiff, mit einem metallischen Unterton. Acen aktivierte seine sensorischen Naniten, schärfte seine Wahrnehmung. Die winzigen Maschinen in seinem Körper verstärkten seine Sinne, ließen ihn jedes Detail wahrnehmen und speichern.
+Sie seufzte und legte den Becher beiseite. »Du hast recht«, sagte sie schließlich, ihre Stimme leise, fast zögerlich. »Es gibt eine Menge, was du nicht über mich weißt. Und ich habe nicht vor, meine ganze Lebensgeschichte auszubreiten.«
 
-Eine Gruppe von Wachen in schwarz-silbernen Uniformen erwartete sie. Ihre Gesichter waren hart, ausdruckslos. Sie trugen kompakte Energiewaffen an ihren Gürteln und leichte Rüstungsverstärkungen an Brust und Armen.
+Jomar nickte langsam, ohne etwas zu sagen. Es war keine Zustimmung, sondern ein stilles Warten. Kata merkte, dass er nicht locker lassen würde.
 
-»Übernahme der Lieferung«, sagte der vorderste Wachmann zu Korvan, dem Oberaufseher der »Ende der Reise«.
+Sie richtete sich auf, verschränkte die Hände – ruhig, kontrolliert – und sprach.
 
-Korvan nickte und übergab ein Datenpad. »Dreiunddreißig Einheiten. Alle katalogisiert und gesundheitlich geprüft.«
+»Ich war nicht immer einfach nur Kata. Mein voller Name ist Kataluna von Brass. Die Herzogin von Brass und Wartland, Vögtin von Leras und Fürstin des südöstlichen Kerks.«
 
-Der Wachmann überflog die Daten. Sein Blick blieb kurz an Acen hängen, wanderte dann weiter. »Bestätigt. Überweisung erfolgt nach Protokoll.«
+Jomar blinzelte. »Herzogin?« Er sprach das Wort aus, als wäre es ein altertümliches Relikt.
 
-Die Gefangenen wurden an die Stationswachen übergeben. Acen bemerkte, wie Korvan ihm einen letzten, langen Blick zuwarf, bevor er sich abwandte und mit den anderen Aufsehern zum Schiff zurückkehrte.
+Kata nickte knapp. »Ja. Das war ich – zumindest bis zu dem Tag, an dem meine gesamte Familie ausgelöscht wurde.«
 
-Die neuen Wachen waren effizienter, kälter. Sie trieben die Gruppe vorwärts, durch eine Reihe von Sicherheitsschleusen und Kontrollpunkten. Acen versuchte, sich zu orientieren, aber die Sonnenfresser war ein Labyrinth. Jeder Korridor sah aus wie der vorherige – metallische Wände, gedämpftes Licht, gelegentliche Türen mit unverständlichen Symbolen.
+Jomars Augen weiteten sich, doch er sagte nichts, also fuhr sie fort, ihre Stimme tonlos: »Sie kamen nachts. Niemand weiß, wer sie waren. Es war geplant, kaltblütig und gnadenlos. Meine Eltern, meine Geschwister, jeder einzelne Verwandte, den ich hatte, wurde ermordet. Bis zum dritten Grad, verstehst du? In Kerk gibt es niemanden mehr, der den Namen ›von Brass‹ trägt. Die Attentäter wollten sichergehen, dass keiner von uns mehr Ansprüche an den Thron anmelden kann.«
 
-Nach einer gefühlten Ewigkeit erreichten sie einen großen, kreisförmigen Raum. Mehrere Gänge führten von hier weg wie die Speichen eines Rades. In der Mitte stand ein zylindrischer Behälter, der in regelmäßigen Abständen pulsierte. Schwaches blaues Licht sickerte durch Risse in seiner Oberfläche.
+Jomar nickte langsam, seine Finger um den Becher verkrampft. Kata atmete tief durch und schloss kurz die Augen, als wollte sie das Bild vertreiben, das in ihrem Kopf aufflackerte.
 
-»Verteilungszentrum«, erklärte eine neue Stimme.
+»Ich habe nur überlebt, weil ich unsichtbar werden kann«, sagte sie leise. »Ich habe mich versteckt, während sie jeden Raum durchsuchten, jede Ecke. Als sie mich nicht finden konnten, haben sie einfach das Schloss niedergebrannt. Sie dachten, ich sei irgendwo drinnen, versteckt wie eine Ratte, und ich würde verbrennen.«
 
-Ein hochgewachsener Mann in einer eleganten, dunkelgrauen Uniform trat aus einem der Gänge. Sein Haar war silbergrau, perfekt zurückgekämmt. Er bewegte sich mit der Präzision eines Militärs, aber seine Augen hatten die wachsame Ruhe eines erfahrenen Dieners.
+Jomar war bleich geworden, sein Gesicht voller Mitleid und Entsetzen. Doch Kata wich seinem Blick aus, ihre Stimme wurde härter, als sie weitersprach. »Aber ich war längst weg. Ich hatte mich davongeschlichen, während sie alles durchsucht haben. Ich war jung, ich wusste erst nicht, wohin ich gehen sollte. Also bin ich zu Marina geflohen.
 
-»Mein Name ist Rakar Vellum«, sagte er mit kultivierter Stimme. »Ich bin der Hauptkammerdiener dieser Station. Ab jetzt unterstehen Sie meiner Autorität.«
+Sie war eine Freundin meiner Mutter, eine alte Heilerin. Sie hat mich aufgenommen, versteckt, und mich … wieder aufgebaut.« Kata hielt inne und biss sich auf die Lippe. Sie hatte noch nie mit jemandem darüber gesprochen, außer mit Marina.
 
-Acen starrte den Mann an, der vor ihm stand. Dieselbe Narbe, die sich vom linken Auge bis zum Kinn zog. Dieselben wachsamen Augen. Rakar. Der Oberaufseher von der »Ende der Reise«. Nur dass er jetzt eine elegante Uniform trug und sich als Hauptkammerdiener vorstellte.
+Jomar suchte nach den richtigen Worten, aber es gab keine. »Das tut mir leid, Kata«, sagte er schließlich.
 
-»Sie«, sagte Acen, bevor er sich zurückhalten konnte.
+Sie nickte nur und starrte in die Ferne. »Es ist das erste Mal, dass ich überhaupt darüber rede«, murmelte sie. »Ich habe es immer in mir behalten.«
 
-Rakar hob eine Augenbraue und musterte Acen mit einem amüsierten Blick. »Ja, ich. Überrascht, mich wiederzusehen?«
+»Warum jetzt?«, fragte Jomar leise.
 
-Die anderen Gefangenen starrten verwirrt zwischen Acen und Rakar hin und her. Brak legte schützend eine Hand auf Acens Schulter.
+Kata wandte sich ihm zu, ihre blauen Augen trafen seine. »Ich weiß es nicht. Vielleicht, weil du gefragt hast.«
 
-»Eine kleine Inspektion«, erklärte er gelassen. »Ich wollte sehen, was für … Talente uns geliefert wird.«
+Jomar hielt ihrem Blick stand, und für einen Moment hing eine Stille zwischen ihnen, die nicht unangenehm war, sondern schwer von unausgesprochenen Gefühlen. Schließlich brach Kata das Schweigen, ihre Stimme wieder gewohnt scharf: »Aber wehe, du erzählst das jemandem, Bauernjunge.«
 
-Acen spürte, wie die Naniten in seinem Blut auf seine wachsende Anspannung reagierten. Seine Sinne schärften sich. Rakar war kein einfacher Aufseher gewesen. Er hatte sich als solcher ausgegeben, um die Gefangenen zu beobachten. Zu bewerten. Auszuwählen.
+Ein schwaches Lächeln zuckte um Jomars Lippen. »Natürlich nicht, Herzogin.«
 
-»Sie sind kein Sklavenaufseher«, sagte Acen leise. »Sie sind ein Vasall von Paleus.«
+Zum ersten Mal, seit sie sich kannten, warf sie ihm einen fast schelmischen Blick zu. »Herzogin … das klingt irgendwie ganz schön weit weg.«
 
-Rakar neigte anerkennend den Kopf. »Scharfsinnig. Ja, ich diene dem Herrscher direkt. Ich überwache die Auswahl neuer Diener für die Sonnenfresser.« Sein Blick wanderte über die Gruppe. »Nicht jeder eignet sich für den Dienst hier.«
+»Glaub mir«, sagte Jomar seufzend. »Die Herzogin steckt noch ganz tief in dir.«
 
-Acen versuchte, seine Gedanken zu ordnen. Warum hatte Rakar sich die Mühe gemacht, persönlich auf dem Transportschiff zu reisen? Warum hatte er ihn so genau beobachtet? War es nur Zufall, oder wusste er etwas über Acens wahre Identität?
+Beide mussten lachen. Es war ein befreiendes Lachen und Kata musste sich eingestehen, das ihr dieses Gespräch wirklich gutgetan hatte.
 
-Rakar betrachtete Acen mit einem durchdringenden Blick, als könnte er seine Gedanken lesen. Seine Mundwinkel verzogen sich zu einem wissenden Lächeln.
 
+# Es beginnt
 
-# Aufstieg in der Küche 
+Am nächsten Tag hatte Kata wieder Zauberunterricht: Elementarzauber. Sie war noch immer nicht in der Lage etwas anderes zu tun, als die dumme Feder zu bewegen. Und selbst das kostete sie alle Mühe. 
 
-Geweckt wurden sie immer um Punkt fünf.  Alle Deckenleuchten gingen gleichzeitig an. 
+Während die anderen Kinder schon Feuer entzünden konnten oder Wasser zu Eis gefroren, steckte sie bei dieser verdammten Federschieberei fest. Lustlos hielt sie ihre Hand über die Feder.
 
-Beim Betreten der Küche war jedes Mal ein anderer Geruch dominant. Mal das bittere Parfüm gebräunter Zwiebeln, mal die ölige Süße von reduzierter Brühe, mal das animalische Aroma des Bioreaktors, in dem Proteine gezüchtet wurden. Und darunter immer der Hauch von Desinfektion, kaltes Ozon, das sich wie ein Ölfilm über alles legte.
+»Ich glaube, sie hat sich bewegt, wirklich«, hörte sie eine hohe Stimme mit gespielter Begeisterung rufen. Es war Jorg. Er ließ keine Gelegenheit aus, sich über sie lustig zu machen. Die Kinder um ihn herum lachten gehässig.
 
-Heute stand ein Mann am Abfallzerkleinerer, den Acen noch nie gesehen hatte. Groß, dicke Finger, Kopf rasiert. Die Adern auf den Unterarmen traten hervor, während er Gemüsereste in den Trichter schob. Ein Blick, dann ein kurzes, abwertendes Grinsen. »Schau nicht so, Frischling«, sagte der Mann. »Wer zu viel schaut, hat bald keine Augen mehr.« Er führte das Messer absichtlich knapp an Acens Gesicht vorbei, als er eine Schale für den Biomüll zertrümmerte.
+Bevor sie etwas erwidern konnte, trat Selina nach vorne. »Genug jetzt«, sagte sie mit fester Stimme. »Magie erfordert Geduld und Respekt. Wer darüber lacht, hat noch viel zu lernen.«
 
-Acen erwiderte nichts, wich einen halben Schritt zurück. Er merkte, dass auch Ferris schon an seinem Platz stand und still wie ein Schatten Kartoffelschalen abkratze. Ferris hatte sich nie beschwert, tat einfach, was ihm gesagt wurde. Es war, als wollte er unsichtbar werden, eins mit dem weißen Licht und den stillen Bewegungen der anderen.
+Die Klasse verstummte. Selina wandte sich an Kata. »Ich denke, es ist an der Zeit, dass du der Klasse deine besondere Fähigkeit zeigst.«
 
-Küchenchef Reimann tauchte auf, immer dann, wenn man am wenigsten mit ihm rechnete. Er schwebte nicht durch den Raum, er zerschnitt ihn wie ein Messer. »Zu langsam, ihr zwei«, knurrte er und wischte mit dem Daumen eine unsichtbare Linie über die Arbeitsfläche. »Jede Stunde zählt hier. Ihr arbeitet, als wärt ihr noch im Orbit.«
+Kata blickte überrascht auf. »Meine Fähigkeit?«
 
-Der nächste Tag verlief wie eine Serie von Tests, alle ausgerichtet auf Effizienz, Genauigkeit, Geschwindigkeit. Wer einen Fehler machte, bekam sofort einen Kommentar von Reimann. Es gab keine Verwarnungen, keine zweite Chancen. Ferris verlor die Kontrolle über einen Stapel Teller, sie zersprangen auf dem Boden. Reimann sah ihn nur an, dann: »Du machst das nächste Mal die doppelte Schicht. Wer Fehler produziert, bezahlt dafür.« Keine Wut. Nur diese kühle, absolute Logik.
+Selina nickte. »Das Unsichtbarmachen. Es ist eine der seltensten magischen Fertigkeiten überhaupt. Ich bin sicher, dass deine Mitschüler beeindruckt sein werden.«
 
-Beim Mittagessen setzte sich der Riese vom Morgen neben Acen und stocherte in seinem Reis. »Du bist neu, oder?«, fragte er, ohne den Kopf zu wenden.
+Ein Murmeln ging durch die Reihen. Jorg verzog das Gesicht, offenbar unzufrieden mit der Wendung der Ereignisse. »So ein Quatsch«, murmelte er seinen Mitschülern zu, gerade leise genug, dass Selina es nicht hören konnte, Kata aber sehr wohl. »Niemals kann die sich unsichtbar machen.«
+
+Kata atmete tief durch. Sie konnte sich seit ihrem achten Lebensjahr unsichtbar machen. Es war etwas, das ihr immer leichtgefallen war. Sie trat vor die Klasse und stellte sich gerade hin. Jorg würde gleich mit offenem Mund dasitzen. 
+
+»Wenn du bereit bist«, sagte Selina ermutigend.
+
+Kata schloss die Augen und konzentrierte sich. Sie spürte die vertraute Energie in sich aufsteigen, ließ sie durch ihren Körper fließen. Normalerweise war dies der Moment, in dem sie einfach verschwand.
+
+Doch dieses Mal fühlte es sich anders an. Ein seltsames Kribbeln breitete sich aus. Sie öffnete die Augen und bemerkte die entsetzten Blicke ihrer Mitschüler. Einige hielten sich die Hände vor den Mund, andere starrten sie mit großen Augen an.
+
+»Was ist los?«, fragte sie unsicher.
+
+Selina trat hastig vor sie. »Kata …«, rief sie, doch Kata folgte den Blicken der anderen und sah an sich hinunter.
+
+Ihre Kleidung war verschwunden. Sie stand nackt vor der gesamten Klasse.
+
+Ein Schwall von Scham und Panik durchfuhr sie. Ohne weiter nachzudenken, drehte sie sich um und rannte aus dem Raum. Das Gelächter der Kinder hallte ihr nach, als sie den Flur entlang stürmte. Sie hörte Jorg jubeln.
+
+Draußen lehnte sie sich gegen die kalte Steinmauer und versuchte, ihren Atem zu beruhigen. Sie krümmte sich zusammen und hielt ihre Arme vor ihren Brüsten verschränkt. Tränen stiegen in ihre Augen. Wie konnte das passieren? Sie hatte sich immer auf ihre Fähigkeit verlassen können.
+
+Sie hörte Schritte hinter sich. Selina war ihr gefolgt und legte ihr sanft einen Umhang um die Schultern. »Es tut mir leid, Kata«, sagte sie leise. »Manchmal spielt die Magie uns Streiche, besonders wenn wir unter Druck stehen.« Wirklich überzeugt klang sie bei diesen Worten nicht.
+
+Kata wischte sich die Tränen aus dem Gesicht. »Ich verstehe es nicht. Es hat immer funktioniert.«
+
+»Wirklich immer?«, fragte Selina nachdenklich. Kata nickte nur stumm.
+
+»Komm, wir gehen ins Büro und reden darüber.«
+
+Kata nickte zögernd. Zusammen gingen sie den Flur entlang, weg von den neugierigen Blicken und dem Spott der anderen. Sie würde diese Klasse nie wieder betreten können, so viel war ihr klar.
+
+ 
+
+
+
+---
+
+
+
+Jomar verließ die Studierhalle als einer der Letzten. Die meisten seiner Mitschüler saßen sicherlich schon in der Mensa, und wenn er sich nicht beeilte, würde nicht mehr viel Essbares übrig sein. Er fühlte sich seltsam, ohne zu wissen, warum. Irgendetwas stimmte nicht. Dieses unbestimmte Ziehen in seinem Kopf hatte nur wenige Minuten zuvor begonnen, 
+
+Er bog um eine Ecke, die auf den Hof führte, als ihm eine Gruppe Schüler den Weg versperrte. Es waren Marek und zwei seiner Speichellecker. Waren sie der Grund gewesen, warum er sich so seltsam gefühlt hatte? Eine Vorahnung? Er schüttelte den Kopf. Die einzigen Gefühle, die Marek in ihm erzeugen konnte, waren Verachtung und Mitleid. 
+
+Jomar blieb stehen und verdrehte die Augen. »Marek. Auf dich hab ich ja nun gar keine Lust.«
+
+»Dachtest du etwa, du kannst mich einfach so demütigen und kommst ungestraft davon?« Mareks Speichellecker lachten pflichtbewusst.
+
+»Nein, ich dachte, du würdest die Niederlage nutzen, um über deine Fehler nachzudenken, daraus etwas lernen und letztlich als Mensch daran wachsen. Aber da habe ich dich wohl überschätzt.«
+
+»Das hast du«, antwortete Marek spontan, bevor er sich korrigierte: »Ähhh, ich meine: halt’s Maul!«
+
+»Und jetzt kommt ihr zu dritt, um mich zu besiegen. Etwas, das du alleine wohl nicht schaffen kannst.«
+
+Marek schnaubte wütend. »Meine Freunde sind nur hier, um meinen Triumph zu bezeugen und dafür zu sorgen, dass du nicht wieder einen deiner schmutzigen Tricks probierst.«
+
+Jomar lockerte die Schultern und machte sich innerlich bereit. Er wusste, dass Marek sich nicht an Duellregeln halten würde und jederzeit angreifen konnte. 
+
+Und tatsächlich: Marek stieß beide Hände nach vorne, um einen Zauber abzufeuern. Jomar ließ blitzschnell einen Schutzzauber entstehen, doch zu seiner Überraschung erschien um ihn eine schillernde, seifenblasenartige Kugel, die nach nur einer Sekunde mit einem feuchten ›Plopp‹ platzte. Der Schutzzauber, der keiner war, verschwand. Jetzt war er Mareks Angriff schutzlos ausgeliefert. 
+
+Doch auch Mareks Zauber ging schief: Eine braune Masse quoll aus seinen Handflächen hervor. Sie tropfte von Mareks Händen und klatschte als breiiger, stinkender Haufen auf dem Boden auf. »Scheiße!«, schrie Marek und hatte damit im wörtlichen wie im übertragenen Sinne recht. 
+
+Er drehte sich mit seinen kotverschmierten Händen zu seinen Freunden um und ging mit ausgestreckten Armen auf sie zu, als wollte sie an ihnen abwischen. Sie wichen kreischend zurück.
+
+Jomar beobachtete die Szene mit einer Mischung aus Faszination und Belustigung, doch dann hörte er Schreie und Lärm aus dem Wohnheim und den Übungsräumen gegenüber. Überraschte Ausrufe, Schmerzenslaute – nicht nur hier unten im Hof gingen Zauber schief.
+
+Das seltsame Gefühl, das ihn zuvor erfasst hatte, ließ plötzlich nach. Und jetzt wusste Jomar, was es war: Die Magie hatte sich verändert. Für kurze Zeit war sie instabil gewesen, unberechenbar. Doch nun schien alles wieder so zu sein, wie es sein sollte.
+
+Er beschloss, es zu testen. Er hob die Hand und schickte Marek einen magischen Pfeil in den Hintern. Dessen quiekender Schmerzenslaut bestätigte Jomars Theorie. Ein Grinsen huschte über sein Gesicht, und er jagte ihm noch drei weitere Pfeile in die Rückseite. Marek rollte nun jammernd auf dem Boden herum – quer durch die stinkende Masse, die er selbst geschaffen hatte.
+
+Jomar schüttelte den Kopf, ging an der Gruppe vorbei und dachte: Was war das? Nie zuvor hat die Magie auf diese Weise versagt. Er musste sofort zu Jaad – und danach zu Efret. 
+
+ 
+
+
+
+---
+
+
+
+Jaad hatte darauf bestanden, Kata mit zu Efret zu nehmen. Es war auch ein Diener ausgesandt worden, um Marina Bescheid zu geben.
+
+Sie fanden Kata auf ihrem Bett sitzend vor, mit hängenden Schultern ins Leere starrend. Ihre rotgeränderten Augen ließen nur einen Schluss zu: Sie hatte geweint. 
+
+Die stolze Kata hat geweint? Etwas Schreckliches musste geschehen sein, dachte Jomar.
+
+Jaad ging hinüber zu dem Mädchen und setzte sich zu ihr auf das Bett. »Was ist geschehen?«, fragte sie sanft.
+
+Kata atmete ein paarmal tief ein, als hätte sie Mühe die Fassung zu bewahren.
+
+»Da es sowieso bald die ganze Schule weiß, kann ich es euch genau gut gleich erzählen: Ich sollte meine Unsichtbarkeit vorführen, doch irgendwas ging schief und ich stand komplett nackt vor der Klasse.«
+
+»Oh nein!«, rief Jaad betroffen aus. 
+
+ Jomar drückte seine Betroffenheit auf seine Weise aus: »Da wär ich gern … ähhh, ich meine: Das ist ja schrecklich!«
+
+Jaad sah Jomar böse an, dann sagte sie zu Kata gewandt: »Es sind jede Menge Zauber schief gegangen, das ist nicht nur dir passiert.«
+
+»Sind andere auch nackt geworden?«
+
+»Nein, aber gab einige Verletzungen.«
+
+»Dann tröstet mich das nicht.«
+
+»Auf jeden Fall müssen wir jetzt zu Efret.«
+
+ 
+
+
+
+---
+
+
+
+ 
+
+Sie wurden fast sofort zu Efret vorgelassen. Es wurde ihnen nicht einmal die Magie entzogen, was der alten Hexe im Vorraum sichtlich missfiel. Als sie den Thronsaal betraten, kam ihnen eine Gruppe von Zauberern entgegen. Sie wirkten angespannt und gingen einander zu murmelnd an Jomars Gruppe vorbei aus dem Raum, ohne auch nur zu grüßen. Anscheinend waren sie nicht die Ersten, die Efret Bericht erstatteten.
+
+»Ahh, langsam, wie eine Herde aus dreibeinigen Kühen«, rief Efret ihnen entgegen.
+
+»Kommt!«, erläuterte die ›Stimme‹.
+
+Sie beschleunigten ihre Schritte und standen schon bald vor dem Thron.
+
+Efret sah die Gruppe finster an, während sie vor seinem Thron stand. Seine Augen funkelten unruhig, und ein fast unsichtbares Zucken wanderte über seine linke Gesichtshälfte. Niemand wagte, als Erster zu sprechen.
+
+Plötzlich richtete er sich auf und sprach mit einer Stimme, die wie ein Brummen in der großen Halle widerhallte: »Ein Hahn, der den Wind verflucht, wird den Morgen nie sehen!«
+
+Die ›Stimme‹ trat vor und übersetzte: »Was habt ihr zu berichten?« Er zeigte mit einem knochigen Finger auf Jomar.
+
+Der räusperte sich und sagte schließlich: »Für wenige Minuten geriet die Magie außer Kontrolle. Schutzzauber erschufen nur Seifenblasen, Feuerzauber entzünden unkontrolliert Dinge, und …« Er zögerte einen Moment und schielte zu Kata hinüber, bevor er weitersprach: »… bei manchen ging die Zauber noch schlimmer schief.« Sie sah ihn dankbar an, dass er nicht ausgesprochen hatte, was ihr geschehen war.
+
+»Katzenpisse!«, sagte Efret energisch. 
+
+»Ihr seid nicht die Ersten, die über diese Vorfälle berichtet haben. Die Magie hatte sich für eine kurze Zeit verändert. So etwas ist nie zuvor geschehen. Die Magie war immer eine feste Größe, sie ist das Fundament, auf dem unsere Zivilisation ruht. Jede Veränderung kann katastrophale Konsequenzen haben, und ich spreche hier nicht von spontaner Nacktheit oder Fäkalien, die aus unsympathischen jungen Zauberern hervorquellen.«
+
+Kata sah nun recht betroffen drein. Natürlich wusste der alte Zauberer schon, was ihnen geschehen war. 
+
+»Der Wind weht von Osten. Doch wen interessiert das, wenn er in einer Höhle lebt?«
+
+»Weiß einer von euch, was die Ursache sein könnte für diese Phänomene?« 
+
+Efret sah die Gruppe streng an, wie ein Lehrer, der die Antwort natürlich schon kannte, sie aber von seinen Schülern hören wollte. 
+
+Jaad trat einen Schritt vor. »Ich glaube, es ist offensichtlich, dass Altheras damit zu tun hat. Er muss seine Visionen genutzt haben, um die Magie zu verändern.«
+
+Efret nickte zustimmend. 
+
+Nun trat Kata nach vorne: »Meister, ich glaube, es ist viel schlimmer. Als ich damals Altheras' Rede belauscht habe, stand er in einem Kreis aus Kristallen. Ich dachte, deren Leuchten sollten seine Erscheinung geheimnisvoll illuminieren, doch jetzt bin ich der festen Überzeugung, sie dienten dazu Altheras' Gestalt auf die Bühne zu projizieren. Zu diesem Zeitpunkt war er schon nicht mehr in Königsstadt. Und ich befürchte, er hat die Wurzel der Magie erreicht.«
+
+Alle Anwesenden schwiegen. Efret blickte ins Leere. »Armageddon!«, sagte schließlich mit eisiger Stimme. 
+
+»Dank Katas Bericht tun sich neue Zeitlinien auf. Noch besteht Hoffnung, denn keine dieser Zukünfte zeigt mir den Ausgang der vor uns liegenden Schlacht. Doch nun drängt die Zeit: Ihr müsst eure Anstrengung vervielfachen, die Wurzel zu finden. Ihr müsst so bald wie möglich aufbrechen.«
+
+
+# Noch ein Gespräch mit Oryn
+
+Kalem trat ohne Vorwarnung in das Haus ein, und die knarrende Tür ließ Oryn herumfahren. Der Mann saß an seinem kleinen, wackeligen Tisch und hielt ein halb volles Glas in der Hand. Der Raum war so spärlich möbliert – ein Tisch, zwei Stühle, ein Regal mit ein paar Büchern, und eine Lampe, die ein schwaches, warmes Licht verströmte. Die Luft war schwer von der Kälte des Winters und dem süßlichen Geruch alten Weins. Ziemlich schäbig für jemanden, der sich selbst als 'engsten Vertrauten Altheras'' bezeichnet, dachte Kalem.
+
+Oryn zog die Augenbrauen zusammen, als er Kalem erblickte. »Was willst du jetzt schon wieder?«, fragte er mürrisch und nahm einen weiteren Schluck.
+
+Kalem zog einen Stuhl heran, ließ sich darauf nieder und schlug ein Bein über das andere. Sein Auftreten war gewohnt lässig, aber Oryn spürte die unausgesprochene Schärfe in seinen Bewegungen. »Ach, Oryn«, sagte Kalem bedauernd. »Immer noch hier, immer noch … wie sagt man? Nutzlos?«
+
+Oryn knallte sein Glas auf den Tisch. »Du hast dein Spielchen schon einmal gespielt, Kalem. Warum bist du zurück? Willst du mich wieder erpressen? Mich noch weiter demütigen?«
+
+»Erpressen? Demütigen?« Kalem hob gespielt entrüstet die Hände. »Das klingt so … unschön. Ich bin heute hier, um dir etwas Wichtiges mitzuteilen. Eine Information, die du zu schätzen wissen wirst.«
+
+»Ich bezweifle, dass ich irgendetwas schätze, das aus deinem Mund kommt.«
+
+»Ah, Oryn. Und trotzdem wirst du mir zuhören.« Kalem beugte sich leicht vor, sein Tonfall wurde leiser, fast vertraulich. »Altheras ist längst aufgebrochen.«
+
+Ein Moment der Stille. Oryn starrte Kalem an, als hätte er die Worte nicht richtig verstanden. »Was?«
+
+»Du hast mich schon verstanden«, sagte Kalem mit einem Hauch von Genugtuung. »Altheras ist fort. Auf dem Weg zur Wurzel der Magie. Wahrscheinlich ist er schon da. Und du? Du sitzt hier und wartest immer noch auf ein Zeichen, das nie kommen wird.«
+
+»Das ist nicht wahr«, fauchte Oryn, sprang auf und ließ seinen Stuhl dabei beinahe umkippen. »Das ist eine Lüge! Altheras hätte mich mitgenommen. Ich bin einer seiner engsten Vertrauten!«
+
+Kalem zuckte mit den Schultern und spielte mit einem unsichtbaren Fussel an seinem Ärmel. Was er nun sagen würde, war reine Spekulation, aber wenn Altheras wirklich schon aufgebrochen war, hatte er sicherlich seine engsten Mitverschwörer mitgenommen, zu denen Oryn anscheinend nicht zählte. 
+
+»Dann erklär mir, warum du noch hier bist. Und warum seine Vertrauten plötzlich vor ein paar Monaten verschwunden sind. Allesamt, ohne ein Wort.«
+
+Oryn öffnete den Mund, doch er brachte keinen Ton heraus. Kalem konnte sehen, wie die Erkenntnis langsam in Oryn sickerte, träge aber unaufhaltsam.
+
+»Du hast es bemerkt, nicht wahr?«, fuhr Kalem fort, seine Stimme nun schärfer. »Dass sie alle verschwunden sind. Und du hast dich gefragt, warum. Du hast dir eingeredet, sie hätten sich von Altheras losgesagt. Oder dass Efret seine Finger im Spiel hatte. Aber jetzt weißt du es besser. Sie sind nicht weggelaufen. Sie sind gegangen. Mit Altheras.«
+
+Oryn sank langsam zurück auf seinen Stuhl. Seine Hände zitterten leicht, und er starrte auf das Glas vor sich, als könnte es ihm eine Antwort geben. »Das kann nicht sein«, murmelte er, mehr zu sich selbst als zu Kalem. »Er hätte mich nicht zurückgelassen. Nicht mich.«
+
+»Doch, Oryn. Genau das hat er getan«, sagte Kalem, nun ohne jede Spur von Spott. »Er hat dich zurückgelassen, weil er dich nicht mehr brauchte. Oder weil er dir nicht traute. Oder vielleicht, weil er dachte, du wärst besser hier aufgehoben, um … sagen wir, glaubhaft versichern zu können, dass er noch in Königsstadt ist.«
+
+Oryn hob langsam den Kopf, seine Augen glühten vor Zorn. »Bist du nur gekommen, um mir das zu sagen?«
+
+»Ach, Oryn«, sagte Kalem und stand auf. »Ich bin hier, weil du mir etwas geben kannst, das mir weiterhilft. Nenn es deine Gelegenheit, meine gnädige Seite kennenzulernen.«
+
+Oryn musterte ihn lange, sein Gesicht eine Maske aus Wut und Resignation. Schließlich ließ er sich schwer in seinen Stuhl zurücksinken und seufzte. »Was willst du wissen?«
+
+»Wann ist er aufgebrochen? Mit wem? Und, das Wichtigste: Wo ist die Wurzel?«
+
+Oryn schüttelte den Kopf. »Ich weiß nicht, wann er aufgebrochen ist. Aber jetzt, wo ich darüber nachdenke …« Er hielt inne, seine Gedanken schienen sich zu ordnen. »Vor ein paar Monaten verschwanden einige seiner Vertrauten. Sie waren einfach … weg. Ich glaube, es war im Drittmonat. Ich habe angenommen, dass er sie auf eine Mission geschickt hat, oder dass Efret sie geschnappt hat. Aber jetzt, wo du es sagst – sie sind alle zur selben Zeit verschwunden. Das kann kein Zufall sein.«
+
+Kalem nickte. »Und wer waren sie? Namen, Oryn. Ich brauche Namen.«
+
+Oryn nannte die Namen und kritzelte sie auf ein Stück Pergament. Kalem nickte langsam, als würde er jeden einzelnen Namen kennen.
+
+»Und jetzt noch die Namen, derer, die noch hier sind.«
+
+Oryn seufzte und schrieb langsam weitere Namen auf das Pergament. 
+
+»Und die Wurzel?«, fragte Kalem schließlich.
+
+Oryn schnaubte bitter. »Er hat nie offen darüber gesprochen. Aber es gab einen Namen: ›Elpenul‹. Ich weiß nicht, was das ist. Der Name fiel immer mal wieder, wenn seine Getreuen – zu denen ich anscheinend nie gehört habe – miteinander geredet haben. Ich habe nie darüber nachgedacht, was es wirklich bedeuten könnte.«
+
+Kalem runzelte die Stirn und wiederholte den Namen leise: »Elpenul.«
+
+»Das ist alles, was ich weiß«, sagte Oryn, seine Stimme nun leise und erschöpft. »Bist du zufrieden?«
+
+Kalem stand auf und trat hinter Oryn und legte ihm eine Hand auf die Schulter. »Zufrieden? Nein. Aber es reicht.« Er ging zur Tür, hielt jedoch inne, bevor er den Raum verließ, und warf Oryn einen letzten Blick über die Schulter zu. »Ach, und Oryn – du solltest vielleicht darüber nachdenken, ob deine Loyalität zu einem Mann wie Altheras wirklich so unerschütterlich sein sollte.«
+
+Oryn sah ihn an, doch er sagte nichts. Kalem ließ ihn allein – allein mit seiner Wut und der bitteren Erkenntnis, dass er nichts weiter war als eine Schachfigur.
+
+
+# Neue Erkenntnisse
+
+Das Licht im Studierzimmer war gedämpft, wie immer. Der Duft von altem Papier und Kräutern hing in der Luft, und das leise Knistern der Flamme in der kleinen Lampe auf dem Tisch füllte die Stille zwischen den Anwesenden. Marina, die mit geradem Rücken auf einem der kunstvoll geschnitzten Stühle saß, hielt eine Pergamentrolle in den Händen. Jaad, Kata und Jomar saßen um sie herum, alle in einer Mischung aus Anspannung und Erwartung versunken.
+
+»Ich habe eine Liste zusammengestellt«, sagte Marina und rollte das Pergament aus. Ihre Stimme war klar, sachlich, wie immer, wenn sie mit Informationen arbeitete. »Das hier sind die Namen der Personen, die Kalem mir übergeben hat. Die Mitverschwörer, die Altheras mutmaßlich zur Wurzel der Magie begleitet haben.«
+
+Sie deutete auf die Pergamentrolle. Darauf standen etwa 60 Namen in präziser Handschrift, und unter jedem Namen ein paar Zeilen mit kurzen Informationen.
+
+»Ich habe zu jedem von ihnen Nachforschungen angestellt«, fuhr Marina fort. »Die meisten davon waren für uns bislang völlig unbedeutend. Einige von ihnen sind Kampfmagier. Das macht zumindest deutlich, dass die Reise zu ihrem Ziel Gefahren birgt. Die Kampfmagier werden Altheras nicht bei der Manipulation der Wurzel helfen, aber sie sind offensichtlich für den Schutz der Gruppe vorgesehen.«
+
+Kata lehnte sich leicht nach vorne und blickte auf die Namen. »Und die anderen?«, fragte sie.
+
+Marina strich mit dem Finger über die Liste. »Das ist der merkwürdige Teil. Unter den restlichen Namen gibt es keine wirklich herausragenden Zauberer. Die Gruppe ist ein seltsames Sammelsurium. Einige sind Schulabbrecher, andere minder begabte Magier. Es ist keiner dabei, der als wirklich talentierter Zauberer gilt.«
+
+»Also was für Leute nimmt Altheras mit?«, fragte Jaad. »Kampfmagier, ein paar drittklassige Zauberer und sonst … niemanden?«
+
+Marina nickte. »Richtig. Und es gibt noch etwas: Nach ein wenig Recherche habe ich herausgefunden, dass einige der Zauberer mit Altheras verwandt sind. Durch Blut oder Heirat. Cousins, Neffen, ein Schwager. Keine engen Verwandten, aber genug, dass es auffällt.«
+
+Einen Moment lang herrschte Stille im Raum, bis Kata schließlich leise lachte. Es war ein hartes, humorloses Lachen, das Marina dazu brachte, den Kopf zu heben und sie anzusehen.
+
+»Was ist daran so witzig?«, fragte Marina.
+
+»Nicht witzig, nur offensichtlich«, sagte Kata mit einem leicht spöttischen Ton. »Ich bin von recht hohem Adel. Ich weiß, wie absolute Herrscher funktionieren. Sie umgeben sich am liebsten mit Ja-Sagern und Leuten aus ihrer eigenen Familie. Nicht unbedingt, weil sie ihnen vertrauen – manchmal tun sie das nicht einmal. Aber sie sehen solche Leute nicht als Bedrohung. Wirklich kluge oder fähige Menschen haben sie selten gern in ihrer Nähe. Solche Leute sind gefährlich. Altheras ist offensichtlich so ein ›absoluter Herrscher‹.«
+
+Marina legte den Kopf schief und musterte Kata mit neuem Interesse. Sie schwieg einen Moment, dann nickte sie langsam. »Das ergibt Sinn«, sagte sie schließlich. »Das ist sehr aufschlussreich, Kata. Wieder etwas gelernt.«
+
+Kata zuckte nur mit den Schultern, aber Jomar warf ihr einen kurzen, nachdenklichen Blick zu.
+
+Marina legte die Liste beiseite und seufzte leise. »Es bleibt ein Rätsel, warum er genau diese Gruppe ausgewählt hat. Vielleicht ist es so banal, wie Kata sagt. Oder es steckt etwas anderes dahinter. Ich habe jedoch noch ein anderes Problem.«
+
+Sie lehnte sich zurück und faltete die Hände. »Bei den Nachforschungen ist Kalem auf ein Wort gestoßen. ›Elpenul‹. Es tauchte wohl immer wieder in Gesprächen zwischen Altheras und seinen Vertrauten auf. Ich habe versucht, mehr darüber herauszufinden, aber es gibt keine eindeutigen Hinweise. Ich weiß nicht, was es bedeutet.«
+
+Kaum hatte sie das Wort ausgesprochen, wurde Jomar unruhig. Er hatte sich bislang zurückgehalten, seine üblichen Kommentare blieben aus, aber nun richtete er sich leicht auf und starrte Marina an.
+
+»Elpenul«, wiederholte er, als würde er das Wort kosten.
+
+»Sagt dir das etwas?«, fragte Marina mit gerunzelter Stirn.
+
+Jomar schüttelte langsam den Kopf, aber er sah nachdenklich aus. Etwas arbeitete in ihm. Kata beobachtete ihn aus den Augenwinkeln, und auch Jaad hatte den Kopf leicht schräg gelegt.
+
+»Es ist wichtig«, murmelte Jomar, mehr zu sich selbst als zu den anderen. »Elpenul … warum kommt mir das so vertraut vor?«
+
+»Vielleicht hast du es schon einmal gehört?«, fragte Jaad.
+
+Jomar antwortete nicht. Er starrte auf die Tischplatte, als würde er etwas Unsichtbares sehen. Plötzlich sprang er auf.
+
+»Jaad!«, rief er und deutete mit einem Finger auf sie. »Wir müssen sofort in die Bibliothek!«
+
+Alle sahen ihn entgeistert an, selbst Kata, die sonst kaum aus der Ruhe zu bringen war.
+
+»Was?«, fragte Marina langsam.
+
+»Ich bin mir nicht sicher, aber ich glaube, ich habe etwas gelesen. In einem der alten Texte. Wir müssen nachsehen! Es könnte wichtig sein!« Jomar war bereits auf dem Weg zur Tür, als Marina ihre Stimme erhob.
+
+»Wartet!«, rief sie. »Ihr geht nirgendwo hin, ohne mich. Wenn das so wichtig ist, will ich dabei sein.«
+
+Kata stand auf und richtete ihren Blick auf Marina. »Ich komme auch mit.«
+
+Marina zögerte kurz, dann nickte sie. »Gut. Dann gehen wir alle. Keine Zeit zu verlieren.«
+
+Sie verließen das Studierzimmer, und Jomar ging voran, die anderen folgten ihm dicht auf den Fersen. Niemand sprach, aber die Spannung in der Luft war spürbar.
+
+Jomar stürmte die Treppen hinunter, ohne sich umzusehen. Sein Mantel flatterte hinter ihm her, und die klappernden Schritte seiner Begleiter hallten im steinernen Treppenhaus wider. Kata war die Erste, die versuchte, mit ihm Schritt zu halten, dicht gefolgt von Jaad, während Marina bereits mit einer Hand an der Wand lief, um nicht ins Stolpern zu geraten.
+
+»Jomar! Warte doch!«, rief Kata schließlich, doch er war schon fast an der Tür zur Bibliothek angekommen.
+
+»Keine Zeit!«, antwortete er hastig und verschwand zwischen den schweren Holztüren, die mit einem dumpfen Knarren ins Schloss fielen.
+
+In der Bibliothek, zwischen den unzähligen Regalen, wusste Jomar genau, wohin er wollte. Seine Schritte verlangsamten sich, und er bewegte sich jetzt gezielt. Er steuerte auf einen bestimmten Bereich zu, zog ein Buch aus dem Regal und schlug es auf. Es war dasselbe Buch, aus dem er ein paar Tage zuvor vorgelesen hatte: über die Saat und die Anfänge.
+
+Die anderen kamen schließlich hinter ihm an, außer Atem und sichtlich irritiert von seiner plötzlichen Eile.
+
+»Was soll das alles, Jomar?«, fragte Jaad, während sie sich eine lose Haarsträhne aus dem Gesicht strich.
+
+»Wartet!«, sagte Jomar und hob eine Hand. Seine Augen flogen über die Seite, die er aufgeschlagen hatte. Er las schnell, dann noch einmal langsamer. Schließlich hob er den Kopf, als hätte ihn ein unsichtbarer Schlag getroffen.
+
+»Ich wusste es«, flüsterte er. Dann las er laut vor:
+
+»›Als die Ahnen vom Himmel herabstiegen, geschah dies nicht an einem einzigen Ort, sondern überall auf Demirantha. Ihre großen Schiffe landeten auf ebenem Grund, oft in der Nähe von Flüssen oder fruchtbaren Ebenen. Diese Orte wurden als Landeplätze der Saat bekannt‹.«
+
+Einen Moment lang herrschte Stille, dann schlug Jomar das Buch zu und rief triumphierend: »Landeplatz!«
+
+Die anderen sahen ihn verwirrt an. Kata verschränkte die Arme. »Und? Was soll daran jetzt so wichtig sein?«
+
+Jomar warf ihr einen fast ungeduldigen Blick zu, als sei die Antwort offensichtlich. »Ich komme aus Federbusch, einem kleinen Dorf in Nord-Lakan. In der Nähe unseres Dorfes gibt es einen Ort, der ›Landeplatz 17‹ heißt. Ich war oft dort, als ich ein Kind war. Es stehen noch immer die Gebäude, die niemand zerstören kann – aus diesem geheimnisvollen weißen Material, das auch in den Geschichten über die Ahnen vorkommt. Und auf jedem dieser Gebäude steht es: ›LP17‹.«
+
+Jaad runzelte die Stirn. »LP17 … Landeplatz 17.«
+
+»Genau!« Jomar nickte eifrig, seine Augen glänzten vor Aufregung. »Und jetzt versteht ihr es doch sicher, oder? ›Elpenul‹ ist nichts anderes als ein Landeplatz! Der erste Landeplatz, Landeplatz 0! Das ist der Ort der Wurzel der Magie!«
+
+Kata hob die Augenbrauen, während Marina still blieb und ihn prüfend ansah. Schließlich nickte sie langsam. »Das würde Sinn ergeben. Wenn die Wurzel wirklich der Ursprung der Magie ist, dann könnte sie genau dort liegen – am allerersten Ort, den die Ahnen betreten haben.«
+
+Jomar drehte sich zu ihr. »Gibt es hier einen Kartenraum?«
+
+Marina nickte. »Natürlich. Ich hole einen Bibliothekar, der uns helfen kann. Folgt mir.«
+
+Der Kartenraum war kühler als die restliche Bibliothek. Der große, holzgetäfelte Raum wurde von einem einzigen schweren Tisch dominiert, der so groß war, dass eine Gruppe von zehn Leuten problemlos Platz daran gefunden hätte. Es gab keine Stühle; an diesem Tisch sollte man stehen. In den Regalen an den Wänden standen Rollen und Karten in jeder Größe und jeden Alters.
+
+Ein würdevoller Mann, der offenbar der Bibliothekar war, begleitete die Gruppe in den Raum. Er hatte ein schmales Gesicht und trug einen makellosen grauen Mantel. Obwohl er ruhig wirkte, zeigte sein leicht irritierter Blick, dass er mit dem plötzlichen Besuch dieser bunt gemischten Gruppe nicht ganz einverstanden war.
+
+»Was suchen Sie?«, fragte der Bibliothekar mit einer leicht genervten Note in der Stimme gepaart mit jeder Menge nasaler Überheblichkeit.
+
+»Karten. Vor allem von Lakan, aber auch vom gesamten Kontinent«, antwortete Marina knapp.
+
+Der Bibliothekar nickte, ging zu den Regalen und zog einige Kartenrollen hervor. Er rollte eine davon mit geübten Bewegungen aus. Die Karte zeigte eine detaillierte Darstellung von Lakan, mit eingezeichneten Flüssen, Bergen, Städten und Dörfern.
+
+Jomar beugte sich sofort darüber und suchte eifrig. »Federbusch … Federbusch … ah, hier!« Er tippte mit dem Finger auf einen winzigen Punkt auf der Karte, neben dem der Name des Dorfes stand. Und direkt daneben stand es: Landeplatz 17.
+
+»Ich wusste es!«, sagte er triumphierend.
+
+»Und? Gibt es noch mehr Orte, die ›Landeplatz‹ im Namen tragen?«, fragte Kata und blickte zu dem Bibliothekar.
+
+Der Bibliothekar zog die Stirn kraus. »Natürlich. Aber dafür brauchen wir die Karte vom ganzen Kontinent.« Er rollte die Karte Lakans zusammen, und ersetzte sie durch die Karte des Kontinents. 
+
+»Es gibt mehrere davon, aber viele Namen wurden im Laufe der Zeit geändert. Nur wenige Orte haben ihre ursprünglichen Bezeichnungen behalten. Sehen Sie hier …« Er deutete auf einen Punkt in Kerk und einen Weiteren in Valdorien. »Das sind ›Landeplatz 38‹ und ›Landeplatz 22‹. Und natürlich Königsstadt. Ursprünglich war es ›Landeplatz 29‹, bevor man es, wenig originell, in Königsstadt umbenannte.«
+
+»Gibt es einen ›Landeplatz 0‹?«, fragte Jomar den missmutig dreinblickenden Bibliothekar. 
+
+»Landeplatz 0? Nein, nicht, dass ich wüsste.«
+
+Jomar schnappte sich einen Kohlestift, der auf dem Tisch lag, und schrieb die entsprechenden Nummern groß auf die Karte. Dort wo Federbusch liegen müsste – es war auf dieser Karte natürlich nicht aufgeführt – schrieb er: »LP17«, dann markierte er die anderen Orte.
+
+»Halt! Was tun Sie da?« Der Bibliothekar schnappte nach Luft und fasste sich ans Herz, als hätte ihm Jomar einen Dolch in Brust gestoßen. »Welch ein Frevel! Diese Karte ist über zweihundert Jahre alt!«
+
+»Tut mir leid«, sagte Jomar, ohne wirklich aufzusehen. »Aber das ist wichtig.«
+
+Der Bibliothekar murmelte entsetzt: »Unfassbar … welch ein Frevel …«
+
+Jomar ignorierte ihn. Er stand auf, betrachtete die Karte und ließ seinen Blick über die eingezeichneten Orte schweifen. »Also, wenn wir wissen, dass ›Elpenul‹ Landeplatz 0 ist, dann müssen wir alle anderen Landeplätze überprüfen. Vielleicht führt uns das zu Hinweisen auf den Ursprung.«
+
+Jaad sah ihn skeptisch an. »Wir reden hier von einer Menge Orte, Jomar. Hast du vor, den gesamten Kontinent abzusuchen?«
+
+Kata betrachtete nachdenklich die entweihte Karte. »Ich glaube, das ist nicht nötig.« Sie nahm den Kohlestift und verband die Linien zwischen aufeinanderfolgenden Nummern. Es entstanden drei nicht ganz gleichmäßige Kreisbögen, während der Bibliothekar nur noch leise wimmerte, den Kopf in die Hände gestützt.
+
+»Seht ihr das?«, rief Kata, während sie über die Karte fuhr. »Die Zahlen werden nach Osten hin kleiner – und nach Norden auch. Es fehlen einige Nummern, aber die kleinste, die wir haben, ist hier.« Sie tippte mit dem Stift auf einen Punkt sehr weit im Nordosten des Kontinents: Landeplatz 5. Sie hatte keine Verbindungen zu einem der Kreisabschnitte.
+
+»Wenn wir nun annehmen, dass Landeplatz 5 auch auf einem Kreis liegt, innerhalb der anderen Kreise mit ungefähr demselben Abstand … hmm.« Sie zeichnete einen kleinen Kreis innerhalb der anderen Kreisbögen und durch die 5 hindurch. 
+
+»Dann müsste eigentlich im Zentrum dieses Kreises Landeplatz 0 sein.«
+
+Jomar nickte heftig. »Das ist es. Kata, du bist ein Genie!« Die angesprochen lächelte mild mit hocherhobenem Kopf, als würde sie täglich so gelobt werden. Womit sie nicht gerechnet hatte, war, dass Jomar sich in fast kindlichem Überschwang zu ihr hinüberbeugen und ihr einen fetten Schmatzer auf die Wange geben würde. 
+
+Jomar wandte sich sofort wieder der Karte zu, ohne auch nur zu bemerken, was gerade Ungeheuerliches passiert war. Kata entschied einfach darüber hinwegzusehen. Doch etwas irritierte sie: Der doch recht unerotische Kuss hatte ein heftiges Kribbeln in ihrem Bauch ausgelöst. 
+
+»Wo ist das jetzt genau?«, sagte Jomar voller Begeisterung, die aber auf einen Schlag verging. »Ach du Scheiße!«, entfuhr es ihm. Er zeigte auf die Beschriftung in der Mitte von Katas Kohlekreis. Jaad las, worauf Jomar zeigte und bestätigte: »Ach du Scheiße!« 
+
+ 
+
+
+# Zweiter Teil
+
+# Aufbruch
+
+Die Tore der Zaubererstadt öffneten sich mit einem langsamen, dröhnenden Knarren. Ein kalter Morgenwind fegte durch die gepflasterten Straßen, wirbelte Staub auf und zog zwischen den hohen Mauern hindurch, die die Stadt vor der Außenwelt schützten. Dahinter, auf der breiten Straße, stand die Expedition bereit. Menschen, Pferde und Karren bildeten ein unruhiges, aber organisiertes Chaos, während die letzten Vorbereitungen getroffen wurden. Alle Pferde hatten einen geringen Anteil an Einhornblut und konnten so den magischen Nebel um Stadt durchqueren.
+
+Jomar saß auf einem der bereitgestellten Wagen, den Blick auf die Umgebung gerichtet. Er wirkte angespannt, aber auch entschlossen. Neben ihm überprüfte Marina ein letztes Mal die Karten, die der Bibliothekar widerwillig kopiert und mit Anmerkungen versehen hatte. Es war eine lange Diskussion gewesen, welche Route sie nehmen würden. Die Strecke war ein Kompromiss: nicht die kürzeste, aber dafür die sicherste, soweit man das sagen konnte.
+
+Jaad war hinten im Wagen und inspizierte die Ausrüstung der Kutsche. Sie prüfte, ob Gnorb der Ausrüstungsgoblin seine Antipathie gegenüber Jaad diesmal im Zaum gehalten hatte, aber es schien tatsächlich alles in Ordnung zu sein.
+
+Und dann war da Kata. Sie saß etwas abseits und beobachtete das Treiben mit einem Gesichtsausdruck, der zwischen Ungeduld und Unbehagen schwankte. Für sie war das alles neu. Expeditionen, Kämpfer, Karten – das war nicht ihre Welt. Sie war gewöhnt an Bälle, elegante Abendessen und höfische Intrigen. Doch jetzt würde sie sich in die Wildnis begeben, begleitet von Soldaten und Magiern, um einen Ort zu finden, von dem sie nicht wusste, was sie alle dort erwartete. Selbstverständlich beteiligte sie sich nicht an dem regen Treiben um sie herum. 
+
+Die Expedition bestand neben den Spionen Efrets aus 30 Kampfmagiern und zwei Heilern. Sie führen den Zug in ordentlichen Zweierreihen an, jedoch fuhren vier von ihnen Kutschen mit Ausrüstung: Säcke mit getrocknetem Fleisch, Brot, Bohnen und Nüssen, Ersatzteile für die Wagen und Werkzeuge, warme Kleidung, Lederrüstungen und riesige, zusammengelegte Zelte. 
+
+Kaum hatten sie die Tore und den magischen Nebel hinter sich gelassen, wartete bereits Kalem am Straßenrand. Er lehnte lässig an einem Baumstumpf und grinste, als er die Expedition sah.
+
+»Na, endlich«, rief er, während er sich langsam in Bewegung setzte. »Ich dachte schon, ich müsste noch länger in der Kälte herumstehen.«
+
+Kata warf ihm einen skeptischen Blick zu. »Was machst du hier?«
+
+»Ich dachte, ich begleite euch«, antwortete Kalem und kletterte ohne zu fragen, auf die Kutsche, in der Marina und Jomar saßen. »Ihr könnt sicher jemanden gebrauchen, der sich auskennt.«
+
+»Sich auskennt?«, fragte Kata spöttisch. »Womit?«
+
+»Na, mit … Allem!« Er sah in die Kutsche hinein.
+
+»Hallo, Jaad, Jomar.«
+
+»Hallo Kalem«, sagten beide ohne Überraschung in ihrer Stimme.
+
+Kata runzelte die Stirn. »Ihr wusstet, das Kalem zu uns stoßen würde?«
+
+»Ja, klar«, antwortete Jomar fröhlich.
+
+»Wieso hat mir das keiner gesagt?«
+
+Kalem lachte laut auf. »Weil du die Neue bist. Du musst nicht alles wissen.«
+
+»Pffff!«, kommentierte Kata.
+
+»Hast du überhaupt irgendetwas dabei?«, fragte Jomar, während er Kalem kritisch musterte.
+
+Kalem klopfte auf eine kleine Tasche, die an seinem Gürtel hing. »Das hier reicht mir. Alles andere überlasse ich euch gut organisierten Leuten.«
+
+Jomar seufzte und schüttelte den Kopf. »Fantastisch.«
+
+
+# Die Reiseroute
+
+Die Kutschen rollten weiter über den groben Schotterweg, und das gleichmäßige Klappern der Räder vermischte sich mit dem gelegentlichen Wiehern der Pferde und den leisen Unterhaltungen der Kampfmagier, die das Gefährt flankierten. In einer der vorderen Kutschen saßen Marina, Kata, Jomar und Kalem, während Jaad auf einem Pferd hinter der Wagenkolonne ritt und alles im Blick behielt.
+
+Kalem hatte die Arme hinter dem Kopf verschränkt und ließ seinen Blick zwischen den anderen wandern, bevor er sich mit einem lauten Seufzen nach vorne beugte.
+
+»So«, begann er, und ein amüsiertes Funkeln trat in seine Augen, »nun erklärt mir doch mal, worum es hier eigentlich geht. Mir, einem einfachen Mann, hat man nur gesagt: ›Begleite Jomar und Jaad auf einer gefährlichen Expedition‹ Aber warum ich meine Haut riskieren soll, hat mir niemand erklärt. Und ja, ich habe etwas von Altheras und seinen kruden Ideen gehört, aber ich bin gespannt, was ihr mir noch erzählen könnt.«
+
+Kata warf ihm einen skeptischen Blick zu, ihr Tonfall kühl. »Vielleicht hättest du dir die Mühe machen sollen, dich vorher zu informieren.«
+
+Kalem hob die Hände in gespielter Verteidigung. »Wäre das nicht viel weniger unterhaltsam? Außerdem dachte ich, ihr seid alle Experten und könnt mir eine kurze Einführung geben.«
+
+Marina legte die Kartenrolle, die sie studiert hatte, beiseite und sah ihn ernst an. »Altheras ist aufgebrochen, um die Wurzel der Magie zu erreichen«, sagte sie. »Er hat sie wahrscheinlich schon erreicht und das könnte verheerende Konsequenzen für die Welt haben. Er will die Magie verändern. Er strebt nach unendlicher Macht. Das müssen wir verhindern.« 
+
+Kalem zog eine Augenbraue hoch. »Die Wurzel der Magie. Klingt beeindruckend. Und ein bisschen tödlich.«
+
+Marina nickte knapp. »Das ist sie. Die Wurzel ist eine Quelle von unermesslicher Macht, aber auch von unvorstellbarer Gefahr. Deshalb hat Efret uns losgeschickt, um Altheras aufzuhalten.«
+
+Jomar, der bisher geschwiegen hatte, lehnte sich nach vorne. »Unser Ziel ist die Schattensphäre. Sie liegt irgendwo tief im Osten, und es gibt unzählige Geschichten über diesen Ort. Keine guten Geschichten.«
+
+»Ah, die Schattensphäre«, sagte Kalem, und sein übliches Grinsen verschwand. »Da will niemand freiwillig hin. Berge, Monster, Säureseen – ist das nicht der Ort, von dem jeder sagt, dass niemand lebend zurückkehrt?«
+
+»Genau«, sagte Jomar. »Es ist so gut wie unmöglich, verlässliche Informationen über die Schattensphäre zu finden, weil tatsächlich kaum jemand zurückkommt. Alles, was wir haben, sind Gerüchte. Aber eines ist sicher: Sie ist gefährlich, und in ihrem Zentrum liegt unser Ziel.«
+
+Kata beobachtete die Unterhaltung mit verschränkten Armen. Schließlich richtete Marina das Wort an sie.
+
+»Apropos Gefahren«, sagte Marina und sah Kata mit leicht zusammengezogenen Augenbrauen an, »wir müssen durch Kerk reisen. Glaubst du, das könnte … ein Problem werden?«
+
+Kata richtete sich auf, ihre Haltung wurde noch steifer als sonst. »Warum sollte es ein Problem sein?«
+
+»Weil du aus Kerk stammst«, sagte Marina ruhig. »Und weil du dort nicht gerade beliebt warst. Du bist eine in Ungnade gefallene Adlige, Kata. Denkst du, das bleibt folgenlos?«
+
+Für einen Moment herrschte Stille in der Kutsche. Die Kampfmagier ritten stumm an den Fenstern vorbei, das gleichmäßige Geräusch ihrer Pferdehufe erfüllte die Luft. Kata stieß schließlich ein kurzes, schnaubendes Lachen aus.
+
+»Mach dir keine Sorgen«, sagte sie kühl. »Ich bin offiziell tot. Für Kerk bin ich vor Jahren gestorben. Es wird niemanden geben, der mich erkennt. Und selbst wenn, nach all dieser Zeit bin ich für sie wahrscheinlich nicht mehr als eine vage Erinnerung. Falls es überhaupt jemanden interessiert.«
+
+Marina nickte langsam, schien aber nicht ganz überzeugt. »Ich hoffe, du hast recht«, sagte sie schließlich. »Kerk ist kein Land, in dem man leichtfertig Aufmerksamkeit auf sich zieht. Die Bewohner sind nicht nur misstrauisch, sie sind auch stolz und arrogant. Es könnte schwierig werden.«
+
+»Ach stolz und arrogant?«, sagte Kalem schmunzelnd. Er blickte zu Kata hinüber. »Das kann ich ja kaum glauben.« Kata verweigerte ihm eine Antwort, aber es gelang ihr noch gerader und stolzer dazusitzen.
+
+Marina griff erneut zu den Karten und breitete sie auf ihrem Schoß aus. »Also, für Kalem und alle anderen, die es interessiert, hier ist die Route. Es wird Monate dauern, und die Strecke ist alles andere als einfach.«
+
+Sie deutete mit dem Finger auf die Karte. »Zuerst führt unser Weg durch Kerk. Es gibt dort keine größeren Städte auf unserer Route, aber einige Dörfer und befestigte Außenposten. Wir müssen schnell durchreisen und unnötige Aufmerksamkeit vermeiden.«
+
+Kalem nickte. »Klingt machbar. Was kommt danach?«
+
+»Nach Kerk kommen wir nach Samlan«, sagte Marina. »Die Bewohner dort sind bekanntermaßen abergläubisch und sehr verschlossen. Sie mögen keine Fremden, und sie mögen vor allem keine Magier. Wenn wir dort durchkommen wollen, müssen wir unsere Magie so weit wie möglich verbergen.«
+
+»Und wenn wir entdeckt werden?«, fragte Jomar.
+
+Marina zuckte mit den Schultern. »Dann werden wir unsere Magie nicht mehr verbergen, wenn du verstehst.«
+
+»Großartig«, murmelte Kalem. »Was kommt danach? Die Hölle?«
+
+»Fast«, sagte Marina. »Die Wüste An'Suin. Eine wochenlange Reise durch Sand, Hitze und Sandstürme. Es gibt nur wenige Oasen, und wir werden vorsichtig mit unseren Vorräten umgehen müssen.«
+
+Kalem zog eine Grimasse. »Und danach?«
+
+»Kommt die Schattensphäre. Was uns da erwartet, kann ich nicht sagen. Aber es wird sicher kein Spaziergang.« 
+
+Die Gruppe schwieg für einen Moment. Die Worte über die Schattensphäre schwebten wie eine dunkle Wolke über ihnen, unausgesprochen, aber allgegenwärtig.
+
+»Also«, sagte Kalem schließlich und brach die Stille. »Kerk, Samlan, Wüste, und die Schattensphäre. Klingt wie ein perfekter Plan.«
+
+Jomar warf ihm einen amüsierten Blick zu: »Wenn dir das nicht passt, kannst du ja umkehren.«
+
+Kalem grinste. »Wer sagt, dass ich das will? Ich liebe es, wenn Pläne so chaotisch sind.«
+
+Kata seufzte leise und schüttelte den Kopf, während die Kutsche weiter holperte. Vor ihnen lag eine lange, gefährliche Reise – und niemand wusste, wie sie enden würde.
+
+
+# Die Heldin von Demirantha_28
+
+## Kerk
+Sie überschritten die Grenze nach Kerk, was sie nur an einem Pfahl am Straßenrand bemerkten. Auf dem einen Schild stand ›Lakan‹, auf dem anderen – in Fahrtrichtung – ›Kerk‹.
+
+Beide Länder waren mehr oder weniger Verbündete. Es gab keine Streitigkeiten, keine Zollschranken. Grenzkontrollen gab es nur entlang der großen Handelsrouten. Die Grenze der beiden Länder verlief quer über den gesamten Kontinent. Wie sollte man eine solche Grenze sichern? Mit einer Mauer? Der Gedanke allein war absurd.
+
+Kata hatte sich zu Marina auf den Kutschbock gesetzt, nachdem die alte Frau nach hinten gerufen hatte, dass sie nun Kerk erreicht hätten. Und schon nach einer Stunde Fahrt veränderte sich die Landschaft. Riesige Eichenbäume säumten den Weg: typisch für das südliche Kerk. Kata fühlte ein Ziehen in der Brust, als hätte die vertraute Landschaft etwas in ihr wachgerufen. Sie war tatsächlich wieder zu Hause. Jeder dieser weit ausladenden Bäume, jeder Strauch, jedes aufgewirbelte Staubkorn, all das gehörte eigentlich ihr. Sie war die Fürstin von Südkerk. Wer wohl nun ihre Krone trug, die sie einst von ihrer Mutter geerbt hatte? Hatte sie den Brand des Schlosses überhaupt überstanden? Wahrscheinlich schon. Die Mörder ihrer Familie hatten sicher alles Wertvolle aus dem Schloss geborgen, bevor sie es niedergebrannt hatten.
+
+ 
+
+*
+
+ 
+
+Der Tross zog langsam in die Nähe einer kleinen Stadt, deren Name auf einem verwitterten Schild stand, das schief am Wegesrand an einem Pfahl hing: Eichenquell. 
+
+Kalem war vorausgeritten und hatte die Stadt in Augenschein genommen: Die Mauern der Stadt waren niedrig und teilweise mit Efeu überwuchert, die Tore einfach, aber gut bewacht. Zwei Wachen mit Speeren standen davor, entspannt, aber aufmerksam. Die Stadt selbst wirkte ruhig, fast verschlafen, ein Ort, an dem sich nur selten etwas änderte.
+
+Kalem ritt zurück zum Tross und berichtete Marina. Die saß auf dem Kutschbock und musterte die Stadt aus der Ferne. Dann drehte sie sich zu Kata um, die neben ihr saß. »Wir schlagen hier unser Lager auf. Ich möchte keine unnötige Aufmerksamkeit erregen. Städte wie diese reden zu viel, und ich möchte nicht, dass unser Aufenthalt sich herumspricht.«
+
+Kata nickte knapp. »Das erscheint mir sinnvoll.«
+
+Marina wies die Offiziere der Kampfmagier an, das Nachtlager am Rand eines kleinen Wäldchens aufzubauen, das etwa eine halbe Meile von der Stadt entfernt lag. Die Soldaten arbeiteten schnell und routiniert. Zelte wurden errichtet, Wachen postiert, und bald brannte ein Lagerfeuer, um die Kälte des Abends zu vertreiben.
+
+Kaum war das Lager aufgebaut und das Abendessen verteilt, tauchte Jomar neben Kata auf. Er hatte eine Flasche Wein in der Hand und ein breites Grinsen im Gesicht.
+
+»Das hier schmeckt wie vergorene Kuhpisse«, sagte er, hielt die Flasche hoch und schüttelte sie leicht: Flocken unbestimmter Herkunft, wirbelt nun in ihrem Inneren herum. »Komm mit in die Stadt. Wir suchen ein Gasthaus, wo es anständigen Gewürzwein gibt. Vielleicht sogar ein warmes Essen, das keine getrockneten Bohnen enthält.«
+
+Kata zögerte. »Ich weiß nicht. Marina hat uns angewiesen, hierzubleiben.«
+
+»Marina wird es überleben«, sagte Jomar und winkte ab. »Komm schon. Kalem und Jaad kommen auch mit. Ein bisschen Gewürzwein wird uns nicht umbringen.«
+
+Kata sah ihn skeptisch an, aber schließlich seufzte sie. »Na gut. Aber nur kurz.«
+
+»Das sagst du jetzt«, erwiderte Jomar mit einem Grinsen.
+
+Die vier machten sich auf den Weg. Die Kälte der Nacht kroch langsam aus dem Boden, und ihre Atemwolken waren im Licht der Fackeln vor den Toren gut zu sehen. Die beiden Wachen musterten die kleine Gruppe aufmerksam, sagten jedoch nichts, als sie die Stadt betraten. Drinnen war es nicht viel wärmer, aber die Straßen waren enger, die Gebäude aus Holz und Stein drängten sich dicht aneinander. Einfache Laternen hingen an einigen Häusern, und in der Ferne hörte man das Lachen und Murmeln aus einem Gasthaus.
+
+Sie hatten die Hauptstraße gerade zur Hälfte durchquert, als plötzlich eine Frau aus einer Seitengasse kam. Sie trug ein einfaches, abgetragenes Kleid und einen Schal, der kaum gegen die Kälte half. Ihre Schritte waren eilig, und sie hielt einen Korb in den Händen, dessen Inhalt mit einem Tuch abgedeckt war. Als sie Kata sah, blieb sie wie angewurzelt stehen.
+
+Kata bemerkte den starren Blick der Frau und runzelte die Stirn. Doch bevor sie etwas sagen konnte, ließ die Frau ihren Korb fallen und sank vor ihr auf die Knie. Das klappernde Geräusch von Metall, das aus dem Korb rollte, hallte durch die Straße.
+
+»Majestät!«, rief die Frau mit bebender Stimme. »Ich wusste, nicht einmal das Reich der Toten würde euch aufhalten können, um uns vor der Knechtschaft zu retten, die die Brut der Famors über uns gebracht hat!«
+
+Kata war wie vom Donner gerührt. Sie starrte die Frau an, unfähig, etwas zu sagen. Im ersten Moment dachte sie, die Frau hätte sie als Kataluna von Brass erkannt. Aber was war das für ein Gefasel über das Reich der Toten? Und dann wurde es ihr klar. Die Frau hielt sie für ihre Mutter, Jaanifer von Brass, die vor vielen Jahren bei einem Reitunfall ums Leben gekommen war.
+
+»Ihr seid zurückgekehrt«, fuhr die Frau mit brüchiger Stimme fort. Tränen liefen ihr über die Wangen, und sie schien kaum zu bemerken, dass die anderen sie ebenfalls anstarrten. »Ihr seid zurückgekehrt, um uns zu retten! Die Sippe der Famors hat uns unterdrückt, seit sie euer Schloss niedergebrannt haben. Baron Eckbert regiert mit eiserner Faust. Es schien keine Hoffnung mehr zu geben. Aber nun seid Ihr hier…«
+
+Kata brauchte einen Moment, um ihre Fassung zurückzugewinnen. Sie konnte die Verzweiflung in den Augen der Frau sehen, die vor ihr kniete. Es war ein Blick, den sie nicht ignorieren konnte. Schließlich öffnete sie den Mund, ihre Stimme war ruhig, aber fest.
+
+»Die Dynastie der von Brass´ ist nicht untergegangen«, sagte sie, und ihre Worte klangen wie ein Versprechen. »Wir bereiten uns im Noord vor, die Krone zurückzuerlangen. Gehe hin und verbreite die Nachricht. Die Zeit wird kommen, in der die von Brass´ zurückkehren.«
+
+Die Frau sah zu ihr auf, ihre Augen vor Ehrfurcht weit aufgerissen. Sie nickte hastig, stand auf und griff nach ihrem Korb, ohne ihre Augen von Kata abzuwenden. »Ich werde die Nachricht verbreiten, Majestät. Ich werde es jedem erzählen, der hören will. Danke. Danke, dass Ihr zurückgekehrt seid.« Mit diesen Worten verschwand sie in der Dunkelheit.
+
+Kaum war die Frau verschwunden, brach Kalem das Schweigen. »Nun, ich hätte nicht gedacht, dass ich diesen Satz jemals sagen würde, aber… ich glaube, wir sollten den Besuch im Gasthaus lieber verschieben.«
+
+Jomar sah ihn ungläubig an. »Wieso? Das war doch nichts weiter als das Gerede einer verrückten Frau.«
+
+Kalem schüttelte den Kopf. »Gerede, das sie gleich in der ganzen Stadt verbreiten wird. Und wenn das passiert, wie lange dauert es, bis jemand anfängt, Fragen zu stellen? Wir sind schon zu auffällig, Jomar. Noch mehr Aufmerksamkeit können wir uns nicht leisten.«
+
+Jaad nickte. »Kalem hat recht. Wir wissen nicht, wer in dieser Stadt für diesen Baron arbeitet oder ob er schon von uns gehört hat. Wir sollten zurück zum Lager.«
+
+Jaad fragte: »Wie hat sie dich erkannt? Ich dachte du bist als Kind geflohen.«
+
+Kata schüttelte den Kopf. »Sie hat mich für meine Mutter gehalten. Ich kann mich kaum an sie erinnern, aber sie war gerade mal 19, als sie starb. Und es ist anzunehmen, dass sie ebenso volles, blondes Haar gehabt hatte, und dieselbe schlanke Gestalt und auch wird ihre Schönheit der meinen geglichen haben.«
+
+»Und vergiss nicht die Bescheidenheit. Sie war sicher ebenso bescheiden, wie du«, warf Kalem ein. 
+
+Natürlich ignorierte Kata den Einwurf des Waldläufers, doch ihr Herz klopfte laut in ihrer Brust. Die Worte der Frau hatten etwas in ihr geweckt – eine Erinnerung, eine Last und vielleicht auch einen Funken Hoffnung. Sie nickte schließlich und drehte sich ohne ein Wort um. 
+
+Der Weg zurück zum Lager war still, und in Katas Gedanken kreisten ihre eigenen Worte: ›Die Dynastie der von Brass´ ist nicht untergegangen.‹ Eckbert Famor, du Drecksack!
+
+ 
+
+*
+
+ 
+
+»Ich kann es einfach nicht glauben: Du hast dich also vor die Leute hingestellt, hast mit dem Hintern gewackelt und dabei gesungen: ›Seht her, ich bin Kataluna von Brass‹.« Marinas Stimme war höchst wahrscheinlich im ganzen Lager zu hören.
+
+»Ganz so war es ja nicht«, sagte Kata mit niedergeschlagenem Blick und mit hinter dem Rücken verschränkten Händen.
+
+»Wisst du deine Idiotie etwa noch rechtfertigen?«
+
+»Nein, Großmutter Marina.« Jomar sah Kata zum ersten Mal ohne ihren Stolz. Von ihrem Hochmut war nichts mehr in ihrer Haltung zu erkennen.
+
+»Du warst tot für die Welt. Und das war gut so. Jetzt werden sie womöglich wieder nach dir suchen.«
+
+»Deswegen habe ich ja gesagt, ich würde mich im hohen Norden verstecken. Da können sie lange suchen.«
+
+»Da war wohl ein Rest von Verstand in deinem Schädel aufgeflackert. Du wirst für den Rest der Reise durch Kerk im Wagen bleiben. Du wirst nicht einmal zum Scheißen in den Wald gehen. Ist das klar?« 
+
+»Ja, Großmutter Marina.« 
+
+Die alte Frau drehte sich um und stampfte davon. Jomar wunderte sich, dass der Boden nicht bei jedem Schritt erzitterte. Er ging zu Kata hinüber, nahm seinen ganzen Mut zusammen und legte eine Hand um ihre Schulter. Er hatte erwartet, dass sie ihn abweisen würde, doch das geschah nicht. Sie legte sogar ansatzweise ihren Kopf auf seine Schulter und ließ sich widerstandslos von Jomar zum Wagen führen.
+
+ 
+
+*
+
+ 
+
+Kata saß allein im Wagen. Die Plane über ihr hielt den Wind ab, doch die Kälte schien dennoch durch das Holz der Kutsche zu kriechen. Sie hatte die Arme vor der Brust verschränkt und starrte nachdenklich auf den Boden. Das monotone Rumpeln der Räder versetzte sie sie in eine Art Trance. Es war immer noch ein seltsames Gefühl, wieder in Kerk zu sein.
+
+Die Plane wurde beiseitegeschoben, und Jaad kletterte mit einem leichten Schwung hinein. Sie schloss die Plane wieder, bevor der kalte Wind zu sehr eindringen konnte, und setzte sich Kata gegenüber. Einen Moment lang sagte sie nichts, sondern musterte das Mädchen schweigend. Sofort nimmt sie ihre ›Ich bin eine Adlige‹-Haltung an, dachte sie.
+
+Kata hob schließlich eine Augenbraue. »Was kann ich für dich tun?«, fragte sie fast schon freundlich. Sie wusste, dass Jaad gewisse Vorbehalte gegen sie hatte. Oder deutlicher gesagt: Jaad konnte sie schlichtweg nicht leiden. Sie hatte keine Ahnung, womit sie sich Jaads Unwillen zugezogen hatte. Das war eigentlich schade, denn Jaad war eine interessante Frau und eine gute Geist-Magierin. 
+
+Jaad lächelte dünn. »Ich bin hier, weil ich glaube, dass wir uns gegenseitig helfen können.«
+
+Kata ließ ihren Blick auf Jaad ruhen, ihre Miene blieb undurchdringlich. »Wie das?«
+
+Jaad verschränkte die Hände in ihrem Schoß und lehnte sich leicht nach vorne. »Ich habe bemerkt, dass du zugänglicher geworden bist. Das ist keine Schwäche, Kata. Manchmal bewirkt ein kleiner Sturz vom Podest, dass wir wachsen können.« Sie hielt kurz inne, bevor sie weitersprach. »Ich würde dir gern etwas mehr über meine Gabe erzählen.«
+
+Kata schwieg, aber Jaad nahm das als Aufforderung, fortzufahren.
+
+»Wenn ich jemanden berühre, kann ich ihn dazu bringen, das zu tun, was ich möchte«, sagte Jaad ruhig. »Es ist mentale Magie, aber sie funktioniert nicht bei jedem.«
+
+Katas Neugier war geweckt. »Warum nicht?«
+
+»Weil nicht jeder schwach ist«, erklärte Jaad. »Es gibt Menschen, deren Geist zu stark ist, um manipuliert zu werden. Und dann gibt es andere, die sich so sehr kontrollieren, dass ich keinen Zugang finde. Es ist einfacher, jemanden zu beeinflussen, der von starken Gefühlen beherrscht wird – Gier, Hass, Angst oder… Geilheit.« Der letzte Begriff kam nüchtern über Jaads Lippen, aber sie konnte ein leichtes Schmunzeln nicht verbergen.
+
+Kata schnaubte. »Das klingt… nützlich. Aber auch riskant, wenn es nicht funktioniert.«
+
+Jaad nickte. »Genau das ist das Problem. Im Kampf könnte es mein Ende sein, wenn ich mich auf jemanden konzentriere, der letztendlich unbeeindruckt bleibt. Aber hier kommst du ins Spiel.«
+
+»Ich?«
+
+»Ja«, sagte Jaad ernst. »Du hast eine Gabe, die meine perfekt ergänzt. Du kannst die Gefühle anderer Menschen wahrnehmen, ohne sie zu berühren. Du könntest mir sagen, ob sich eine Annäherung lohnt. Ob derjenige schwach ist oder ob es besser wäre, mich zurückzuhalten.«
+
+Kata sah sie einen Moment lang schweigend an. »Das klingt sinnvoll. Aber du weißt, dass ich noch nicht besonders geübt darin bin, meine Gabe zu kontrollieren.«
+
+»Das macht nichts«, sagte Jaad. »Du wirst mit der Zeit besser werden, und ich werde dir helfen, das zu trainieren. Wenn wir zusammenarbeiten, könnte das im Kampf einen großen Unterschied machen.«
+
+Kata nickte langsam. »Das ergibt Sinn. Außerdem…« Sie hielt kurz inne und dachte nach. »Du bist schon einmal in meinen Geist eingedrungen, erinnerst du dich?«
+
+Jaad lächelte. »Natürlich. Es war mit deiner Zustimmung, aber ich erinnere mich.«
+
+»Wir konnten im Geist miteinander reden«, fuhr Kata fort. »Wenn wir das wieder tun könnten, könnten wir uns lautlos im Kampf abstimmen. Das würde unsere Zusammenarbeit noch effektiver machen. Funktioniert das auch ohne dass wir uns berühren?«
+
+Jaads Augen leuchteten auf. »Das ist eine großartige Idee. Wenn wir das hinbekommen, könnten wir Feinde überwältigen, ohne dass sie überhaupt merken, was passiert. Ich weiß aber nicht, ob wir die Verbindung halten können. Bei jedem anderen würde ich sagen, das geht nicht, aber du kannst ja deine Geist-Magie aus der Entfernung wirken.«
+
+»Lass es uns ausprobieren«, schlug Kata vor. Sie war über sich selbst erstaunt, hatte sie sich doch zuvor so gegen das ›Eindringen‹ in ihren Geist gewehrt. Was hatte sich geändert? War es der Magieunterricht, den sie von Jaad erhalten hatte. Sie fühlte sich von Jaad und ihrer Gabe nicht mehr bedroht. Jaad hatte sich stets korrekt ihr gegenüber verhalten. 
+
+Jaad streckte ihre Hand aus. »Nimm meine Hand. Das ist der erste Schritt.«
+
+Kata zögerte, bevor sie die Hand nahm. »Aber kein Lesen meiner Erinnerungen oder sonst was.« 
+
+»Natürlich nicht.« Jaads Lächeln wirkte echt. 
+
+Kata nahm Jaads Hand. Ihre Finger fühlten sich kalt an, doch sie spürte eine leichte Wärme von Jaad ausgehen. Es war keine körperliche Wärme, sondern eher eine Präsenz, die sich langsam in ihren Geist schlich.
+
+»Entspann dich«, sagte Jaad sanft.
+
+Kata schloss die Augen und konzentrierte sich auf die Verbindung. Sie spürte, wie sich etwas in ihrem Inneren öffnete, wie ein Flüstern, das sich langsam zu Worten formte. Dann hörte sie Jaads Stimme – nicht von außen, sondern direkt in ihrem Kopf.
+
+Kannst du mich hören?
+
+Kata öffnete die Augen. Sie sah Jaad an, die sie mit einem zufriedenen Lächeln betrachtete.
+
+Ja, ich kann dich hören, dachte Kata zurück.
+
+Jaads Lächeln wurde breiter. Perfekt. Jetzt werde ich dich loslassen. Sie nahm ihre Hand weg. 
+
+Kannst du mich immer noch hören?, fragte Jaad wenig originell.
+
+Kann ich.
+
+Jaad erhob sich, kletterte nach hinten und sprang vom Wagen. Sie blieb einfach stehen, während die Kutsche rumpelnd weiter fuhr.
+
+Und?
+
+Höre dich noch genau so gut wie zuvor.
+
+Jaad war nur schon über 50 Schritte hinter dem Wagen zurückgeblieben und ihre geistige Verbindung hielt immer noch. Sie schloss wieder auf und kletterte in die Kutsche. 
+
+Faszinierend, dachte Jaad.
+
+Ok, aber ich finde, es reicht nun. Kannst du dich bitte wieder zurückziehen?
+
+Jaad sah Kata mit überraschter Mine an. Zurückziehen? Ich dachte, du wüsstest das: Die Verbindung ist dauerhaft. Wir sind für den Rest unseres Lebens verbunden.
+
+»Was?«, rief Kata laut aus, Entsetzen im Gesicht. Doch dann spürte sie, wie sich die Verbindung löste. Jaad lachte laut auf.
+
+»Du hättest dein Gesicht sehen sollen. Großartig!«
+
+»Sehr witzig«, sagte Kata säuerlich, musste aber angesichts der immer noch prustenden Jaad auch ein wenig lächeln. 
+
+Jaad verstummte plötzlich, sie hatte eine Idee: »Wir sollten heute Abend mal einen praktischen Test machen. Wenn die Kampfmagier das Lager aufbauen, werden wir mal ein paar von ihnen auf den Zahn fühlen.«
+
+Kata runzelte die Stirn. Sie hatte strikte Anweisung, im Wagen zu bleiben. Aber andererseits war das, was Jaad vor hatte ja streng genommen Magieunterricht. Wer war sie, einer Lehrerin zu widersprechen?
+
+»Ich bin dabei«, sagte sie. 
+
+ 
+
+*
+
+ 
+
+Der Abend brach herein, und die Kampfmagier errichteten das Lager. Pferde wurden abgesattelt, Karren entladen, Zelte aufgebaut. Die Männer und Frauen arbeiteten routiniert, wobei sie lautstark fluchten, lachten und gelegentlich miteinander stritten. Die Geräusche des Lagers erfüllten die kühle Nachtluft, während Fackeln und Lagerfeuer langsam entzündet wurden.
+
+ 
+
+Kata und Jaad standen am Rand des Lagers und beobachteten das Treiben. Sie hatten ihre Verbindung längst aufgebaut, und Kata spürte, wie Jaads Gedanken wie ein leises Summen in ihrem Kopf präsent waren. Es war immer noch ungewohnt, aber nicht unangenehm. Tatsächlich hatte sie bereits begonnen, sich daran zu gewöhnen.
+
+Bereit? Fragte Jaad telepathisch, während sie einen prüfenden Blick über die Kampfmagier schweifen ließ.
+
+Bereit, dachte zu Kata zurück und konzentrierte sich. Ihre Gabe flüsterte ihr leise zu, welche Emotionen in der Nähe schwebten. Es war ein merkwürdiges Spektrum: Genervtheit, Müdigkeit, leichte Frustration – und überraschend viel Hunger. Kampfmagier waren offenbar einfacher gestrickt, als sie gedacht hatte.
+
+Kata fokussierte sich auf die Gruppe von sieben Magiern, die gerade ein großes Zelt aufstellten. Einer der Männer, ein hochgewachsener, breitschultriger Typ mit einem kahlrasierten Schädel, schien besonders auffällig zu sein. Sein Geist war… seltsam. Einfach, aber unglaublich ungeduldig. Dieser hier, dachte Kata zu Jaad. Seine Ungeduld springt mir förmlich ins Gesicht. 
+
+Jaad nickte und schritt selbstbewusst auf den Mann zu, während Kata im Hintergrund blieb. Ohne große Mühe legte Jaad eine Hand auf seine Schulter.
+
+»Hüpf auf einem Bein«, murmelte sie dem Zauberer leise ins Ohr.
+
+Der Mann zögerte nicht einmal. Wie ein Automat hob er an, auf einem Bein zu hüpfen, während seine Kameraden ihn mit offenen Mündern anstarrten. Doch das war noch nicht alles.
+
+»Und klatsche dabei in die Hände«, fügte Jaad hinzu.
+
+Der Kampfmagier führte den Befehl aus, als wäre es der logischste nächste Schritt. Bald hüpfte der breitschultrige Mann im Kreis, klatschend und völlig unbekümmert. Seine Kameraden brachen in schallendes Gelächter aus. Niemand schien Jaad als Ursache des seltsamen Verhaltens zu vermuten. Sie ging einfach weiter durch das Lager.
+
+Kata hielt sich eine Hand vor den Mund, um ihr eigenes Lachen zu unterdrücken, während sie den nächsten Magier anvisierte. Da ist einer, der sich langweilt, meldete sie an Jaad. Der Dunkelhaarige links. Ich nehme nicht einen einzigen komplexen Gedanken wahr. Versuch es bei ihm.
+
+Jaad ging mit demselben ruhigen Selbstbewusstsein auf den angesprochenen Magier zu. Dieser hatte ein resigniertes Gesicht und sah aus, als wollte er eigentlich nur ins Bett. Sie legte ihm kurz eine Hand auf den Arm.
+
+»Du bist ein Huhn«, befahl sie.
+
+Der Magier starrte sie für einen Moment an, dann winkelte er die Arme an und stolzierte herum und gackerte. Die anderen Kampfmagier, die inzwischen schon laut über den hüpfenden Mann lachten, verstummten für einen Moment – nur um dann umso lauter loszuprusten, als der Dunkelhaarige gackernd an ihnen vorbei lief.
+
+Kata und Jaad zogen durch das Lager, wie ein unsichtbares Duo der Unordnung. Immer wieder wies Kata Jaad auf Magier hin, die besonders einfache Ziele abgaben. Sie warnte Jaad aber auch: »Der nicht, der hat einen starken Willen, das spüre ich.« 
+
+Ein junger, blasser Mann mit einem Glas Bier in der Hand musste auf Jaads Befehl hin damit anfangen, über das Lager zu marschieren und in rhythmischen Abständen »Marina ist die Beste!« zu rufen. Ein anderer, der vor einem Kessel Suppe stand, wurde angewiesen, sich selbst zu applaudieren – sehr zur Belustigung seiner Kameraden.
+
+Beide Frauen hatten bald Mühe, ihr Lachen zurückzuhalten. Die sind ja alle völlig schutzlos, dachte Kata, während sie einen weiteren Magier musterte, der gerade einen Karren abdeckte. Der da ist auch ein einfaches Ziel. Er will nur schlafen.
+
+Jaad grinste, ohne ein Wort zu sagen, und marschierte auf den Mann zu. Doch bevor sie ihn erreichte, erstarrte sie. Kata spürte es in der Verbindung sofort – wie ein kalter Schauer, der durch Jaads Gedanken lief.
+
+Eine donnernde Stimme hinter ihnen ließ beide herumfahren.
+
+»WAS ZUM ZIEGENFICKENDEN GOTT ORFEL GEHT HIER VOR?«
+
+Es war Marina.
+
+Die alte Frau stand mit verschränkten Armen und einer Miene da, die wie gemeißelt schien. Ihre grauen Augen funkelten vor Zorn, und es schien, als hätte die gesamte Luft im Lager die Temperatur um einige Grade gesenkt. Es wurde sehr still, bis auf ein anhaltendes Gackern und gelegentliche »Marina ist die Beste!«-Rufe. 
+
+Sie machte ein paar ausholende Armbewegungen, und ein unsichtbarer Zauber löste sich in die Luft. Kata und Jaad spürten die Welle der Magie deutlich. Die Kampfmagier, die noch immer hüpften, klatschten oder sinnlose Bewegungen machten, hielten plötzlich inne. Verwirrt sahen sie sich um, und einer murmelte: »Was… was ist passiert?«
+
+Marina wandte sich an Kata und Jaad. »Ihr zwei«, sagte sie mit einer Stimme, die so schneidend war, dass selbst Kata unwillkürlich zusammenzuckte. »Was glaubt ihr eigentlich, was ihr hier macht?«
+
+Kata öffnete den Mund, doch Jaad hob eine Hand. »Es war meine Idee«, sagte sie, bemüht, ruhig zu klingen. »Ich wollte nur… einen Test machen. Es ist Teil unserer Zusammenarbeit. Eine Art Kampftraining.«
+
+Marina sah sie so durchdringend an, dass Jaad unwillkürlich einen Schritt zurückwich. »Einen Test? Auf Kosten meiner Kampfmagier? Die für die Sicherheit dieses Trosses verantwortlich sind? Ihr habt wohl den Verstand verloren!«
+
+Jaad wollte etwas erwidern, doch Marina schnitt ihr das Wort ab. »Von diesem Moment an wirst du jede Sekunde neben Kata in der Kutsche verbringen, wo ich dich sehen kann. Verstanden?«
+
+Jaad biss die Zähne zusammen und nickte schließlich.
+
+Kurz darauf saß Jaad wie angekündigt neben Kata in der Kutsche. Die Plane flatterte leicht im Wind, und beide Frauen starrten stumm auf die vorbeiziehende Landschaft.
+
+Nach einer Weile drehte Kata sich zur Seite und musterte Jaad mit einem Blick, in dem sich leichte Belustigung spiegelte.
+
+»Das wars wert«, sagte sie schließlich.
+
+Jaad, die mit verschränkten Armen da saß, konnte sich ein Grinsen nicht verkneifen. »Absolut.« 
+
+
+# Die Heldin von Demirantha_29
+
+## Fliegende Kühe
+ 
+
+Der Tross hielt am späten Vormittag an einem kleinen Dorf am Rand eines Waldes. Es bestand aus nicht mehr als ein paar Holzhäusern, einem Brunnen in der Mitte und einer Handvoll Bauernhöfen, die sich in loser Anordnung um den Dorfkern reihten. Die Kutschen und Pferde wurden am Dorfplatz geparkt, und Marina wies Jomar an, mit einigen Bauern zu sprechen, um Vorräte zu besorgen.
+
+»Mehl, Fleisch, vielleicht etwas Gemüse«, sagte sie. »Wir können es uns leisten, ein wenig großzügig zu sein.« Sie klopfte auf die Börse mit jeder Menge Silber, die sie mitgenommen hatte. »Aber nicht zu großzügig.«
+
+Jomar nickte und machte sich mit zwei Magiern im Schlepptau auf den Weg zu einem der größeren Höfe, dessen Gatter sich direkt hinter dem Haus erstreckte. Eine Handvoll Kühe stand dort und kaute träge auf Heu herum. Der Bauer, ein älterer Mann mit wettergegerbtem Gesicht und einem breitkrempigen Hut, lehnte lässig gegen die Tür seines Hauses, als Jomar auf ihn zukam.
+
+»Grüß euch«, sagte Jomar höflich. »Wir reisen mit einem Tross und brauchen Vorräte. Habt Ihr Mehl? Fleisch vielleicht?«
+
+Der Bauer nickte langsam, nahm den Grashalm aus seinem Mund und ließ den Blick prüfend über Jomar und seine Begleiter schweifen. »Hab ich«, sagte er kurz angebunden.
+
+Jomar nickte, doch bevor er weiterfragen konnte, fiel ihm etwas Ungewöhnliches auf. Die Kühe in dem Gatter neben dem Bauernhaus waren alle an ihren Hinterbeinen mit Seilen festgebunden. Diese Seile waren an einen massiven, metallenen Pfahl geknüpft, der in der Mitte des Gatters tief im Boden steckte.
+
+Jomar runzelte die Stirn und deutete mit einer Kopfbewegung auf die Kühe. »Warum sind die angebunden? Ich hab noch nie gesehen, dass Kühe in einem Gatter festgebunden werden.«
+
+Der Bauer spuckte aus, zog die Stirn kraus und antwortete trocken: »Damit se nich fortfliegen.«
+
+Jomar lachte gezwungen, als hätte er einen schlechten Witz gehört, den man höflich überspielt. »Sehr lustig. Aber im Ernst – warum bindet Ihr sie fest?«
+
+Der Bauer verschränkte die Arme vor der Brust. »Ich mein das ernst, Junge. Die Kühe fliegen uns jeden Tag davon. Genau zur Mittagszeit. Erst steigen se einfach in de Luft, und dann, nach ein paar Minuten, fallen se wieder runter und verrecken. Deswegen die Fesseln.«
+
+Jomar starrte den Mann an, sicher, dass er veralbert wurde. Doch das Gesicht des Bauern blieb ernst. »Fliegende Kühe?«, fragte Jomar skeptisch.
+
+Der Bauer nickte langsam. »Ja. Fliegende Kühe. Glaubst du, ich würd mir den Aufwand mit den Seilen sonst machen?«
+
+Einer der Magier hinter Jomar unterdrückte ein Kichern, doch Jomar hob nur die Hände. »Okay, wenn Ihr meint. Aber habt Ihr Fleisch zu verkaufen?«
+
+Der Bauer seufzte und schüttelte den Kopf. »Leider ja.« Er zeigte auf einen Schuppen hinter dem Haus. »Zwölf Fässer mit Rindfleisch in Salz. Jedes verdammte Fass is von meinen Kühen, die runtergekracht sin und sich dabei die Knochen gebrochen haben. Dammich!« Er spuckte auf den Boden und schüttelte den Kopf.
+
+Jomar hob eine Augenbraue. »Zwölf Fässer? Warum passiert das überhaupt?«
+
+Der Bauer zuckte mit den Schultern. »Wenn ich das wüsste, würd ich’s abstellen, Junge. Irgendwas in de Luft, vielleicht wat Magisches. Passiert immer um de Mittagszeit. Sie steigen in de Luft, flattern ein bisschen rum – so weit das Kühe halt können – und dann krachen se runter. Meist brechen se sich alles. Dammich!« Er spuckte erneut aus. »Wenn du’s nicht glaubst, dann komm kurz vor der Mittagssonne wieder. Kannst dir das Schauspiel selbst anschauen.«
+
+Jomar kratzte sich am Kinn und nickte schließlich. »Das mach ich.«
+
+ 
+
+*
+
+ 
+
+Kurz vor Mittag versammelten sich Jomar, Kata, Jaad, Kalem und Marina am Hof. Es hatte Jomar einiges an Mühe gekostet, Marina davon zu überzeugen, das Lager bis zum Mittag nicht abzubauen. 
+
+Der Bauer hatte seine Hände in die Hüften gestemmt und wirkte sichtlich genervt von dem Trubel. »Ich sach euch, es ist kein schöner Anblick nich«, murmelte er und führte die Gruppe zum Gatter.
+
+Die Kühe wirkten völlig ruhig, kauten ihr Heu und machten den üblichen gelangweilten Eindruck von Nutztieren. Alles schien völlig normal.
+
+Dann begann es.
+
+Zuerst kam ein leises Summen, wie von einem Wind, der durch die Bäume fegte. Doch es war windstill. Die Kühe hörten auf zu fressen und richteten ihre Köpfe auf. Dann, eine nach der anderen, erhoben sie sich in die Luft. Langsam und unaufhaltsam stiegen sie auf, als hätten unsichtbare Hände sie ergriffen. Ihre Augen wurden groß, ihre Hufe strampelten panisch in der Luft, doch die Seile hielten sie am Pfahl fest.
+
+»Dammich!«, murmelte der Bauer und spuckte. »Seht ihr?«
+
+Alle starrten ungläubig auf das Gatter, über dem die Kühe in der Luft hingen. Ihre Bewegungen waren ungelenk, nur die Seile schienen sie davon abzuhalten, höher zu steigen. Dann, so plötzlich wie es begonnen hatte, endete es. Die Kühe sanken nicht langsam zu Boden – sie stürzten. Mit einem dumpfen Geräusch prallten sie auf den Boden, doch dank der Fesseln fielen sie nur aus geringer Höhe und blieben unverletzt.
+
+»Dammich!«, kommentierte der Bauer erneut und spuckte ein weiteres Mal auf den Boden.
+
+Jomar brach das Schweigen. »Dammich!«, wiederholte er trocken und schüttelte ungläubig den Kopf und spuckte auf den Boden. 
+
+Marina schnaubte, ging näher an das Gatter heran und betrachtete die Tiere kritisch. »Es ist definitiv Magie«, stellte sie fest. »Eine sehr seltsame Art von Magie. Keine bekannte Zauberform, aber eindeutig magisch. Altheras´ Werk.«
+
+Kalem grinste und verschränkte die Arme. »Fliegende Kühe. Das ist mal was Neues.«
+
+Der Bauer sah sie genervt an. »Wenn ihr was machen könnt, machts.« Er zeigte auf die Zauberer, die im Hintergrund im Lager arbeiten. »Aber sonst kauft mir wenigstens das Fleisch ab. Ich hab keinen Platz mehr für all die verdammten Fässer.«
+
+Marina seufzte. »Wir nehmen alle Fässer. Aber dieses Problem werden wir nicht lösen können, jedenfalls vorerst nicht.«
+
+Der Bauer nickte zufrieden, während Jomar sich noch einmal zum Gatter umdrehte. Die Kühe kauten wieder friedlich auf ihrem Heu, als wäre nichts geschehen. Er schüttelte den Kopf. »Dammich«, murmelte er erneut und ging davon.
+
+
+# Die Heldin von Demirantha_30
+
+## Samlan
+Generalin Marina hatte beschlossen, in Sichtweite der Grenze zu Samlan zu rasten, bevor sie am nächsten Morgen weiterzogen. Der Spitzname ›Generalin‹ hatte sich schnell verbreitet, nachdem Kalem sie zum ersten Mal so genannt hatte, doch würde natürlich niemand es wagen, sie so anzusprechen.
+
+Die Nacht war klar und kühl. Ein dünner Streifen Mondlicht fiel durch die Baumwipfel und beleuchtete das Lager des Trosses, das sich in einer kleinen Lichtung ausgebreitet hatte. Ringsum knackte und summte der Wald in der Stille der Nacht, während vereinzelte Kampfmagier leise Patrouillen liefen. Der Rest des Trosses hatte sich längst zurückgezogen, doch in einer Ecke des Lagers flackerte ein kleines Feuer, um das sich die Helden versammelt hatten.
+
+»Fühlt sich für euch die Magie auch… klebrig an, wenn sie sich verändert?«, fragte Kata.
+
+»Klebrig?«, fragte Jomar. Die Magier veränderte sich fast jeden Tag für ein paar Minuten.
+
+»Ja, zäh, schleimig.« Sie schüttelte den Kopf. »Es ist schwer zu beschreiben. Was fühlst du denn?«
+
+»Für mich ist es wie ein Freund, den ich schon mein Leben lang kenne, und er auf einmal wirres Zeug erzählt und Ansichten vertritt, die überhaupt nicht zu ihm passen. Alles, was ich in der Magie finde, fühlt sich falsch an. Was fühlst du denn, Jaad?«
+
+»Ich?«, fragte sie überrascht, als hätte sie nicht erwartet, dass Jomar und Kata sie in ihr Gespräch einbeziehen würden. 
+
+Jaad ist immer irgendwie sauer, wenn ich auch nur ein paar Worte mit Kata wechsle, dachte Jomar. Warum nur?
+
+»Ich merke die Veränderung nur daran, dass ich Kopfschmerzen bekomme.«
+
+Jomar kratzte sich nachdenklich am Kinn. »Es ist für jeden anders, aber jeder Magiebegabte kann es wahrnehmen. Was passiert hier?«
+
+Jaad hob die Brauen. »Na das ist doch klar: Altheras experimentiert mit der Magie. Er ist an der Wurzel der Magie, hat aber anscheinend keine Ahnung, wie er die Magie in seinen Bann zwingen kann.«
+
+»Also ich merke nix«, warf Kalem grinsend ein. »Falls das jemanden interessiert.«
+
+»Nein, tut es nicht«, sagte Jaad genervt.
+
+»Warum will dieser Altheras eigentlich die Magie für sich verändern?«, fragte Kalem. »Er soll doch ein mindestens genauso großer Zauberer sein wie Efret, habt ihr gesagt. Was verspricht er sich davon?«
+
+Jaad antwortete mit einem ernsten Gesichtsausdruck. »Weil diese veränderte Magie demjenigen, der sie beherrscht, Macht verleiht, die jenseits jedes Verstehens liegt. Mit ihrer Hilfe ist man in der Lage, über Raum und Zeit zu herrschen. Man könnte die Welt nach eigenem Gutdünken verändern. Der Tod verliert seine Macht, und man könnte sich an jeden Ort im Universum versetzen. Du kannst Leben erschaffen und nach Belieben auslöschen.«
+
+Sie hielt kurz inne, bevor sie fortfuhr: »Diese Macht ist nicht für Demiranther gemacht. Sie ist nicht einmal für unsere Ahnen gedacht – die Menschen, die einst von der Erde kamen. Eine solche Machtfülle sollte allein den Göttern vorbehalten sein.«
+
+»Gut«, sagte Kalem beeindruckt. »Dann wäre es wohl wirklich nicht so gut, wenn Altheras Erfolg hätte.«
+
+Alle schwiegen für eine Weile und blickten in das munter flackernde und knisternde Feuer.
+
+Jaad sah Kata nachdenklich an. »Warum hast die Frau in Eichenquell angelogen und gesagt, dass die von Brass´ noch existieren und sie ihre Krone zurückholen werden?«
+
+»Ich habe nicht gelogen«, verteidigte sich Kata. »Ich habe gesagt, dass die Dynastie der von Brass noch existiert. Und das stimmt.«
+
+»Aber du hast sie glauben lassen, dass du mit einer Armee zurückkommst«, sagte Jaad scharf. »Das war eine Lüge.«
+
+»Und was hätte ich sonst tun sollen?«, fragte Kata, die sich nun aufrichtete. »Ihr die Wahrheit sagen? Dass ich allein bin und keine Mittel habe, mein Land zurückzufordern? Das hätte ihr nur das Herz gebrochen.«
+
+Jomar hob beschwichtigend die Hände. »Ruhig, ruhig. Ich finde, du hast richtig gehandelt. Manchmal ist ein Funken Hoffnung alles, was zählt. Und wer weiß? Vielleicht kannst du diese Hoffnung irgendwann wahr machen.«
+
+Kata sah ihn überrascht an, und für einen Moment schien sie etwas sagen zu wollen, doch sie schwieg. Stattdessen wandte sie den Blick wieder dem Feuer zu, ihre Gedanken in die Flammen versunken.
+
+»Was glaubt ihr, wird uns in Samlan erwarten?«, fragte sie unvermittelt.
+
+Jomar seufzte und lehnte sich auf seinem Sitz zurück. »Samlan… « Er zog das Wort in die Länge, als koste es ihn Mühe, darüber nachzudenken. »Ich weiß nur, dass sie dort keine Zauberer mögen. Also sollten wir uns alle gut zusammenreißen, sonst endet die Reise schneller, als uns lieb ist.«
+
+Kata nickte. »Ja, aber warum diese Abneigung? Ich habe Geschichten gehört, dass sie Zauberer wie Kriminelle behandeln, aber ich weiß nicht, warum.«
+
+»Das ist einfach«, warf Jaad ein. »Die Leute dort glauben, dass Magie die Ursache allen Übels ist. Die alten Magierkriege haben ihr Land verwüstet, und sie geben uns die Schuld. Und sie haben nicht ganz unrecht – Magier waren damals nicht gerade unschuldig am Krieg und nicht zimperlich, was ihre Kriegsführung anging.«
+
+»Du verteidigst sie?«, fragte Jomar mit hochgezogenen Brauen.
+
+»Nein, ich erkläre es«, korrigierte Jaad. »Ihre Angst ist irrational, aber sie hat eine Grundlage. Leider sind ja alle historischen Verweise auf die Kriege ›verloren gegangen‹, aber ich habe keinen Zweifel daran, dass die Zauber in ihrer Arroganz die Kriege begonnen haben. 
+
+Es wird nicht leicht sein, uns dort unauffällig zu bewegen. Jeder Fehltritt wird uns in Schwierigkeiten bringen.«
+
+»Pff«, machte Jomar und schüttelte den Kopf. »Ich bin mir sicher, dass sie uns nicht aufhalten können. Wir sind vorbereitet, oder nicht?« 
+
+Jaad zuckte mit den Schultern. »Was heißt schon ›vorbereitet sein‹? Wir dürfen einfach nicht zaubern. Das ist doch ganz einfach. Ich meine, das ist doch das Erste, was du an der Zaubererakademie lernst: Zaubere unter Nicht-Magiern niemals, es sei denn, es ist absolut nötig.«
+
+*
+
+ 
+
+Marina ging hinüber zu Kalem, der gerade dabei war, ein Pferd vor eine Kutsche zu spannen. 
+
+»Kalem! Ich hätte einen Auftrag für dich.«
+
+Der angesprochen ließ von dem Pferd ab und wandte sich der alten Frau zu. 
+
+»Ich bin zu allem bereit Gene … Marina.«
+
+»Glaub bloß nicht, euer alberner Spitzname hätte sich nicht bis zu mir herumgesprochen. Aber egal! Wenn du hier fertig bist, gehst du mal zum Grenzübergang und siehst dich mal in dem Dorf, das sicherlich dahinter liegt, etwas um.«
+
+»Und wonach soll ich fragen, oh weise Anführerin?«
+
+Marina ließ ihm diese freche Bemerkung durchgehen. Sie mochte seine lockere Art, und sie hatte nicht das Gefühl, er würde sie nicht respektieren, trotz seiner Frechheiten.
+
+»Ich will nur wissen, ob wir mit irgendwelchen Schwierigkeiten zu rechnen haben. Gibt es irgendwelche Überprüfungen, ob wir Zauberer sind? Gibt es neue Erlasse, die uns in die Quere kommen können? So Sachen halt.«
+
+»Ich werde – wie immer – mein Bestes geben.«
+
+Kalem hatte sich einen großen Schulterbeutel mit Proviant und Kleidung gepackt und war damit direkt zum Grenzübergang gegangen. Es wäre doch sehr auffällig gewesen, wenn er mit leeren Händen aufgetaucht wäre und behauptet hätte, er reise alleine. Marina hatte ihm auch noch etwas Gold und Silber mitgegeben, falls er jemanden bestechen musste.
+
+An der Grenze angekommen wurde er von zwei überraschend freundlichen Soldaten befragt und durchsucht. Sie wollten nur wissen, woher er kam und wohin er wollte. Kalem hatte sein Gold und Silber größtenteils in einem seiner Schuhe versteckt, aber ein paar Silbermünzen in dem Schulterbeutel gelassen, um einer intensiveren Untersuchung zu entgehen, doch die Soldaten fanden zwar sein Silber, aber sie gaben es ihm zurück. Das überraschte ihn sehr. Etwas Vergleichbares hatte er in Lakan niemals erlebt. 
+
+Hinter der Grenze lag wie erwartet ein kleines Städtchen. Was er vorfand, war erstaunlich: Saubere Straßen, ebenso saubere, gekalkte oder bemalte Fassaden, große Fenster und makellose Schindeldächer. Den Semlanern – zumindest denen hier in der Grenzregion – schien es gut zu gehen. 
+
+Er ging in das erste Gasthaus, das auf seinem Weg lag. Drinnen erwartete ihn dank der großen Fenster eine sehr helle, gemütliche Gaststube. Vier Männer standen am Tresen, zwei Frauen saßen an einem Tisch am Fenster. Kalem ging zum Tresen. 
+
+»Ich kann nur mir lakanischen Silberlingen bezahlen. Ist das ein Problem?« Er hielt seinen Geldbeutel hoch.
+
+»Aber nein. Das hier ist ein Grenzstädtchen. Es wäre doch ziemlich dumm, nur samlanisches Geld zu nehmen. Was kann ich euch denn anbieten, Fremder?« Der Gastwirt grinste breit und einnehmend. 
+
+Kalem lehnte sich an den Tresen, ein breites Grinsen im Gesicht, und klopfte mit einem Silberling auf die Holzplatte. »Ein Bier für mich – und für alle, die Durst haben.«
+
+Die vier Männer am Tresen sahen ihn überrascht an, bevor der Mann neben Kalem laut auflachte und ihm auf die Schulter klopfte. »Ein Mann nach meinem Geschmack!«
+
+Der Wirt nickte begeistert. »Da wird sich hier niemand zweimal bitten lassen!« Er drehte sich um und begann, sieben Krüge aus einem großen Fass zu füllen, während die Männer und Frauen in der Gaststube ihre Gespräche unterbrachen, um Kalem mit neugierigen Blicken zu mustern.
+
+ 
+
+»Ihr kommt also aus Lakan?«, stellte einer der Männer fest, während er sich neben Kalem stellte. Er war ein stämmiger Kerl mit buschigem Bart und kräftigen Händen, die die Abdrücke eines Lebens harter Arbeit trugen.
+
+»Das tue ich«, antwortete Kalem grinsend. »Unterwegs in Richtung An’Suin. Eine lange Reise, die mich durstig macht.«
+
+»An’Suin?«, fragte der Mann mit einer hochgezogenen Augenbraue, während er den Bierkrug entgegennahm, den der Wirt ihm gerade reichte. »Was in aller Welt gibts da zu holen?«
+
+Kalem zuckte die Schultern und nahm einen großen Schluck aus seinem Krug, den der Wirt ihm hingestellt hatte. »Nicht viel, außer Sand, wie man so hört. Aber ich bin nur ein einfacher Mann, der Befehlen folgt. Mein Meister hat gesagt, ich solle mich dort bei einem seiner Geschäftspartner melden. Die Gründe kenne ich nicht und sie interessieren mich auch nicht.«
+
+Die Männer lachten zustimmend, und einer von ihnen – ein jüngerer Mann mit struppigen Haaren – prostete Kalem zu. »Das ist die richtige Einstellung! Auf den Mann, der den Durst von Fremden stillt!«
+
+»Auf ihn!«, riefen die anderen Männer, während der Wirt eifrig die Gläser auffüllte.
+
+Doch bevor sie die Krüge erneut an die Lippen setzten, hob der Wirt seinen eigenen Krug in die Höhe und rief: »Auf Altheras!«
+
+Kalem erstarrte für einen winzigen Moment, ließ sich aber nichts anmerken und hob ebenfalls seinen Krug. Die anderen Männer taten es ihm gleich und stimmten mit einem lauten »Auf Altheras!« ein, bevor sie ihre Biere in einem Zug leerten.
+
+Kalem stellte seinen leeren Krug auf den Tresen, lehnte sich lässig zurück und warf dem Wirt einen neugierigen Blick zu. »Altheras, sagt Ihr? Interessanter Name. Wer ist das?«
+
+Der Wirt lachte. »Ihr kennt Altheras nicht? Daran erkennt man, dass ihr eine Fremder seit. Altheras war vor etwa einem Jahr hier in der Stadt.«
+
+»Ah, ein Händler?«, fragte Kalem mit gespieltem Desinteresse, obwohl sein Herz plötzlich schneller schlug.
+
+»Händler? Nein, nein.« Der Wirt winkte ab und stützte sich auf den Tresen. »Ein Gelehrter. Ein großer Gelehrter von der Akademie in Königsstadt. Kam mit einem ganzen Tross hierher. Ich sage euch, er hatte mehr Gold als der König. Und er war großzügig.«
+
+»Gold?«, fragte Kalem mit einem Anflug von Ungläubigkeit in seiner Stimme. »Was hat er damit gemacht?«
+
+Der Wirt grinste breit und breitete die Arme aus, als wolle er die gesamte Gaststube präsentieren. »Seht euch um! Mein Gasthaus. Er hat mir Gold für die Renovierung gegeben … also nicht er persönlich. Aber das Gold kam von ihm. Neue Fenster, neue Schindeln, frische Farbe an den Wänden. Ich sage euch, so ein Mann kommt nur einmal im Leben in eine Stadt wie diese.«
+
+Die anderen Männer nickten zustimmend, und einer von ihnen fügte hinzu: »Er hat nicht nur dem Wirt geholfen. Er hat auch Geld an die Stadt gespendet. Für die Straßen, für das Rathaus, sogar für den Brunnen auf dem Marktplatz. Alles renoviert. Altheras hat uns im wahrsten Sinne des Wortes vergoldet.«
+
+Kalem kratzte sich nachdenklich am Kinn. »Das ist … beeindruckend. Aber warum? Was wollte er dafür? Niemand gibt so viel Gold ohne Gegenleistung.«
+
+Der Wirt schüttelte den Kopf, während er ein weiteres Bier zapfte. »Das habe ich mich auch gefragt. Aber nein, er wollte nichts. Er war einfach… großzügig. Reine Herzensgüte, denke ich.«
+
+Kalem hob skeptisch eine Augenbraue. »Ein Gelehrter, der Gold verschenkt? Reine Herzensgüte? Entschuldigt, aber das klingt … ungewöhnlich.«
+
+Der Wirt zuckte mit den Schultern. »Mag sein, aber es ist die Wahrheit. Wenn er etwas verlangt hat, dann nicht von uns Bürgern. Er war freundlich, höflich und großzügig. Das ist alles, was ich sagen kann.«
+
+Kalem nippte an seinem Bier, während er über die Worte des Wirts nachdachte. Altheras war also hier gewesen, hatte viel Gold verteilt und sich damit die Gunst der Bewohner gesichert. Aber warum? Es musste einen Grund geben.
+
+»Und sein Tross?«, fragte Kalem beiläufig. »Was für Leute hatte er dabei?«
+
+Der Wirt überlegte einen Moment. »Es waren viele. Ich habe nicht alle gesehen. Einige von ihnen sahen aus wie Soldaten oder Leibwächter. Andere wirkten wie Gelehrte. Ein bunter Haufen, wenn Ihr mich fragt.«
+
+»Und er hat nie gesagt, warum er hier war?«
+
+»Es hieß, er sei auf einer Expedition in die Schattensphäre. Deswegen ist er wohl auch nie zurückgekehrt. Niemand kommt zurück aus der Schattensphäre. Schade eigentlich.« Er zuckte bedauernd mit den Achseln.
+
+Was hat Altheras hier gemacht? Er hatte mit Gold um sich geworfen, um … was zu erreichen? Kalem konnte sich keinen Reim darauf machen. 
+
+»Nun, das klingt nach einer beeindruckenden Persönlichkeit«, sagte Kalem schließlich und prostete dem Wirt zu. »Ich danke Euch für die Geschichten und das gute Bier. Ihr habt mir einen interessanten Abend bereitet.«
+
+Der Wirt lächelte zufrieden. »Ihr seid hier immer willkommen, Fremder. Wenn Ihr mehr Bier braucht, wisst Ihr, wo Ihr mich findet.«
+
+Kalem nickte, nachdem er sein Bier ausgetrunken hatte, verabschiedete er sich von den Männern und Frauen im Gasthaus und machte sich auf den Rückweg.
+
+Als Kalem zum Lager zurückkehrte, war es bereits spät. Marina saß in ihrem Zelt und ging einige Karten durch, als Kalem eintrat. Sie sah auf und musterte ihn mit hochgezogener Augenbraue. »Na? Was hast du herausgefunden?«
+
+Kalem ließ sich auf einen Hocker fallen und verschränkte die Arme. »Altheras war vor einem Jahr in der Stadt. Hat Unmengen an Gold verteilt – Gasthäuser renoviert, die Straßen repariert, die Bürger beschenkt. Ein echter Wohltäter, wenn man den Leuten glauben darf.«
+
+Marina schnaubte. »Und was wollte er im Gegenzug?«
+
+Kalem schüttelte den Kopf. »Nichts, wenn man den Bürgern glauben darf. Zumindest nichts Offensichtliches.«
+
+Marina verzog das Gesicht, während sie über die Neuigkeiten nachdachte. »Ein Zauberer wie Altheras tut nichts ohne Grund. Er hatte einen Plan, das ist sicher. Die Frage ist nur, welchen.«
+
+»Vielleicht wollte er sich ja günstig mit Vorräten eindecken«, sagte Kalem, »und hat sich deswegen in der Stadt beliebt gemacht.«
+
+Marina schüttelte mit dem Kopf. »Nein, da hätte es gereicht, ein paar Händler zu bestechen. Ich glaube, er wollte jemanden ganz oben für sich einnehmen, den Bürgermeister oder den lokalen Fürsten.«
+
+»Um was zu erreichen?«, hakte Kalem nach.
+
+»Es geht um uns. Wenn man von Lakan kommt, ist dieser Grenzübergang fast die einzige Möglichkeit, um nach Samlan zu gelangen. Man müsste das ganze Grenzgebirge abreiten, um zu einem anderen zu gelangen. Das würde mindestens vier Wochen kosten, wenn nicht mehr. Das wusste auch Altheras. Wenn ihn irgendwer verfolgen würde, müsste er hier vorbeikommen.«
+
+»Also erwartet uns eine Falle?«
+
+»Das ist anzunehmen.«
+
+Kalem hob einen Finger: »Aber, Samlan hat keine Kampfmagier, wie sollten sie sie uns denn festsetzen oder töten? Unsere 30 Kampfmagier können es mit jeder Armee aufnehmen, die die Samlaner aufbieten könnten. Es sah mir auch nicht so aus, als gäbe es Soldaten in der Stadt.«
+
+Marina zupfte sich an ihrem dünnen Kinnbärtchen, das ihrem gefurchten Hexengesicht das gewisse Extra verlieh. 
+
+»Deswegen glaube ich auch nicht, dass sie uns an der Grenze aufhalten werden. Wir werden diese ›Falle‹ einfach mal auslösen. Mal sehen was passiert.«
+
+
+# Die Heldin von Demirantha_31
+
+## An der Grenze
+Das große Zelt war erfüllt von gedämpften Gesprächen, während sich Marina und die Hauptmänner der Kampfmagier um den Holztisch versammelten. Kata, Jaad, Jomar und Kalem standen etwas abseits, hörten aber aufmerksam zu. Auf dem Tisch waren mehrere Karten ausgebreitet, und Marinas Finger fuhren immer wieder entlang der eingezeichneten Route nach An´Suin.
+
+Marina ließ die Karte los und hob den Blick. »Wir stehen kurz davor, die Grenze nach Samlan zu überschreiten. Bevor wir das tun, müssen wir ein paar Dinge klären.«
+
+Die Kampfmagier nickten, und eine gespannte Stille breitete sich im Zelt aus.
+
+»Zunächst einmal: Wir dürfen nicht damit rechnen, dass wir einfach so durchgelassen werden. Die Samlaner hassen Magier. Und ich bin mir sicher, dass Altheras bereits dafür gesorgt hat, dass sie uns erwarten. Er hat sie bestochen, so viel hat Kalem ja schon herausgefunden.« 
+
+Kalem verbeugte sich und grinste schelmisch. »Gern geschehen.«
+
+Einer der Hauptmänner, ein älterer Mann mit grauem Haar und Narben im Gesicht, fragte: »Müssen wir mit einem Angriff rechnen?«
+
+Marina schüttelte den Kopf. »Nein. Die Samlaner wissen, dass sie es mit 30 Kampfmagiern und einem erfahrenen Tross nicht aufnehmen können. Sie würden niemals einen direkten Kampf riskieren. Aber das heißt nicht, dass sie uns nicht gefährlich werden können. Sie werden andere Wege finden – subtile Wege. Bürokratie. Falsche Anklagen. Verzögerungen an der Grenze. Vielleicht sogar, indem sie versuchen, uns auseinanderzudividieren. Wir müssen auf alles vorbereitet sein.«
+
+Marinas Blick wanderte zu den Hauptmännern. »Das führt mich zu meinem nächsten Punkt. Ihr werdet eure Roben und Hüte ablegen und stattdessen Lederrüstungen tragen. Ihr werdet wie gewöhnliche Söldner aussehen – keine Kampfmagier, keine Zauberer. Nur so können wir hoffen, die Grenze zu passieren.«
+
+Ein Raunen ging durch die Rehe der Zauberer. Der kahlköpfige Hauptmann verschränkte die Arme und schnaubte: »Das ist unter unserer Würde, uns als einfache Söldner auszugeben. Wir sind Kampfmagier, keine dahergelaufenen Straßenkämpfer.«
+
+»Eure Würde interessiert die Samlaner nicht«, erwiderte Marina scharf. »Ihr könnt eure Würde gerne behalten, wenn ihr hierbleiben wollt. Aber wenn ihr mit uns nach Samlan reisen wollt, werdet ihr tun, was ich sage. Eure Roben und Hüte schreien ›Zauberer‹, und das ist eine Einladung zu Problemen.«
+
+Die Hauptmänner tauschten unbehagliche Blicke aus, doch keiner wagte es, ihr offen zu widersprechen. Schließlich nickte der kahlköpfige Hauptmann zähneknirschend. »Wie ihr wünscht.«
+
+Marina ließ ihren Blick über die Versammlung schweifen, bevor sie fortfuhr. »Noch etwas: Niemand zaubert, solange wir in Samlan sind. Ich will keinen einzigen Feuerball, keinen ›Lumos‹, keinen noch so kleinen Funken Magie sehen. Altheras hat die Samlaner gewarnt, und sie werden uns beobachten. Jeder Zauber wäre ein direkter Beweis, dass wir Magier sind – und das könnten sie nutzen, um uns festzusetzen oder aus dem Land zu werfen. Verstanden?«
+
+Die Kampfmagier nickten, wenn auch widerwillig. Kalem, der hinten auf einem Fass saß und mit einem Dolch spielte, hob eine Hand. »Na gut, ich werde mich zusammenreißen. Kein Zaubern von meiner Seite, ich schwöre es.«
+
+Einen Moment lang war es still, bevor Kata spöttisch sagte: »Das sollte auch nicht allzu schwer sein, Kalem. Schließlich kannst du ja gar nicht zaubern.«
+
+Kalem ließ den Dolch sinken und legte die Hand dramatisch aufs Herz. »Autsch, Kata. Deine Worte treffen mich mitten ins Herz. Ich will doch nur beweisen, dass ich ein verantwortungsvoller Begleiter bin.«
+
+Kata verzog die Lippen zu einem spöttischen Lächeln, während Jomar leise lachte. Er lehnte sich an den Tisch und sah Kata von der Seite an, ein verliebtes Glitzern in seinen Augen. Jaad bemerkte es sofort. Ihr Blick verhärtete sich, und ihre Hände ballten sich unbewusst zu Fäusten.
+
+Marina, die das alles beobachtete, schnaubte ungeduldig. »Reißt euch zusammen. Wir haben Wichtigeres zu tun, als uns gegenseitig zu piesacken.« Sie deutete erneut auf die Karte. »Altheras hat die Samlaner wahrscheinlich nicht nur gewarnt, sondern auch instruiert. Ich bin mir sicher, dass sie an der Grenze auf uns warten – nicht mit Gewalt, sondern mit Worten. Sie könnten uns die Einreise verweigern. Sie könnten uns unter fadenscheinigen Vorwänden festhalten. Oder sie könnten uns zwingen, eine andere Route zu nehmen. Eine Route, die länger ist, gefährlicher – und wahrscheinlich von Altheras‹ Schergen gesichert wird.«
+
+Jomar runzelte die Stirn. »Du meinst, er hat uns eine Falle gestellt?«
+
+Marina nickte. »Das ist nicht nur eine Möglichkeit. Es ist wahrscheinlich. Altheras ist ein Stratege. Er wusste, dass wir ihn verfolgen würden. Und er wusste, dass wir durch Samlan müssen, um ihn einzuholen.«
+
+Kata lehnte sich vor und betrachtete die Karte. »Wenn er die Samlaner bestochen hat, warum lassen sie uns dann überhaupt einreisen? Wäre es nicht einfacher für sie, uns einfach die Grenze zu verweigern?«
+
+Marina lächelte kalt. »Weil sie genau wissen, dass wir eine direkte Konfrontation gewinnen würden. Zumindest, wenn Altheras ihnen gesagt hat, dass wir Zauberer sind. 30 Kampfmagier könnten ihre gesamte Armee in die Flucht schlagen, wenn es hart auf hart kommt. Sie können ja nicht wissen, dass wir uns niemals mit Gewalt den Weg bahnen würden.
+
+Sie werden also einen subtileren Weg wählen. Sie werden uns durchlassen, aber zu ihren Bedingungen – und mit einem Hinterhalt, der uns erwartet.«
+
+Marina richtete sich auf und verschränkte die Arme. »Morgen früh brechen wir auf. Bis dahin möchte ich, dass alle Kampfmagier in Lederrüstungen antreten und vorbereitet sind. Wir reisen wie gewöhnliche Söldner und lassen keinen Zweifel daran, dass wir harmlose Gesandte sind. Wenn wir die Grenze erreichen, spielt jeder seine Rolle – und niemand zaubert, verstanden?«
+
+Ein kollektives Nicken ging durch die Reihen, und die Anwesenden erhoben sich.
+
+»Ach«, sagte Kalem, während er sich langsam vom Fass schwang. »Ich freue mich schon darauf, meine Rolle als ›harmloser Gesandter‹ zu spielen. «
+
+Kata verdrehte die Augen. »Dann fang damit an, ein wenig Würde zu zeigen.«
+
+Kalem grinste und warf seinen Dolch in die Luft und fing ihn geschickt wieder auf. »Wie ihr wünscht, eure Hoheit.«
+
+Marina warf ihnen einen strengen Blick zu. »Wenn ihr eure Energie morgen so gut einsetzt wie heute beim Streiten, dann könnte das sogar funktionieren.«
+
+Mit diesen Worten löste sich die Versammlung auf, und das Lager bereitete sich auf den nächsten Tag vor. Doch in den Gedanken aller lag die unbestimmte Angst, was an der Grenze wirklich auf sie warten würde.
+
+ 
+
+*
+
+ 
+
+Die Morgensonne stieg über den Horizont und tauchte die Grenze zu Samlan in ein kühles, gelbliches Licht. Der Tross bewegte sich langsam auf den Grenzposten zu – ein befestigtes Tor, flankiert von massiven Holzwänden, die von mehreren bewaffneten Soldaten bewacht wurden. Hinter dem Tor ragten die ersten Hügel Samlans auf, und in der Ferne konnte man die schroffen Berge erkennen, die den Weg in das Land säumten.
+
+Marina saß mit geradem Rücken auf dem Kutschbock ihrer Kutsche und hielt die Zügel locker in der Hand. Neben ihr lag ein Lederetui, das die gefälschte Urkunde von König Schwertmut enthielt. Hinter ihr im Tross waren die Kampfmagier, allesamt in schlichten Lederrüstungen, die keinerlei Hinweis auf ihre magischen Fähigkeiten verrieten. Nur die Heiler trugen Zivilkleidung. Marina brauchte ein paar Gelehrte für ihre Expedition.
+
+Kata, Jaad und Jomar saßen in einer der hinteren Kutschen und warfen nervöse Blicke aus den schmalen Fenstern. Kalem ging zu Fuß neben dem Tross her, ein breites Grinsen auf seinem Gesicht, als hätte er an diesem Morgen nichts Wichtigeres zu tun, als sich an der Schönheit der Landschaft zu erfreuen.
+
+Als sie den Posten erreichten, trat ein Offizier heraus, gefolgt von vier weiteren Soldaten, die sich hinter ihm aufstellten. Der Offizier war ein hochgewachsener Mann mit scharfem Blick und einem perfekt gepflegten Schnurrbart. Sein Gesichtsausdruck verriet Anspannung. Wenn Marina recht hatte mit ihrer Vermutung, wusste der Mann ja, dass er hier Zauberern gegenüberstand. Das würde jeden Samlaner nervös machen. 
+
+Marina ließ den Tross anhalten, stieg von ihrer Kutsche und ging auf den Offizier zu. Sie hatte das Etui in der Hand und trat mit der ruhigen Autorität einer Person auf, die daran gewöhnt war, Befehle zu geben – was ja auch der Realität entsprach.
+
+Der Offizier verschränkte die Arme vor der Brust und sah Marina skeptisch an. »Wer seid ihr, und was wollt ihr in Samlan?«
+
+Marina verbeugte sich leicht, höflich, aber nicht unterwürfig. »Wir sind Gelehrte von der Akademie in Königsstadt und im Auftrag seiner Majestät König Schwertmut unterwegs.« Sie öffnete das Etui, zog die Urkunde hervor und reichte sie dem Offizier. »Hier ist das entsprechende Dokument, vom König persönlich unterzeichnet.«
+
+Der Offizier nahm das Papier und überflog es mit geübtem Blick. Seine Lippen verzogen sich kaum merklich, doch es war schwer zu sagen, ob aus Zustimmung oder Skepsis. Schließlich sah er wieder auf. »Ihr nennt euch Gelehrte, aber einige eurer Leute sehen ziemlich jung aus für diese Bezeichnung.« Sein Blick wanderte über den Tross, blieb kurz bei Jomar und Kata hängen und kehrte dann zu Marina zurück.
+
+Marina lächelte leicht. »Das sind die besten Schüler der Akademie. Diese Expedition ist Teil ihrer Prüfungen. Sie werden von erfahrenen Gelehrten wie mir begleitet und angeleitet.« Sie deutete mit einer beiläufigen Handbewegung auf sich selbst und die Heiler. »Wir legen großen Wert auf praktische Erfahrung.«
+
+Der Offizier zog eine Augenbraue hoch, schien die Antwort aber zunächst hinzunehmen. »Und was ist das Ziel eurer … ›Expedition‹?«
+
+Marina zögerte nicht. »Wir wollen die Schattensphäre untersuchen. Wie Ihr sicher wisst, ist sie eines der faszinierendsten und zugleich gefährlichsten Phänomene unserer Welt. Es gibt vieles, was wir noch nicht über sie verstehen. Diese Expedition soll dazu beitragen, dieses Wissen zu erweitern.«
+
+Ein leises Raunen ging durch die Reihen der Soldaten hinter dem Offizier, doch dieser hob eine Hand, um sie zum Schweigen zu bringen. »Die Schattensphäre, ja?«, sagte er langsam, mit einem Hauch von Sarkasmus in der Stimme. »Und wozu braucht ihr Söldner, wenn es sich um eine Forschungsreise handelt?«
+
+Marina ließ sich nicht aus der Ruhe bringen. »Wie gesagt, die Schattensphäre ist gefährlich. Wir wollen vorbereitet sein, falls es zu unvorhergesehenen Zwischenfällen kommt. Die Sicherheit unserer Schüler hat oberste Priorität.«er Offizier nickte langsam, doch es war klar, dass er noch nicht überzeugt war. »Welche Route wollt ihr nehmen?«
+
+Marina holte eine Karte aus ihrer Tasche, breitete sie aus und zeigte auf die eingezeichnete Route. »Wir planen, den direkten Weg nach An’Suin zu nehmen. Von dort aus wollen wir weiter zur Schattensphäre reisen.«
+
+Der Offizier beugte sich über die Karte, sein Gesichtsausdruck wurde plötzlich härter. »Dieser Weg ist unpassierbar.«
+
+Marina blinzelte, ließ sich aber nichts anmerken. »Unpassierbar? Auf dieser Karte sieht er klar begehbar aus.«
+
+Der Offizier richtete sich auf und verschränkte die Arme wieder vor der Brust. »Eure Karte ist veraltet. Der direkte Weg nach An’Suin wurde vor Monaten durch einen Erdrutsch blockiert. Es ist unmöglich, diese Route zu nehmen. Aber keine Sorge, wir haben einen alternativen Weg für euch.«
+
+Marinas Augen verengten sich leicht, doch sie nickte höflich. »Das ist sehr großzügig von Euch. Wohin führt dieser alternative Weg?«
+
+Der Offizier deutete mit dem Finger auf einen schmalen, geschwungenen Pfad, der durch die Berge führte. »Ihr werdet durch diese Schlucht reisen. Es ist die einzige passierbare Route nach An’Suin. Und um sicherzustellen, dass ihr sicher ankommt, werdet ihr von einer Eskorte begleitet.«
+
+Marina hielt inne und musterte den Offizier einen Moment lang, bevor sie die Karte wieder einrollte. »Das ist … unerwartet. Aber wir danken Euch für Eure Unterstützung. Wann können wir aufbrechen?«
+
+»Sobald eure Leute bereit sind«, antwortete der Offizier. »Wir stellen euch fünf Soldaten zur Verfügung, die euch bis zur Schlucht führen werden.«
+
+Marina nickte langsam. »Wir werden uns beeilen.«
+
+Als sie zurück zum Tross ging, um die Neuigkeiten zu verkünden, war ihr Gesicht so undurchdringlich wie Stein. Sie wusste genau, was hier geschah. Die Schlucht war eine Falle. Altheras hatte die Samlaner gewarnt – und jetzt versuchten sie, den Tross in eine Situation zu lenken, in der er angreifbar war. Aber sie hatte nicht vor, blindlings in diese Falle zu tappen.
+
+Zurück beim Tross rief Marina die Helden zusammen – Kata, Jaad, Jomar und Kalem – und führte sie ein Stück abseits, um mit ihnen unter vier Augen zu sprechen.
+
+»Das ist eine Falle«, knurrte sie ohne Umschweife. »Der Weg durch die Schlucht ist gefährlich, und ich bin sicher, dass Altheras dahintersteckt. Er hat die Samlaner gewarnt, und jetzt versuchen sie, uns dort hineinzulocken, wo wir verwundbar sind.«
+
+Kata sah Marina mit schmalen Augen an. »Und was machen wir jetzt? Gehen wir trotzdem durch die Schlucht?«
+
+Marina nickte. »Wir haben keine Wahl. Aber wir werden vorbereitet sein. Wir reisen, wie sie es wollen, aber wir lassen uns nicht überraschen. Wir müssen Altheras immer einen Schritt voraus sein.«
+
+Kalem grinste leicht. »Ich liebe es, wenn ein Plan so einfach klingt. Das wird bestimmt überhaupt nicht gefährlich.«
+
+Marina ignorierte den Kommentar und wandte sich an die anderen. »Rüstet euch gut aus. Wir müssen wachsam bleiben. Und denkt daran: Niemand zaubert, solange ich es nicht ausdrücklich befehle. Verstanden?«
+
+Die anderen nickten ernst, und die Gruppe bereitete sich auf die nächste Etappe vor – mit dem Wissen, dass die wahre Gefahr noch vor ihnen lag.
+
+
+# Die Heldin von Demirantha_32
+
+## Vorbereitungen und der Weg in die Schlucht
+Das Abendlager war stiller als gewöhnlich. Die fünf samlanischen Soldaten hatten ihr eigenes kleines Lager weit abseits aufgeschlagen, offenbar, weil sie genau wussten, dass sie es mit Kampfmagiern zu tun hatten – auch wenn die Magier in ihren Lederrüstungen äußerlich wie einfache Söldner aussahen.
+
+Jaad, Kalem und Jomar machten sich daran, die Kutsche für ihre bevorstehende List vorzubereiten. Jomar rollte ein Fass mit der Aufschrift »Filet von fliegender Kuh« über den Boden. Jomar hatte keinen Zweifel daran, dass Kalem der Verfasser dieses Kunstwerks war. Der wiederum mühte sich ab, zwei Jagdbogen und mindestens fünf Köcher voller Pfeile im Wagen zu verstauen. Jaad kam mit einem Stapel Kleidung, der ihr fast die Sicht nahm. Egal, welches Wetter sie auf ihrer Reise erwarten würde, sie waren vorbereitet. Kata stand kerzengerade mit verschränkten Armen neben der Kutsche und beobachtete das Treiben, als sei es ihre Aufgabe, alles zu beaufsichtigen. Jomar stellte sein Fass ab, was natürlich prompt seinen Fuß einklemmte. Nachdem er den befreit hatte, hüpfte er ein Weilchen mit schmerzverzerrtem Gesicht umher. Kata grinste ihn amüsiert herablassend an. Nachdem er wieder zur Ruhe gekommen war, nahm er ein Tuch aus seiner Hosentasche und wischte sich den Schweiß aus dem Gesicht. 
+
+»Als Marina uns sagte, wir sollen die Kutsche vorbereiten, hast du wirklich nicht für eine Sekunde gedacht, dass das auch dich betrifft, oder?«
+
+Kata sah ihn an, als hätte er vor die Füße gespuckt. Sie setzte an, etwas zu antworten, brach dann aber ab. Sie überlegte einige Sekunden, dann sagte sie mit eisiger Stimme: »Was hast du dir denn so vorgestellt, dass ich tun könnte?«
+
+»Du könntest hinüber zum Küchenzelt gehen, wir brauchen Lebensmittel und Küchenutensilien.«
+
+Widerwillig machte sie sich auf den Weg, was sie dadurch zum Ausdruck brachte, dass sie betont langsam davon schlenderte. Nach wenigen Minuten kehrte sie vom Küchenzelt zurück. In der einen Hand trug sie einen leeren Eimer, in der anderen einen hölzernen Kochlöffel. Mehr hatte sie nicht mitgebracht. Doch dann bemerkte Jomar die fünf Kampfzauberer, die im Gänsemarsch hinter ihr herliefen. Einer hatte zwei Säcke Mehl geschultert, die anderen trugen Kisten voller Küchenutensilien, Gemüse, Kräuter und anderer Vorräte.
+
+Jomar war zuerst sprachlos, während die Zauberer die Sachen in der Kutsche verstauten. Dann nickte jeder einzelne Kata kurz zu, und sie verschwanden wieder in Richtung Küchenzelt. 
+
+»Wie zum ziegenfickenden Gott Orfel, hast du das bewerkstelligt?«, fragte er ratlos.
+
+»Mir wohnt eine natürliche Autorität inne. Ich dachte, das wäre dir längst klar. Ich habe es ihnen einfach befohlen.« Sie lächelte ihn herablassend an, als sei er ein etwas zurückgebliebenes Kind. 
+
+ 
+
+*
+
+Im großen Besprechungszelt herrschte eine gespannte Stille. Marina hatte die Hauptmänner und -frauen der Kampfmagier sowie die Helden – Kata, Jaad, Jomar und Kalem – zusammengerufen, um über die bevorstehende Passage durch die Schlucht zu sprechen. Die Karten, die die Route zeigten, lagen auf dem Tisch ausgebreitet. Marina stand mit verschränkten Armen am Kopf des Tisches und musterte die Anwesenden mit ernster Miene.
+
+Marina sagte: »Ich denke, wir sind uns alle einig, dass die Bemerkung des Grenzbeamten – ›die Eskorte wird euch bis zur Schlucht geleiten‹ – kein Zufall war. Sie erwarten, dass wir nicht weiter als bis zur Schlucht kommen. Die Soldaten werden sicher umkehren, wenn wir in Schlucht eintreten. Dort wird uns ein noch unbekannter Feind erwarten.«
+
+Die Hauptmänner nickten langsam, einige murmelten leise untereinander. Der kahlköpfige Hauptmann meldete sich zuerst zu Wort. »Was denkt Ihr, Herrin? Was könnte uns dort erwarten?«
+
+Marina warf einen Blick über die Runde. »Es ist kein Geheimnis, dass Altheras längst in der Schattensphäre ist. Seine Spione und Schergen sind jedoch überall. Ich bin überzeugt, dass er von unserer Verfolgung weiß – ob durch Magie, Brieftauben oder Berichte von loyalen Informanten. Wir wissen, dass er magisch über weite Entfernungen kommunizieren kann. Es ist wahrscheinlich, dass er die Samlaner mit Gold oder Versprechen manipuliert hat, um uns in diese Falle zu locken. Ich vermute, er hat einige seiner Kampfmagier hier stationiert, um uns aufzuhalten.«
+
+Marina machte eine Pause, bevor sie in die Runde fragte: »Aber was genau erwartet uns dort? Ich will eure Einschätzungen hören.«
+
+Kata meldete sich zuerst. »Die Samlaner selbst werden uns dort nicht bekämpfen. Sie wissen, dass sie mit uns nicht fertigwerden. Wenn die Schlucht wirklich eine Falle ist, dann wird sie von Altheras‘ Leuten vorbereitet worden sein. Vielleicht hat er Kampfmagier zurückgelassen, vielleicht sogar einige seiner besten Männer, um uns dort festzusetzen oder zu zerschlagen.«
+
+Jaad schüttelte den Kopf. »Das ist möglich, aber ich denke, Altheras hat, wenn überhaupt, nur eine minimale Truppe dort stationiert. Er ist kein Narr. Er würde nicht zu viele seiner Kräfte zurücklassen, um uns zu stoppen. Der Weg von hier bis durch die Schattensphäre ist lang und gefährlich. Aber es könnte sein, dass er uns schon eine ganze Weile beobachten lässt und Kampfmagier jetzt auf dem Weg in die Schlucht sind.«
+
+Marina nickte zustimmend. »Ich bin sicher, eine Falle erwartet uns in der Schlucht und wir sollten mit Kampfmagieren rechnen. Einfach nur Felsbrocken aus uns niederkrachen zu lassen und uns mit Pfeilen einzudecken, würde uns nicht aufhalten und das weiß Altheras auch.«
+
+Die Hauptleute sahen sie aufmerksam an, während sie fortfuhr. »Hier ist der Plan: Wenn wir in der Schlucht angegriffen werden – und ich bin mir sicher, dass das passieren wird –, werden wir nicht wirklich in den Kampf ziehen. Die Kampfmagier des Trosses werden ein paar Feuerbälle werfen und sich dann taktisch zurückziehen. Auch wenn wir überlegen sein mögen, dürfen wir Altheras‘ Pläne nicht unterstützen, indem wir unsere Kräfte hier aufreiben.«
+
+Ein empörtes Murmeln ging durch die Runde, und der kahlköpfige Hauptmann sprang auf. »Zurückweichen? Herrin, das ist Wahnsinn! Warum sollten wir uns zurückziehen, wenn wir die stärkere Seite sind?«
+
+Marina fixierte ihn mit einem kühlen Blick. »Weil wir Altheras‘ Spiel nicht mitspielen werden. Er will, dass wir unsere Kräfte hier aufreiben, während er unbehelligt in der Schattensphäre bleibt. Wir dürfen ihm diesen Vorteil nicht geben.«
+
+Die Hauptleute schwiegen, ihre Gesichter ausdruckslos, doch die Spannung im Zelt war spürbar. Marina fuhr unbeirrt fort: »Das Zurückweichen wird nur ein Täuschungsmanöver sein. Während sich die Schlacht hoffentlich zurück vor die Schlucht verlagert. Dann werden Kata, Jaad, Jomar, Kalem und ich uns abseits halten. Sobald der Feind beschäftigt ist, werden wir die Schlucht betreten und hoffentlich unbemerkt hindurchkommen.«
+
+»Und was ist mit uns?«, fragte eine Hauptfrau mit ernster Stimme. »Was sollen wir tun? «
+
+Marina verschränkte die Arme vor der Brust. »Ihr werdet fliehen, bis nach Kerk und schließlich zurück nach Lakan. Irgendwann werden Altheras´ Leute die Lust verlieren, euch zu militärisch zu besiegen. Ihr werdet den Eindruck erwecken, dass der gesamte Tross sich zurückzieht. Ihr werdet in den Dörfern von Samlan und an der Grenze lautstark klagen, dass die Mission gescheitert ist. Ihr werdet mich als unfähige Anführerin darstellen, und wenn nötig, könnt ihr auch über Katas und Jaads weibliche Formen ereifern, um die Aufmerksamkeit auf euch zu ziehen. Erzählt herum, wie tollpatschig Jomar ist. Alle sollen denken, wir wären noch bei dem Tross. Mögliche Spione längs des Weges werden das so an Altheras berichten.«
+
+Der junge Held wurde lila vor Verlegenheit. Seine Tollpatschigkeit war offensichtlich jedem im Tross bekannt. Kata legte ihm eine Hand auf die Schulter und sah ihn beschwichtigend an. Jaad schnaubte leise, doch ihre Augen funkelten vor unterdrücktem Ärger.
+
+Kalem lachte leise. »Das klingt wie ein Plan, an dem ich wirklich Gefallen finden würde: Über andere herziehen und weibliche Kurven loben, Schade, dass ich nicht dabei bin.«
+
+Marina warf ihm einen scharfen Blick. »Das ist kein Spaß, Kalem. Jeder wird seine Rolle spielen müssen, wenn wir Altheras überlisten wollen.«
+
+Ein unbehagliches Schweigen folgte, bevor der kahlköpfige Hauptmann schließlich nickte. »Das ist ein riskanter Plan.«
+
+»Es wird nicht einfach«, räumte Marina ein. »Aber wir müssen das Risiko eingehen. Wenn wir scheitern, bleibt Altheras ungehindert – und das könnte das Ende für uns alle bedeuten.«
+
+
+# Die Heldin von Demirantha_33
+
+## Die Schlacht in der Schlucht
+ 
+
+Die Sonne stand hoch am Himmel, als der Tross den Eingang zur Schlucht erreichte. Die steilen, zerklüfteten Felswände warfen lange Schatten über die schmale Straße, die hineinführte. Es war bedrückend still, kein Laut außer dem Knirschen der Wagenräder auf dem losen Geröll. Die fünf samlanischen Soldaten, die als Eskorte mitgereist waren, schienen immer nervöser zu werden. Ihre Hände klammerten sich an die Zügel, und sie warfen sich flüsternd Blicke zu, die nur zu deutlich verrieten, dass sie diese Mission längst bereuten.
+
+Marina ritt an der Spitze des Trosses. Mit einem knappen Befehl hielt sie an und drehte sich zu den Kampfmagiern um. Ihre Stimme war ruhig, aber bestimmt: »Es ist Zeit, die Maskerade fallen zu lassen. Errichtet den Schutzschild – sofort.«
+
+Die Kampfmagier, die sich bisher zurückgehalten hatten, richteten sich auf. Ihre Haltung veränderte sich, und in ihren Augen blitzte Entschlossenheit auf. Sie hoben die Arme, und im nächsten Moment wirbelte Magie durch die Luft. Ein leises Summen wurde hörbar, das schnell anschwoll, bis ein durchsichtiger, aber leicht schimmernder Schutzschild über und vor dem Tross erschien. Das Licht des Himmels brach sich darin. Die Illusion, es handle sich bei den Kampfmagiern um einfache Söldner, war endgültig dahin.
+
+Die samlanischen Soldaten reagierten augenblicklich: Mit weit aufgerissenen Augen starrten sie den Schild an, dann warfen sie die Zügel ihrer Pferde herum. Ohne ein Wort des Abschieds oder der Erklärung galoppierten sie davon, als hätte der Teufel persönlich sie verfolgt.
+
+Kalem lachte trocken. »Nun, das war wohl ein bisschen zu viel für unsere abergläubischen Freunde. Ich habe noch nie jemanden so schnell fliehen sehen.«
+
+Marina wandte sich an Kata. »Kannst du deine Gabe benutzen, um herauszufinden, ob es vor uns Feinde gibt?«
+
+Kata runzelte die Stirn. »Ich werde es versuchen.« Sie schloss die Augen und ließ ihre Magie hinauf in die Schlucht gleiten. Es dauerte nicht lange und sie streifte den ersten Geist: Konzentriert, keine Wut nur Entschlossenheit. Sie spürte noch mehr Männer und Frauen. In einigen spürte sie Schutzzauber. Sie öffnete die Augen.
+
+»Es sind etwa 30. Ich spüre keinen Hass, keinen Fanatismus. Aber es gibt Schutzzauber, also müssen zumindest Zauberer anwesend sein, aber eigentlich fühlten sich alle so an, als wären sie magiebegabt.«
+
+»Gute Arbeit«, lobte Marina. »Also müssen wir mit 30 Kampfmagiern rechnen.«
+
+Die Gruppe zog weiter, geschützt unter dem Schild, der schwach in der Luft schimmerte. Jeder wusste, dass dieser Schild sie nicht unverwundbar machte – er war stark genug, um den ersten Angriff abzufangen, aber nicht unendlich belastbar. Marina hatte die Kampfmagier angewiesen, ihre magischen Reserven zu schonen. Der Schild sollte einen ersten Überraschungsangriff abwehren, nicht als permanente Verteidigung dienen.
+
+Tief in der Schlucht, mehrere tausend Längen vom Eingang entfernt, passierte es. Ohne Vorwarnung zischte ein Feuerball von oben herab und prallte mit einem donnernden Knall gegen den Schild. Ein gleißendes Licht erfüllte die Schlucht, und für einen Moment war die gesamte Gruppe geblendet.
+
+»Position halten!«, rief Marina, während sie ihre Augen schützte. Doch bevor der Schild sich von dem Aufprall erholen konnte, folgte der zweite Angriff. Von den Klippen zu beiden Seiten rollten Felsbrocken hinab, die mit ohrenbetäubendem Getöse gegen die Felswände und schließlich gegen die Schutzkuppel prallten. Der Schild hielt, aber jeder Einschlag ließ ihn schwächer flackern.
+
+Die Kampfmagier formierten sich und starteten ihre Gegenangriffe. Feuerbälle, magische Blitze und Schockwellen wurden gegen die Angreifer auf den Felsvorsprüngen geschleudert. Doch die steilen Wände boten den Feinden Schutz. Es war unwahrscheinlich, dass die ungezielten Angriffe etwas oder jemanden treffen würde, und jeder Angriff der Magier kostete Energie, die sie nicht verschwenden durften. Und und so mancher in die Höhe geschossene Feuerball brach weitere Felsbrocken aus der Schlucht, was auch nicht wirklich half. Mit jeder Sekunde stieg die Temperatur hinter dem Schutzschild, denn die geschleuderten Feuerbälle wurden zwar aufgehalten, aber ihre Hitze nur teilweise. Die Pferde wurden zusehends nervöser, was es für die Magier schwierig machte den Schutzschild aufrechtzuerhalten. 
+
+Der kahlköpfige Hauptmann ritt hinüber zu Marina. 
+
+»Das ist nicht machbar«, sagte er mit düsterem Blick. »Wir können sie so nicht besiegen. Nicht hier.«
+
+Marina nickte knapp. »Das war ohnehin nicht der Plan. Rückzug!«
+
+Die Magier wechselten nahtlos in eine Defensivformation und begannen, sich zurückzuziehen. Währenddessen warfen sie weiterhin Zauber nach oben, um den Feind auf Abstand zu halten. Der Schild flackerte beunruhigend, doch sie schafften es, ohne Verluste aus der unmittelbaren Gefahrenzone zu entkommen.
+
+Als sie eine sichere Position am Rand der Schlucht erreicht hatten, rief Marina die Helden und den Hauptmann zu sich, ihre Gesichter ernst.
+
+Marina sprach mit fester Stimme: »Ihr Überraschungsangriff ist fehlgeschlagen. Sie haben sicher damit gerechnet, dass zu diesem Zeitpunkt die Hälfte unserer Männer und Frauen tot in der Schlucht liegen würde. Sie werden sich uns in einer offenen Schlacht stellen müssen.«
+
+Kata runzelte die Stirn. »Aber was, wenn sie in der Schlucht bleiben? Sie könnten uns jedes Mal aufhalten, wenn wir versuchen durchzubrechen.«
+
+Jomar nickte. »Das stimmt. Wenn sie diese Position halten, wird das für uns ein unüberwindbares Hindernis.«
+
+Marina schüttelte den Kopf. »Das glaube ich nicht. Sie wollen keinen Stellungskrieg. Sie wissen, dass wir ihnen notfalls ausweichen können. Der angeblich unpassierbare Weg entlang des Gebirges war sicherlich eine Lüge. 
+
+Sie werden versuchen, uns hier in einer Schlacht vor der Schlucht zu vernichten. Wir fünf werden uns jetzt seitlich in die Büsche schlagen, wie man so schön sagt. Sobald die Schlacht sich aus der Schlucht heraus verlagert, schleichen wir uns hinein.«
+
+Jaad sah besorgt aus. »Und was, wenn sie einige Männer in der Schlucht zurücklassen? Wenn wir dort einfach mit einer Kutsche einreiten, könnten wir in einen Hinterhalt geraten.«
+
+Marina sah sie mit einem scharfen Blick an. »Ich kann einen Schild zaubern, Jaad. Einen Besseren, als du dir vorstellen kannst. Allerdings muss ich zugeben, dass unser Plan dann gescheitert wäre. Selbst wenn wir dann lebend durch die Schlucht gelangten, weiß unser Feind davon.« 
+
+
+# Die Heldin von Demirantha_34
+
+## Durch die Schlucht
+Sie hatten ihre Kutsche abseits des Weges hinter Bäumen versteckt. Die Schlacht war in vollem Gange. Wie erwartet, hatten die Angreifer ihre strategisch vorteilhaften Positionen auf den Klippen aufgegeben und verlagerten ihre Angriffe auf den zurückweichenden Tross. Von den hohen Felsvorsprüngen prallten keine Felsbrocken mehr herab, und die magischen Geschosse konzentrierten sich nun auf die Kampfmagier, die sich langsam aus der Schlucht zurückzogen. Nach einer halben Stunde waren sie über tausend Längen zurückgewichen. Der Plan funktionierte.
+
+Marina hielt die Zügel der Kutsche fest in der Hand und warf einen Blick zurück zu ihren Gefährten. »Das ist unser Moment. Wenn wir jetzt losfahren, können wir es durch die Schlucht schaffen, bevor jemand merkt, dass wir uns abgesetzt haben.«
+
+Die Helden nickten, und Marina gab einem der Kutschpferde einen leichten Schlag mit der Gerte. Die Kutsche setzte sich in Bewegung, das Knirschen der Räder auf dem losen Geröll der engen Schlucht war das einzige Geräusch, das die angespannte Stille durchbrach. Die hohen Wände ragten bedrohlich über ihnen auf, und der Pfad war schmaler, als es von der Ferne ausgesehen hatte.
+
+Nach einer Weile hielt Marina die Kutsche an. Sie blickte zu Kata, die angespannt neben ihr saß. »Kata, ich brauche deine Gabe. Finde heraus, ob die Schlucht wirklich leer ist – oder ob sie Wachen zurückgelassen haben.«
+
+Kata schloss die Augen und konzentrierte sich. Es war, als würde sie ein Netz über die Umgebung werfen, ein Geflecht unsichtbarer Fäden, der die Gefühle und Absichten anderer aufspürte. Sie tastete nach Anzeichen von Hass, Wut oder anderen Emotionen, die auf einen Hinterhalt hindeuten könnten. Nach einigen Minuten öffnete sie die Augen.
+
+»Da sind fünf Männer«, sagte sie leise. »Auf den Klippen, verteilt entlang der Schlucht. Ich spüre Anspannung und Konzentration, aber keinen Hass. Sie wirken … professionell. Sie sind keine fanatischen Feinde, aber sie sind eindeutig Magier.«
+
+Marina runzelte die Stirn. »Fünf Magier auf den Klippen? Was sollen wir tun? Hat jemand einen Vorschlag?«
+
+Ein Moment der Stille folgte. Die Gruppe tauschte unsichere Blicke aus, bis Kata das Schweigen brach. »Ich habe eine Idee. Aber es wird nicht einfach.«
+
+Kata stand auf und ging zum Inneren der Kutsche. »Ich brauche Jaad und Jomar. Kommt zu mir. Ihr müsst mir helfen.«
+
+Marina sah sie skeptisch an. »Was hast du vor?«
+
+»Ich werde die gesamte Kutsche unsichtbar machen«, erklärte Kata. Ihre Stimme klang entschlossen, aber ihre Augen verrieten, wie sehr allein der Gedanke sie forderte. 
+
+»Ich habe es noch nie in diesem Ausmaß versucht. Aber mit genug Magie von Jaad und Jomar könnte ich es schaffen.«
+
+Marina hob eine Augenbraue. »Das ist sehr gefährlich. Wenn du dich übernimmst, bezahlst du dafür einen hohen Preis.«
+
+»Ich weiß«, sagte Kata und sah ihr fest in die Augen. »Aber es ist unsere beste Chance, diese Magier zu umgehen.«
+
+Marina schloss kurz die Augen, bevor sie schließlich nickte. »Gut. Aber sei dir bewusst, dass wir dir nicht helfen können, wenn du dich übernimmst.«
+
+Jaad und Jomar setzten sich zu Kata. Sie streckte ihre Arme aus, und die beiden legten ihre Hände in die ihren. »Gebt mir so viel Magie, wie ihr könnt«, sagte sie mit geschlossenen Augen. »Lasst sie einfach fließen.«
+
+Jomar zögerte kurz. »Aber was ist, wenn es zu viel für dich wird?«
+
+»Vertrau mir«, murmelte Kata und schloss die Augen.
+
+Jaad und Jomar konzentrierten sich und leiteten ihre magischen Energien in Kata. Es war ein seltsames Gefühl – eine Verbindung, die sich fast körperlich anfühlte, als würde ein unsichtbares Band zwischen ihnen entstehen. Kata nahm die Magie in sich auf, spürte die ungewohnte Kraft durch ihren Körper strömen und begann, den Zauber zu weben.
+
+Die Luft flirrte um die Kutsche wie über glühendem Wüstenboden. Langsam verblassten die Konturen der Kutsche, wurden immer durchsichtiger, bis sie schließlich vollständig verschwunden war. Marina saß nun scheinbar allein in der Luft, mit Zügeln in den Händen, die in das Nichts führten, bis auch sie verschwand.
+
+»Bei Orfels Ziege«, fluchte Marina und schüttelte den Kopf. »Du hast es wirklich geschafft.« Die Pferde schnaubten empört, sichtlich unglücklich damit, unsichtbar zu sein. 
+
+Marina lenkte die unsichtbare Kutsche vorsichtig durch die enge Passage. Jeder Schritt der Pferde ließ kleine Steine unter den Hufen wegkullern, doch das Geräusch schien sich in der Weite der Schlucht zu verlieren. Die fünf Magier auf den Klippen harrten regungslos aus, suchten mit den Augen nach Bewegungen auf dem Pfad, doch die Kutsche blieb unentdeckt.
+
+In der Kutsche hielten Kata, Jaad und Jomar die Verbindung aufrecht. Ihre Gesichter waren schweißbedeckt, ihre Atemzüge wurden immer schwerer. Jomar war der Erste, der ein leichtes Zittern in Katas Händen spürte. »Kata, alles in Ordnung?«, flüsterte er.
+
+»Ich halte durch«, kam es erstickt von ihren Lippen. »Ich muss … nur noch ein wenig … durchhalten.«
+
+Marina führte die Kutsche langsam durch die Schlucht. Jeder Meter fühlte sich wie eine Ewigkeit an. Schließlich erreichten sie das Ende der Passage, und die Felswände wichen zurück, gaben den Blick auf ein karges Plateau frei.
+
+»Wir sind draußen«, sagte Marina leise. »Du kannst den Zauber lösen.«
+
+Kaum hatte sie die Worte ausgesprochen, brach Kata die Verbindung ab. Die Kutsche flimmerte in die Sichtbarkeit zurück, und die Helden sahen sich erleichtert an. Doch die Erleichterung wich schnell einem Schock, als Kata plötzlich zur Seite kippte. Sie fiel bewusstlos zu Boden, ihre Hände noch immer leicht zitternd.
+
+»Kata!«, rief Jomar und kniete sich sofort neben sie. Er fühlte ihren Puls, – ein flatternder Schlag, kaum spürbar unter ihrer kühlen Haut.
+
+Marina hielt die Pferde an und begab sich nach hinten zu Kata. 
+
+»Das hatte ich befürchtet«, murmelte sie mit stockender Stimme. 
+
+»Was? Was ist mit ihr? Sie wird doch wieder gesund, oder?«, fragte Jomar verzweifelt. 
+
+»Das hoffe ich«, sagte sie gepresst. Jomar wollte etwas sagen, aber Marina hob die Hand und verbot ihm das Wort. 
+
+»Holt eine Bettrolle und eine Decke. Das Mädchen muss sich ausruhen.«
+
+
+# Die Heldin von Demirantha_35
+
+## Die Traumwelt von Kata
+Die Kutsche ruckelte sanft über den unebenen Boden, doch Kata zeigte keine Reaktion. Ihr Körper lag reglos auf der improvisierten Bettstatt, die sie im Inneren der Kutsche eingerichtet hatten. Ihr Gesicht war blass, feiner Schweiß stand auf ihrer Stirn, und ihre Atmung war flach, aber regelmäßig. Zwei Tage waren seit der Schlucht vergangen. Wenn sie nicht bald erwachte, würde sie sterben.
+
+Jaad saß auf der gegenüberliegenden Bank neben Kalem, während die Landschaft monoton an ihnen vorbeizog. Die Gruppe hatte keine Zeit für eine längere Pause, also musste die Reise weitergehen, ob Kata nun erwachte oder nicht.
+
+Doch Jaad entging nicht, was sich vor ihren Augen abspielte. Sie beobachtete, wie Jomar auf dem kleinen Hocker neben Kata saß, ihren schlaffen Arm in seinen Händen hielt. Seine Daumen strichen sanft über ihre Finger, als würde er sie dadurch ins Leben zurückholen können. Sein Blick war voller Sorge – nein, nicht nur Sorge. Da war etwas Tieferes, etwas Schmerzhaftes, das Jaad allzu gut kannte.
+
+Ein Bild tauchte in ihrem Geist auf. Eine Erinnerung. Jomar an ihrem Bett, damals, nachdem sie von einem Armbrustbolzen getroffen worden war. Sie hatte tagelang fiebernd und bewusstlos gelegen, und er war da gewesen – genau so, wie er es jetzt für Kata war.
+
+Jaad schluckte.
+
+Es war vorbei.
+
+Sie wusste es nun mit bedrückender Klarheit. Was immer zwischen ihr und Jomar gewesen war, was sie sich vielleicht sogar insgeheim noch erhofft hatte – es war nicht mehr. Es mochte in der Vergangenheit etwas zwischen ihnen gegeben haben, doch jetzt hatte Jomar seine Wahl getroffen. Und das war sein gutes Recht.
+
+Eifersucht hatte keinen Platz mehr. Sie hatte kein Recht, ihm seine Gefühle vorzuschreiben.
+
+Jaad atmete tief durch, als sich die Spannung in ihr löste.
+
+Es war Zeit, loszulassen.
+
+Doch nun, da ihre Eifersucht keine Barriere mehr bildete, sah sie Kata mit neuen Augen. Nicht mehr als Rivalin, nicht mehr als die arrogante Adlige, die ihr im Weg stand. Sie sah ein Mädchen, das sich zu Tode erschöpft hatte, um ihnen allen zu helfen. Eine, die nun möglicherweise nicht mehr erwachen würde.
+
+Jaad biss sich auf die Lippe. Vielleicht konnte sie helfen.
+
+Sie hatte sich bereits mit Kata geistig verbunden. Konnte sie es noch einmal versuchen? Auch wenn Kata bewusstlos war?
+
+Es gab nur eine Möglichkeit, es herauszufinden.
+
+Jaad setzte sich neben Kata auf die Bettstatt. Jomar blickte verwundert zu ihr hinüber. Sie schloss die Augen und legte ihr eine Hand auf die Stirn. Ihre Magie floss in eine Verbindung, tastete nach Katas Geist.
+
+Am Anfang war da nur Dunkelheit. Dann tauchten Formen auf. Verzerrte Hallen, übergroße Säulen, Wände, die sich ins Unendliche zu erstrecken schienen. Der Boden unter Jaads Füßen war aus schwarzem Marmor, gesprenkelt mit Adern aus silbernem Licht. Ein langer Gang führte zum Thronsaal. Hinter jedem Fenster auf ihrem Weg lag eine andere Landschaft. Mal sonnenbeschienen, mal regenverhangen. Hinter manchen Fenstern lauerten haushohe Monster, schwarz und unförmig. Jaad beeilte sich voranzukommen. 
+
+Kata saß auf einem hoch aufragenden, prächtigen Thron aus dunklem Holz, das mit Goldintarsien verziert war. Ihr Kleid war lang und schwer, aus tiefrotem Samt, mit goldbestickten Ärmeln. Sie sah auf Jaad herab, die am Fuße des Thrones stand.
+
+»Na, sieh mal einer an.« Katas Stimme war süßlich und schneidend zugleich. »Die Dienerin wagt es, meine Hallen zu betreten.«
+
+Jaad unterdrückte ein Seufzen. Katas Bewusstsein hatte eine Traumwelt erschaffen, in der sie sein konnte, was sie einst gewesen war – eine mächtige Adlige. Und sie klammerte sich an diese Illusion.
+
+»Kata, hör zu. Das hier ist nicht echt.«
+
+Kata lachte spöttisch. »Ach, ist es das nicht? Und du bist also hergekommen, um mich ›zu retten‹? Ausgerechnet du?«
+
+Jaads Hände ballten sich zu Fäusten. Sie musste ruhig bleiben. Katas Geist war verwirrt und wehrte sich gegen die Realität.
+
+»Ich bin hier, weil du in der wirklichen Welt ohnmächtig bist«, sagte Jaad ruhig. »Du hast dich überanstrengt. Dein Körper kann das nicht alleine verkraften. Du musst zurückkommen.«
+
+Kata verzog die Lippen. »Warum sollte ich? Hier bin ich wieder die, die ich sein sollte. Ich herrsche, ich bin mächtig.«
+
+Jaad schüttelte den Kopf. »Das bist du nicht. Das ist eine Lüge, die du dir selbst erzählst.«
+
+Katas Augen blitzten auf. »Nein! Ich weiß, warum du hier bist! Du bist eifersüchtig! Du willst mich schwächen! Du willst mich hier rauszerren und töten, damit du Jomar für dich hast!«
+
+Jaad erstarrte.
+
+»Du kannst es nicht ertragen, dass er sich für mich entschieden hat, nicht wahr?«, fuhr Kata fort, ihre Stimme voller Spott. »Deshalb willst du mich vernichten!«
+
+Jaad spürte einen Druck, als würde Kata versuchen, sie mit reiner Willenskraft aus ihrem Geist hinauszustoßen. Doch Jaad hielt stand.
+
+»Jomar sitzt an deinem Bett und hält deine Hand. Seit zwei Tagen ohne Unterbrechung.«
+
+Die Worte ließen Kata stocken.
+
+»Er sorgt sich um dich«, fuhr Jaad fort. »Er ist hier. In der wirklichen Welt. Spürst du seine Berührung?«
+
+Kata wollte erst etwas erwidern, doch dann hielt sie inne. Ein seltsamer Ausdruck huschte über ihr Gesicht.
+
+»Jomar …«, flüsterte sie.
+
+Jaad trat näher an den Thron. »Du liebst ihn.«
+
+Kata sah sie an, ihre Augen unstet. »Ich … «
+
+Jaad nickte. »Du kannst bei ihm sein. Aber nicht hier. Hier ist nicht die Realität. Hier bist du allein.«
+
+Kata blickte sich um, als würde sie den Thronsaal plötzlich mit anderen Augen sehen. Die Wände schienen zu flackern, der Boden schien unter ihren Füßen nachzugeben.
+
+Dann ließ sie ihre Schultern sinken.
+
+»Ich will zurück.«
+
+Jaad streckte die Hand aus. »Dann wach auf.«
+
+Kata zögerte einen Moment – dann nahm sie Jaads Hand.
+
+Kata riss die Augen auf.
+
+Ihr Körper fühlte sich schwer an, als hätte er sich in Stein verwandelt. Die Kutschendecke wölbte sich über ihr, das monotone Rumpeln der Räder erfüllte ihre Ohren. Sie lebte.
+
+Und Jomar war da.
+
+Er hatte immer noch ihre Hand in seinen, und als er merkte, dass sie erwacht war, fuhr er erschrocken zusammen. Doch der Schrecken hielt nur kurz an.
+
+»Kata!«, jubelte er.
+
+Sie sah ihn an, blinzelte ein paar Mal. Ihre Hand wanderte fast von selbst zu seinem Kragen. Dann zog sie ihn zu sich herunter und küsste ihn.
+
+Es war ein kurzer, aber entschlossener Kuss. Als sie sich voneinander lösten, blickte sie ihm in die Augen, und für einen Moment war da nichts außer Stille zwischen ihnen.
+
+Kalem war der Erste, der die Stille brach.
+
+»Also, ich hatte ja darauf gewettet, dass ihr euch erst in der Schattensphäre küsst. Da schulde ich Marina wohl ein Goldstück.«
+
+Jaad schloss für einen Moment die Augen und atmete aus. Keine Eifersucht. Kein Stich im Herzen.
+
+Nur Erleichterung.
+
+
+# Die Heldin von Demirantha_36
+
+## Die Reise nach An’Suin
+Der Tross bewegte sich stetig Richtung Norden. Die letzten Dörfer Samlans lagen hinter ihnen, und vor ihnen erstreckte sich eine immer karger werdende Landschaft. Die Luft wurde trockener, die Sonne brannte heller vom Himmel. Die Straße unter den Rädern der Kutsche war nicht mehr das festgetretene Pflaster der Handelswege Samlans, sondern ein loser, sandiger Pfad, der sich mit jedem Kilometer schwerer befahren ließ.
+
+Kalem saß auf dem Kutschbock neben Marina. Sein Blick wanderte über die Umgebung, doch seine Finger trommelten unruhig auf seinem Oberschenkel. Normalerweise hätte er ein paar lockere Bemerkungen über die Einöde gemacht oder eine Anekdote über ein vergangenes Abenteuer erzählt, aber heute war er ausnahmsweise still.
+
+Schließlich brach er die Stille doch.
+
+»Denkst du, dass Altheras hier in Samlan noch weitere Fallen für uns hinterlassen hat?«
+
+Marina schmunzelte leicht, ließ die Zügel locker und drehte den Kopf nur ein wenig in seine Richtung.
+
+»Das überrascht mich. Kalem, der Meister der Sorglosigkeit, macht sich plötzlich Gedanken um unsere Sicherheit?«
+
+Kalem verzog keine Miene.
+
+»Ich hab mir immer Gedanken gemacht. Nur nicht laut.«
+
+Marina musterte ihn einen Moment, dann seufzte sie leise.
+
+»Nein, ich glaube nicht, dass Altheras hier noch etwas für uns vorbereitet hat.«
+
+Kalem zog eine Augenbraue hoch.
+
+»Da wäre ich mir nicht so sicher. Der Mann ist gerissen. Wenn er sich die Mühe gemacht hat, eine Falle in der Schlucht zu legen, warum sollte er dann nicht noch weitere Sicherungen einbauen?«
+
+Marina schüttelte den Kopf.
+
+»Altheras ist gerissen, ja. Aber er ist auch arrogant. Er glaubt, dass seine Falle in der Schlucht funktioniert hat. Dass wir dort gefallen sind. In seinen Gedanken sind wir tot.«
+
+Kalem zog skeptisch die Mundwinkel nach unten.
+
+»Selbst wenn er glaubt, dass wir tot sind – seine Spione sind überall. Es reicht, wenn irgendjemand zurück nach Lakan berichtet, dass wir noch am Leben sind. Glaubst du wirklich, dass er uns dann einfach ignorieren wird?«
+
+Marina zuckte die Schultern.
+
+»Ich bezweifle nicht, dass er früher oder später erfährt, dass wir überlebt haben. Aber bis dahin sind wir längst in An’Suin. Und wenn er uns dort aufhalten will, wird es schwieriger für ihn. Seine Macht reicht nicht bis in die Wüste.«
+
+Kalem lachte leise.
+
+»Glaubst du das wirklich? Ein Mann, der so viel Gold in eine Grenzstadt pumpt, hat überall Verbündete. Ich will ja nicht den Teufel an die Wand malen, aber was hindert ihn daran, auch in An’Suin seine Fäden zu ziehen?«
+
+Marina schnalzte mit der Zunge.
+
+»Ich bin mir sicher, dass er dort jemanden hat. Aber An’Suin ist anders als Samlan oder Lakan. Dort kann man sich keine Loyalität kaufen. Die An’Suin haben Jahrhunderte damit verbracht, sich gegen fremde Einflüsse zu wehren. Sie mögen Gold, aber sie mögen ihr eigenes Überleben mehr. Niemand dort wird sich blindlings für einen Außenstehenden opfern.«
+
+Kalem ließ sich die Worte auf der Zunge zergehen. Dann lehnte er sich leicht zurück, schob den Hut, den er irgendwo aufgetrieben hatte, aus der Stirn und musterte sie aus den Augenwinkeln.
+
+»Was mich noch wundert: Warum hat Altheras in dieser Grenzstadt eigentlich so viel Gold investiert? Ich meine, es hätte doch gereicht, einfach die Grenzwächter zu bestechen.«
+
+Marina nickte langsam, als hätte sie diese Frage selbst bereits durchdacht.
+
+»Weil er nicht nur kurzfristig denkt. Die Grenzwächter hätte er mit ein paar Münzen auf seine Seite ziehen können, ja. Aber mit Bestechung erreicht man nur Gehorsam – keine Loyalität. Was Altheras will, sind willige Anhänger, Menschen, die ihn verehren, nicht nur für ihn arbeiten. Er gibt ihnen nicht einfach Gold – er gibt ihnen eine Zukunft. Oder zumindest die Illusion davon.«
+
+Kalem verzog den Mund.
+
+»Er gibt ihnen saubere Straßen und renovierte Gebäude, damit sie ihn später als Retter feiern.«
+
+Marina nickte.
+
+»Und wenn er mit der Magie zurückkehrt, als unbestrittener Herrscher, werden sie ihn nicht nur dulden, sondern sich ihm aus freien Stücken anschließen. Er baut sich eine Machtbasis, in Vorbereitung darauf sich Efret zu stellen.«
+
+Kalem stieß einen leichten Pfiff aus.
+
+»Das ist krankhaft vorausschauend. Ich wusste, dass der Mann einen Größenwahn hat, aber das ist auf einer anderen Stufe.«
+
+Marina sah ihn lange an, bevor sie trocken sagte:
+
+»Er will kein König sein, Kalem. Er will ein Gott sein.«
+
+Kalem schüttelte ungläubig den Kopf.
+
+»Und was wollen wir sein? Sterbliche, die sich mit einem Gott anlegen?«
+
+Marina zuckte die Schultern.
+
+»Vielleicht. Oder diejenigen, die verhindern, dass es überhaupt dazu kommt.«
+
+Kalem grinste schief.
+
+»Dann hoffe ich, dass Götter sterben können.«
+
+Marina schnalzte mit den Zügeln.
+
+»Das werden wir noch herausfinden.«
+
+ 
+
+
+# Die Heldin von Demirantha_37
+
+## Der Kuss
+Seit dem Kuss waren zwei Tage vergangen.
+
+Alles war wie immer: Die holperige Fahrt über endlose Straßen, das Lager aufbauen, der leichte Schlaf auf hartem Boden –, doch für Jomar hatte sich etwas verändert. Kata hatte ihn geküsst. Und dann … nichts. Kein Wort darüber. Kein Blick, der länger verweilte als nötig. Kein Zeichen, dass es überhaupt geschehen war.
+
+Jomar wusste nicht, was er tun sollte.
+
+Er wollte sie darauf ansprechen, aber wie und wann? Sollte er es einfach aussprechen? »Hey, übrigens, warum hast du mich geküsst?« Nein. Zu plump. »Also, wegen neulich …« Nein. Viel zu vage.
+
+Und was, wenn der Kuss ihr nichts bedeutet hat? Wenn sie ihn einfach nur für seinen Beistand hatte belohnen wollen? Das wäre das Schlimmste.
+
+Also sagte er nichts.
+
+Er beobachtete sie. Und sie war wie immer.
+
+Sie sprach mit Kalem, machte ihre spitzen Bemerkungen, übte mit Jaad ihre Magie – alles, als wäre nichts geschehen. Doch manchmal, wenn sie glaubte, unbeobachtet zu sein, lag in ihrem Blick etwas Unausgesprochenes. Ein Zögern. Ein Hauch von … Angst?
+
+Jomar wusste es nicht. Aber es war da.
+
+ 
+
+*
+
+Kata bemerkte sehr wohl, wie Jomar dort am Feuer saß und sie beobachtete. Seine Gedanken kreisten sicherlich um den Kuss … der verdammte Kuss.
+
+Sie hatte ihn geküsst.
+
+Warum zum Teufel hatte sie das getan?
+
+Es war ein Impuls gewesen, ein Moment, in dem sie nicht nachgedacht hatte. Und jetzt? Jetzt wusste sie nicht mehr, was sie tun sollte.
+
+Jomar war ein lieber Kerl. Verdammt, das war er. Er war klug, tapfer, manchmal unfassbar unbeholfen, aber das machte ihn nur noch liebenswerter. Und das Schlimmste war: Sie mochte ihn.
+
+Zu sehr.
+
+Sie wollte nicht, dass das passierte.
+
+Denn wenn man jemanden an sich heranließ, gab man ihm die Macht, einen zu verletzen.
+
+Und sie hatte genug Schmerzen erlebt.
+
+Es war auf einem ihrer Raubzüge passiert. Sie war gerade dreizehn gewesen, allein, eine Diebin, die glaubte, sie könne sich aus jeder Situation herauswinden.
+
+Dann hatten sie sie erwischt.
+
+Ein Wachhauptmann, ein breitschultriger Mann mit fettigen Haaren, hatte sie in eine dunkle Kammer geworfen und ihr gesagt, dass sie entweder gehängt oder »nützlich« sein würde.
+
+Sie hatte so getan, als würde sie sich fügen.
+
+Er hatte begonnen, sie zu berühren – hart und fordernd, seine Finger grob auf ihrer Haut, ohne jede Spur von Zärtlichkeit. Dann riss er ihr die Kleidung vom Leib. Sie sah das Messer in einer Scheide am Gürtel des Mannes. Ohne zu zögern, rammte sie ihm den Kopf gegen das Gesicht. Etwas knackte – seine Nase. In der gleichen Bewegung griff sie nach dem Messer. Sie zog es quer über seinen Oberschenkel. Dunkles Blut spritzte aus der klaffenden Wunde.
+
+Sie sprang aus dem Fenster. Beim Aufprall schoss Schmerz durch ihren Knöchel – doch sie lief weiter, mit zerrissenem Hemd, humpelnd, bis die Schatten der Stadt sie verschluckten.
+
+Er hatte sie nicht bekommen.
+
+Aber die Angst, die in diesem Moment durch ihren Körper geschossen war – die Kälte, das lähmende Gefühl, dass sie nichts tun konnte –, das war etwas, das sie nicht vergessen hatte. Was für ein Mensch wäre sie heute, wenn es ihr nicht gelungen wäre zu fliehen? Sie hatte mit anderen geredet, die weniger Glück gehabt hatten als sie. Die Gewalt, die einem angetan wird, ›reißt eine tiefe Furche in dein Leben, die sich nie wieder schließt‹ – so hatte es ihr eine Frau beschrieben. Man könne lernen, damit zu leben, aber man kann niemals vergessen.
+
+Doch wieso hatte sie Angst davor, Jomar ihre Gefühle zu offenbaren? Sie hatte sich in Jomars Geist umgesehen. Er war ein durch und durch guter Mensch, so ähnlich wie Kalem nur ohne die Selbstverliebtheit. Es gab nicht den geringsten Hinweis darauf, er würde sie jemals verletzen, körperlich oder sonst wie. 
+
+Sie hörte Schritte.
+
+Als sie aufsah, stand Jomar vor ihr.
+
+Er sah unsicher aus, trat von einem Fuß auf den anderen.
+
+»Hey.«
+
+Kata zog eine Augenbraue hoch. »Hey? Das ist alles, was du zu sagen hast?«
+
+Er schien nach Worten zu suchen. »Ich … also … wegen neulich.«
+
+Kata fühlte, wie ihr Magen sich zusammenzog.
+
+»Neulich?«, wiederholte sie und tat, als wüsste sie nicht, was er meinte.
+
+Jomar ließ die Schultern sinken. »Vergiss es.«
+
+Er drehte sich um und wollte gehen.
+
+Kata wusste, sie hätte ihn aufhalten können. Hätte sagen können: Ja, ich habe dich geküsst. Ja, ich mag dich. Aber sie tat es nicht.
+
+Weil sie nicht wusste, ob sie es konnte.
+
+»Jomar«, sagte sie schließlich.
+
+Er blieb stehen.
+
+»Es war nur ein Moment«, sagte sie. Ihre Stimme war ruhig, kühl.
+
+Jomar drehte sich nicht um. »Das ist alles, was du zu sagen hast?«. Dann ging er weiter.
+
+Kata biss sich auf die Lippe.
+
+ 
+
+*
+
+ 
+
+Die Reise zur Grenze verlief ereignislos. Die Dörfer, die sie passierten, lagen ruhig in der flimmernden Hitze des späten Frühlings. Die Samlaner waren misstrauisch, aber da die Gruppe ihre Tarnung als harmlose Gelehrte aufrechterhielt, gab es keine Probleme.
+
+Doch schon bevor sie die Grenze erreichten, spürten sie die Veränderung.
+
+Die Luft wurde trockener, der Wind heißer. Die Vegetation wurde spärlicher, bis nur noch niedrige Sträucher und harte, verdorrte Gräser die Landschaft bedeckten. Die Straße, die einst ein stabiler Handelsweg war, verwandelte sich in einen sandigen Pfad. Das war nicht mehr Samlan. Das war der Vorhof von An’Suin.
+
+Der letzte Grenzposten bestand aus einem einfachen Holzgebäude, einem Brunnen und einem kleinen Lagerhaus. Die Wachen waren entspannt, aber wortkarg. Sie warfen der Kutsche misstrauische Blicke zu, hielten die Gruppe jedoch nicht lange auf.
+
+Als sie die Grenze offiziell überquerten, lag die Wüste vor ihnen – eine endlose Weite aus goldenem Sand, der sich in der Hitze flimmernd bis zum Horizont erstreckte.
+
+
+# Die Heldin von Demirantha_38
+
+## Eine neue Herausforderung: Die Wüste von An’Suin
+»Ich hasse das jetzt schon«, murmelte Kalem und schob sich sein Halstuch über die Nase, um sich vor dem aufkommenden Staub zu schützen.
+
+Die Gruppe hielt an einem kleinen Handelsposten am Rand der Wüste. Es war mehr eine lose Ansammlung von Zelten und Lehmhütten als eine richtige Siedlung, aber hier versorgten sich Reisende, die sich in die Wüste wagten.
+
+Schnell wurde klar: Eine Durchquerung der Wüste auf eigene Faust war unmöglich.
+
+»Ihr wollt allein durch An’Suin?« Der Karawanenführer, ein wettergegerbter Mann mit tiefen Falten und einer Stimme wie trockener Wind, sah Marina an, als hätte sie vorgeschlagen, barfuß in ein Feuer zu laufen. »Das ist Selbstmord. Ihr werdet keine zwei Tage überleben.«
+
+»Dann brauchen wir eine Karawane«, sagte Marina ruhig.
+
+Der Mann verzog das Gesicht. »Die Karawanen ziehen nicht umsonst. Und selbst wenn ihr zahlen könnt – ihr könnt keine Kutsche mitnehmen. Die Räder werden im Sand versinken, die Pferde werden verdursten.«
+
+Marina seufzte. Sie hatte es bereits geahnt.
+
+»Was also tun?«, fragte Jomar.
+
+Der Händler deutete auf eine große Gruppe von Händlern und Kameltreibern, die sich weiter hinten unter einer schattigen Plane versammelt hatten. »Dort ist eine Karawane, die sich morgen früh auf den Weg macht. Sie wird euch zur Grenze bringen.«
+
+»Zur Schattensphäre?«, fragte Kata.
+
+Der Mann zuckte kurz zusammen, als hätte Kata etwas Obszönes gesagt. »Wenn das euer Ziel ist dann ja. Ihr solltet aber lieber in Den'Suin bleiben. Das ist das eigentliche Ziel der Karawane.« Er sah Kata kopfschüttelnd an. 
+
+»Der einzige sichere Weg durch die Wüste führt dorthin. Ihr geht entweder mit oder bleibt hier.«
+
+ 
+
+*
+
+ 
+
+Die Händler wussten genau, dass die Fremden keine Wahl hatten. Pferde und Kutschen waren in der Wüste nutzlos, also boten sie extrem niedrige Preise.
+
+Ein hagerer Mann mit einem dünnen, ungepflegten Bart rieb sich das Kinn, während er die Zügel von Jomars Pferd in die Hand nahm.
+
+»Nicht viel wert.«
+
+Marina verschränkte die Arme. »Stimmt nicht.«
+
+Der Händler grinste. »Für euch nicht. Für mich schon.«
+
+Er deutete auf die Kutsche.
+
+»Noch weniger wert.«
+
+Kalem verdrehte die Augen. »Komm schon, Freund. Wir wissen beide, dass du die Pferde und die Kutsche nicht behalten wirst. Du bringst sie zurück nach Samlan, verkaufst sie dort und verdienst das Doppelte.«
+
+Der Händler tat, als hätte er das nicht gehört.
+
+»Ich gebe ein Gold.«
+
+»Drei«, sagte Marina sofort.
+
+Der Händler riss die Augen auf, als hätte er soeben die lächerlichste Forderung seines Lebens gehört.
+
+»Drei? Dafür bekomme ich dann aber auch noch das Mädchen und die Frau.«
+
+Das Feilschen dauerte fast eine halbe Stunde. Am Ende bekamen sie ein Goldstück und 70 Silberstücke. Immer noch ein Witz, aber sie hatten keine Wahl.
+
+Kalem nahm das Gold, drehte sich zu den anderen um und murmelte:
+
+»Er macht damit einen Mordsgewinn. Und wir machen uns zum Narren.«
+
+»Willkommen in der Wüste«, sagte Marina trocken.
+
+ 
+
+*
+
+ 
+
+Der Kameltreiber war ein breitschultriger Mann mit dunkler, ausgetrockneter Haut. Er saß vor einem Zelt und kaute langsam auf einem Streifen Trockenfleisch, während er sie mit wachsamen Augen beobachtete.
+
+»Ihr braucht Kamele.« Keine Frage, eine Feststellung.
+
+»Ja«, sagte Marina.
+
+»Fünf«, fügte Kalem hinzu.
+
+Der Mann lachte. »Fünf teuer.«
+
+»Und nötig«, erwiderte Marina.
+
+Am Ende bekamen sie ihre fünf Kamele – drei zum Reiten, zwei für Lasten. Die Tiere stanken, sahen abgemagert aus und warfen ihnen abschätzige Blicke zu.
+
+Kalem tätschelte eines der Kamele und seufzte. »Tja, Schönheit liegt wohl im Auge des Betrachters.«
+
+Das Kamel fletschte die braunfleckigen Zähne und versuchte nach ihm zu schnappen.
+
+»Ich hab dich auch lieb«, sagte Kalem trocken.
+
+Sie begaben sich zur Karawanserei. Dort wartete Amchet bereits auf sie.
+
+Er war ein drahtiger Mann mit ausgedörrter Haut und tiefen Falten im Gesicht. Seine Augen waren scharf wie die einer Raubkatze, seine Bewegungen ruhig und kontrolliert. Er trug eine weiße Tunika und einen losen Turban, der sein Gesicht teilweise vor der Hitze schützte.
+
+Als sie sich in einem schattigen Zelt versammelt hatten, musterte er sie ausdruckslos.
+
+»Ihr Wüstenanfänger. Ihr hört mir zu.«
+
+»Wir hören«, sagte Marina.
+
+Amchet nickte zufrieden.
+
+»Wüste tötet, wenn nicht hört. Also hört. Ihr macht, was ich sage, wann ich sage.«
+
+Kalem grinste schief. »Wie bei Marina.«
+
+Marina ignorierte ihn.
+
+Amchet deutete mit einer knappen Handbewegung auf eine Reihe von kleinen Ledergefäßen.
+
+»Dort rein pinkeln.«
+
+Kata verzog angewidert das Gesicht. »Wofür?«
+
+»Wasser machen.«
+
+Jomar räusperte sich. »Und … wie genau?«
+
+Amchet hob nur eine Augenbraue.
+
+»Nein«, sagte Kalem entschieden. »Ich will es nicht wissen.«
+
+»Gute Antwort«, lobte Amchet.
+
+Er holte einen Wasserschlauch hervor.
+
+»Einmal am Tag. Nicht mehr.«
+
+»Und wenn jemand mehr braucht?«, fragte Kata.
+
+Amchet sah sie an, als hätte sie gefragt, ob sie Feuer trinken könnte.
+
+»Dann stirbt.«
+
+Ein unangenehmes Schweigen folgte.
+
+»Gut, dass ich nicht viel trinke«, murmelte Kalem.
+
+»Gut für dich«, erwiderte Amchet.
+
+Er machte eine kurze Pause und sah die Gruppe nacheinander an.
+
+»Kreaturen im Sand. Wer sich entfernt, stirbt.«
+
+»Entfernt?«, fragte Jaad.
+
+»Wer zu schamhaft. Will nicht vor anderen scheißen. Läuft weg. Stirbt.«
+
+Kalem rieb sich nachdenklich das Kinn. »Ich finde, das sollte das offizielle Motto dieser Reise werden: Wer wegläuft, stirbt.«
+
+Amchet ignorierte ihn.
+
+»Wer hört, meldet. Wer sieht, meldet. Wer riecht …?«. Er ließ den Satz unvollendet, wartete aber darauf, dass jemand ihn beendete.
+
+»Meldet«, murmelte Jomar.
+
+Amchet nickte.
+
+»Verdammt!«, sagte Kalem. »Die Antwort lag mir auf der Zunge.«
+
+Amchet grinste zum ersten Mal.
+
+»Ihr lernt.«
+
+»Sagt mal – warum sprecht ihr hier eigentlich so abgehackt?«, fragte Kalem freundlich.
+
+Amchet zuckte die Schultern.
+
+»Viel sprechen – viel Sand im Mund.«
+
+Kalem blinzelte. »Das ist euer Grund?«
 
 »Ja.«
 
-»Ich heiße Kotta. Sprich mich nicht an, wenn ich arbeite.« Er nahm einen Happen, kaute langsam. »Du bist klug. Aber du bist zu dünn. Die meisten wie du halten es keine drei Wochen.«
+Kalem schnaubte. »Das ist doch Unsinn. Ihr könntet doch trotzdem ganze Sätze benutzen.«
 
-Acen betrachtete seine eigenen Arme, die im Vergleich zu Kottas Oberschenkeln wie dünne Kabel aussahen. »Ich hab nicht vor, so lange hier zu bleiben«, sagte er.
+»Könnten.«
 
-Kotta lachte, ein tiefes, kehliges Geräusch. »Keiner will das. Manche schaffen's. Die meisten verschwinden.«
+Kalem wartete auf eine Fortsetzung, aber es kam keine.
 
-Er schob seinen halbvollen Teller zu Acen herüber. »Hier. Du brauchst es mehr als ich.« Dann stand er auf und ließ Acen allein.
+»Aha«, sagte er schließlich.
 
-Am dritten Tag fiel Acen auf, wie sehr die Küche von Machtstrukturen bestimmt wurde. Die Position an der Arbeitsfläche, die Nähe zu den seltenen Gewürzen, die Reihenfolge beim Mittagessen – alles hatte seinen Code. Wer zu früh zum Waschbecken ging, wurde gemobbt. Wer zu spät kam, bekam die Reste. Es dauerte nicht lange, bis Acen verstand, dass Kotta, trotz seines Auftretens als einfacher Grobian, so etwas wie ein König der Hilfskräfte war.
+Amchet nickte. »Gute Antwort.«
 
-Einmal beobachtete Acen, wie eine ältere Frau mit silbernen Haaren und faltigem Gesicht einen Sack Reis schleppte. Ihr Atem ging schwer, doch niemand half ihr. Acen trat vor, um anzupacken. Sie sah ihn an, ihr Lächeln war eine Mischung aus Dank und Angst. Als er die Hände an den Sack legte, kam Kotta von hinten und packte ihn am Kragen.
+Amchet verteilte fast lakengroße Kopftücher.
 
-»Das macht sie allein«, sagte Kotta, seine Stimme ein tiefes Brummen. »Das ist ihr Job. Dein Job ist es, deinen eigenen zu machen.« Zu der Frau gewandt, fügte er hinzu: »Weiter, Mutter.«
+»Tragen. Schützt.«
 
-Acen stolperte zurück. Die Frau nickte gehetzt und schob den Sack weiter, als wäre Acens Eingreifen ein gefährlicher Fehler gewesen. In diesem Moment verstand Acen: Hilfe war keine Tugend, sie war ein Verstoß gegen die Ordnung.
+»Ich zeige, wie benutzt.« 
 
-Er sah, dass er beobachtet wurde. Reimann stand am anderen Ende der Küche, die Arme vor der Brust verschränkt. Sein Blick war leer, analytisch, als würde er eine Simulation betrachten. Später am Tag rief er Acen zu sich.
+Mit geübten Bewegungen schlang er ein Tuch um Jaads Kopf.
 
-»Du bist schneller als die meisten hier«, sagte Reimann, als er Acen am Arbeitsplatz musterte. »Und deine Hände sind ruhig. Wo hast du das gelernt?«
+Alle anderen banden sich ihre Kopfbedeckung selbst um – bis auf Kata.
 
-»Mein Großvater«, sagte Acen. »Er hat mir viel beigebracht.«
+»Ich sehe damit albern aus«, sagte sie und warf ihr Tuch in den Sand.
 
-Reimann zog die Augenbrauen zusammen. »Und du glaubst, das reicht, um hier zu überleben?«
+Amchet sah sie an.
 
-»Nein«, antwortete Acen. »Deshalb beobachte ich alles und jeden.«
+»Verbrannte Haut sieht albern aus. Warte nur.«
 
-Das schien Reimann zu gefallen. Er nickte und schob Acen eine neue Aufgabe zu: Filetieren von Meeresfischen, dann Auslösen von Vogelbrüsten. Jeder Schnitt musste sitzen, während der beißende Geruch von Blut und kaltem Fleisch in der Luft lag. Aber Acen fand Rhythmus in der Wiederholung, kalibrierte jeden Schnitt, bis die Bewegungen fast automatisch liefen. Die Naniten halfen, kleine Wunden sofort zu schließen, die Ermüdung im Handgelenk zu kompensieren. Niemand bemerkte es.
+Eine halbe Stunde später saß Kata mit knallrotem Gesicht auf ihrem Kamel, Schweiß lief ihr in die Augen.
 
-Einmal kam Kotta an ihm vorbei, sah auf das sauber getrennte Fischfleisch und grunzte anerkennend. »Du lernst schnell, Frischling.«
+Amchet ritt neben sie.
 
-»Ich muss.«
+»Sonne macht schön, ja?«
 
-»Du wirst es brauchen.« Kotta nahm einen Stapel Tabletts und verschwand.
+Kata verzog das Gesicht.
 
-Abends, in der Kammer neben dem Schlafraum, setzte sich die alte Frau von vorher zu Acen. »Danke, dass du helfen wolltest«, sagte sie leise. »Hier macht das keiner.« Ihr Name war Sae, sie war schon seit vier Jahren auf der Sonnenfresser, hatte drei Küchenchefs überlebt und zählte zu den Veteranen. »Achte auf deinen Rücken«, sagte sie noch, dann stand sie auf und verschwand.
+»Halt die Klappe«, murmelte sie und zog sich ihr Tuch über den Kopf.
 
-Acen verstand den Hinweis erst, als er am nächsten Morgen zwei der bulligen Gehilfen in der Waschküche auf ihn warten sah. Sie trugen keine Namen, nur Nummern auf den Kitteln: 19 und 23. Sie kamen von hinten. Der eine packte ihn an den Schultern, der andere schlug ihm mit der Kante einer Metallschaufel gegen das Schienbein. Acen stürzte, sein Kinn schlug auf den nassen Boden, und er spürte, wie sich seine Lippe aufplatzte und Blut in seinen Mund lief.
+ 
 
-»Du bist zu schnell«, raunte 19 ihm ins Ohr. »Wenn du so weitermachst, sehen wir anderen alt aus.«
+*
 
-Acen versuchte sich aufzurappeln, doch 23 trat ihm gegen die Rippen. Es war ein sauberer, gut gesetzter Tritt. Einer, der signalisierte: Wir können mehr, wenn du nicht spurst.
+ 
 
-Als sie losließen, sackte Acen zusammen, die Welt verschwamm. Er wartete, bis die Schritte verklungen waren, dann tastete er mit der Zunge über die aufgeschürfte Lippe und stand mühsam auf. 
+Die Karawane zog sich wie eine lose Perlenkette durch die endlose Weite der Wüste. Fünf Gruppen, insgesamt etwa sechzig Demiranther, bewegten sich im gleichmäßigen Rhythmus voran, Schritt für Schritt durch den goldenen Sand. Die ersten Tage vergingen ohne besondere Zwischenfälle, aber das bedeutete nicht, dass es einfach war.
 
-Zurück in der Küche ignorierte Reimann den blutigen Fleck am Hemd. Er sagte nur: »Wenn du hier bestehen willst, lern, dich zu verteidigen. Oder mach Fehler wie Ferris und arbeite, bis du umfällst.«
+Die Luft flirrte unter der gleißenden Sonne, sie atmete sich wie Sirup – wie kochend heißer Sirup. Hitze stieg in flimmernden Wellen vom Boden auf und verzerrte die Welt. Der Himmel spannte sich wolkenlos über ihnen, eine unbarmherzige Kuppel aus gleißendem Blau, die mit jedem Tag ferner zu werden schien. Kein Schatten, nirgends. Nur Sand, der sich in sanften Dünen und trockenen, rissigen Ebenen erstreckte. Der Wind war kaum mehr als ein Hauch, aber wenn er blies, brachte er nichts als trockene, feine Körner, die sich in jede Ritze setzten – in die Kleidung, in den Mund, zwischen die Zähne.
 
-Acen presste die Lippen zusammen. Er hatte verstanden.
+Amchet führte die Karawane mit stoischer Ruhe. Er ritt immer vorne, das Gesicht unter seinem Turban verborgen, die Augen schmal gegen das Sonnenlicht. Wenn er sprach, dann kurz und direkt, ohne überflüssige Worte. Wann gerastet wurde, wann weitergezogen, wo Wasser zu finden war – all das entschied er mit einer Sicherheit, die keine Widerworte duldete. Seine Bediensteten, vier Männer und zwei Frauen, hielten sich stets in seiner Nähe auf. Sie kümmerten sich um die Kamele, hielten die Gruppen zusammen und hatten immer ein Auge auf den Horizont.
 
-Die Machtstrukturen waren klar: ganz oben Reimann, darunter die festen Köche, dann die Gehilfen, ganz unten die Hilfsarbeiter und der Abfall. Loyalitäten waren instabil, es wurde intrigiert, aber alles unter der Oberfläche. Jeder Test, jede Demütigung, jedes Lob diente dazu, die Gruppe zu sortieren.
+Marina war sich sicher, zu viel für die Passage gezahlt zu haben, denn ihre Gruppe führte hinter Amchet die Gruppen an. Die Händler in der Gruppe hinter ihnen hatte lautstark protestiert, als Amchet ihnen den Platz hinter Marinas Gruppe zugewiesen hatte.
 
-Am Ende der zweiten Woche hatte Acen einen Status: Kotta ließ ihn in Ruhe, Ferris hielt sich an ihn, und selbst Sae nickte ihm zu, wenn sie sich sahen. Die bulligen Gehilfen ignorierten ihn, was ein Zeichen von Anerkennung war.
+Hinter den Händlern lief eine Gruppe von Pilgern aus Lakan, die in einer Stadt am Rande der Wüste einen alten Tempel besuchen wollten. Sie waren Anhänger des Gottes Orfel. Sie trugen schlichte, sandfarbene Gewänder, hielten sich meist im Hintergrund und murmelten ständig leise Gebete. Ihre Anführerin war eine hagere, schweigsame Frau mit tiefen Falten im Gesicht, die jedem, der zu lange hinblickte, das Gefühl gab, sie könnte in seine Seele sehen. 
 
-Nur Reimann blieb undurchdringlich wie eine Wand: Er beobachtete, testete, stellte Aufgaben, die Acen kaum schaffen konnte. Am liebsten gab er ihm Arbeit, die für zwei gemacht war, und notierte sich jeden Fehler. Aber manchmal, wenn Acen glaubte, alles falsch zu machen, sah er einen Moment Respekt in Reimanns Blick.
+Die Gruppen dahinter hatten bislang nicht damit herausgerückt, was sie zu dieser gefährlichen Reise bewogen hatte. Nicht ein Mal Kalems Charme hatte sie zum reden gebracht.
 
-Die Nachtstunden waren still, nur das rhythmische Atmen der Erschöpften durchbrach die Dunkelheit. Acen wartete, bis der letzte Schatten zur Ruhe gekommen war, dann glitt er lautlos zwischen den Schlafkojen hindurch zum verborgenen Durchgang des Lagerraums. Dort, im schwachen Licht, überprüfte er die Vorräte und scannte die Umgebung nach versteckten Sensoren. Er fand keine. Stattdessen fand er eine kleine, unscheinbare Luke an der Rückwand. Sie war mit einem einfachen Magnetverschluss gesichert. Dahinter führte ein schmaler Gang nach oben. Die Luft war trocken, es roch nach Staub und Schaltkreisen. Acen merkte sich den Weg, schloss die Luke und kehrte zurück ins Schlafquartier.
+Am dritten Tag, als die Karawane eine karge Hochebene durchquerte, zog ein unnatürliches Knurren durch die Luft. Ein dumpfes, grollendes Geräusch, das unter der Haut vibrierte.
 
-Er hatte gelernt: Überleben bedeutete hier mehr als nur Kraft oder Gehorsam. Es war das Erkennen der kleinsten Veränderungen, das schnelle Anpassen an neue Regeln, das heimliche Sichern von Vorteilen.
+Amchet hielt sein Kamel an und hob die Hand. Sofort verstummte die Karawane.
 
-Reimann rief ihn am nächsten Tag in sein Büro. Die Wände waren nackt, nur ein Display, das Nährwerttabellen und Produktionspläne anzeigte. Reimann schloss die Tür, lehnte sich gegen seinen Tisch und musterte Acen mit zusammengekniffenen Augen.
+»Still«, sagte er nur.
 
-»Deine Schnitte gestern. Perfekt. Zu perfekt. Und deine Hand hat nicht einmal gezittert, obwohl du zwölf Stunden gearbeitet hast.« Er tippte auf eine Stelle an Acens Unterarm. »Der Schnitt, den du dir letzte Woche zugezogen hast – keine Narbe. Nicht mal ein roter Streifen.« Reimann beugte sich vor. »Und als Kotta die Kiste fallen ließ – du bist zur Seite gesprungen, bevor sie kippte.«
+Dann sahen sie es.
 
-Acen schwieg.
+Aus einer Senke tauchte eine Kreatur auf, die sich langsam auf die Karawane zubewegte. Es war etwa so groß wie ein Ochse, aber sein Körper war breiter, gedrungener. Sein Rücken war mit borstigem, aschgrauem Fell bedeckt, seine langen, dürren Beine wirkten unproportional zu seinem massigen Körper. Aber das Verstörendste war: Es hatte keinen Kopf.
 
-»Hör zu, Alvaro. Wenn du weitermachen willst, lern besser zu lügen. Zeig Erschöpfung. Mach absichtlich Fehler. Du hast Fähigkeiten, von denen niemand erfahren sollte. Du wärst nicht der Erste, der als eine Gefahr eingestuft wurde. Und das würde deinen Tod bedeuten.«
+Stattdessen ragte aus seinem Nacken ein pulsierender Wulst aus Muskeln und Sehnen, der sich unnatürlich bewegte, wie ein Tentakel, so als würde er nach etwas suchen.
 
-Die Warnung brannte sich in Acens Gedanken ein. Er wusste, Reimann hatte recht. Doch wieso meldete Reimann ihn nicht, wo er doch offensichtlich mitbekommen hatte, dass Acen über besondere Fähigkeiten verfügte? Wahrscheinlich hatte er einen recht pragmatischen Grund: Acen war nützlich für ihn. 
+Die Kamele schnauften nervös, einige tänzelten unruhig auf der Stelle.
+
+Amchet gab ein kurzes, scharfes Zeichen. Sofort griffen seine Männer zu ihren Speeren.
+
+»Waffe ziehen«, befahl er knapp.
+
+Die Kreatur blieb abrupt stehen. Dann, mit einer schockierenden Geschwindigkeit, sprang sie nach vorne.
+
+Ein Speer flog durch die Luft und traf sie an der Seite. Ein Zweiter folgte, dann ein dritter. Das Ding stolperte, knurrte – oder versuchte es zumindest. Ein Zucken ging durch seinen Körper, dann fiel es in den Sand, seine Beine zuckten noch kurz, bevor es sich nicht mehr bewegte.
+
+Amchet trat näher, stieß es mit seinem Speer an.
+
+»Wüste gibt viele Dinge«, sagte er. Dann zuckte er mit den Schultern. »Wenige gut.«
+
+Kalem pfiff durch die Zähne.
+
+»Wirklich inspirierende Worte.«
+
+Amchet ignorierte ihn und bedeutete der Karawane, weiterzuziehen.
+
+Jomar drehte sich noch einmal um, bevor sie weiterzogen.
+
+»Was war das?«, fragte er leise.
+
+Jaad sah ihm in die Augen.
+
+»Ich weiß es nicht«, sagte sie. 
+
+ 
 
 
-In der Nacht träumte er von seinem Großvater. Von den Simulationen, in denen er immer wieder verlor, bis er lernte, nicht zu kämpfen, sondern zu denken. Das nächste Mal, wenn die bulligen Gehilfen auf ihn warteten, lachte er sie an. »Ihr müsst euch mehr anstrengen«, sagte er, und als sie zuschlugen, ließ er die Naniten kurz den Schmerz blockieren. Er blieb stehen. Sie sahen sich an, begriffen, dass sie verloren hatten, und gingen.
+# Die Heldin von Demirantha_39
 
-Acen hielt sich zurück. Er sprach wenig, arbeitete präzise und reagierte auf Provokationen nur mit einem kalten Blick. Die anderen spürten seine Entschlossenheit und ließen ihn zunehmend in Ruhe. So wurde er in der Küche jemand, den man respektierte, aber nicht herausforderte.
+## Der Sturm
+ 
 
-Die Palastküche war ein eigenes Universum, mit eigenen Gesetzen und Ritualen. Wer überleben wollte, musste lernen, ihre ungeschriebenen Regeln zu verstehen, ihre Rhythmen zu spüren und ihre Hierarchien zu erkennen. Acen tat das. Und während er die ersten Stufen erklomm, wusste er, dass dies erst der Anfang war.
+Amchet hob abrupt die Hand.
+
+Die Karawane kam zum Stehen. Keine Befehle, kein Rufen – nur diese eine Geste, und alle hielten inne. Amchet stand regungslos auf der Kuppe einer Sanddüne, den Blick auf den Horizont gerichtet.
+
+»Was ist los?«, fragte Kalem.
+
+Amchet antwortete nicht sofort. Sein Gesicht wirkte wie in Stein gemeißelt, seine dunklen Augen starrten ins Nichts. Dann drehte er sich um, zog das Tuch vor seinen Mund und rief in die Karawane: »Stopp! Sturmzelte aufbauen! Kamele entladen! Nicht festbinden!«
+
+Die Einheimischen zögerten keine Sekunde. Binnen Augenblicken war hektische Bewegung im Tross, Säcke und Kisten wurden von den Kamelen geworfen, Leinwand aufgerissen.
+
+»Nicht festbinden?« wiederholte Kalem. »Laufen die dann nicht weg?«
+
+Amchet nickte. »Tun sie. Aber kommen wieder. Hier Wasser.«
+
+Kalem runzelte die Stirn. »Was soll das heißen?«
+
+Jaad trat neben sie, verschränkte die Arme und taxierte den Horizont. »Ich sehe nichts. Es ist vollkommen ruhig.«
+
+Amchet zog nur eine Augenbraue hoch. Er beugte sich nach unten und nimmt etwas Sand in seine Hand. Er ließ ihn durch seine Finger rieseln. Er fiel nicht, wie Jaad es erwartet hatte, senkrecht auf den Boden, sondern wehte leicht zur Seite. Amchet deutete auf die feinen Sandwirbel, die über die Dünen huschten. Tatsächlich hatte Jaad sie übersehen.
+
+Es begann mit einer Bewegung am Horizont. Eine kaum wahrnehmbare Unruhe im endlosen Sand. Dann zogen dünne, geisterhafte Linien über den Himmel. Der Wind kam in Böen, erst sanft, dann mit einem Hauch von Gewalt.
+
+Die Luft änderte sich. Sie wurde schwer, geladen. Im Sand regte sich etwas, und er wurde von den Böen aufgewirbelt. Dann kam das Geräusch – ein fernes, tiefes Grollen, das wie ein lebendiges Wesen aus der Wüste aufstieg.
+
+Die ersten feinen Körner peitschten über die Haut.
+
+Amchet kam zu Jaad und Jomar hinüber und warf ihnen einen Packen Zeltbahnen vor die Füße. »Aufstellen! Schnell! Und rein!« Schon war er wieder weg.
+
+»Das ist doch kein Zelt!«, rief Kata frustriert. »Das ist ein verdammtes Stück Stoff mit Seilen dran!«
+
+Jomar hielt die ledrigen Zeltbahnen in den Händen und starrte ratlos darauf. Kata stand neben ihm, den Stoff schon halb entfaltet, während der Wind immer stärker wurde und den Sand in dichten Schleiern durch das Lager peitschte.
+
+Ringsum waren die anderen Reisenden bereits in ihren Zelten verschwunden. Die erfahrenen Wüstenbewohner hatten ihre Notunterkünfte in Windeseile errichtet und sich längst in Sicherheit gebracht. Niemand kam ihnen zu Hilfe, niemand rief Anweisungen. Sie waren auf sich allein gestellt.
+
+»Muss wohl so sein«, brummte Jomar, während er versuchte, eine Ecke festzuhalten. Der Wind riss daran, als wollte er verhindern, dass sie heute Nacht Schutz fanden.
+
+»Und wie soll das aufrecht bleiben?«
+
+»Keine Ahnung. Vielleicht legen wir uns einfach drunter und hoffen, dass es nicht wegfliegt?«
+
+Eine Sandböe fegte das halb fertige Zelt aus Jomars Händen. Fluchend sprang er hinterher, stolperte über Katas ausgestrecktes Bein und landete der Länge nach im Sand.
+
+»Großartig!«, schrie Kata gegen den Wind. »Wirklich beeindruckend, Jomar!«
+
+Er spuckte Sand aus und rappelte sich wieder auf. »Halt einfach die Ecken fest! Wir brauchen Steine oder irgendwas Schweres!«
+
+Der Winde wehte immer stärker. 
+
+Kata griff nach den Seilen, hielt sie mit aller Kraft, während Jomar hektisch im aufgewühlten Sand wühlte und nach allem suchte, was schwer genug war. Die Böen ließen kaum etwas liegen, was nicht festgebunden oder vergraben war.
+
+»Keiner hilft uns«, knurrte Kata, ihre Stimme voller Groll. »Die sitzen alle schon warm und trocken in ihren Zelten!«
+
+»Hättest du Amchet mal gefragt, wie das funktioniert!«, gab Jomar zurück.
+
+»Ich dachte, es wäre selbsterklärend! Es ist ein Zelt, verdammt noch mal!«
+
+Er fand ein paar dicke Steine und warf sie auf die Ränder der Plane. Der Wind zerrte immer noch an ihnen, aber das Zelt flachte sich langsam ab, so wie es wohl gedacht war.
+
+»Rein! Jetzt!«, rief Kata.
+
+Sie schlüpfte als Erste unter die flatternde Plane, Jomar folgte ihr hastig. Er zog die letzten Seile ins Innere, klemmte sich einen unter den Rücken, um das Zelt halbwegs in Position zu halten.
+
+Draußen heulte der Wind wie ein wildes Tier. Sand prasselte auf das Zelt, drang durch die kleinsten Ritzen und legte sich wie eine zweite Haut auf ihre Gesichter.
+
+»Ich hasse die Wüste«, murmelte Kata und versuchte vergeblich, sich die Sandkörner aus den Augen zu reiben.
+
+Jomar zog das Tuch über seinen Mund und seufzte erschöpft. »Wenigstens fliegen wir nicht mehr durch die Gegend.«
+
+»Noch nicht«, korrigierte Kata und klammerte sich an das Seil. »Wenn das Ding hier wegfliegt, sterben wir.«
+
+Jomar wollte widersprechen, doch dann rüttelte eine heftige Böe an ihrer notdürftigen Behausung. Für einen Moment fühlte es sich an, als würde das ganze Zelt abheben.
+
+Er schluckte. »Okay. Leg dich flach auf den Bauch.«
+
+Und dann wurde die Welt verschlungen.
+
+Das Zelt bebte und ächzte unter der Last des Windes. Sand peitschte durch jede Ritze, feine Körner drangen in Haare, Augen, Kleidung. Die Luft war trocken, kratzig, voller Staub.
+
+Das Geräusch war das Schlimmste.
+
+Ein endloses, heulendes Tosen. Es war nicht nur Wind – es war ein hungriges Wesen, das mit tausend Stimmen schrie. Es drang in die Knochen, ließ sie vibrieren, als würde die Wüste selbst ihren Zorn hinausschreien.
+
+Kata und Jomar saßen eng zusammengekauert auf dem Boden. Jomar hatte seine Arme um seine Knie geschlungen, Kata presste die Hände gegen ihre Ohren. Doch es half nichts.
+
+Sand kroch in alles. In die Nasen, den Mund, die Ohren. Es fühlte sich an, als würde der Sturm sie lebendig begraben.
+
+Kata konnte nicht atmen.
+
+Nicht weil der Sauerstoff fehlte, sondern weil die Enge des Zeltes sie in Panik versetzte. Der Stoff war zu nah, der Wind zu laut, der Sand zu allgegenwärtig.
+
+Kata keuchte. Der Sand war überall. In ihrem Mund, in ihrer Nase, in ihren Ohren. Die stickige Luft unter der Plane drückte auf ihre Brust, als würde das Zelt langsam auf sie herabsinken.
+
+Ich muss hier raus, dachte sie. Ich ersticke.
+
+Sie ruderte mit den Armen, versuchte, sich aufzurichten. Ihre Hände tasteten hektisch nach der Luke, nach irgendeinem Ausweg. Der Stoff fühlte sich an wie eine Wand. Kein Eingang, kein Ausgang. Nur Dunkelheit, Enge und das unaufhörliche Dröhnen des Sturms.
+
+»Kata! Hör auf!«, rief Jomar.
+
+Doch sie hörte nicht. Sie krallte sich an den Rändern der Luke fest, zerrte daran, doch der Wind presste sie unerbittlich nach unten.
+
+»Lass mich raus!«, schrie sie.
+
+Jomar packte sie an den Schultern und riss sie zurück. Sie schlug nach ihm, traf ihn am Arm, versuchte sich loszureißen. Doch er ließ nicht locker.
+
+»Du kannst nicht raus! Draußen stirbst du!«, rief er laut genug, um zu ihr durchzudringen.
+
+Sie kämpfte. Tränen mischten sich mit Sand, liefen über ihre Wangen. Ihr Atem kam stoßweise, viel zu schnell, viel zu flach. Sie zerrte, schlug, wand sich – doch Jomar ließ sie nicht los.
+
+Schließlich schlang er die Arme fest um sie, zog sie an sich, presste ihren zitternden Körper gegen seinen.
+
+»Beruhige dich«, befahl er. Seine Stimme war leise, aber bestimmt. »Atme. Tief ein, tief aus.«
+
+Sie schluchzte, riss an seinen Armen, doch er hielt sie nur noch fester.
+
+»Atme, Kata!«, sagte er wieder. »Ein und aus.«
+
+Sie gehorchte.
+
+Langsam, ganz langsam, ließ die Panik nach. Die Enge war noch da, der Sturm rüttelte weiter am Zelt, doch Jomar hielt sie fest, sicher, unerschütterlich.
+
+Ihr Atem wurde ruhiger. Ihre Hände, die eben noch ihn sein Hemd gekrallt, lockerten sich.
+
+Sie war erschöpft.
+
+Und obwohl die Panik vorbei war, blieb sie in Jomars Umarmung.
+
+Alles, was blieb, war das Beben des Stoffs über ihnen, das schrille Kreischen des Sandes und das Gefühl, dass dies nie enden würde.
+
+Und dann wurde das Kreischen leiser.
+
+Es war Amchet, der zuerst aus dem Sand auftauchte.
+
+»Alle Raus. Sturm vorbei!«
+
+Die Karawane grub sich langsam aus. Manche Notfallzelte waren komplett unter Sand begraben, doch die Menschen darin lebten.
+
+Jomar kroch aus dem Zelt und blinzelte in die gleißende Sonne. Sie brannte gnadenlos vom Himmel. Er hustete Sand aus der Kehle, spuckte trocken aus.
+
+Hinter ihm trat Kata aus dem Schatten, ihr Haar und ihre Kleidung mit einer dicken Sandschicht überzogen.
+
+»Heilige Scheiße«, krächzte Kalem, der aus seinem eigenen Zelt kroch.
+
+Marina kroch hinter Kalem aus dem Zelt, richtete sich auf und versuchte, ihre Würde zu bewahren.
+
+»Es war mir eine Ehre, mit euch gemeinsam dem sicheren Tod ins Auge geblickt zu haben, Generalin«, sagte Kalem in salbungsvollen Ton. Wie meist ignorierte Marina Kalems Einwurf.
+
+Jaad tauchte auf, hustete und klopfte sich den Sand aus der Kleidung. »Das war das Schlimmste, was ich je erlebt habe.«
+
+»Nein.« Amchet klopfte sich den Sand aus dem Gesicht. »Das war nur kleiner Sturm.«
+
+Kalem musterte ihn mit todernster Miene. »Amchet …« Er räusperte sich. »Ich hasse dich.«
+
+Eine Stunde später kamen die ersten Kamele zurück.
+
+Eines nach dem anderen tauchten sie aus den Dünen auf, scheinbar unbeeindruckt vom Inferno, das über die Karawane hinweggefegt war.
+
+»Siehst du«, sagte Amchet trocken. »Hier Wasser«. Er hob einen Wasserschlauch in die Höhe.
+
+Kalem schüttelte den Kopf. »Ich nehme alles zurück. Ich liebe dich.«
+
+Doch die Vorräte hatten gelitten. Überall im Sand lagen verstreute Kisten, Säcke, halb begrabene Wasserbehälter. Es dauerte Stunden, bis sie alles zusammengesucht hatten. Nicht alles konnte gerettet werden. Manches war für immer unter dem Sand begraben.
+
+Aber sie hatten überlebt.
+
+Kata stand schweigend neben Jomar, während die Gruppe ihre Ausrüstung wieder ordnete.
+
+Ihr Blick wanderte zu ihm.
+
+Dann nahm sie seine Hand – ohne zu zögern.
+
+Jomar erwiderte den Druck. Keine Worte. Kein Kommentar.
+
+Einfach nur da sein.
+
+Und dann gingen sie weiter.
+
+
+# Die Heldin von Demirantha_40
+
+## Der Angriff der Khesh’Tar
+Amchet stand regungslos auf dem Kamm der Düne. Die Finger umklammerten den Schaft seines Speers, die Augen starr auf den Horizont gerichtet. Ein Zittern durchlief den Sand, kaum wahrnehmbar, aber unaufhörlich.
+
+»Jetzt sterben wir alle«, sagte er tonlos.
+
+Kalem verzog das Gesicht. »Na, das sind ja mal aufbauende Worte.«
+
+»Was ist das?«, fragte Kata und zog ihren Dolch.
+
+Amchet deutete auf die tanzenden Sandwirbel in der Ferne. Die Erde bebte in schneller, unregelmäßiger Folge, als würde sich etwas Lebendiges darunter hindurchwühlen.
+
+»Khesh’tar«, murmelte er. »Sie existieren in Geschichten, nicht in der Wirklichkeit. Niemand, der ihnen begegnet ist, hat je überlebt.«
+
+»Na großartig«, brummte Kalem. »Plötzlich kannst du flüssig sprechen.«
+
+»Weil Sand im Mund nicht mehr unser größtes Problem ist.«
+
+Kalem, der neben dem Karawanenführer stand, klopfte ihm auf die Schulter. »Noch sind wir nicht tot.«
+
+»Zusammenstehen! Sofort!«, ertönte Marinas Stimme, scharf und entschlossen.
+
+»Was?«, fragte Amchet verwirrt.
+
+»Die Karawane in einen Kreis! Kamele in die Mitte!«
+
+»Warum?«
+
+»Fragen später, handeln jetzt!«, fauchte Marina.
+
+Amchet zögerte einen Moment, dann gab er den Befehl weiter. Hastig formierte sich die Karawane. Die Reisenden drängten sich zusammen, Kamele wurden in die Mitte gestoßen. Marina hob die Hände, murmelte eine Formel – und ein schimmernder, durchsichtiger Schild wölbte sich über sie.
+
+Amchet riss die Augen auf. »Ihr seid Zauberer.«
+
+»Und du wirst erleben, wie Zauberer kämpfen«, sagte Marina ruhig.
+
+Plötzlich brachen sie aus dem Sand hervor. Flache Körper, schuppenbedeckt, ihre Köpfe eine Fratze aus Zähnen und gierigen Augen. Sie bewegten sich blitzschnell, schossen aus dem Boden und tauchten ebenso rasch wieder ab.
+
+»Sie wühlen sich durch den Sand!«, rief Kata.
+
+»Das macht es kompliziert«, knurrte Jomar und feuerte einen glühenden Feuerball in den Boden. Sand explodierte in alle Richtungen, und eine der Kreaturen wurde kreischend aus ihrem Tunnel geschleudert. Ein gezielter Hieb trennte ihren Kopf vom Leib.
+
+»Rechts, Kalem!«, rief Kata.
+
+Kalem wirbelte herum, wich einem heranschnellenden Maul aus und ließ seine Klingen tanzen. Blut spritzte in den Sand.
+
+Kata spürte die Tiere. Sie waren keine hirnlosen Monster – sie jagten mit Instinkt. Sie konnte ihre Bewegungen unter der Erde erahnen, spüren, wo sie als Nächstes auftauchen würden.
+
+»Jomar, hinter dir!«
+
+Jomar reagierte sofort. Ein weiterer Feuerball, eine Explosion, ein markerschütternder Schrei. Der verbrannte Kadaver einer Bestie landete schwer im Sand.
+
+Jaad rannte zu Kalem und legte ihm eine Hand auf die Stirn. Er verstand. Verführungsmagie. Er nickte knapp und ließ es zu. Sie nahm ihm die Angst, ließ seinen Geist klar werden. Mit erhobenen Messern stürzte er sich in den Kampf.
+
+Doch dann geschah es.
+
+Jaad, nun bewaffnet mit einem Speer, war zu langsam. Ein Khesh’Tar brach direkt vor ihr aus dem Boden. Sie stolperte, fiel. Das Biest schnellte auf sie zu – eine tödliche Sekunde.
+
+Und dann war Kata da.
+
+Ein Luftzug, ein Flackern der Realität – Kata war fort. Nur um einen Augenblick später direkt vor dem Khesh’Tar aufzutauchen. Ihr Dolch glitt durch dessen Hals, ließ schwarzes Blut auf den Sand tropfen.
+
+Jaad keuchte. Starrte Kata an.
+
+»Steh auf«, sagte Kata und reichte ihr die Hand.
+
+Jaad ergriff sie, rappelte sich hoch. »Ich schulde dir was.«
+
+»Gern geschehen.«
+
+Doch es gab keine Zeit für Dankbarkeit. Der Kampf tobte weiter. Marinas Schutzzauber hielt den meisten Angriffen stand, aber einige Kreaturen gruben sich unter den magischen Schild hindurch. Die Menschen kreischten, doch jedes Mal war Marina da – ein Blitzschlag, ein verbranntes Monster. Ihre Hände zitterten nicht einmal.
+
+Jomar ließ die Luft flimmern mit seinen Feuerbällen. Kalem schnitt sich durch die Gegner wie ein Tänzer. Amchets Männer hielten die Linie. Zwei von ihnen fielen – lebten aber noch.
+
+Die Khesh’Tar waren wild. Sie waren schnell. Sie waren tödlich.
+
+Aber sie wurden weniger.
+
+Einer nach dem anderen fiel.
+
+Dann war es vorbei.
+
+Stille.
+
+Jomar ließ sein Schwert sinken. Kalem atmete schwer. Kata wischte sich den Schweiß von der Stirn.
+
+Jaad drehte sich zu ihr – und fiel ihr in die Arme.
+
+»Ich dachte, ich wäre tot«, flüsterte sie.
+
+»Du bist doch viel zu eingebildet, um zu sterben«, murmelte Kata und erwiderte die Umarmung.
+
+Amchet stand zwischen den Leichen, den bluttriefenden Speer noch in der Hand. Sein Blick glitt über das Schlachtfeld.
+
+»Dieser Tag wird nie vergessen werden«, sagte er schließlich. Dann betrachtete er die Gefährten. »Nun sind die Khesh’Tar wirklich nur noch eine Legende. Und ihr werdet es auch sein.«
+
+
+# Die Heldin von Demirantha_41
+
+## Die Oase
+ 
+
+Es war Amchet, der die Karawane zuerst auf die Oase hinwies.
+
+»Dort. Wasser.«
+
+Er deutete auf einen Punkt am Horizont.
+
+Kalem blinzelte in die Richtung, in die der Karawanenführer zeigte.
+
+»Wie immer, wenn du auf etwas in der Wüste zeigst, sehe ich nur Sand.« Er schüttelte den Kopf. »Aber bisher hattest du immer recht, also – überrasche mich.«
+
+Die anderen spähten ebenfalls in die Ferne. Erst war da nur die endlose, flirrende Weite der Wüste. Dann, nach einer Weile, tauchte ein dunkler Streifen auf, ein Schatten am Horizont.
+
+»Ich sehe es«, murmelte Jomar.
+
+»Und ich sehe Mauern«, ergänzte Kata mit gerunzelter Stirn.
+
+Je näher sie kamen, desto deutlicher wurden die Strukturen. Die Oase war kein kleiner Flecken Grün zwischen den Dünen – sie war umschlossen von einer gewaltigen Palastanlage. Hohe, goldene Kuppeln blitzten in der Sonne, umgeben von schlanken Türmen und kunstvollen Arkaden. Die Mauern bestanden aus hellem Stein, glatt und makellos, mit kunstvollen Verzierungen und reliefartigen Mustern.
+
+Amchets Kamel schnaubte. Er wandte sich an Marina.
+
+»Normalerweise kein Einlass. Man kann Wasser kaufen. Sonst nichts.«
+
+»Und diesmal?«, fragte Marina, die seinen Tonfall nicht mochte.
+
+Amchet zögerte. »Diesmal anders. Einladung für euch.«
+
+Alle sahen ihn an.
+
+»Von wem?«, fragte Kalem.
+
+»Von Herrscher.«
+
+»Was für ein ›Herrscher‹?«, knurrte Kalem, langsam genervt von Amchets spärlichen Antworten.
+
+»Von Oase. Von ganz An’Suin: Vashet.«
+
+Eine schwere Stille breitete sich aus.
+
+Marina verschränkte die Arme. »Und woher weißt du von dieser Einladung?«
+
+Amchet richtete seinen Blick nach vorne. »Weiß es.«
+
+Kalem zog eine Augenbraue hoch. »Erhellend.«
+
+Marina ließ den Blick über ihre Gefährten wandern. »Und wenn wir die Einladung ausschlagen?«
+
+»Dann kein Wasser. Wir alle sterben.«
+
+Kata verzog das Gesicht. »Oh, wunderbar. Also sind wir doch in eine Falle gelaufen.«
+
+Amchet wirkte nicht glücklich, als Marina ihn erneut musterte. Er hatte sie wohl notfalls mit Gewalt zwingen wollen, in die Oase zu gehen. Doch er wusste nun, dass dieser Plan gescheitert war. Er hatte Jomar und Marina zaubern sehen.
+
+»Und wenn es eine Falle ist?«, fragte Jaad.
+
+»Dann ist es eine sehr offene«, sagte Jomar nachdenklich. »Wenn dieser Vashet uns schaden wollte, hätte er keinen Grund, uns in seinen Palast zu lassen. Er hätte uns einfach das Wasser verweigern können.«
+
+»Vielleicht will er uns auch einfach in der Illusion wiegen, dass wir sicher sind«, sagte Kata düster.
+
+Marina seufzte. »Fakt ist: Wir haben keine Wahl. Wir müssen rein. Aber wir bleiben wachsam.« Sie winkte Kalem zu sich. 
+
+»Kannst du unsere Goldtruhe irgendwo hier in der Nähe an der Mauer vergraben, ohne dass es jemand mitbekommt?«, sagte sie leise.
+
+»Warum?«, fragte er geradeheraus.
+
+»Weil ich so ein Gefühl habe, unsere Karawane wird ohne uns weiterreisen.«
+
+»Betrachte es als erledigt«, sagte er grinsend.
+
+»Aber merk, dir wo du sie vergraben hast!«
+
+*
+
+Die Flügel des gewaltigen Eingangstores öffneten sich lautlos, als sie sich näherten, als hätte man sie bereits erwartet.
+
+Und dann betraten sie eine andere Welt.
+
+Hinter den Mauern lag eine Stadt. Die Gebäude waren in hellen Farben gestrichen, die Straßen waren sauber gepflastert. Ein langer, von weißen Marmorsäulen flankierter Weg führte zum riesigen Eingangstor des Palastes. Zwischen den Säulen spendeten kunstvoll verzierte Pavillons Schatten. In der Mitte sprudelte ein riesiger Brunnen, das Wasser glitzerte in der Sonne.
+
+Es roch nach Rosenwasser, Zimt und dem schweren Duft von Sandelholz.
+
+»Das ist … beeindruckend«, murmelte Jomar.
+
+»Das ist … nett«, korrigierte Kata.
+
+Kalem lachte leise. »Sag doch einfach, dass du beeindruckt bist.«
+
+Zwischen Palmen und blühenden Sträuchern wandelten Bedienstete in langen Gewändern. Manche trugen Tabletts mit Speisen, andere fächelten mit Pfauenfedern eine leichte Brise durch den Hof. Niemand schien ihre Ankunft überrascht zu haben.
+
+»Das ist eine Falle«, murmelte Kata erneut.
+
+»Wenn ja, ist es eine verdammt luxuriöse«, sagte Kalem.
+
+Zwei Diener in blauen Roben traten vor, verbeugten sich und bedeuteten ihnen, zu folgen.
+
+Die Gänge des Palastes waren ebenso prunkvoll wie der Hof. Die Wände waren mit goldenen Mosaiken verziert, kunstvoll gewebte Wandteppiche hingen zwischen schweren Vorhängen. Der Boden war mit weichen Teppichen ausgelegt, so fein, dass man kaum das Gefühl hatte, überhaupt darauf zu gehen.
+
+Jomar musterte eine der kunstvollen Fresken, die eine Karawane in der Wüste zeigten. »Die haben es gut hier«, murmelte er.
+
+»Ja«, sagte Jaad leise. »Aber warum lassen sie uns hier einfach herumlaufen?«
+
+»Das werden wir gleich herausfinden«, sagte Marina.
+
+Dann erreichten sie den Thronsaal.
+
+Die große Halle öffnete sich vor ihnen. Eine breite Treppe führte in den mit goldenen Verzierungen geschmückten Saal hinab. Große Fenster ließen das Sonnenlicht herein, bunte Glasornamente warfen tanzende Reflexionen auf den Boden.
+
+Auf einem kunstvoll geschnitzten Thron aus dunklem Holz, mit Seide und Gold verziert, saß Vashet.
+
+Er war nicht mehr jung, doch seine Haltung war aufrecht. Seine Haut war von der Sonne gebräunt, sein Bart sorgsam gestutzt. Die Kleidung, die er trug, war schlicht, aber teuer – ein langer Umhang aus blauer Seide, mit goldenen Stickereien an den Rändern.
+
+Als sie näherkamen, lächelte er.
+
+»Willkommen«, sagte er mit warmer, fast freundlicher Stimme. »Meine Freunde. Ich habe euch erwartet.«
+
+Sein Blick ruhte auf jedem von ihnen, aber länger als nötig auf Marina.
+
+Marina verschränkte die Arme und trat einen Schritt nach vorne.
+
+»Das ehrt uns«, sagte sie trocken. »Aber warum?«
+
+Vashet lehnte sich zurück und musterte sie mit amüsiertem Interesse.
+
+»Nun«, sagte er. »Ich glaube, wir haben einiges zu besprechen.«
+
+Erst jetzt fiel es Marina auf.
+
+Sie hatten den gewaltigen Palast betreten, eine Festung voller Wachen und Bediensteter – und doch hatte niemand ihre Waffen abgenommen. Niemand hatte geprüft, ob sie Magier waren.
+
+Marina schielte zu Jaad und Kata. Jaad erwiderte ihren Blick mit demselben unguten Gefühl, das sich in Marinas Magen breitmachte.
+
+Vashet wusste bereits, was sie waren.
+
+Und trotzdem ließ er sie gewähren. War das nun ein gutes oder ein schlechtes Zeichen? 
+
+
+# Die Heldin von Demirantha_42
+
+## Die Audienz
+Marina saß mit geradem Rücken auf dem reich verzierten Kissen, das ihnen als Sitzgelegenheit angeboten worden war. Ihre Gefährten lümmelten sich eher in ihre Sitzgelegenheiten. Der Thronsaal war weitläufig, kühl und in sanftes Licht getaucht, das durch kunstvoll gearbeitete Fenster fiel. Seidene Vorhänge bewegten sich kaum merklich im leichten Luftzug, der durch die hohen Hallen strich. Der Boden bestand aus dunklem, poliertem Stein, in den goldene Ornamente eingelassen waren.
+
+Vashet thronte vor ihnen auf einem erhöhten Podest. Seine Haltung war entspannt, doch in seinen Augen lauerte wachsame Intelligenz. Er hatte die Hände locker auf die Armlehnen seines kunstvoll geschnitzten Thrones gelegt und musterte die Ankömmlinge mit der Ruhe eines Mannes, der es gewohnt war, dass andere in seiner Gegenwart nervös wurden.
+
+Marina richtete ihren Blick auf Kata und verdrehte kaum merklich die Augen in Richtung Vashet. Die Botschaft war klar.
+
+Kata verstand. Sie konzentrierte sich, schloss für einen kurzen Moment die Augen und ließ ihre Gabe arbeiten. Sie tastete nach Vashets Gedanken, versuchte, einen ersten Eindruck seiner wahren Absichten zu gewinnen. Doch kaum hatte sie ihre Magie entfaltet, prallte sie gegen eine unsichtbare Barriere. Es fühlte sich an, als würde sie mit der Hand gegen glatten Marmor schlagen. Kein Zögern, kein Nachgeben. Nur eine unerschütterliche, kalte Abwehr.
+
+Sie öffnete die Augen und schüttelte kaum merklich den Kopf in Richtung Marina. Es hatte nicht funktioniert.
+
+Vashet lächelte sanft. »Ihr seid also Gelehrte auf Weg in die Schattensphäre?« Seine Stimme klang amüsiert. »Das überrascht mich. Zumindest einer von euch ist ein Zauberer. Oder wie lässt es sich sonst erklären, dass soeben jemand von euch versucht hat, in meinen Geist einzudringen?«
+
+Die Gruppe erstarrte.
+
+Kalem hob eine Augenbraue. »Gut zu wissen, dass du auch ohne Spione Informationen sammeln kannst.«
+
+Vashet lachte leise. »Ein alter Mann wie ich muss gewisse Vorkehrungen treffen. Es gibt zu viele Leute, die neugierig sind.« Er beugte sich leicht nach vorne. »Ich glaube, ihr habt andere Pläne in der Schattensphäre. Und wenn ich raten müsste – ein gewisser Altheras hat damit zu tun?«
+
+Die Helden konnten ihre Überraschung nicht verbergen. Kata wusste, dass Vashet ihre Reaktion genau beobachtete, dass er jede kleinste Regung wahrnahm.
+
+Gibt es irgendwas, das dieser Kerl nicht von uns weiß, fragte sich Marina.
+
+»Euer Schweigen bestätigt es«, sagte Vashet gelassen. »Vielleicht solltet ihr also etwas offener sein und mir erklären, was euch wirklich hierherführt.«
+
+Marina sah sich in der Runde um. Sie konnte die Bedenken in den Gesichtern ihrer Gefährten lesen. War es klug, die Wahrheit zu sagen? War dieser Mann ein Verbündeter oder ein Feind?
+
+Doch sie hatte keine Wahl.
+
+»Ja, es geht um Altheras«, sagte sie schließlich. »Wir sind auf dem Weg zur Wurzel der Magie, um ihn aufzuhalten.«
+
+Vashet lehnte sich zurück und musterte sie nachdenklich.
+
+Kata, Jomar und Jaad wechselten verstohlene Blicke. Marina so offen zu hören, war ungewohnt. War das eine bewusste Strategie? Oder ein Risiko?
+
+»Dann wird euch wohl auch klar sein, warum wir ihn aufhalten müssen«, fügte Marina hinzu.
+
+Vashet runzelte die Stirn. »Aufhalten?« Er schüttelte den Kopf. »Ich verstehe nicht. Warum seid ihr als Zauberer so negativ gegenüber Altheras´ Plänen eingestellt? Er will die Magie heilen. Er will uns Zauberer mächtiger machen. Was ist daran schlecht?«
+
+»Weil er dabei ist, etwas zu entfesseln, das niemand kontrollieren kann«, warf Jaad scharf ein.
+
+»Weil er nicht die Magie heilen will, sondern sie brechen«, fügte Kata hinzu.
+
+»Weil er sich selbst für einen Gott hält«, sagte Jomar.
+
+Vashet hob eine Hand, um sie zu bremsen. »Langsam, langsam.« Sein Blick glitt über ihre Gesichter. »Altheras war hier. Vor über einem Jahr. Er blieb lange – mehrere Wochen. Und er erzählte mir von seiner Vision.«
+
+Er ließ eine Pause verstreichen, um ihre Reaktionen zu studieren.
+
+»Er sagte mir auch, dass Zauberer aus Lakan kommen würden, geschickt von Efret, dem Schwarzmagier. Dass sie mich mit Lügen über seine wahren Motive täuschen würden.«
+
+Die Helden wechselten unruhige Blicke.
+
+»Ihr müsst mir verzeihen«, fuhr Vashet fort. »Aber bislang kenne ich nur eine Seite dieser Geschichte – die von Altheras. Also erzählt mir eure Geschichte, damit ich die Möglichkeit habe, selbst abzuwägen, wo der wahre Weg liegt.«
+
+Marina atmete tief durch. Sie hatte erwartet, dass Altheras Lügen verbreitet hatte, aber dies war selbst für ihn eine besonders infame Verdrehung der Wahrheit.
+
+»Efret? Ein Schwarzmagier?« Ihre Stimme war schneidend. »Niemand könnte weiter davon entfernt sein.«
+
+Vashet hob leicht eine Augenbraue, doch er ließ sie ausreden.
+
+»Efret hat sein ganzes Leben damit verbracht, Schwarzmagie zu bannen und jene zu jagen, die sie praktizieren. Wenn er jemals auch nur in die Nähe schwarzer Magie gekommen ist, dann nur, um sie zu studieren, um sie zu verstehen – um sie zu bekämpfen. Und du willst mir erzählen, dass Altheras ihn als Schwarzmagier bezeichnet hat?«
+
+Vashet nickte langsam. »Das hat er.«
+
+Marina ballte die Fäuste. »Natürlich hat er das.« Sie schüttelte den Kopf. »Ich kenne Efret besser als jeder andere. Ich war seine Schülerin, ich war seine Gefährtin. Und ich sage dir: Er ist kein Schwarzmagier. Er ist ein Mann, der mehr für diese Welt getan hat, als Altheras je tun wird.«
+
+Ein leises Murmeln ging durch die Helden. Kata betrachtete Marina nachdenklich. Sie hatte ihre Lehrerin nie so offen über ihre Vergangenheit sprechen hören.
+
+Marina holte tief Luft. »Aber das ist nicht der Punkt. Es geht nicht um Efret. Es geht um Altheras. Und darum, was er vorhat.«
+
+Marina beugte sich vor. »Altheras spricht davon, die Magie zu ›heilen‹. Die Wahrheit ist, dass er an ihrer Wurzel herumreißen will. Schwarze Magie ist bereits gefährlich. Aber das, was Altheras entfesseln will, geht weit darüber hinaus.«
+
+Sie sah Vashet direkt in die Augen. »Wir sprechen hier nicht nur von der Zerstörung einzelner Städte oder Königreiche. Wir sprechen von einer Macht, die die Naturgesetze selbst zerreißen könnte. Raum, Zeit, Leben und Tod – all das könnte durch das, was er tut, ins Chaos gestürzt werden. Wir wissen nicht genau, was passieren wird. Aber wir wissen, dass es keine Zukunft mehr geben könnte, wenn er Erfolg hat.«
+
+Vashet hatte die ganze Zeit über aufmerksam zugehört. Sein Gesicht blieb unbewegt, doch in seinen Augen war etwas, das Marina nicht deuten konnte – ein tiefes, nachdenkliches Glimmen.
+
+»Ich verstehe«, sagte er schließlich.
+
+Dann schwieg er einen Moment, bevor er sich leicht nach vorne lehnte und eine Antwort gab, die niemand erwartet hatte.
+
+»Ihr sprecht mit Überzeugung. Mit Feuer.« Seine Stimme war ruhig, doch in ihr lag eine unterschwellige Intensität. »Ich glaube, dass ihr an das glaubt, was ihr sagt. Und das ist wichtig.«
+
+Er ließ seinen Blick über die Gruppe schweifen, blieb einen Moment länger auf Kata ruhen, dann auf Jomar, dann auf Marina.
+
+»Aber, Marina – und ihr alle –, ich frage euch: Wer entscheidet, welche Magie zu gefährlich ist? Wer bestimmt, was erlaubt ist und was nicht?«
+
+Kata runzelte die Stirn. »Was meinst du?«
+
+Vashet breitete die Arme aus. »Die Natur hat ihre Gesetze, das ist wahr. Doch was Menschen als ›verboten‹, ›gefährlich‹ oder ›unnatürlich‹ bezeichnen, ist oft nichts anderes als Angst vor dem, was sie nicht verstehen oder kontrollieren können.«
+
+»Das ist nicht das Gleiche«, warf Jaad ein. »Wir sprechen hier nicht von gewöhnlicher Magie. Das, was Altheras tut, könnte die gesamte Welt vernichten.«
+
+Vashet nickte. »Und wer hat das entschieden? Efret? Die Akademie von Königsstadt? Eine Handvoll alter Männer und Frauen, die Angst vor dem haben, was sie nicht kontrollieren können?«
+
+Marina hob eine Hand, um Jaads Erwiderung zu stoppen. Sie spürte, dass Vashet noch nicht fertig war.
+
+»Ich bin alt«, fuhr er fort. »Ich habe viele gesehen, die kamen und gingen. Reiche, die aufstiegen und fielen. Männer, die dachten, sie könnten die Zukunft der Welt bestimmen. Ihr sprecht von Altheras, als wäre er ein Wahnsinniger. Vielleicht ist er das. Oder vielleicht ist er einfach nur der Erste, der die Ketten sprengen will, die Zauberer seit Generationen fesseln.«
+
+Er lehnte sich zurück. »Ihr sagt, er könnte die Welt zerstören. Vielleicht. Aber was, wenn er sie erneuern könnte? Was, wenn die Welt, wie wir sie kennen, nicht die beste Version ist, sondern nur eine verwesende Hülle, die schon lange hätte aufgebrochen werden sollen?«
+
+Marina antwortete ernst: »Wenn ich dir ein Glas Wein anbieten würde, das ein Elixier enthält, dass dich wieder jung werden lässt, würdest du es trinken?« Sie wartete die Antwort nicht ab. »Das würdest du sicherlich. Wenn ich aber sagte, es besteht eine wirklich geringe Wahrscheinlichkeit, das Elixier könnte dich töten, würdest du trotzdem trinken?«
+
+Vashet lachte laut auf. »Ganz sicherlich würde ich es trinken. Ich bin alt, ich habe nichts zu verlieren. Stelle eine solche Frage lieber einem Knaben, der das ganze Leben noch vor sich hat.«
+
+Marina nickte. »Wie du schon gesagt hast: Alte Männer entscheiden hier über die Zukunft der Welt«. 
+
+Stille breitete sich aus. Vashet antwortete nicht. 
+
+ 
+
+Kata verschränkte die Arme und brach das Schweigen »Bist du nun auf Altheras´ Seite?«
+
+»Nein«, erwiderte Vashet. »Ich sage nur, dass es immer zwei Seiten gibt. Ihr seid die Ersten, die mir eine andere Perspektive auf Altheras geben. Und das heißt: Ich muss nachdenken.«
+
+Marina seufzte. »Ich hoffe, du denkst schnell. Denn wenn wir zu spät kommen, wird es kein Nachdenken mehr geben.«
+
+Vashet lächelte leicht. »Dann lasst uns sehen, wie schnell ich lernen kann.«
+
+Vashet beendete die Audienz mit einer knappen Handbewegung. Diener traten lautlos vor und führten die Helden aus dem Thronsaal. Sie gingen durch breite, mit kunstvollen Teppichen ausgelegte Gänge, vorbei an hohen Fenstern, durch die das warme Licht der untergehenden Sonne fiel. Schließlich erreichten sie einen großzügigen Wohnbereich.
+
+Die Räume waren prächtig eingerichtet: breite Liegen mit weichen Kissen, kunstvolle Holzmöbel mit Intarsienarbeiten, Wandteppiche in satten Farben. Die Luft war erfüllt von einem Hauch Rosenöl und dem dezenten Knistern von Räucherstäbchen.
+
+Ein hochgewachsener Diener mit einem akkurat gestutzten Bart trat vor und verneigte sich. »Mein Name ist Rashim, und ich bin euer persönlicher Hausdiener für die Dauer eures Aufenthalts. Ihr könnt euch frei fühlen, diese Zimmer nach Belieben zu belegen. Sie stehen euch zur alleinigen Verfügung.«
+
+Er machte eine einladende Geste und fuhr fort: »Euer Abend kann nach Wunsch gestaltet werden. Der Palast bietet zahlreiche Annehmlichkeiten: Ein Badehaus steht euch jederzeit offen, ebenso wie das Spielzimmer mit verschiedenen Brettspielen und anderen Vergnügungen. Die Bibliothek ist immer geöffnet. Zudem finden heute Abend eine Opernaufführung und ein Theaterstück statt – an beidem könnt ihr selbstverständlich als Ehrengäste teilnehmen.«
+
+Er machte eine kleine Pause und lächelte. »Auch für euer leibliches Wohl ist gesorgt. Ihr könnt in jeder Gaststube der Oase kostenlos speisen und trinken. Solltet ihr es bevorzugen, auf euren Zimmern zu essen, genügt es, mich anzusprechen.«
+
+»Und morgen?«, fragte Jaad misstrauisch.
+
+»Morgen wird zu Ehren eures Besuchs ein großes Festbankett stattfinden«, antwortete Rashim.
+
+Kalem, der sich bisher an einem der Türrahmen gelehnt hatte, hob nun interessiert die Brauen. »Und was ist mit unserer Bewegungsfreiheit? Gibt es irgendwelche Einschränkungen?«
+
+Rashim schüttelte den Kopf. »Ihr könnt euch im Palast und in der Oase frei bewegen. Es gibt lediglich gesperrte Bereiche, die nicht betreten werden dürfen – doch das versteht sich von selbst. Außerdem solltet ihr die Oase nicht verlassen. Aber wer würde das schon wollen?«
+
+Jomar verschränkte die Arme und musterte Rashim mit schräg gelegtem Kopf. »Und wenn wir doch gehen?«
+
+Der Hausdiener lächelte ungerührt. »Dann würdet ihr sehr schnell feststellen, dass die Wüste gnadenlos ist. Aber natürlich steht es euch frei, euer Glück zu versuchen.«
+
+»Ist unsere Karawane noch vor dem Tor?«, frage Marina. 
+
+»Soweit ich informiert bin, ist sie schon vor Stunden abgereist.«
+
+»Eine sehr höfliche Art, uns zu sagen, dass wir in einer Falle sitzen«, murmelte Jaad.
+
+Rashim tat, als hätte er es nicht gehört, und verbeugte sich erneut. »Wenn ihr weitere Fragen habt oder etwas benötigt, stehe ich jederzeit zu eurer Verfügung.«
+
+»Sehr schön. Lass uns noch ein paar Getränke bringen und etwas Obst. Du kannst jetzt gehen. Wie können wir dich rufen?« Kata war in ihrem Element. Ihre Freunde mussten grinsen. 
+
+Der Diener deutete auf ein seidenes Seil, das an der Wand von der Decke hing. Kata nickte verstehend.
+
+Dann zog er sich zurück und ließ die Helden in der luxuriösen Stille ihrer Gemächer zurück.
+
+
+# Die Heldin von Demirantha_43
+
+## Das Bankett
+Der große Festsaal war ein Wunder aus Licht und Farben. Dutzende Kerzenleuchter warfen einen warmen Glanz auf die hohen Decken, kunstvolle Wandteppiche zeigten Jagdszenen aus längst vergangenen Zeiten, und auf den Marmorböden spiegelte sich der Schein zahlloser Öllampen. Die Luft war erfüllt vom Duft gebratenen Fleisches, süßem Wein und exotischen Gewürzen, die selbst Marina nicht alle benennen konnte. Tische voller Köstlichkeiten reihten sich aneinander, überladen mit dampfenden Speisen, kunstvoll geschnittenem Obst und glänzenden Karaffen aus feinstem Glas. Diener in weißen Gewändern bewegten sich lautlos zwischen den Gästen, füllten Kelche nach und trugen dampfende Platten herbei.
+
+Die Helden hatten Plätze in der Nähe des Herrschers erhalten, direkt an der Tafel, die leicht erhöht auf einem Podest stand. Vashet thronte an der Spitze der langen Tafel, in einer reich verzierten Lehne aus dunklem Holz. Er wirkte entspannt, fast lässig, als er mit einer Geste andeutete, dass das Fest beginnen konnte.
+
+»Es freut mich, euch hier zu haben«, sagte er mit seinem üblichen Lächeln. »Genießt meine Gastfreundschaft. Essen, trinken – heute sollt ihr euch keine Sorgen machen.«
+
+Die Musik setzte ein – sanfte, fremdartige Melodien von Flöten und gezupften Lauten.
+
+Kata saß direkt neben Vashet. Man hatte ihr diesen Platz zugewiesen. Alle anderen hatten ihren Platz frei wählen können. 
+
+Sie hatte sich gerade einen Becher mit dunklem Wein genommen, als Vashet ihr direkt und fest in die Augen sah. Sein Blick war aufmerksam, lauernd, doch nicht unangenehm.
+
+»Ihr seid anders als die anderen.«
+
+Kata hob eine Augenbraue. »Ach ja? Inwiefern?« 
+
+Vashet lächelte, und es war kein bloßes Schmeicheln. »Es ist eure Haltung. Etwas von euch erinnert mich an eine Zeit, die längst vergangen ist. Ihr bewegt euch nicht wie eine gewöhnliche Reisende. Ihr sitzt nicht wie eine. Selbst hier, unter Fremden, seid ihr … erhaben.«
+
+Kata spürte, wie sich ein Teil von ihr automatisch straffte – eine Angewohnheit, die sie sich nie hatte abtrainieren können. Ihre Mutter hatte sie dazu erzogen, Haltung zu bewahren, sich niemals gehen zu lassen. Selbst jetzt, in einer fremden Halle, unter fremden Menschen, hielt sie sich aufrecht, als würde sie über ihre Ländereien schreiten.
+
+Vashet bemerkte es.
+
+»Ihr wart jemand von Bedeutung«, fuhr er fort. »Oder seid es vielleicht noch.«
+
+»Ich war viele Dinge«, sagte Kata kühl. »Und was mich betrifft, so bin ich nur eine Reisende, die Durst hat.«
+
+Kata war sich nicht sicher, ob sie das als Kompliment auffassen sollte. Bevor sie antworten konnte, winkte Vashet einen Diener herbei.
+
+»Bringt der jungen Dame etwas Besonderes. Eine Delikatesse.«
+
+Der Diener nickte und verschwand. Kurz darauf wurde ein Teller mit kunstvoll drapiertem Fleisch vor Kata abgestellt.
+
+»Eine Seltenheit«, sagte Vashet. »Das Fleisch der Nachtbasilisken von An’Suin. Nur wenige haben das Privileg, es zu kosten.«
+
+Kata musterte das Gericht, nahm dann eine kleine Gabel und probierte vorsichtig. Das Fleisch zerging auf der Zunge, der Geschmack war würzig und intensiv.
+
+»Gut?«, fragte Vashet mit einem Lächeln.
+
+»Sehr gut«, gab sie zu.
+
+»Dann trinkt mit mir.« Er hob seinen Becher.
+
+Sie zögerte kurz, dann stieß sie an.
+
+Jomar, der mehrere Plätze entfernt von Kata saß, hatte alles beobachtet. Sein Griff um den Kelch wurde fester.
+
+»Will er sie verführen oder studieren?«, murmelte er in Kalems Richtung.
+
+Kalem grinste. »Vermutlich beides. Ich kanns ihm nicht mal verübeln – sie sieht im Kerzenlicht noch besser aus.«
+
+Jomar verzog das Gesicht.
+
+»Ach komm, Junge«, fuhr Kalem fort. »Sie reden doch nur.«
+
+Jomar wollte das glauben. Aber Vashet war nicht nur irgendein Fremder – er war ein Zauberer, wahrscheinlich beherrschte er sogar Geistmagie. Wie sonst hätte er Kata Eindringen so mühelos abwenden können?
+
+Er fühle Wut hochkochen.
+
+Jaad beobachtete die Szene mit zusammengekniffenen Augen.
+
+»Was?«, fragte Jomar eine Spur zu unfreundlich.
+
+»Ich frage mich, was er bezweckt«, murmelte sie.
+
+»Vielleicht findet er sie einfach hübsch?«, warf Kalem ein.
+
+Jaad schnaubte. »Männer wie er tun nichts ohne Grund.«
+
+Marina sagte nichts. Sie trank langsam, aß kaum, beobachtete.
+
+Die Musik wurde lebhafter, die Flöten spielten eine schnelle, fast verspielte Melodie. Diener schoben einige Tische beiseite, Platz wurde geschaffen.
+
+»Ein Fest ist nicht nur zum Essen da«, sagte Vashet. »Man muss auch tanzen.«
+
+Kata wollte gerade ablehnen, da meldete sich Kalem grinsend zu Wort.
+
+»Ich weiß nicht, Kata, vielleicht willst du dich ja mal königlich bewegen?«
+
+Kata funkelte ihn an. »Sehr witzig.«
+
+Vashet erhob sich, streckte ihr die Hand entgegen.
+
+»Würdet ihr mir die Ehre erweisen?«
+
+Die Augen aller waren auf sie gerichtet. Ablehnen wäre ein Zeichen der Schwäche.
+
+Also nahm sie seine Hand.
+
+Der Tanz war anders als das, was sie aus Kerk kannte – weniger steif, weniger formal. Die Bewegungen waren fließend, Vashet führte sie geschickt, ließ sie kaum Zeit nachzudenken.
+
+»Ihr tanzt gut«, sagte er.
+
+»Ihr auch.«
+
+»Und doch habe ich das Gefühl, dass ihr euch immer zurückhaltet. Warum?«
+
+Kata antwortete nicht.
+
+Jomar starrte auf das Tanzpaar, spürte, wie die Wut immer weiter in ihm hochkochte.
+
+»Ich brauche frische Luft«, murmelte er und stand abrupt auf.
+
+Jaad sah ihm nach. »Junge Liebe«, sagte sie trocken.
+
+Kalem grinste. »Wart’s ab. Er merkt bald, dass er sich wie ein Idiot benimmt.«
+
+ 
+
+*
+
+ 
+
+Der große Festsaal war erfüllt von Musik, Gelächter und dem Klang klirrenden Geschirrs. Zwischen den lodernden Feuerschalen tanzten Schatten über goldene Wände, und der süße Duft von Gewürzwein und exotischen Speisen lag schwer in der Luft. Die Feier hatte längst ihren Höhepunkt erreicht – doch nicht jeder genoss sie gleichermaßen.
+
+Jomar kehrte zurück in den Saal, nachdem er einige Minuten draußen gewesen war, um sich zu beruhigen. Doch als sein Blick über die Menge wanderte, erstarrte er.
+
+Kata saß nicht mehr bei den anderen.
+
+Dort, wo sie gesessen hatte, war ihr Platz leer.
+
+Sein Magen zog sich zusammen.
+
+Dann sah er sie.
+
+Am Rand der Festhalle, in einer der schattigen Nischen, saß sie mit Vashet. Die beiden unterhielten sich.
+
+Er konnte nicht hören, worüber sie sprachen, doch die Art, wie sie sich vorbeugte, wie Vashet mit ruhiger Miene sprach, ließ ihn frustriert den Kiefer anspannen.
+
+Was wollte dieser Mann von ihr? Und warum ließ sie es zu?
+
+Seine erste Reaktion war, sich einfach umzudrehen und erneut zu gehen. Doch diesmal zwang er sich, stehen zu bleiben.
+
+Er konnte nicht ewig weglaufen.
+
+Er nahm einen tiefen Atemzug und marschierte zurück zu seinem Platz.
+
+Kata bemerkte ihn.
+
+Ihre Augen trafen sich für den Bruchteil eines Moments. Doch sie schien nun irritiert zu sein. Das Gespräch mit Vashet schien zu stocken und versiegte schließlich. Sie verabschiedete sich mit einem knappen Nicken von Vashet, der ihr mit einem leichten Lächeln nachsah, und kehrte an die Tafel zurück.
+
+Jomar sagte nichts.
+
+Kata sagte nichts.
+
+Aber irgendetwas war anders.
+
+ 
+
+*
+
+ 
+
+Später am Abend, als sich die Feier allmählich auflöste, fanden sich die Helden in ihrem Wohnbereich zusammen. Die Lichter der Stadt schimmerten durch die kunstvollen Fenster, und von draußen wehten noch gedämpfte Klänge von Musik und Stimmen herein.
+
+Marina sank auf einen der reich verzierten Diwane und nahm einen tiefen Schluck Wein.
+
+»Also«, sagte sie in die Runde. »Was haben wir heute gelernt?«
+
+Kalem lehnte sich zurück mit hinter dem Kopf verschränkten Armen. »Dass Vashet teuflisch charmant ist und sich alles leisten kann. Und dass er verdammt gute Köche hat.«
+
+Jaad verschränkte die Arme. »Und dass er von Altheras wusste. Und ihn persönlich kannte.«
+
+Jomar nickte. »Er wusste sogar, dass wir Zauberer sind. Und hat uns trotzdem nicht eingesperrt oder angegriffen.«
+
+»Vielleicht, weil er kein Feind ist«, sagte Kata ruhig.
+
+Die anderen drehten die Köpfe zu ihr.
+
+Marina legte eine Braue hoch. »Was macht dich so sicher?«
+
+»Er hätte uns festsetzen können, hätte uns entwaffnen können, hätte uns von Anfang an unter Druck setzen können. Hat er aber nicht.«
+
+Jaad beugte sich vor. »Aber du hast doch selbst gesagt, es könnte eine Falle sein.«
+
+»Ja, vielleicht. Aber inzwischen denke ich anders. Er hat uns nicht einmal bewacht. Wir können uns frei bewegen.«
+
+»Solange wir die Oase nicht verlassen«, erinnerte Kalem.
+
+»Was Sinn ergibt«, erwiderte Kata. »Würdest du Fremde einfach so mitten in der Wüste ziehen lassen? Ohne Karawane? Ohne Schutz?«
+
+Jomar musterte Kata nachdenklich. Ihre Haltung war spürbar anders.
+
+»Du verteidigst ihn«, sagte er leise.
+
+Kata erwiderte seinen Blick. »Ich versuche, objektiv zu sein.«
+
+Marina trommelte mit den Fingern auf die Armlehne ihres Sessels. »Objektiv oder nicht – wir dürfen nicht vergessen, dass wir kaum etwas über ihn wissen. Und dass er etwas verbirgt.«
+
+Jaad nickte. »Er hat eine Barriere in seinem Geist. Du hast es selbst gespürt, Kata.«
+
+»Vielleicht hat er auch einfach nur gute Gründe, sein Innerstes nicht offen zu legen«, sagte Kata mit einem Schulterzucken.
+
+Kalem sah von einem zum anderen. »Also was nun? Sind wir Gäste oder Gefangene?«
+
+Es folgte Schweigen.
+
+Marina lehnte sich zurück. »Ich würde sagen: Solange wir hier sind, nutzen wir unsere Freiheit. Finden heraus, wer dieser Mann wirklich ist.«
+
+Jomar nickte langsam, doch sein Blick ruhte noch immer auf Kata.
+
+Er konnte sich nicht helfen – etwas in ihrer veränderten Haltung ließ ihn misstrauisch werden.
+
+
+# Die Heldin von Demirantha_44
+
+## Marinas Audienz
+Die Tage in der Oase vergingen träge – zu träge.
+
+Jomar spürte, wie ihm die Situation langsam entglitt. Die Reise durch die Wüste, die Kämpfe, die Entbehrungen – all das hatte sie zusammengeschweißt. Besonders zwischen ihm und Kata hatte sich etwas entwickelt. Zumindest hatte er das gedacht.
+
+Sanfte Blicke, zufällige Berührungen, ein stummer Austausch, der immer mehr zu bedeuten schien. Doch seit ihrer Ankunft hier … war all das verschwunden.
+
+Und das Schlimmste war: Er wusste genau, warum.
+
+Kata verbrachte ihre Zeit mit Vashet. Sie lachte über seine Witze, verteidigte ihn, wenn die anderen ihre Zweifel äußerten. Am Tag zuvor hatte sie behauptet, Kopfschmerzen zu haben und sich nicht der Gruppe angeschlossen, als sie eine Theateraufführung besuchten. Jomar hatte nicht gefragt. Er hatte nicht nachgeforscht. Aber tief in sich drinnen wusste er, dass sie sich mit Vashet getroffen hatte.
+
+Er verstand es nicht. Bei Orfels Ziege, sie war sechzehn und er ein alter Mann!
+
+Hatte sie wirklich Interesse an ihm? Oder war es etwas anderes? Fühlte sie sich von seiner Macht angezogen, von seiner Eleganz, seinem Selbstbewusstsein?
+
+Jomar hasste es, sich solche Fragen zu stellen. Und noch mehr hasste er es, dass er zu feige war, sie direkt zu konfrontieren.
+
+Und so blieb ihm nichts anderes übrig, als zu beobachten, zu grübeln – und zu warten.
+
+*
+
+ 
+
+Die Helden hatten alles, was sie brauchten: weiche Betten, üppige Mahlzeiten, frisches Wasser in Hülle und Fülle. Die Bibliothek war voller Bücher, die Bäder luxuriös, der Palastgarten ein kühler, duftender Zufluchtsort. Am Abend gab es Darbietungen – Musik, Tanz, Theater –, an denen sie teilnehmen konnten.
+
+Doch je länger sie blieben, desto schwerer wog die Erkenntnis: Sie waren Gefangene, auch wenn ihre Ketten mit Samt gepolstert waren.
+
+Kalem versuchte, es leichtzunehmen. »Ich habe schon schlechtere Gefängnisse gesehen«, sagte er eines Abends, während er sich eine Schale mit exotischen Früchten füllte.
+
+Jomar sprach wenig, beobachtete aber umso mehr. Sein Blick blieb oft an Kata hängen – besonders, wenn sie mit Vashet sprach.
+
+Jaad hingegen blieb angespannt. Sie verbrachte viel Zeit in der Bibliothek, wälzte alte Schriften, versuchte, etwas über Vashet herauszufinden. Sie traute ihm nicht.
+
+Marina hatte genug.
+
+Sie ließ Vashet um eine Audienz bitten – und wurde noch am selben Tag in den Thronsaal geführt.
+
+Die große Halle war leer bis auf den Herrscher selbst, der in lässiger Pose auf seinem kunstvollen Thron saß. Die Nachmittagssonne strahlte durch die hohen Fenster und tauchte den Saal in goldenes Licht.
+
+Er lächelte, als Marina eintrat.
+
+»Marina von Lakan. Ihr seid gekommen, um mich erneut mit euren Fragen zu löchern?«
+
+»Es gibt Fragen, die geklärt werden müssen«, erwiderte sie kühl.
+
+Vashet lehnte sich leicht nach vorne. »Sehr gut. Ich mag Menschen, die wissen, was sie wollen. Aber, meine Liebe, ich bin auch ein Mann, der einen Ausgleich schätzt. Für jede Frage, die ihr mir stellt, werde ich eine Eigene stellen. Klingt das fair?«
+
+Marina presste die Lippen zusammen. Sie hatte das Gefühl, in ein geschicktes Spiel gezogen zu werden. Doch was blieb ihr anderes übrig?
+
+»Einverstanden.«
+
+»Hervorragend.« Vashet lächelte. »Dann stellt eure erste Frage.«
+
+Marina verschränkte die Arme. »Wann kommt die nächste Karawane?«
+
+Vashet tippte sich ans Kinn, als würde er nachdenken – eine unnötige Geste, die sie ärgerte. »Vielleicht in zwei Tagen. Vielleicht in vier Wochen. Nicht jede Karawane nimmt den Weg über die Oase.«
+
+»Aber ihr werdet uns doch Bescheid geben, wenn eine angekommen ist, oder?«
+
+Vashet wackelte mit einem Zeigefinger und grinste. »Meine Frage. Was genau habt ihr vor, wenn ihr die Schattensphäre erreicht?«
+
+Marina überlegte. Er wusste längst, dass sie Altheras aufhalten wollten – das zu verschweigen wäre sinnlos.
+
+»Wir werden verhindern, dass Altheras seine Pläne verwirklicht.«
+
+»Eine sehr vage Antwort«, stellte Vashet fest.
+
+»Ihr habt mir auf meine Frage auch keine präzise Antwort gegeben.«
+
+Der Herrscher lachte leise. »Ist es nicht erstaunlich, wie ähnlich wir uns sind?«
+
+Marina ignorierte den Kommentar. »Nächste Frage: Können wir uns einer Karawane ungehindert anschließen?«
+
+Vashet schwieg kurz. Dann sagte er: »Wenn ihr es schafft, den Karawanenführer zu überzeugen, würde ich es wohl nicht verhindern.«
+
+Das war eine unerwartete Antwort. Und höchstwahrscheinlich eine Lüge.
+
+»Nun meine Frage«, fuhr Vashet fort. Seine Stimme war sanft, doch in seinen Augen lag ein stechendes Interesse. »Habt ihr weitere Verbündete, die gegen Altheras kämpfen?«
+
+Marina zögerte nur einen Wimpernschlag. Doch sie wusste, dass er das bemerken würde.
+
+»Vielleicht«, sagte sie schließlich.
+
+»Vielleicht«, wiederholte Vashet amüsiert. »Sehr gut. Ich mag Menschen, die vorsichtig sind.«
+
+Marina holte Luft für ihre nächste Frage. »Warum interessiert euch Altheras so sehr?«
+
+Diesmal war es Vashet, der kurz innehielt.
+
+Dann sagte er mit seiner üblichen, ruhigen Stimme: »Sagen wir … er ist mir nicht gleichgültig.«
+
+Marina starrte ihn an.
+
+»Ich bin dran. Was ist Katas Lieblingsblume?«
+
+Marina starrte Vashet ratlos an. 
+
+»Äh … rote Rosen, soweit ich weiß.«
+
+»Eure letzte Frage«, sagte Vashet. Anscheinend war die Audienz fast vorüber.
+
+»Habt Ihr Kontakt zu ihm?«, fragte sie direkt.
+
+Vashet lächelte. Doch diesmal wirkte sein Lächeln anders – weniger entspannt, fast herausgefordert.
+
+»Das ist eine sehr direkte Frage.«
+
+»Und?«
+
+Vashet beugte sich leicht vor. »Lasst mich euch eine Gegenfrage stellen, Marina: Würde es etwas ändern, wenn ich es täte?«
+
+Das war keine Antwort. Aber es war die Bestätigung, die sie brauchte.
+
+Marina erhob sich langsam. »Ich danke Euch für Eure Zeit.«
+
+Vashet ließ sie nicht aus den Augen, als sie sich abwandte.
+
+»Es war mir ein Vergnügen.«
+
+
+# Die Heldin von Demirantha_45
+
+## Kata ❤️Jaad
+Am nächsten Tag platzte Jaad mit einem triumphierenden Grinsen in Katas Zimmer. Sie hielt einen schweren, verstaubten Wälzer in den Armen. Sie knallte den Folianten auf den Tisch.
+
+»Ich habe es!«, sagte sie begeistert. »Ich habe endlich den Beweis, dass Vashet nicht der ist, für den er sich ausgibt! Dieses Buch ist mindestens zweihundert Jahre alt – und es beschreibt … «
+
+»Jaad.« Kata trat einen Schritt näher, nahm Jaads Hände in ihre und drückte sie leicht. Ihre Augen funkelten.
+
+»Was—?«, rief Jaad, doch dann verstummte sie, als Kata sie plötzlich mit einer Intensität ansah, die ihr das Blut in den Adern gefrieren ließ.
+
+Dann sagte Kata mit zartem Schmelz in der Stimme:
+
+»Ich liebe dich.«
+
+Jaads Gedanken kamen abrupt zum Stillstand.
+
+»Was?«, brachte sie schließlich heraus.
+
+Kata lächelte – weich, doch ihre Augen starrten in Jaads Seele, in ihrem Blick lag ein unausgesprochener Befehl, der nur noch verstanden werden musste.
+
+»Ich wollte es dir schon so lange sagen«, säuselte sie. »Aber ich hatte Angst, meine Gefühle zu offenbaren.«
+
+»Was?« Die Wiederholung brachte sie nicht weiter.
+
+Was zur Hölle geht hier vor?! Jaad sammelte ihre verstreuten Gedanken zusammen in der Hoffnung, daraus eine sinnvolle Erwiderung zusammenzuschrauben, da verstand sie endlich Katas Blick.
+
+Sie stellte eine geistige Verbindung her.
+
+Kata: Na endlich. Ich dachte schon, du kapierst das nie.
+
+Jaad zuckte innerlich zusammen.
+
+Jaad: Und ich kapiere es auch immer noch nicht! Was soll das?!
+
+Kata: Wir werden bespitzelt. Jedes Wort wird gehört. Also sprich normal weiter.
+
+Jaad brauchte einen Moment, um ihre Fassung wiederzugewinnen. Dann räusperte sie sich und erwiderte laut:
+
+»Ich muss gestehen, auch ich habe Gefühle für dich. Sie lagen nur tief in mir verborgen.«
+
+Jaad: Wieso musstest du den mit diesem ›ich liebe dich‹-Quatsch kommen? Ich wär vor Schreck beinahe gestorben.
+
+Kata: Mir ist nichts Besseres eingefallen.
+
+Jaad musste sich beherrschen, um sich nicht auf die Lippe zu beißen.
+
+Kata fuhr fort: Hör zu: Lass das mit dem Buch. Ich weiß bereits, dass Vashet ein zweihundert Jahre alter Schwarzmagier ist. Er hat nicht vor, uns ziehen zu lassen – er will uns töten. Und es ist besser, er weiß nicht, dass wir es herausgefunden haben.
+
+»Ich bin so froh, dass es jetzt endlich ausgesprochen ist«, sagte Jaad laut und versuchte, dabei nicht wie eine schlechte Schauspielerin zu klingen.
+
+Kata: Wir müssen so schnell wie möglich abhauen.
+
+Und dann, bevor Jaad auch nur nachdenken konnte, zog sie Kata an sich und küsste sie.
+
+Jaads Knie gaben kurz nach, doch sie fing sich.
+
+Jaad: Ach du Scheiße!
+
+Kata: Spiel einfach mit.
+
+Jaad spürte, wie Katas Lippen sich gegen ihre bewegten – fordernd, leidenschaftlich, absolut überzeugend. Ihre Zunge glitt spielerisch in Jaads Mund.
+
+Jaad: Oh, das Mädchen ist gut.
+
+Kata: Das habe ich gehört. Danke. In zwei Tagen kommt eine Karawane an, die Richtung Meer geht. Wir müssen Vashet unschädlich machen, auf welche Weise auch immer.
+
+Gut, gibt es sonst noch etwas, das ich wissen muss?
+
+Jede Menge, aber dafür ist keine Zeit. Es sei denn, du möchtest das hier auf die nächste Stufe bringen.
+
+Jaad spürte, wie Kata sich enger an sie drückte.
+
+Die Sekunden verstrichen. Das Küssen ging weiter.
+
+Jaad?
+
+Weitere Sekunden verstrichen. Das Küssen ging weiter.
+
+Jaad?
+
+Ich überlege noch!
+
+Und dann, in einem plötzlichen Impuls, zog sie sich zurück. Sie ließ Kata los, ihre Lippen fühlten sich warm und seltsam taub an.
+
+»Ich glaube, ich bin noch nicht so weit«, sagte Jaad laut. »Ich brauche Zeit zum Nachdenken.«
+
+Kata nickte mit gespieltem Verständnis. »Das verstehe ich. Was war nun mit dem Buch?«
+
+Jaad zwang sich zu einem Lächeln.
+
+»Ach, das war nicht so wichtig.« Sie wandte sich von Kata ab.
+
+»Und munter plätschert der Bach«, murmelte sie mehr zu sich und verließ das Zimmer auf weichen Knien.
+
+
+# Die Heldin von Demirantha_46
+
+## Pläne
+Marina hatte Kata beigebracht, wie man gegen Männer bestehen konnte. »Katzenkampf« hatte sie das genannt. Männer waren zu überlegen für einen offenen Kampf mit fliegenden Fäusten. Also musste man anders vorgehen. Kratzen, Treten, Beißen, Ohren abreißen, den ausgestreckten Finger ins Auge rammen und vor allem wegrennen – all das waren Dinge, die Männer nicht erwarteten. Doch Kampf war nicht alles.
+
+Marina hatte ihr auch gezeigt, wie man sich ungesehen bewegte, wie man lautlos an anderen vorbeikam und wie man kommunizierte, ohne ein einziges Wort zu sprechen. Eine einfache Zeichensprache, die nur sie beide kannten. So hatte sie sie das Plündern von Häusern gelehrt. Das würde Kata nun nutzen.
+
+Sie lehnte sich scheinbar entspannt zurück, während die Gruppe sich über das Festmahl unterhielt. Dann fuhr sie sich beiläufig mit der Hand über die Kehle – eine waagerechte Bewegung, langsam und kaum merklich, doch Marina sah es.
+
+»Ich denke, das Lamm war etwas zu stark gewürzt«, sagte sie in neutralem Tonfall.
+
+Marina zögerte nur eine Sekunde. Dann zuckte sie mit den Schultern. »Ach, ich fand es genau richtig.« Sie klang unbeteiligt, doch Kata bemerkte, wie ihre Augen schärfer wurden.
+
+Gut. Sie hatte es verstanden.
+
+Kata fuhr mit der Unterhaltung fort, sprach über das süße Gebäck, das gereicht worden war, während sie scheinbar gedankenverloren an ihrem Ohrläppchen zupfte.
+
+Marina nahm einen Schluck Wein, dann strich sie sich über das eigene Ohr und nickte kaum merklich.
+
+Kata wusste, dass sie jetzt weitermachen konnte.
+
+»Und überhaupt, die Musik war wunderschön«, sagte sie und bewegte unauffällig ihren Zeigefinger, um einen Kreis auf den Tisch zu zeichnen, das Zeichen für alle, um uns herum, überall.
+
+Marina legte den Kopf schräg, als überlege sie kurz, und stimmte dann zu. »Ja, überall war Klang. Überall.«
+
+Damit war alles gesagt.
+
+Gefahr. Ohren. Überall.
+
+ 
+
+*
+
+ 
+
+Marina rückte ihren Umhang zurecht und sah in die Runde. »Ich möchte mir die Ruinen am Rand der Oase ansehen.«
+
+Die anderen blickten überrascht auf.
+
+»Die Ruinen?«, wiederholte Kalem skeptisch.
+
+»Ja«, sagte Marina ruhig. »Vashet erwähnte, dass einige von ihnen Tausende von Jahren alt sind. Ich halte das für eine gute Gelegenheit, mehr über die Geschichte dieser Region zu erfahren.«
+
+»Geschichte?«, fragte Kalem. »Oder suchst du nach etwas anderem?«
+
+Marina zuckte mit den Schultern. »Ich sehe mir Ruinen an, Kalem. Falls sich dort etwas Interessantes finden lässt – umso besser.«
+
+Kalem warf ihr einen misstrauischen Blick zu, hielt dann aber den Mund.
+
+Einer der Diener, der unauffällig im Hintergrund gewartet hatte, trat nun einen Schritt nach vorn. »Ich werde meinen Herrn über euren Ausflug informieren. Er wird entzückt sein, dass ihr euch für die Geschichte der Oase und der An’Suins interessiert.«
+
+Marina nickte ihm zu. »Tue das.«
+
+Der Diener verbeugte sich leicht und verschwand lautlos durch eine Seitentür.
+
+Jomar lehnte sich zu Kata. »Hast du bemerkt, wie schnell sie immer zur Stelle sind?«
+
+»Ja«, flüsterte sie zurück. »Sie haben ein sehr gutes Gehör.«
+
+ 
+
+*
+
+ 
+
+Die alten Gemäuer standen direkt an der massiven Mauer, die die Oase umgab. Niemand hielt sich dort auf. Die Sonne neigte sich bereits dem Horizont zu, tauchte alles in ein rostfarbenes Licht.
+
+Marina führte die Gruppe ins Innere eines halb verfallenen Gebäudes. Vor dem Haus hatte ein Schild auf einem Pfahl gestanden, das vor dem Betreten warnte. Doch Marina hatte die Warnung ignoriert.
+
+Sand hatte sich in den Ecken gesammelt, Steine lagen herum, und das Dach bestand nur noch aus ein paar zerbrochenen Balken.
+
+»Hier sind wir sicher?«, fragte Jomar skeptisch.
+
+»Noch nicht«, antwortete Marina.
+
+Dann hob sie plötzlich die Arme und ließ die Decke einstürzen.
+
+Jomar fluchte und sprang zurück, Kalem riss erschrocken die Arme vors Gesicht. Kata machte einen Satz zur Seite. Doch bevor die Trümmer sie begraben konnten, breitete sich eine unsichtbare Kuppel aus und fing den herabstürzenden Schutt auf.
+
+Sand und Staub wirbelten durch die Luft.
+
+Es dauerte einige Sekunden, bis alle sich wieder gefangen hatten.
+
+»Marina!«, brüllte Kalem. »Bist du wahnsinnig?«
+
+Marina lächelte schief. »Jetzt haben wir Zeit zu reden. Dieser Schutzzauber sollte jegliche Magie, die von außen kommt, abhalten. Dafür ist er immer da. Sie werden hoffentlich denken, dass ich ihn nur gezaubert habe, um uns zu schützen.«
+
+Die Helden blickten sich an.
+
+»Dann mal los«, sagte Jaad.
+
+Kata atmete tief ein.
+
+»Also … Schon am ersten Tag habe ich eine Präsenz gespürt, die uns umgibt. Nach dem misslungenen Versuch in Vashets Geist einzudringen, habe ich mithilfe meiner Gabe nach anderen offenen Geistern gesucht. Ich habe sie gefunden. So habe ich erfahren, dass wir zu jeder Sekunde magisch belauscht wurden. 
+
+Ich konnte euch natürlich nichts sagen, also schmiedete ich meine eigenen Pläne. Mit schamloser Berechnung zog ich Vashets Aufmerksamkeit auf mich. Schon bald lud er mich zu Privataudienzen ein. So habe ich bald schon seine volle Aufmerksamkeit auf mich gelenkt. Das war natürlich riskant, aber ich fand bald heraus, dass er anscheinend den Ehrgeiz besaß, mich allein mit seinem Charme in Bett zu bekommen.«
+
+Marina fragte nach: »Wie ist dir das gelungen?«
+
+»Kurz vor unseren Treffen«, sagte Kata, »habe ich mich immer unsichtbar in seine Gemächer geschlichen. Und bei einer Gelegenheit hat er mit dem magischen Abbild von Altheras geredet.«
+
+»Was?!«, entfuhr es Jomar. Er starrte sie an. »Und das hast du uns nicht sofort erzählt? Wieso … Oh, ach ja.« Er senkte den Blick und schwieg betreten.
+
+Kata sah ihn mit gerunzelter Stirn an. »Er hat gesagt: ›Ich will nur noch das Mädchen ficken, dann hat der Spuk ein Ende‹, – charmant, nicht wahr? – und er hat eben auch gesagt, dass er das nur genießen könne, wenn ich mich ihm aus freien Stücken hingeben würde. Würg!«
+
+»Also bist du gar nicht in ihn verliebt?«
+
+Kata sah Jomar an, als sei er der König der Idioten.
+
+»Jomar, so sehr ich mich auch von deiner Eifersucht geschmeichelt fühle, so sehr bin ich auch erschüttert, dass du es überhaupt in Betracht gezogen hast, ich könnte irgendetwas an dem alten Sack finden. Ich bin sechzehn! Jomar, ich bin mir nicht sicher, ob ich dir das je werde verzeihen können. Aber jetzt gibt es Wichtigeres zu besprechen.«
+
+Sie machte eine kurze Pause, als müsste sie Kraft schöpfen. Dann fuhr sie fort:
+
+»In zwei Tagen wird eine Karawane kommen. Sie wird dann am Morgen des dritten Tages wieder aufbrechen. Da sollten wir dabei sein. Leider habe ich keine Ahnung, wie wir das vor Vashet verbergen können.«
+
+»Wie mächtig ist Vashet?«, fragte Marina.
+
+Nun war es an Jaad zu antworten. 
+
+»Ich habe ein Buch gefunden, das über 200 Jahre alt ist. Da drin stand alles zu Vashet. Zusammengefasst: Er ist ein mächtiger Schwarzmagier, der sein Leben durch dunkle Künste verlängert hat. Jedes Monster in der Wüste, also auch die Kesh’Tar hat er erschaffen. In der Wüste hat es noch mehr Oasen gegeben, doch er hat sie alle vernichtet.«
+
+Kalem zuckte mit den Schultern: »Dann ist eine direkte Konfrontation wohl nicht ratsam.«
+
+»Nein, wir brauchen eine List. Und Chaos … « Marina rieb sich nachdenklich das Kinn. 
+
+»Du hast also schon einen Plan, oh weise Anführerin?«, fragte Kalem.
+
+»Hmm … Ich glaube schon. Er besteht aus drei Teilen: Kalem besorgt Kamele, Wasser und Proviant, Jaad ist für das Chaos zuständig und Kata schläft mit Vashet.«
+
+»WAS?!« Jomar fuhr hoch, als hätte ihn jemand mit einem glühenden Eisen gestochen.
+
+»Reg dich ab, Marina meint das nicht wörtlich, oder Marina … Du meinst das doch nicht so, oder?«
+
+»Natürlich nicht.«
+
+ 
+
+
+# Die Heldin von Demirantha_47
+
+## Kalems Auftrag 
+Kalem schlenderte durch die geschäftigen Gassen der Oasenstadt, die Hände tief in den Taschen vergraben, die Kapuze seines dünnen Mantels halb über die Augen gezogen. Überall um ihn herum wimmelte es von Händlern, Bediensteten und Reisenden, die sich durch die engen Straßen drängten. Die Luft war erfüllt vom Duft exotischer Gewürze, gebratenem Fleisch und frisch gebackenem Fladenbrot.
+
+Er wusste, dass seine Überwacher genau mitbekommen würden, was er hier tat. Aber das nahm er in Kauf.
+
+Vashet glaubte, alles unter Kontrolle zu haben. »Ich will nur noch das Mädchen ficken, dann hat der Spuk ein Ende.« Die Worte hatten sich in Kalems Gedächtnis gebrannt, und er presste die Kiefer aufeinander, als er daran dachte. Der Mistkerl war sich sicher, dass Kata ihm nicht entkommen würde. Und solange er das glaubte, würde er sie gewähren lassen. 
+
+Gut. Das bedeutete, dass Kalem tun konnte, was er wollte.
+
+Er hatte sich bereits am Morgen umgehört und war fündig geworden – ein schlichter, aber geräumiger Stall am Rand der Stadt, fernab der Hauptstraße.
+
+Der Stallbursche, ein etwa vierzehnjähriger Junge mit strohblondem Haar und großen Augen, musterte Kalem misstrauisch, als er ihm die Tür öffnete.
+
+»Was wollt Ihr?«
+
+Kalem grinste. »Ich will mich umsehen.«
+
+Der Junge zog die Stirn kraus. »Hier gibts nur Kamelscheiße.«
+
+Kalem holte ein kleines Säckchen mit Münzen hervor und ließ es beiläufig in der Hand kreisen.
+
+»Ich will diesen Stall mieten. Und du willst, dass ich ihn nehme.«
+
+Die Augen des Jungen weiteten sich, als Kalem ihm das Säckchen überreichte. Er öffnete es, blinzelte, dann schloss er es hastig wieder und sah sich nervös um.
+
+»Das … das ist viel zu viel.«
+
+Kalem zuckte mit den Schultern. »Ich will, dass du hier Wache stehst. Und wenn du am Tag meiner Abreise noch da bist und alles so aussieht, wie ich es hinterlassen habe, dann gibts noch mal so viel.«
+
+Der Junge schluckte. Dann nickte er eifrig.
+
+»Niemand wird auch nur in die Nähe kommen, das schwöre ich!«
+
+»Nicht nur das, mein Junge. Du wirst auch niemanden davon erzählen, nicht einmal deiner Mutter, ist das klar?«
+
+Der Junge nickt heftig.
+
+»Und du wirst keine einzige Münze ausgeben, bis ich wiederkomme. Fehlt auch nur ein Kupferstück aus dem Beutel, werde ich dich aufschlitzen und an deinen Gedärmen aufhängen. Ich gebe dir jetzt ein paar Sekunden um dir das vorzustellen. Wenn du die Bedingungen unseres Geschäftes verstanden und akzeptiert hast, nicke.«
+
+Der Junge wurde aschfahl und starrte für die gewährten Sekunden ins Leere und nickte dann heftig.
+
+»Guter Junge. Es werden den Tag über Leute kommen, die Ware abliefern wollen. Führe sie zum Stall. Das Erkennungswort ist ›Kalem‹.«
+
+Danach machte er sich auf den Weg zum Viehmarkt. Ein weiter Platz voller Scharren von Kamelen, störrischen Ziegen und einigen wenigen Maultieren. Staub wirbelte unter den Schritten der Händler auf, und das ständige Blöken und Schnauben der Tiere vermischte sich mit dem unaufhörlichen Geschrei der Verkäufer.
+
+Kalem trat an einen älteren Händler heran, dessen Haut von der Sonne gegerbt war. Der Mann kaute gelangweilt auf einem Dattelzweig herum und schlug gerade einen anderen Käufer in die Flucht, indem er ihm einen viel zu hohen Preis nannte.
+
+»Fünf Kamele«, sagte Kalem.
+
+Der Händler zog die buschigen Augenbrauen hoch. »Fünf? Wofür?«
+
+»Zum Streicheln. Was denkst du? Ich reise ab.«
+
+»Hm.« Der Alte ließ den Blick über Kalem schweifen. »Das wird teuer.«
+
+Kalem schnalzte mit der Zunge. »Teuer ist relativ.«
+
+Der Mann schnaubte, dann zeigte er auf eine kleine Herde abseits des Trubels. »Da. Stark, ausdauernd. Und sie fressen nicht alles an.«
+
+Kalem trat näher, begutachtete die Tiere. Sie sahen gesund aus, kräftige Beine, kein stumpfes Fell, keine Anzeichen von Krankheit.
+
+»Preis?«
+
+Der Händler nannte eine Summe. Kalem lachte.
+
+»Bei Orfels haarigem Arsch, willst du mich ausrauben?«
+
+Der Alte grinste. »Du bist doch ein reicher Mann.«
+
+»Ich bin ein armer Mann mit reichem Geschmack.«
+
+Es folgte ein zähes Feilschen, doch schließlich einigten sie sich. Kalem zahlte und ließ die Kamele zum gemieteten Stall bringen.
+
+Er kaufte die Vorräte in verschiedenen Vierteln ein. Hier ein paar Säcke Datteln, dort getrocknetes Fleisch. Fladenbrot von einem Stand am Marktplatz, Wasserschläuche von einem alten Mann, weiße Gewänder und Kopftücher.
+
+Er zahlte gut, niemand stellte Fragen – und er ließ alles in den Stall liefern.
+
+Es dauerte den ganzen Tag.
+
+Als Kalem schließlich in der Dämmerung zurück zum Stall schlenderte, lehnte er sich gegen einen der hölzernen Pfosten und betrachtete die fünf Kamele und die aufgestapelten Vorräte.
+
+Er rieb sich das Kinn. »Nicht schlecht.«
+
+Dann ließ er sich auf den Boden sinken, schloss für einen Moment die Augen und atmete tief durch.
+
+In zwei Tagen würden sie hier verschwunden sein.
+
+Wenn denn der Plan von Marina aufging.
+
+
+# Die Heldin von Demirantha_48
+
+## Marinas Auftrag
+Marina bewegte sich langsam durch die belebten Gassen der Oasenstadt, hielt sich den Rücken und biss die Zähne zusammen, als würde ihr jeder Schritt Schmerzen bereiten. Sie durfte keine Eile zeigen, durfte nicht den Eindruck erwecken, als hätte sie eine Mission – sie war nur eine alte Frau mit einem schmerzenden Kreuz, die hoffte, Linderung zu finden.
+
+Ihr Ziel war eine kleine, unscheinbare Hütte am Rand des Marktplatzes, umgeben von duftenden Kräuterbündeln, die unter einem überdachten Vorbau hingen. Flaschen, Tinkturen und getrocknete Pflanzen waren hinter einem Holzstand aufgereiht. Die Besitzerin, eine hager wirkende Frau mit grauem Haar und einer Hakennase, musterte die vorbeiziehenden Menschen mit einem durchdringenden Blick.
+
+Marina trat langsam näher.
+
+»Ah, meine Freundin aus dem Palast«, begrüßte die Hexe sie mit einem Lächeln. »Dein Rücken plagt dich noch immer?«
+
+Marina verzog das Gesicht und fasste sich theatralisch an die Lenden. »Schlimmer als je zuvor. Ich wusste, dass der Ausflug zu den Ruinen keine gute Idee war.«
+
+Die Hexe schnalzte mit der Zunge. »Ich hatte dich doch vor den Ruinen gewarnt.«
+
+»Ich brauche deine Hilfe«, sagte Marina mit gequälter Stimme.
+
+Die Hexe nickte. »Ich habe eine Salbe, die gut gegen Entzündungen hilft, oder eine Tinktur, die …«
+
+»Ich dachte eher an etwas Stärkeres«, unterbrach sie Marina sanft. »Ein Elixier, das mir hilft, wieder durchzuschlafen. Vielleicht auch etwas, das meine Muskeln entspannt.«
+
+Die Alte hob eine Braue. »Ich verstehe. Nun, ich kann dir etwas mischen, aber du hast mir erzählt, dass du dich mit Kräutern auskennst. Möchtest du es selbst brauen?«
+
+Marina zögerte gespielt. »Das wäre mir eine große Hilfe.«
+
+Die Hexe zuckte die Schultern. »Dann benutze, was du brauchst. Ich muss noch zu einer Geburtshilfe – eine Frau in der Stadt steht kurz vor der Niederkunft.«
+
+Marina gab sich erfreut, doch innerlich atmete sie erleichtert auf. Perfekt.
+
+»Danke. Ich werde alles ordentlich hinterlassen.«
+
+Die Hexe winkte ab und verschwand durch die Tür.
+
+Marina wartete einen Moment, lauschte den Geräuschen der Straße, dann trat sie ein und schloss die Tür hinter sich.
+
+Der Raum war klein, doch gut bestückt. Regale voller Gläser, Flaschen und getrockneter Kräuter säumten die Wände. Ein großer Mörser stand auf einem massiven Holztisch, daneben eine Reihe kleiner Phiolen mit verschiedenfarbigen Flüssigkeiten.
+
+Marina ließ ihre Finger über die Etiketten gleiten, suchte nach den benötigten Zutaten.
+
+Ein Trank, der Vashet für mehrere Tage bewusstlos halten würde – keine leichte Aufgabe. Er war ein erfahrener Magier, sein Körper vermutlich widerstandsfähiger als der eines gewöhnlichen Mannes. Also musste sie etwas besonders Starkes brauen, und doch musste der Trank absolut geschmacksneutral sein. Das war der schwerste Teil. 
+
+Sie begann mit Basiszutaten für ein gängiges Entspannungselixier – Mondsamen, beruhigende Blätter der Samlan-Myrthe, eine Prise gemahlener Schlangenwurzel. Dann kamen die stärkeren Komponenten hinzu: Wüstennachtgift, das normalerweise nur in kleinsten Dosen genutzt wurde, und ein Extrakt aus Tränenkraut, das tiefen, traumlosen Schlaf verursachte.
+
+Sie mischte die Zutaten mit sicherer Hand, zerrieb Blätter, ließ Flüssigkeiten ineinanderfließen, rührte mit der Präzision einer erfahrenen Alchemistin.
+
+Langsam verfärbte sich das Elixier. Ein tiefes, schimmerndes Blau, das in der Dunkelheit fast schwarz wirkte. Sie schnupperte: keinerlei Geruch. Sie tropfte sich einen winzigen Tropen auf einen Finger und berührte ihn mit ihrer Zungenspitze: kein Geschmack. Sie rieb sich die Zunge mit einem Tuch ab. Dennoch spürte sie schon nach kurzer Zeit eine wohlige Wärme und Trägheit ihren Körper fluten. Verdammt! Das Zeug war stark!
+
+»Das sollte genügen«, murmelte sie.
+
+
+# Die Heldin von Demirantha_49
+
+## Jaads Auftrag
+»Den da.«
+
+Kata nickte kaum merklich in Richtung eines Mannes, der an einem Stand lehnte und Datteln kaute. Er war vielleicht Mitte vierzig, ein unauffälliger Händler mit einem wettergegerbten Gesicht. Sein Geist war schwach, durchzogen von einfachen Sorgen.
+
+Jaad trat neben ihn, ließ sich Zeit, als wäre sie nur eine weitere Kundin. Während sie scheinbar die Ware betrachtete, strich sie mit den Fingern beiläufig über seinen Unterarm.
+
+»Du gehörst jetzt zu Jaads Armee«, flüsterte sie sanft.
+
+Der Mann blinzelte, seine Pupillen weiteten sich kurz, dann nickte er kaum merklich.
+
+»Am übernächsten Morgen. Vormittag. Du wirst Chaos verbreiten«, sagte sie leise.
+
+Doch während sie sprach, begann Kata laut zu reden.
+
+»Ich kann es immer noch nicht glauben«, seufzte sie und fuhr sich dramatisch durch das Haar. »Vashet ist so … faszinierend. Ich wusste nicht, dass ein Mann so beeindruckend sein kann. Seine Stimme, seine Art zu sprechen …«
+
+Jaad zog kurz eine Braue hoch, während sie dem nächsten Mann den Befehl gab.
+
+»Wenn du mich jetzt mit deinem Geschwärme ablenkst, stolpere ich noch in jemanden rein«, murmelte sie aus dem Mundwinkel.
+
+»Du verstehst das nicht!« Kata ließ ihre Stimme etwas lauter werden, als hätte sie völlig vergessen, dass sie sich auf einem belebten Marktplatz befanden. »Er sieht mich an, als wäre ich das Kostbarste in dieser Oase. Und ich frage mich …« Sie hielt inne, als würde sie wirklich nachdenken. Sie zeigte auf eine junge Frau.
+
+Jaad streifte sie mit der Hand.
+
+»Du gehörst zu Jaads Armee.«
+
+»… frage mich wirklich, ob ich mich nicht doch schon längst in ihn verliebt habe.«
+
+»Kata«, knurrte Jaad leise.
+
+»Ach was, ich meine es ernst! Er ist so mächtig, so erfahren. Du solltest ihn mal lachen hören, es ist … es ist einfach göttlich.«
+
+Jaad schloss kurz Augen.
+
+Sie bewegten sich weiter durch die Stadt. Überall waren Menschen – Händler, Tagelöhner, Handwerker, Bedienstete. Und überall waren schwache Geister.
+
+Ein Schmiedegeselle. Eine alte Frau. Ein Junge, der Wasser schleppte. Ein Söldner mit einer langen Narbe, der zu betrunken war, um sich Gedanken zu machen.
+
+Jeder wurde nur für den Bruchteil einer Sekunde berührt. Jeder hörte Jaads Befehle. Und jeder würde seinen Auftrag vergessen – bis zum Morgen des übernächsten Tages.
+
+Und Kata sprach weiter.
+
+»Er hat mich heute zu einer Privataudienz eingeladen«, sagte sie verträumt. »Ich bin gespannt, was er sich einfallen lässt. Ich hoffe, er hat wieder diesen wunderbaren Tee, den er mir neulich angeboten hat. Seine Geste war so … aufrichtig. Ich glaube, heute Nacht könnte es endlich geschehen.«
+
+»Es?«
+
+»Na du weißt schon: es.«
+
+Jaad ließ eine Hand über die eines alten Fischhändlers gleiten.
+
+»Du gehörst zu Jaads Armee.«
+
+»Ich weiß, was du denkst«, sagte Kata laut. »Du denkst, ich sollte mich nicht so schnell in etwas hineinstürzen. Aber Vashet ist anders. Er versteht mich.«
+
+Jaad seufzte leise. »Ich denke, du bist hoffnungslos.«
+
+Kata grinste leicht. »Das bin ich wohl.«
+
+Sie arbeiteten sich durch den Markt, ließen sich Zeit, damit es nicht auffiel. Ihre Taktik war simpel, aber effektiv – Kata füllte die Luft mit bedeutungslosem Geschwätz über Vashet, während Jaad sich auf ihre Magie konzentrierte.
+
+Als die Sonne tiefer sank, rieb Jaad sich die Schläfen. Sie atmete langsam aus. »Wir sollten zurück.«
+
+Kata nahm beiläufig Jaads Hand, während sie weiter liefen. Jaad deutete das als Aufforderung zu einer geistigen Verbindung.
+
+»Wie viele?«
+
+Kata zählte kurz in Gedanken nach. »Über hundert.« 
+
+»Was machen wir im Palast?«
+
+»Wir werden versuchen, möglichst viele Wachen zu verzaubern und die Bediensteten.«
+
+»Das wird schwieriger. Gerade unter den Bediensteten könnten Zauberer sein und die sind schwerer zu beeinflussen.«
+
+»Dann müssen wir uns eben vorsehen.« 
+
+Sie kehrten zurück in den Palast. Hier waren die Menschen wachsamer. Magiebegabte, Wachen, Vashets persönliche Diener. Einige von ihnen hatten starke Geister – zu stark, um sie zu beeinflussen.
+
+Aber nicht alle.
+
+Kata lehnte sich scheinbar gelangweilt an eine Säule, ließ den Blick über die Höfe und Gärten schweifen.
+
+»Der da«, sagte sie schließlich und deutete unauffällig auf einen jungen Diener, der eine Schale mit Früchten trug.
+
+Jaad trat an ihm vorbei, streifte ihn flüchtig am Handgelenk.
+
+»Du gehörst zu Jaads Armee.«
+
+Er hielt inne, hörte sich den Rest von Jaads Vortrag an, dann schüttelte er leicht den Kopf, setzte seinen Weg fort.
+
+Kata schwärmte derweil weiter von Vashet. Jaad ging das mittlerweile gehörig auf die Nerven.
+
+Sie arbeiteten sich durch die Gänge, die Säulengänge, die Innenhöfe. Ein Koch, eine Wache mit verbeultem Helm, eine Magd.
+
+Aber dann—
+
+»Was soll das heißen?!«
+
+Jaad trat abrupt zurück.
+
+Der Mann, den sie berührt hatte – eine Wache mit kalten, stechenden Augen – drehte sich langsam um.
+
+Kata hielt den Atem an.
+
+Jaad wich keinen Schritt zurück, hielt seinem Blick stand.
+
+»Erkläre dich!«, fragte die Wache misstrauisch.
+
+Jaad lächelte. »Nichts. Ich dachte nur, du siehst aus wie jemand, den ich kenne.«
+
+Der Mann musterte sie noch einen Moment, dann schnaubte er abfällig und drehte sich weg.
+
+Jaad biss sich auf die Lippe. Glück gehabt!
+
+»Zu stark«, flüsterte sie, als sie sich von ihm entfernten.
+
+»Tut mir leid, ich habe das falsch eingeschätzt«, sagte Kata leise.
+
+Die Letzten waren die Schwierigsten. Vashets Leibwachen. Persönliche Diener. Ihre Geister waren gefestigter, kontrollierter. Aber Kata war gut. Sie erkannte zuverlässig, wer empfänglich war und wer nicht.
+
+Sie wählten vorsichtig aus.
+
+Nicht genug, um alle zu kontrollieren. Aber genug, um Unordnung zu stiften.
+
+Genug, um Chaos zu erschaffen.
+
+Als die Nacht über die Oase fiel, kehrten sie zurück.
+
+Jaad schwankte leicht, als sie durch die Tür traten.
+
+»Ich bin fertig«, murmelte sie.
+
+»Dann ruh dich aus«, sagte Kata.
+
+Jaad ließ sich auf eine Liege sinken, rieb sich müde die Stirn.
+
+ 
+
+
+# Die Heldin von Demirantha_50
+
+## Der letzte Tag in der Oase
+ 
+
+Der Morgen dämmerte in goldenen Streifen über die Palastmauern, und mit ihm kam die Gewissheit: Dies war ihr letzter Tag in der Oase. Morgen, im Schutz des Chaos, würden sie fliehen. Doch noch waren sie Gäste. Noch mussten sie ihre Masken tragen.
+
+Sie hatten keine Einladung zum Essen von Vashet erhalten, keine Aufforderung zu einer Audienz. Es war, als hielte er Abstand – oder als wolle er sie in Sicherheit wiegen. Doch Kalem hatte gehört, dass heute ein Sombuk-Spiel stattfinden würde, an dem auch der Herrscher teilnehmen würde.
+
+»Dann lasst uns da hingehen«, sagte Marina aufgeräumt. »Wir haben ihn schon so lange nicht mehr gesehen.« Bei diesen Worten verdrehte sie die Augen. Was sie meinte, war natürlich, dass sie ihm, auf den Zahn fühlen wollte. Sie wollte wissen, ob ihm ihre gestrigen Aktivitäten aufgefallen sind. 
+
+Jaad schmunzelte. »Also, dann auf zum Spiel. Ich wollte schon immer wissen, warum die Einheimischen so wild auf diesen Sport sind.«
+
+Der große Hof war von edlen Stoffbahnen beschattet, der Sandboden sorgfältig geharkt. Rund um das Spielfeld saßen Zuschauer auf Kissen oder an kleinen, eleganten Tischen mit Leckereien und Getränken. Die Luft war erfüllt von angeregtem Gemurmel und gelegentlichem Applaus.
+
+Auf dem Spielfeld standen zwei Mannschaften, jeweils sechs Spieler. Sie hielten lange, gebogene Schläger in den Händen – nicht unähnlich den Hämmern eines Croquet-Spiels – und vor ihnen lagen kleine, schwere Lederbälle.
+
+Die Regeln waren ihnen unklar, aber offenbar war das Ziel, den Ball durch eines der steinernen Tore zu schlagen, die an den Spielfeldrändern standen. Vashet spielte selbst mit, gekleidet in leichte Gewänder, die seinen durchtrainierten Körper betonten.
+
+Die Helden nahmen an einem der Tische Platz. Sie gaben sich Mühe, so auszusehen, als wären sie nur wegen der Unterhaltung hier, nicht wegen Vashet.
+
+»Ich versteh’s nicht«, murmelte Jomar und lehnte sich zu Kalem. »Wenn er so mächtig ist – warum spielt er dann Ballspiele mit seinen Untertanen?«
+
+ 
+
+»Weil es seine Untertanen beeindruckt«, erwiderte Kalem. »Ein Herrscher, der sich für einfache Freuden nicht zu schade ist, wird als nahbar gesehen. Außerdem – schau ihn dir an. Er genießt das hier.«
+
+Marina sagte: »Ich glaube, ihm ist einfach langweilig. Deswegen genießt er ja auch unsere Anwesenheit so. Vielleicht ist das der Grund, warum er es so hinauszögert Stellung in Bezug auf Altheras zu beziehen. Ich glaube nicht, dass er uns schaden will.« Das war natürlich für ihre Überwacher gedacht. 
+
+Tatsächlich wirkte Vashet so, als hätte er Spaß. Er lachte, feuerte seine Mitspieler an, und als er ein besonders schwieriges Tor erzielte, brandete begeisterter Applaus auf.
+
+Die Helden schlossen sich an – besonders lautstark, um ihre Bewunderung zu zeigen und seine Aufmerksamkeit auf sie zu lenken.
+
+Nach dem Spiel – Vashets Mannschaft hatte gewonnen – näherte sich der Herrscher den Helden, ein entspannter Ausdruck auf dem Gesicht.
+
+»Meine Freunde«, begrüßte er sie. »Ich hatte gehofft, euch zu sehen. Es ist schade, dass ihr euch in letzter Zeit so rargemacht habt.«
+
+»Wir wollten euch nicht unnötig behelligen«, erwiderte Marina mit einem höflichen Lächeln.
+
+»Behelligen?« Vashet setzte sich auf einen Stuhl, den ein Diener für ihn bereithielt. »Nun, das hätte mich keineswegs gestört. Ich habe mich vielmehr gefragt, womit ihr euch so beschäftigt habt.«
+
+Er lehnte sich zurück, blickte entspannt in die Runde – und begann, sie nacheinander abzufragen.
+
+Sehr subtil, dachte Kalem.
+
+»Kalem?«
+
+Kalem zog die Augenbrauen hoch. »Ich habe Kamele und Proviant gekauft.«
+
+Ein kurzer Moment des Schweigens.
+
+Jomar hielt den Atem an. Was machte Kalem da? Wieso verriet er das?
+
+Auch Vashet schien überrascht. »Ist das so?«
+
+Kalem lehnte sich zurück, als wäre es das Selbstverständlichste der Welt. »Natürlich. Wir wollen vorbereitet sein, falls eine Karawane kommt, die uns mitnimmt. Ihr habt doch gesagt, wir sind frei zu gehen, oder?«
+
+Vashet musterte ihn einen Moment lang, dann lachte er leise. »Ihr seid ein erstaunlich pragmatischer Mann, Kalem. Doch das wäre nicht nötig gewesen – ich hätte euch alles Nötige zur Verfügung gestellt.«
+
+»Das ist sehr großzügig«, sagte Kalem mit einem höflichen Nicken.
+
+Vashet wandte sich nun Marina zu. »Und wie geht es euch? Ich hörte, ihr hattet einen Unfall.«
+
+»Ein Missgeschick«, sagte Marina beiläufig. »Ein paar Schmerzen, nichts Ernstes. Ich habe mir ein Schmerzmittel geholt.«
+
+»Ah«, machte Vashet, die Stirn leicht gerunzelt. »Ihr hättet meine Heiler rufen lassen können.«
+
+»Ich wollte euch keine Umstände bereiten«, sagte Marina mit einem bedauernden Lächeln.
+
+Vashet wiegte langsam den Kopf hin und her. »Ich fürchte, ich bekomme den Eindruck, dass ihr mir misstraut.«
+
+Marina erwiderte seinen Blick ruhig. »Misstrauen wäre ein zu starkes Wort. Wir sind nur vorsichtig. Doch ich hoffe, das ändert sich mit der Zeit.«
+
+»Das hoffe ich auch«, erwiderte Vashet sanft.
+
+Dann atmete Vashet tief durch und nahm sich ein Seidentuch, um sich die Stirn abzutupfen. Seine Haut glänzte von Schweiß. 
+
+»Verzeiht mir, aber dieses Spiel ist wahrlich nichts für Männer meines Alters. Ich werde mir ein Bad und eine Massage gönnen, um meine geschundenen Muskeln zu entspannen.«
+
+Er erhob sich mit fließenden Bewegungen, verabschiedete sich mit einem charmanten Lächeln und wandte sich zum Gehen.
+
+Jaads seltsames Verhalten schien Vashets Spionen nicht aufgefallen zu sein. 
+
+Kata wartete, bis er einige Schritte entfernt war, dann sprang sie auf.
+
+»Entschuldigt mich kurz.«
+
+Die anderen sahen ihr nach, wie sie Vashet folgte. Sie konnten nicht hören, was sie sagten, aber Vashet schien sehr erfreut.
+
+Als sie zurückkam, setzte sie sich grinsend auf ihren Platz.
+
+»Heute Nacht werde ich mich ihm hingeben.«
+
+Jomar verschluckte sich an seinem Wein.
+
+Kalem klopfte ihm auf den Rücken. »Kata kann machen, was sie will.«
+
+»Grrch, pfft karch«, röchelte Jomar. 
+
+»Und es wird herrlich werden«, säuselte Kata mit einer übertrieben süßen Stimme.
+
+Marina nahm einen Schluck aus ihrem Becher und stellte ihn langsam ab.
+
+Hoffentlich läuft alles so, wie geplant. Wir dürfen Vashet nicht unterschätzen. 
+
+
+# Die Heldin von Demirantha_51
+
+## Finale in der Oase
+Als Kata die Tür zu ihrem Zimmer öffnete, lag es da.
+
+Ein Kleid – oder besser gesagt, ein Stück sündhafter Stoff, das gerade noch so überhaupt als Kleidungsstück bezeichnet werden konnte. Es war auf ihrem Bett drapiert, sorgfältig gefaltet, ein sicherlich kostbares Geschenk. Vashet hatte es ihr schicken lassen.
+
+Sie hob es mit zwei Fingern hoch und musterte es kritisch. Dünner, weicher Stoff, fast durchsichtig, schwarz mit goldenen Stickereien an den Rändern. Sie entkleidete sich und zog es über. Es schmiegte sich an ihren Körper wie eine zweite Haut, betonte jede Kurve, ließ Schultern und Rücken völlig frei und endete viel zu hoch über dem Knie. Im Grunde sah man alles.
+
+Perfekt.
+
+Die Kürze des Kleidungsstücks hatte zumindest einen praktischen Vorteil – sie hatte freien Zugriff auf ihren Unterleib. Kata nahm die kleine Phiole mit Marinas Trank, atmete tief durch, schob den dünnen Stoff beiseite und schob sie vorsichtig zwischen ihre Schenkel. Dort war sie sicher, dort konnte sie niemand entdecken, und wenn der Moment gekommen war, würde sie sie ebenso unauffällig wieder hervorholen können.
+
+Ein lautes Räuspern ließ sie herumfahren.
+
+Jomar stand in der Tür – und er schien einen Schlag gegen den Kopf bekommen zu haben. Oder gegen sein gesamtes Weltbild. Hatte er gesehen, wie sie die Phiole hat verwinden lassen? 
+
+Er öffnete den Mund, schloss ihn wieder. Dann atmete er tief ein, als wolle er sich sammeln. Doch als er erneut ansetzte, klang es nicht besonders gefasst:
+
+»Was… was in Orfels Namen ist das?«
+
+Kata drehte sich leicht, betrachtete sich im Spiegel.
+
+»Das ist das Kleid, das Vashet mir hat zukommen lassen.«
+
+»Das ist kein Kleid!« Jomar machte eine hilflose Geste. »Das ist… das ist…«
+
+»Knapp?«
+
+»Unanständig!«
+
+»Dann erfüllt es seinen Zweck.«
+
+»Du kannst das nicht ernst meinen!«
+
+»Oh doch«, sagte Kata trocken. »Vashet erwartet eine Verführerin, also bekommt er eine Verführerin.«
+
+Jomar rieb sich mit beiden Händen übers Gesicht, als könne er das Bild einfach aus seinem Kopf löschen. Dann verschränkte er die Arme und sagte mit einer Mischung aus Trotz und Verzweiflung:
+
+»Du kannst dich so doch nicht vor ihm zeigen!«
+
+»Jomar, das ist genau, was ich will. Ich liebe ihn.«
+
+Er schüttelte hektisch den Kopf, rang sichtlich mit sich selbst, ob er weiterhin protestieren oder einfach die Tür hinter sich zuschlagen sollte. Letztlich entschied er sich für etwas dazwischen – er fuhr sich wieder durchs Haar, drehte sich halb zur Seite und murmelte etwas Unverständliches.
+
+In diesem Moment trat Kalem ein.
+
+Er blieb im Türrahmen stehen, ließ seinen Blick langsam über Kata wandern und schnalzte anerkennend mit der Zunge.
+
+»Nun«, sagte er und lehnte sich entspannt an den Türrahmen, »ich wusste ja, dass du auf diesen Mann Eindruck machen willst, aber das ist… imposant.«
+
+Kata verdrehte die Augen.
+
+»Nicht jetzt, Kalem.«
+
+»Doch, genau jetzt«, erwiderte er grinsend. »Ich hoffe, der Anblick bringt den armen Kerl nicht um. Er ist ja nun auch nicht mehr der Jüngste.«
+
+»Kalem!«, knurrte Jomar.
+
+Kalem zuckte die Schultern. »Was denn? Ich sage nur, was alle denken.«
+
+Kata grinste schief.
+
+»Dann denk leise und lass mich gehen.«
+
+Jomar presste die Lippen aufeinander und stapfte wortlos aus dem Raum.
+
+Kata griff nach dem leichten Seidentuch, das sie sich lose um die Schultern legte, mehr zum Schein als zum Verdecken. Dann drehte sie sich zu Kalem.
+
+»Bereit?«, fragte er grinsend.
+
+»Mehr als je zuvor. Das wird die wundervollste Nacht meines Lebens«, sagte sie und schritt mit selbstbewussten Schritten in Richtung von Vashets Gemächern, den grinsenden Kalem und den leise jammernden Jomar hinter sich zurücklassend. 
+
+*
+
+Kata betrat Vashets Privatgemächer mit einem koketten Lächeln. Der Herrscher lag halb auf einem Diwan, einen Kelch in der Hand, und musterte sie mit unverhohlenem Interesse. Kata blickte sich um. Der Raum schien in roten Rosen zu ertrinken.
+
+»Du siehst …« Er ließ den Blick langsam über sie gleiten. »… betörend aus.«
+
+Kata drehte sich langsam um sich selbst, die Hände offen und erhoben. Es sah aus, als wolle sie ihr Kleid präsentieren, doch es war auch eine Botschaft an Vashets Unterbewusstsein: Ich habe nichts in den Händen, es gibt keine verborgenen Messer.
+
+Es funktionierte. Vashet grinste zufrieden und winkte die Wachen fort. Sein persönlicher Diener wollte protestieren, doch Vashet schüttelte den Kopf.
+
+»Heute Nacht möchte ich nicht gestört werden. Es sei denn, die Oase brennt.«
+
+»Oh ja, und auch egal, was ihr hört«, kicherte Kata anzüglich. »Es könnte laut werden.« 
+
+Der Diener verneigte sich und zog sich zurück. Kata sah ihm nach, bis die Tür ins Schloss fiel. Jetzt war sie allein mit Vashet.
+
+Sie nahmen in einer luxuriösen Kassenlandschaft Platz, plauderten über Belangloses, doch Kata spürte, wie Vashet ungeduldiger wurde. Die Zeit lief ihr davon. Irgendwann würde er seine vornehme Zurückhaltung aufgeben.
+
+»Ich habe mich an den Tee gewöhnt, den du mir immer serviert hast«, sagte sie mit gespielter Sehnsucht. »Es wäre schade, wenn ich ihn heute vermissen müsste.«
+
+Vashet lachte. »Das siehst du, wie gut ich dich schon kenne: Ich habe selbstverständlich eine Kanne bereitstellen lassen.«
+
+Er erhob sich, um den Tee zu holen. Kaum war er außer Sicht, rutschte Kata hastig auf die Knie und schob einen Finger in ihren Unterleib. Keine Phiole zu spüren. Panik wallte in ihr auf. Wo war das Ding?
+
+Verdammt, warum hatte sie keinen Faden an die Phiole gebunden? Sie ging so tief, wie sie nur konnte. Da endlich spürte sie kaltes Glas an den Fingerspitzen – doch das Mistding war glatt.
+
+Schritte näherten sich. So sollte er sie besser nicht sehen. Sie spannte ihren Beckenboden an. Mit einer letzten Anstrengung gelang es ihr hinter die Phiole zu kommen und sie hervorzuholen. Recht unelegant ließ sie sich nach hinten fallen. Vashet bemerkte nichts. 
+
+Vashet schenkte den Tee ein, langsam, fast genießerisch, als sei dies ein Ritual. Der Duft von Gewürzen und Kräutern stieg in die Luft. Kata nahm ihre Tasse entgegen, hielt sie zwischen den Fingern, als sei sie ganz darauf konzentriert.
+
+Vashet nahm ebenfalls seinen Becher, drehte ihn leicht und betrachtete das dunkle Gebräu.
+
+»Ein besonderer Aufguss«, sagte er und lächelte. »Für einen besonderen Abend.«
+
+Kata erwiderte sein Lächeln. Sie hielt die Tasse an ihre Lippen, neigte sie ein wenig – doch statt zu trinken, ließ sie die Flüssigkeit nur kurz ihre Unterlippe benetzen, bevor sie die Tasse wieder absetzte. Wer weiß, was er in meinen Tee getan hat.
+
+Vashet beobachtete sie.
+
+»Du genießt es langsam. Das gefällt mir.«
+
+»Man sollte sich für alles Zeit nehmen, das sich lohnt«, erwiderte Kata mit gespielter Wärme.
+
+Er grinste.
+
+Sie stellte ihre Tasse mit einer eleganten Bewegung ab, beugte sich etwas vor und tat, als wolle sie ihn näher ansehen.
+
+»Da ist …« Sie zögerte. »Etwas in deinem Bart.«
+
+Vashet runzelte die Stirn, fuhr mit den Fingern durch seinen Bart.
+
+»Hier?«
+
+»Nein, weiter links.«
+
+Er strich sich über die Wange.
+
+»Höher.«
+
+Vashet hob die Hand und den Kopf. »Hier?«, fragte er. – und in genau diesem Moment öffnete Kata die Phiole unter dem Tisch, dann ließ sie die dunke Flüssigkeit lautlos in seinen Tee gleiten. Ein winziger, beinahe unsichtbarer Wirbel kräuselte die Oberfläche, bevor sich der Trank mit dem Tee verband.
+
+»Weg«, sagte Kata. »So perfekt wie immer.«
+
+Er hob die Tasse, trank.
+
+Es dauerte nicht lange und seine Lider wurden schwer, seine Bewegungen träge. Sein Kopf fiel nach hinten.
+
+Kata hielt den Atem an. »Das war ja einfach!«
+
+Kata entspannte sich. Sie hatte es geschafft.
+
+Dann, plötzlich, riss Vashet die Augen auf und sog geräuschvoll Luft in seine Lungen. 
+
+Kata erstarrte.
+
+Er hob eine zitternde Hand und murmelte unverständliche Zauberformeln. Sie spürte, wie Magie sich um ihn sammelte. Er bannte das Gift.
+
+Verdammt!
+
+Kata machte sich unsichtbar, während Vashet taumelnd versuchte auf die Beine zu kommen. Es gelang ihm nicht.
+
+»Du … Miststück …« Er sah sich um, schoss magische Pfeile ins Leere.
+
+Kata duckte sich. Das war schlecht. Sehr schlecht. Wenn er den Trank völlig neutralisierte, würde sie das hier nicht überleben. Und der Krach, den seine Zauber machten, half auch nicht. 
+
+Vashet rief mit schwacher, undeutlicher Stimme nach den Wachen. Dennoch bestand die Gefahr, dass sie ihn hörten. Kata begann zu stöhnen. Leise erst, dann lauter. Lustvoll, hemmungslos, bis ihr ekstatisches Schreien Vashets Hilferufe überdeckte. Dabei sprang sie unsichtbar von einer Ecke in die andere. 
+
+Die Wachen würden denken, sie seien bereits mitten im Vergnügen und das auf sehr wilde Art und Weise.
+
+Vashet fluchte, taumelte – und stellte seine Versuche ein, Kata zu treffen. Wieder versuchte er, das Gift zu bannen. 
+
+Kata wusste, dass sie handeln musste.
+
+Immer noch unsichtbar, stellte sie sich vor ihn. Sie zielte. Sie trat zu.
+
+Mit aller Kraft trat sie ihn zwischen die Beine.
+
+Vashet brach mit einem überraschten Knurren zusammen. Die Magie brach ab, sein Körper zuckte, er bäumte sich noch einmal auf – dann fiel er endgültig in Bewusstlosigkeit.
+
+Kata ließ sich kurz auf die Knie sinken, atmete tief durch.
+
+Dann zerrte sie Vashet auf die Kissen zurück. Er sah erbärmlich aus – mit heraushängender Zunge und einem leuchtend lilafarbenen Gesicht.
+
+Sie beugte sich grinsend zu ihm hinab.
+
+»War es für dich genauso schön wie für mich?«
+
+Sie hielt sich eine Hand ans Ohr.
+
+»Was sagst du? Du willst noch einen Nachschlag? Gerne!«
+
+Sie richtete sich auf und trat ihm nochmals mit aller Kraft in die in die Eier. Die nächsten Tage würde er vorwiegend liegend verbringen. Dann legte sie eine Decke über ihn.
+
+Sie schlich zur Tür, öffnete sie vorsichtig einen Spalt und quetschte sich – noch immer unsichtbar – hindurch – keine der Wachen bemerkte etwas. Sie grinsten sich nur gegenseitig an und machten versaute Bemerkungen. 
+
+Und lautlos verschwand sie in der Nacht. 
+
+
+# Die Heldin von Demirantha_52
+
+## Abreise
+Noch bevor die ersten Sonnenstrahlen über den Horizont krochen, waren sie bereit. Der Palast lag still in der Dämmerung, die Luft kühl, doch in der Ferne schimmerte bereits die unerbittliche Hitze des kommenden Tages.
+
+Sobald Vashet gefunden wurde, würden die Alarmglocken läuten. Sie mussten fort sein, lange bevor jemand bemerkte, dass der Herrscher der Oase nicht mehr erwachte.
+
+Am Hauptausgang des Palastes standen zwei Wachen, die sie mit müden, aber misstrauischen Blicken musterten.
+
+»Was ist euer Begehr?«, fragte einer von ihnen.
+
+Marina trat vor.
+
+»Wir reisen ab.«
+
+Die Wachen wechselten Blicke.
+
+»Das ist ungewöhnlich früh. Ich werde eine Erlaubnis von Vashet einholen müssen.«
+
+»Nein!«, sagte Marina entschlossen und hob die Hand – und eine unsichtbare Faust rammte ersten der beiden Wachen mitten in die Brust. Er wurde von den Füßen gerissen, schlug hart auf den Boden auf und blieb stöhnend liegen. Der zweite wollte sein Schwert ziehen, doch Marina streckte ihn mit einer ebenso mühelosen Bewegung nieder.
+
+Kalem pfiff anerkennend durch die Zähne.
+
+»Ich wusste ja, dass du eine Frau bist, die Nägel mit Köpfen macht, aber das hier ist ja nicht gerade unauffällig.«
+
+»Keine Zeit für Subtilitäten«, erwiderte Marina trocken. Sie beugte sich zu den Wachen hinunter und murmelte eine Beschwörungsformel. Ein Schlafzauber, dachte Kata beeindruckt. 
+
+Sie schleiften die bewusstlosen Wachen durch die Tür und verbargen sie notdürftig hinter den Hecken, die den Weg flankierten. Dann machten sich auf den Weg durch die noch stillen Straßen. Sie holten ihre Kamele, beluden sie und gingen weiter Richtung des Tores.
+
+Doch als sie die große Pforte erreichten, die sie einst in diese Oase geführt hatte, erwartete sie bereits das nächste Hindernis. Eine kleine Einheit von fünf Wachen stand davor, die Lanzen locker in der Hand, doch ihre Haltung war angespannt.
+
+»Das ist nicht gut«, murmelte Jomar.
+
+Kata schob sich an ihm vorbei und sah Jaad an. Ein winziges Nicken.
+
+Jaad trat vor.
+
+»Vashet hat uns erlaubt, zu abzureisen«, sagte sie mit ruhiger Stimme. Sie kramte in ihrer Tasche, zog ein Stück Pergament hervor und hielt es ihnen hin. »Hier ist sein schriftlicher Befehl.«
+
+Die Wache nahm das Papier, musterte es skeptisch – und genau in diesem Moment ließ Jaad ihre Finger beiläufig über seinen Handrücken streichen.
+
+»Du gehörst zu Jaads Armee, und das Papier ist in Ordnung«, hauchte sie.
+
+Sein Blick wurde für einen Sekundenbruchteil glasig. Dann nickte er.
+
+»Natürlich. Ihr dürft passieren.«
+
+Jaad ging an ihm vorbei und berührte, scheinbar beiläufig, die anderen Wachen. Eine nach der anderen.
+
+»Ihr gehört zu Jaads Armee«, sagte sie nun laut. »Geht in die Stadt! Verteilt euch! In einer Stunde werdet ihr laut rufen: Für Jaads Armee! Dann macht ihr das, was alle so machen. Nur eine Regel: Es darf niemand sterben.«
+
+Die Männer nickten, drehten sich um und trotteten langsam los.
+
+Marina sah ihnen hinterher.
+
+»Effektiv«, bemerkte sie.
+
+»Nun ja«, sagte Kalem und grinste, »ich bin mir sicher, wir werden von Jaads Armee noch ein Weilchen hören, auch wenn wir dann schon unterwegs sind.«
+
+Und mit diesen Worten traten sie durch das Tor und verließen die Oase.
+
+Kaum hatten sie das Tor hinter sich gelassen, wurde das erste Morgenlicht stärker und tauchte die endlose Wüste in blasses Gold.
+
+Die Karawane war in Aufbruchsstimmung. Händler und Bedienstete liefen zwischen den Tieren umher, überprüften Lasten, sicherten Satteltaschen. Kamele schnaubten, ihre langen Beine wirbelten den Sand auf.
+
+»Sucht den Karawanenführer«, befahl Marina.
+
+»Nicht nötig«, murmelte Kalem trocken, denn ein bekanntes Gesicht hatte sie bereits entdeckt.
+
+Amchet stand zwischen den Kamelen, die Arme verschränkt, das Gesicht in mühsamer Gelassenheit. Doch seine Augen verrieten ihn. Er war definitiv nicht glücklich über ihr Wiedersehen.
+
+»Ich hoffe, ihr hattet eine angenehme Zeit in der Oase«, sagte er betont höflich.
+
+»Amchet!«, rief Kalem und breitete die Arme aus. »Was für eine freudige Überraschung! Ich wusste doch, dass wir uns wiedersehen.«
+
+Marina trat näher. »Du hast gut auf unsere Kamele und unsere Sachen aufgepasst, nicht wahr?«
+
+Amchets Miene versteinerte.
+
+»Wir … hatten keine Wahl«, sagte er. »Die Karawane musste weiterziehen. Eure Kamele wären sonst einfach hier zurückgeblieben.«
+
+»Also hast du sie verkauft«, stellte Kata nüchtern fest.
+
+Amchet hielt ihrem Blick stand. »Ich habe sie verkauft.«
+
+Kalem lachte leise. »Tja, das hatten wir uns fast gedacht. Du hast wohl nicht damit gerechnet, uns je wiederzusehen, hm?«
+
+Amchet zuckte mit den Schultern. »Ich gebe zu, dass das eine Überraschung ist. Aber natürlich seid ihr nach wie vor meine Gäste. Ich werde euch einen Platz in der Karawane sichern.«
+
+»Den besten Platz?«, fragte Kata.
+
+»Den … bestmöglichen Platz«, korrigierte Amchet vorsichtig.
+
+»Ah ja.«
+
+Marina winkte ab. »In Ordnung. Hauptsache, wir kommen weiter.«
+
+Während sich die Gruppe in die Karawane einreihte, stapfte Kalem zur massiven Mauer, die die Oase umgab. Er ließ sich auf die Knie fallen und grub mit den Händen im Sand. 
+
+Amchet trat näher. »Was … genau tust du da?«
+
+»Eine kleine Rückversicherung gegen deine Gier.«
+
+Mit einem Ruck zog Kalem eine kleine, sorgfältig versiegelte Truhe aus dem Sand. Er öffnete sie, ließ die Goldmünzen zwischen seinen Fingern klimpern.
+
+Amchet blinzelte. Dann ging ihm sichtbar ein Licht auf.
+
+»Das war die ganze Zeit direkt vor meinen Füßen?«, fragte er ungläubig.
+
+Kalem grinste. »Ein Glück, dass wir dir misstraut haben.«
+
+Amchet schnaubte leise, konnte ein amüsiertes Funkeln in seinen Augen jedoch nicht verbergen.
+
+Die Karawane setzte sich in Bewegung, zog langsam durch die Dünen. Die Oase wurde kleiner hinter ihnen.
+
+Doch dann … Ein Geräusch. Gedämpft, entfernt, aber unverkennbar. Es waren sogar einzelne Rufe zu hören: »Für Jaad!«
+
+Jomar drehte sich im Sattel um.
+
+Am Horizont kräuselten sich dünne Rauchsäulen in den Himmel. Erst Einzelne, dann Dutzende.
+
+»Ich glaube, Jaads Armee hat ihren Dienst angetreten«, sagte Kata trocken.
+
+Selbst auf diese Entfernung konnten sie die Unruhe in der Stadt erahnen.
+
+Marina beobachtete die brennenden Flecken, ihr Blick abschätzend.
+
+»Selbst wenn Vashets Heiler ihn wecken können«, sagte sie langsam, »wird er erst einmal andere Sorgen haben, als uns zu verfolgen.«
+
+Kalem lehnte sich entspannt zurück.
+
+»Und falls er doch kommt, haben wir ja Kata. Die weiß, wo man hintreten muss.«
+
+Kata lachte.
+
+Und mit diesem Bild vor Augen ritten sie weiter Richtung Schattensphäre.
+
+
+# Die Heldin von Demirantha_53
+
+## Die Schattensphäre
+ 
+
+Die Grenze war kein Ort, kein Übergang. Und doch wussten sie alle, dass sie ihn überschritten hatten.
+
+Die Luft fühlte sich schwer an – dicht, spannungsgeladen, als enthielte jeder Atemzug etwas Fremdartiges. Kata spürte es als Erste. Ein leises Summen kroch in ihre Glieder, als hätte sich die Magie der Welt verändert – dichter, unruhiger, irgendwie fremd.
+
+»Jetzt hat es angefangen«, murmelte sie.
+
+Jomar blieb stehen und blickte zurück zur fernen Wüste, bevor er sich wieder umwandte. »Ich spüre es auch«, sagte er leise. »Es vibriert in mir.«
+
+»Es ist die Magie«, erklärte Marina. »Sie ist hier nicht wie im Rest der Welt. Älter. Wilder. Die Wurzel ist hier stark.«
+
+Kalem, sah sich misstrauisch um. »Es kribbelt im Nacken. Wie vor einem Gewitter.«
+
+Marina hob überrascht die Augenbrauen. »Du spürst es?«
+
+»Ich sage ja nicht, dass ich plötzlich zaubern könnte«, erwiderte Kalem trocken. »Aber irgendetwas liegt in der Luft.«
+
+»Erstaunlich. Die Magie muss wirklich stark sein.«
+
+Die Landschaft wurde seltsamer. Krumme, flechtenüberzogene Steine lagen in Mustern, die zu regelmäßig wirkten, um natürlich zu sein. Einmal sahen sie eine Eidechse mit sechs Beinen und zwei Schwänzen über den Weg huschen, deren Haut sich ständig wandelte – mal wie Holz, dann Metall, dann durchsichtiges Glas.
+
+»Ich nehme an, das war kein gewöhnliches Tier«, bemerkte Jaad trocken.
+
+»Ich habe keine Ahnung, was das war«, gab Kata zu.
+
+Am Nachmittag erreichten sie einen Wald. Anfangs schien er gewöhnlich, doch schon nach wenigen Schritten wurde klar, dass dies ein Irrtum war. Die Stämme glänzten wie gebürstetes Silber, und die Äste schimmerten glasartig.
+
+»Sieht nicht besonders einladend aus«, kommentierte Kalem.
+
+»Vorsicht«, warnte Marina. »Berührt nichts. Diese Bäume könnten auf Eindringlinge reagieren.«
+
+Sie bewegten sich vorsichtig zwischen den ersten Bäumen hindurch. Der Boden war glatt und mit feinem Staub bedeckt.
+
+Etwas knackte über ihnen.
+
+Ein gläserner Ast krachte herab – direkt auf Kata. Sie sprang zur Seite, gerade noch rechtzeitig. Zwei weitere folgten, scharfkantig wie Dolche, und bohrten sich tief in den Boden. Wenn sie nicht ausgewichen wäre, hätten sie sie durchbohrt. 
+
+Marina hob beide Arme und murmelte ein schnelles Wort. Eine flimmernde Kuppel spannte sich über die Gruppe, und mehr Splitter prallten daran ab.
+
+»Zurück!«, befahl sie.
+
+Hastig zogen sie sich aus dem Schatten der Bäume zurück. Einer der Äste hatte sich tief in den Boden gebohrt. Jomar beugte sich neugierig herunter, doch Marina rief ihn sofort zurück.
+
+»Nicht anfassen! Das könnte magisch sein.«
+
+»Ich würde eher sagen: ist es«, knurrte Kalem. »Das Zeug versucht, uns zu töten.«
+
+»Der ganze Wald ist eine Falle, obwohl ich nicht glaube, dass Altheras dieses Mal dahinter steckt. Hier will uns die Schattensphäre höchstpersönlich umbringen«, stellte Marina fest. »Wir müssen außen herum.«
+
+Sie folgten einem Pfad am Rand des Gehölzes entlang. Das Gelände wurde steiler. Karge Hügel ragten aus der violettgrauen Landschaft. Über ihnen zogen Wolken, langsam wie Tinte. Der Himmel war zu nah, zu fremdartig.
+
+»Ich habe das Gefühl, dass das alles hier lebt«, sagte Jaad leise.
+
+»Tut es auch«, antwortete Marina.
+
+»Und wenn es merkt, dass wir hier sind?«, fragte Kata.
+
+»Dann wird es uns testen«, erwiderte Marina ruhig. »Oder versuchen, uns zu verschlingen.«
+
+Am späten Nachmittag fanden sie einen halb zerfallenen Wachturm, die Reste einer Wehrmauer und verfallene Mauerreste. Wer immer versucht hatte, sich in der Schattensphäre festzusetzen – er war gescheitert.
+
+Das Dach fehlte, doch zwei Wände standen noch und boten etwas Schutz. Sie entzündeten ein kleines Feuer gegen die aufkommende Kälte.
+
+Kata saß am Rand der Ruine und sah hinaus auf das seltsame Land.
+
+»Was ist das für ein Ort?«, fragte sie leise. »Ich meine – wirklich?«
+
+ 
+
+Marina sah vom Feuer auf.
+
+»Die Schattensphäre ist nicht natürlich. Sie wird von der Wurzel durchdrungen – von hier aus fließt die Magie über ganz Demirantha. Deswegen ist sie hier so stark. Und unberechenbar. Altheras hats mit seinen Spielereien noch schlimmer gemacht.«
+
+Sie zögerte.
+
+»Manchmal denke ich, vielleicht das war Absicht. Vielleicht haben die Ahnen sie so gemacht – als Warnung. Damit niemand der Wurzel zu nahe kommt.«
+
+Sie schüttelte leicht den Kopf.
+
+»Aber wahrscheinlicher ist: Der Ort hat einfach zu viel abbekommen. Zu viel rohe Magie. Zu lange. Irgendwann kippt alles, selbst ein Ort wie dieser. Was wir sehen, ist vielleicht nur die Folge. Kein Plan. Kein Fluch. Nur zu viel Magie.«
+
+Ein leiser Ton, fast Bedauern.
+
+»Die Schattensphäre wird von der Magie praktisch verbrannt.«
+
+»Großartig«, murmelte Kalem und stocherte missmutig im Feuer. »Und wir mittendrin.«
+
+Dann geschah es.
+
+Ein kaum spürbares Vibrieren – doch genug, dass alle sich anspannten.
+
+Jaad hob den Kopf. »Fühlt ihr das?«
+
+Marina nickte ernst. »Es fängt wieder an.«
+
+Die Luft summte, und ein Flimmern war plötzlich in der Luft, als wäre die Luft siedend heiß. Der Himmel flackerte, und die Felsen zitterten.
+
+»Das ist die Veränderung der Magie«, flüsterte Kata.
+
+Jomar stand auf. »Nur eine Kleinigkeit. Nur ein Test.« Er hob die Hand. »Lumos!«
+
+»Nicht!«, rief Marina, doch es war zu spät.
+
+Doch in Jomar Hand entstand kein Licht, sondern Schwärze – tief und dunkel. Die kleine Kugel verschlang das Licht des Feuers und ließ Schatten aus den Ecken wachsen.
+
+»Lösch das!«, rief Jaad entsetzt.
+
+»Ich versuche es!«, fauchte Jomar panisch.
+
+Er ballte die Faust, öffnete sie wieder – doch die Kugel blieb. Dann, plötzlich, zischte sie und verschwand. Das Licht kehrte zurück.
+
+»Was war das?«, fragte Kata atemlos. Sie spürte, wie ihr Herz schneller schlug. War das Angst?
+
+Marina ging angespannt auf Jomar zu. »Du zauberst ab jetzt gar nichts mehr. Niemand zaubert, nicht ohne meine ausdrückliche Erlaubnis.«
+
+Jomar nickte stumm, Schweiß auf seiner Stirn.
+
+»Was wir eben sahen«, erklärte Marina leise, »war kein Unfall. Das ist Altheras. Er verändert die Magie.«
+
+»Aber warum hält es nicht dauerhaft?«, fragte Jaad skeptisch.
+
+»Seine Kontrolle ist noch nicht vollkommen. Die Strukturen sind instabil und halten nur kurz. Außerdem sprechen ja auch die Ergebnisse für sich. Warum sollte er wollen, dass die Magie so verdreht bleibt«, antwortete Marina.
+
+»Wie lange hat es diesmal gedauert?«, fragte Kalem.
+
+»Vier, fünf Minuten«, sagte Kata leise.
+
+»Genug Zeit, um jeden von uns in ein Monster zu verwandeln«, sagte Jomar düster.
+
+»Oder uns in Rauch aufzulösen«, ergänzte Kalem trocken.
+
+Schweigen breitete sich aus.
+
+»Hört zu«, sagte Marina schließlich. »Keine Zauberei. Keine Spielereien. Wenn ihr etwas spürt, sagt es sofort. Aber wir handeln niemals allein. Nicht hier.«
+
+Über ihnen flackerte die Dunkelheit ein letztes Mal. Dann kehrte unnatürliche Ruhe ein. Doch alle wussten, dass es nicht vorbei war.
+
+ 
+
+*
+
+ 
+
+Sie waren am nächsten Morgen früh aufgebrochen. Es hatte glücklicherweise keine Überraschungen geben und sie waren gut vorangekommen. Ein feiner Regen hatte eingesetzt. Anfangs kaum spürbar, dann dichter. Die Tropfen waren kühl, geruchlos – aber nicht normal. Manche von ihnen schillerten. Ihre Bewegungen waren … seltsam. Sie fielen nicht einfach. Sie tanzten. Zuckten. Glitten in Spiralen zu Boden, als hätten sie ein eigenes Bewusstsein.
+
+Jomar streckte instinktiv die Hand aus und fing einen auf. Der Tropfen schien in seine Haut zu sinken.
+
+Er war kein Mensch mehr. Er war ein Wolf.
+
+Die Welt roch anders, klang anders, vibrierte unter seinen Pfoten. Um ihn herum: das Rudel. Bewegung, Hitze, Anspannung. Ein Jungwolf fletschte die Zähne – forderte ihn heraus. Jomar knurrte, stellte sich groß. Der andere wich nicht zurück.
+
+Der Kampf war kurz. Brutal. Fell flog. Blut schmeckte metallisch.
+
+Als Jomar wieder blinzelte, stand er keuchend im Regen, auf zwei Beinen, mit dem Geschmack von Zorn im Mund.
+
+Ein paar Meter entfernt fluchte Kalem. Laut. Der Regen tropfte ihm von den Haaren, aber sein Blick war anders – leerer.
+
+Er sagte nichts. Doch sein Blick war schwer. Irgendwann presste er nur hervor:
+
+»Ich wusste nicht, dass man seinem eigenen Tod beim Genickbrechen zuhören kann. Scheiß Magie.«
+
+Er spuckte aus.
+
+»Und die hatten nicht mal recht mit dem Urteil.«
+
+Marina stand still, ihre Schultern schwer. Ihre Hände umklammerten einen unsichtbaren Pflug. Sie hatte stundenlang geackert, auf einem Feld ohne Ende. Ein Ochse vor ihr. Der Regen hatte sie nicht geweckt – nur das leise Beben der Erde unter ihren Füßen.
+
+Kata kauerte neben einem gefallenen Kameraden, Schwert in der Hand, Blut an den Fingern. In der Ferne: Hornstöße. Der Schlachtenlärm summte noch in ihren Knochen, als sie blinzelte und den vertrauten Himmel der Schattensphäre wieder sah.
+
+Jaad riss sich abrupt los. Ihre Augen flackerten, als hätten sie mehr gesehen, als ihr lieb war.
+
+»Beim ziegenfickenden Gott Orfel!«, zischte sie.
+
+Alle drehten sich zu ihr um.
+
+Sie sah sie an. Lang.
+
+»Ich weiß jetzt, warum man das sagt. Ich wünschte, ich wüsste es nicht.«
+
+Ein Moment der Stille. Dann war da wieder der Regen.
+
+Marina richtete sich auf, fester als zuvor.
+
+»Deckung«, sagte sie scharf. »Keine von den schillernden Tropfen mehr anfassen. Keinen. Ist das klar?«
+
+Niemand widersprach.
+
+»Was war das nun wieder?«, beklagte sich Kalem.
+
+»Das waren Gedanken, eingefangen in den schillernden Tropfen«, sagte Marina.
+
+Sie zogen sich unter ein verkrüppeltes Wurzelwerk zurück, wo der Boden trocken war. Die Sonne war fast untergegangen.
+
+»Wie lange …?«, fragte Kata.
+
+Marina sah gen Himmel, ihre Stirn gerunzelt.
+
+»Stunden. Wir haben Stunden verloren.«
+
+Die Schattensphäre schwieg. Doch jeder spürte es: Sie spielte mit ihnen. Und sie war noch nicht fertig.
+
+
+# Die Heldin von Demirantha_54
+
+## Schattenwesen
+ 
+
+Die Felsenhöhle schien ein sicherer Zufluchtsort zu sein – trügerisch sicher. Eingebettet in die kargen Wände des Gebirges, mit einem steilen Abhang vor dem Eingang, gab es keinen Weg für Feinde, sie unbemerkt zu erreichen. Sie hatten freie Sicht ins Tal hinab, wo der violett schimmernde Nebel der Schattensphäre in der Dunkelheit tanzte.
+
+Kata hielt Wache.
+
+Sie saß mit angezogenen Knien am Höhleneingang, den Dolch locker in der Hand. Die Nacht war unnatürlich still. Kein Wind, kein Heulen eines Tieres – nur diese drückende, leblose Stille. Nur das schwache, pulsierende Glimmen der Magie, die allgegenwärtig hier in der Schattensphäre war. Sie hörte Schritte.
+
+Sie drehte sich nicht um, als Jomar sich neben sie setzte.
+
+»Kannst du nicht schlafen?«, fragte sie leise.
+
+»Nee«
+
+Er zog die Knie an und ließ den Blick über das Tal schweifen. Für eine Weile saßen sie nur da, in gemeinsamer Stille.
+
+Dann sagte Jomar: »Wann kommt eigentlich die Verstärkung?«
+
+Kata sah ihn ratlos an. Was war denn mit Jomar los? Er benimmt sich sehr seltsam.
+
+»Wovon redest du? Welche Verstärkung?«
+
+Jomar winkte ab. »Nicht so wichtig. Ich wollte dich schon immer mal küssen.«
+
+Kata erstarrte.
+
+Sie drehte den Kopf geradeaus und musterte ihn aus dem Augenwinkel.
+
+Jomar sagte so etwas nicht einfach. Vor allem nicht so.
+
+Sie verlagerte unauffällig den Dolch in ihre andere Hand, sodass Jomar ihn nicht sehen konnte.
+
+»Ja.« Er sah sie an, ein kleines Lächeln auf den Lippen.
+
+»Jomar … wir haben uns schon geküsst.«
+
+Er blinzelte.
+
+»Haben wir?«
+
+Katas Magen zog sich zusammen.
+
+War das ein schlechter Scherz? Oder … erinnerte er sich wirklich nicht? Warum also tat er so, als wäre es das erste Mal?
+
+Sie zwang sich zu einem schiefen Lächeln. »Vergisst du so was immer so schnell?«
+
+Jomar lachte.
+
+Aber es war nicht sein Lachen. Es fehlte die Wärme, es klang nicht nach dem schüchternen Jungen, der er war. 
+
+»Dieses Mal werde ich auf jeden Fall nicht vergessen«, sagte er sanft.
+
+Er neigte sich zu ihr – und Kata hielt ihm blitzschnell das Messer an die Kehle. 
+
+Er keuchte überrascht – und beugte sich dummerweise nach vorne.
+
+Katas Messer ritzte seine Kehle; nur ein klein wenig. 
+
+Es machte »Puff!« und der falsche Jomar ging in schwarzen Rauch auf.
+
+Kata rief nach den anderen. Jomar war nach etwa 2 Sekunden bei ihr. Er sah noch die menschenförmige Rauchgestalt, dann verwehte sie im sanften Wind, der in die Höhle gelangt war. 
+
+»Es hat genauso ausgesehen wie du. Ich hab den Unterschied nur gemerkt, weil es noch größeren Unsinn erzählt hat als du. Ich hab es bloß ein wenig angeritzt und es ist verschwunden.«
+
+Marina war dicht hinter Jomar. 
+
+»Das … was zur Hölle war das?«, fragte der Junge unwirsch. Marina antwortete ruhig: »Schattenwesen. Ich habe Gerüchte darüber gehört. Schwärzeste Magie.«
+
+Sie musterte die Stelle, an der das Ding verschwunden war.
+
+»Was wollte es?«
+
+»Es hat gefragt, wann die Verstärkung kommt.«
+
+»Aha, also wissen sie nicht viel über uns.«
+
+»Sie?«, fragte der nun auch angekommene Kalem.
+
+»Es werden noch mehr kommen, wir müssen achtsam sein.«
+
+Kalem schnaubte. »Ich werde ab jetzt jeden fragen: ›Lieblingsfarbe?‹, bevor ich ihm traue.«
+
+Jomar sah ihn stirnrunzelnd an. »Kennst du denn meine Lieblingsfarbe?«
+
+»Äh, nö.«
+
+Marina sah in die Dunkelheit der Schattensphäre hinaus.
+
+Es dauerte tatsächlich keine zehn Minuten: Ein weiterer Schatten-Jomar saß plötzlich neben Kalem und fragte:
+
+»Wie war noch mal der geheime Plan, den Marina uns gestern erklärt hat? Ich hab das nicht richtig mitgeschrieben.«
+
+Kalem starrte ihn an. Dann zog er sein Messer und piekste ihn.
+
+Puff!
+
+»Wenigstens sind sie wirklich leicht zu erkennen«, murmelte er.
+
+ 
+
+
+# Die Heldin von Demirantha_55
+
+## Der vorletzte Kampf
+Das Lagerfeuer brannte still in der Mitte des Kreises aus Zelten, als Marina die Veränderung spürte. Ein kaum merklicher Druck in der Luft, das unnatürliche Knistern von Magie.
+
+Sie erhob sich langsam.
+
+»Aufstehen«, sagte sie leise.
+
+Jaad sah auf. »Was?«
+
+»Jetzt. Sofort.«
+
+Kata, die gerade ihren Dolch putzte, erstarrte, als sie den Ausdruck in Marinas Gesicht bemerkte.
+
+Dann hörten sie die Geräusche. Schritte, gleichmäßig, viele. Ein Dutzend? Zwei?
+
+Jomar sprang auf. »Wir sind umzingelt.«
+
+Schatten bewegten sich zwischen den Bäumen. Dunkle Umhänge, Gestalten mit leuchtenden Augen. Magier. Die Luft knisterte nun spürbar. Zauber wurden vorbereitet.
+
+»Verdammt«, murmelte Kata.
+
+Jomar ging in Kampfpose, bereit Feuerbälle zu schleudern, doch Marina packte ihn am Handgelenk.
+
+»Nicht«, sagte sie scharf. Dann zog sie auch Kata und Jaad zu sich.
+
+»Was hast du vor?«, zischte Kata.
+
+Marina legte Jomar und Kata jeweils eine Hand auf die Stirn.
+
+»Ich nehme eure Magie«, sagte sie knapp.
+
+»Was?!«, fauchte Jomar, doch bevor er sich wehren konnte, spürte er es bereits.
+
+Ein Kältegefühl breitete sich in seiner Brust aus, zog sich durch seine Adern. Es war, als würde ein Teil von ihm herausgerissen. Die Welt sah wieder so grau und öd aus wie in den ersten sechzehn Jahren seines Lebens. 
+
+Kata schnappte nach Luft, stolperte einen Schritt zurück.
+
+»Marina, verdammt!«, protestierte sie.
+
+»Keine Diskussionen«, sagte Marina scharf. »Ihr seid ab jetzt keine Magier mehr. Spielt eure Rolle gut, wenn ihr überleben wollt.«
+
+Kata rieb sich die Arme. »Das ist scheußlich. Einfach nur falsch!«
+
+Danach war Jaad an der Reihe. Sie nahm die Prozedur stumm hin. 
+
+Die Dunkelheit um sie herum zerriss abrupt. Eine Wand aus Feuer erhellte den Wald, ein greller Blitz schoss in den Himmel – dann griffen sie an.
+
+Die Magier stürmten das Lager nicht wie gewöhnliche Soldaten. Sie ließen die Elemente für sich kämpfen.
+
+Blitze schlugen ein, Windböen rissen Zelte aus der Verankerung, Dornenranken schossen aus dem Boden.
+
+Marina war die Erste, die reagierte. Sie hob die Hände, sprach eine kurze Formel – und ein Schutzschild aus reiner Energie breitete sich über ihren Köpfen aus.
+
+Etwas kroch aus dem Boden. Dunkle Bestien mit glühenden Augen und ledrigen Körpern wanden sich aus dem Sand. Hände mit langen, klauenartigen Fingern gruben sich in die Erde, während sich die Kreaturen an die Oberfläche zogen. Ihre Mäuler klafften auf, als wollten sie die Welt verschlingen.
+
+Jomar, nun ohne Magie, wirbelte sein Schwert durch die Luft, trennte Klauen und Schädel mit verzweifelter Präzision.
+
+»Das sind keine normalen Magier«, keuchte Kata, die nun auch ein Schwert gezogen hatte.
+
+»Schwarzmagier«, murmelte Marina.
+
+Eine dieser Kreaturen sprang, aber Marina schleuderte eine Energiewelle nach vorne. Das Ding wurde zurückgeschleudert, zerbarst an einem Felsen.
+
+Doch es kamen mehr. Kalem stieß einen markerschütternden Kampfschrei aus und ließ seine beiden Dolche einen tödlichen Tanz tanzen. 
+
+Ein Magier auf der gegenüberliegenden Seite des Lagers breitete die Arme aus – und seine Haut veränderte sich. Die Muskeln unter seinem Gewand wuchsen, seine Knochen knackten hörbar. Wenige Sekunden später stand da kein Mensch mehr, sondern ein schrecklicher Riese mit klauenartigen Händen. Er ging auf die magische Barriere zu, erreichte und durchdrang sie problemlos.
+
+»Das kann nicht gut enden«, murmelte Jaad, die nun direkt vor dem riesigen Berg aus Muskeln stand.
+
+Marina wusste es – dieser Kampf war verloren. Sie senkte die Hände. Magier senkten die Hände, wenn sie sich ergaben.
+
+»Wir ergeben uns«, rief sie.
+
+Kata riss die Augen auf. »Was?!«
+
+»Ruhig«, zischte Marina.
+
+Die Gegner stoppten. Die schwarzen Bestien knurrten noch einmal, doch mit einer einfachen Geste ihrer Herren zerfielen sie zu Staub. Auch der Riese schrumpfte wieder auf ein normales Maß. 
+
+Ein Mann trat vor. Sein Umhang war schwer, mit Silber bestickt, seine Gesichtszüge hart wie aus Stein gemeißelt. Das war zweifellos der Anführer. Er lächelte.
+
+»Eine kluge Entscheidung«, sagte er.
+
+Die Helden wurden einzeln nach vorne gerufen. Marina zuerst.
+
+Zwei Kampfmagier packten sie an den Armen, führten sie zu ihrem Anführer.
+
+Ein dritter trat an sie heran, berührte ihre Stirn mit zwei Fingern.
+
+Marina wusste, was nun kam.
+
+Sie spürte es, als die Magie von ihr abgezogen wurde. Ein Gefühl wie ein reißender Strom, der aus ihrem Körper gezogen wurde. 
+
+Als der Zauberer seine Hand wegnahm, sagte er: »Fertig!«, verdrehte die Augen und fiel nach hinten. Marina hatte sämtliche Magie von Kata, Jaad und Jomar in sich aufgenommen. Und sie war froh, sie wieder los zu sein. Sie hatte selbst kurz davor gestanden, in Ohnmacht zu fallen.
+
+»Das war zu viel für den Armen!« Marina lachte ihr Kräuterhexenlachen. 
+
+»Beeindruckend«, sagte der Anführer. »Sie ist stark.«
+
+Dann wandte er sich den anderen zu.
+
+Jomar wurde nach vorne gezerrt.
+
+Der Magier, der seinen in Ohnmacht gefallenen Kollegen ersetzt hatte, legte ihm die Finger an die Stirn – nichts.
+
+»Er ist kein Magier.« Der Zauberer verzog das Gesicht, als hätte er etwas Abstoßendes berührt.
+
+Er ging weiter. Das gleiche Urteil für Jaad. »Nichts.«
+
+Dann Kata. »Auch nichts. Nicht einmal ein Funken.«
+
+Und schließlich Kalem. Der Zauberer musterte ihn, als überlege er, ob er überhaupt seine Zeit verschwenden sollte, berührte ihn aber doch: »Völlig wertlos.«
+
+»Aber gut aussehend«, kommentierte Kalem.
+
+Der Magier trat einen Schritt zurück, runzelte die Stirn.
+
+»Merkwürdig«, murmelte er.
+
+Der Anführer trat an Marina heran.
+
+»Wieso gibst du dich mit diesem nicht magischen Abschaum ab?«, fragte er.
+
+Marina hob langsam den Kopf.
+
+Sie lächelte leicht.
+
+»Jeder braucht ein Hobby.«
+
+Der Anführer musterte sie einen Moment, dann lachte er.
+
+»Nun gut«, sagte er. »Bringt sie zur Wurzel. Altheras wird über ihr Schicksal bestimmen. Die nicht magischen könnten uns bei unseren Experimenten gute Dienste leisten. «
+
+Und so wurden sie abgeführt.
+
+ 
+
+*
+
+ 
+
+Kata spürte das raue Gewebe des Sacks auf ihrem Gesicht, hörte das Knarren der Räder, das Schnauben der Pferde. Ihre Handgelenke brannten unter den engen Fesseln, und mit jedem Stoß des Wagens schnitten die Seile tiefer ins Fleisch.
+
+Sie hatte erwartet, Angst zu haben. Doch da war keine Panik. Nur Wut.
+
+Wieso hatte Marina einfach aufgegeben und uns die Magie genommen? Gemeinsam hätten sie den Kampf auch gewinnen können.
+
+Niemand sprach. Nur das dumpfe Hufgetrappel und das gelegentliche Murmeln der Wachen durchbrachen die Stille. Kata presste die Kiefer zusammen. Sie konnte Jomars heftiges Atmen hören, es klang so wütend wie ihr eigenes. Marina, Kalem und Jaad waren auch da.
+
+Dann hielt der Wagen.
+
+Kata spannte sich an. Die Wachen packten sie an den Armen, zerrten sie herunter. Der Boden unter ihren Füßen wurde hart und kühl. Dann eine Treppe – tief, tiefer, endlos. 
+
+Wer baut so tiefe Keller?, fragte sie sich. 
+
+Sie zählte die Stufen. Sie wusste nicht, warum. Vielleicht, weil es das Einzige war, was sie kontrollieren konnte. Es waren 675. 
+
+Als sie schließlich aufhörten zu gehen, zischte etwas. Ein Tor? Eine Tür?
+
+Hände stießen sie vorwärts – und dann war da Licht. Grell genug, dass es sogar durch den Sack drang. Der wurde ihr vom Kopf gerissen.
+
+ 
+
+*
+
+ 
+
+Der Boden war schwarz, wie die riesigen Blöcke, die in regelmäßigen Abständen den Raum füllten. Sie waren mannshoch, glatt wie polierter Obsidian, doch sie blinkten – in unregelmäßigen Abständen leuchteten einzelne Zeichen und Linien auf, mal rot, mal blau, mal grün. Es war, als würden diese Klötze in einer unverständlichen Sprache reden.
+
+Die Decke war übersät mit leuchtenden Streifen, aber sie flackerten nicht, wie es jede anständige Lichtquelle tun sollte. Hier war eindeutig Magie am Werke. 
+
+Und dann waren da die Fenster. Sie zeigten seltsame Symbole oder bunte Flächen, auf andern erschienen Landschaften, die es hier gar nicht geben dürfte. Doch keines schien das zu zeigen, was wirklich hinter ihm lag. Jomar blinzelte und versuchte, sich einen Reim darauf zu machen.
+
+Jaad stieß einen leisen Fluch aus und wich instinktiv zurück.
+
+»Das ist unmöglich«, murmelte sie.
+
+Kata drehte sich langsam um sich selbst, betrachtete das unbegreifliche Schauspiel.
+
+»Sind das … Fenster?«
+
+»Nein.« Marinas Stimme war angespannt. »Das ist Technomagie der Ahnen.«
+
+Vor ihnen stand eine Gestalt in dunkler Robe, mit einer tief ins Gesicht gezogenen Kapuze. Er brauchte sich nicht vorzustellen.
+
+Er ließ sich Zeit, trat langsam näher, während seine Wachen sie weiter festhielten.
+
+Sein Blick fiel auf Marina.
+
+»Alte Freundin«, sagte er mit einem bedauernden Lächeln. »Es ist lange her.«
+
+Marina hob den Kopf.
+
+»Nicht lange genug.«
+
+Ein leises Lachen.
+
+»Ich hab dich nicht eingeladen, du bist freiwillig hier.« 
+
+Sein Blick glitt weiter, kalt und abschätzend.
+
+»Du reist also mit gewöhnlichem Volk.« Sein Tonfall war abschätzig. »Nicht einmal Zauberer. Meinst du wirklich, du kannst mich so in Schwierigkeiten bringen? Was haben wir hier?« Er deutete auf Jaad.
+
+»Das ist meine Heilerin. Ich bin alt, Altheras. Ohne sie hätte ich die Reise nicht durchgestanden.«
+
+»Eine Heilerin? Das passt nicht zu dir, Marina. Seit wann bist du so … schwach?«
+
+Marina erwiderte seinen Blick gelassen.
+
+»Seit ich nicht mehr siebzig bin.«
+
+Altheras lachte leise.
+
+»Und wer ist dieses wunderschöne, goldene Geschöpf?« Kata reckte ihr Kinn, Sie würde ihm nicht die Genugtuung geben, Angst zu zeigen. 
+
+»Das ist meine Enkelin Kata, und der grimmig dreinblickende Junge ist Seb, ihr Freund. Er hatte sich einfach eingeschlichen in unsere Gruppe, aber ich habe es zugelassen.«
+
+Wieso nennt sie mich Seb? Aber dann wurde es ihm klar: Jomar – ein Name, den jeder Zauberer kannte. Und Jomar war ein Zauberer.
+
+»Wie großzügig von dir«, sagte Altheras freundlich nickend.
+
+»Und Mann in Leder?« Er deutete auf Kalem. 
+
+Marina zuckte mit den Schultern.
+
+»Ein Dieb. Ein Lügner. Und eine Plage.«
+
+Kalem grinste. »Aber verdammt charmant.«
+
+Eine der Wachen schlug ihm mit dem Knauf eines Schwertes in den Magen. Kalem keuchte, fiel auf die Knie.
+
+»Ich verstehe nicht, wieso du dich mit nicht-Magischen abgibst. Das ist, als würdest du mit Kühen auf einer Weide leben. Du hättest doch auch eine magische Heilerin finden können. Ich könnte dich heilen. Ich verfüge über magische Fähigkeiten, jenseits deiner Vorstellungskraft.«
+
+Marina schnaubte. »Danke, aber ich bin kein großer Freund schwarzer Magie.«
+
+Altheras zuckte mit den Schultern. »Schwarz, weiß – bald schon wird das alles keine Rolle mehr spielen.«
+
+»Nicht, wenn ich es verhindern kann.«
+
+»Viel Glück dabei.« Der Schwarzmagier ließ den Blick ein letztes Mal über seine Gefangenen schweifen, dann nickte er den Wachen zu. 
+
+»Bringt sie weg. Ich entscheide später über ihr Schicksal.«
+
+Dann wandte er sich um und schritt mit gemessenen Schritten in die Dunkelheit.
+
+Die Wachen packten sie grob und zerrten sie davon. 
+
+
+# Die Heldin von Demirantha_56
+
+## Eingekerkert
+Kata saß in einem hell erleuchteten Raum, auf einem unglaublich weichen Bett. Neben der Tür war ein kleines glattes Feld und sie hatte herausgefunden, dass sie mit einfachen Berührungen die Beleuchtung regeln konnte: heller, dunkler, an und aus. Das war feinste Technomagie der Ahnen. 
+
+Und es gab ein Waschbecken und eine Toilette und einen kleinen Raum im Raum, der von einer Glastür und zwei Glaswänden begrenzt wurde. Auf dem Boden befand sich ein strahlend weißes, flaches Becken. Sie würde noch herausfinden, was das nun wieder zu bedeuten hatte. War es vielleicht eine Art Meditationsraum?
+
+Es gab auch noch einen Schrank und einen Tisch mit drei Stühlen.
+
+Das Waschbecken hatte einen Wasserhahn. Sie kannte das aus dem Schloss, in dem sie aufgewachsen war, doch als sie das linke Drehrad betätigt hatte, kam ein Schwall brühend heißen Wassers aus dem Hahn. Das kannte sie nicht. 
+
+Bei der Toilette wurde auch mit Wasser gespült, es fehlte jedoch der Wasserkrug, mit dem sie zu Hause ihre Hinterlassenschaften weggespült hatte. Hier musste sie nur eine Fläche hinter dem Becken drücken und das Wasser floss von alleine. Darauf hätte man aber auch wirklich bei ihr zu Hause kommen können. 
+
+Für einen Kerker war das hier verdammt luxuriös. Dieser Raum war auch ganz sicher nie als Gefängnis gedacht gewesen, jeder anständige Kerker lag im Keller. Dieser Raum befand sich jedoch direkt an der Halle mit den seltsamen Maschinen. Hier hatten wahrscheinlich die menschlichen Magier gewohnt, die die Maschinen bedient hatten. Dafür sprach auch die Größe des Bettes; es war nicht für einen Demiranther gebaut worden.
+
+Durch die dünne Tür konnte sie Altheras' Leute rufen und fluchen hören, während sie die Maschinen manipulierten und die Magie immer weiter verdrehten. Diese Idioten mussten aufgehalten werden. 
+
+Wie es wohl den anderen ergangen war? Saßen sie gleich neben ihr ähnlichen Zimmern? Höchstwahrscheinlich. Nun blieb ihr nicht viel zu tun. 
+
+ 
+
+* 
+
+ 
+
+Drei endlose Tage saß sie nun schon hier in ihrem Zimmer. Ihre einzige Abwechslung war das Essen, das ein Zauberer ihr wortlos auf einem Tablett brachte. 
+
+Einmal war sie abgeholt und in einen kleinen Raum mit einem Tisch in der Mitte gebracht worden. Ihr gegenüber hatte ein Zauberer gesessen, der ihr jede Menge Fragen gestellt hatte: Waren sie die Einzigen, die bis zur Schattensphäre vorgedrungen sind? Könnten noch mehr Spione kommen? Und so weiter.
+
+Kata beantwortete alles gemäß ihrer Rolle als naive sechzehnjährige Enkelin von Marina. Fragen über ihre Herkunft wich sie aus und gab Unwissen vor. Die einzig wirklich brenzlige Frage war, warum Marina ihre nutzlose Enkelin mit auf so eine gefährliche Mission mitgenommen hatte. Ihre Antwort war ein Schulterzucken gewesen: »Sie konnte mich doch nicht alleine zurücklassen, ich habe doch sonst niemanden auf der Welt.« 
+
+Glücklicherweise gaben sie sich mit dieser Antwort zufrieden.
+
+Der Zauberer, der ihr das Essen brachte, hatte ihr am zweiten Tag drei Bücher gebracht. Es waren ein Liebes- und zwei Abenteuerromane. Das machte die eintönigen Tage tatsächlich erträglicher. Der Liebesroman war recht gut. 
+
+Sie spürte, wie die Magie in ihren Geist und Körper zurückströmte. Marina war schon eine raffinierte Hexe. Während sie Marina sicherlich täglich die Magie entzogen, ließen sie sie – und wahrscheinlich auch Jaad und Jomar – unbehelligt. Doch was konnte sie schon mit ihrer Magie anfangen? Sich unsichtbar machen würde nicht viel bringen, aber vielleicht konnte sie ja etwas mehr darüber herausfinden, was Altheras' Zauberer so fühlten. 
+
+Sie schloss die Augen, ließ ihren Geist schweifen und suchte nach den bekannten Regungen von Gedanken und Gefühlen. Stattdessen stieß sie auf etwas Kaltes, Strukturiertes – Linien aus Energie, Verbindungen, die sich von einem Punkt zum nächsten spannten. Es erinnerte an ein Spinnennetz. Die Muster waren ihr fremd, wie eine Karte aus einem Land, das sie noch nie betreten hatte. Dennoch konnte sie die Linien »berühren«. Sie zogen an ihr, als ob sie auf ihren Einfluss reagierten, sie einluden. Ohne es geplant zu haben, war sie in den ›Geist‹ der Maschinen eingedrungen.
+
+Sie schienen keine Gedanken zu haben, aber sie hatten Muster, die eine Art Zweck verrieten. Sie konzentrierte sich und versuchte, sie zu begreifen. Sie durchstreifte ein endloses Labyrinth aus Hallen und Türen, jede von ihnen ein mögliches Geheimnis. Manche der Türen waren verschlossen, andere offen, aber alle schienen sie zu einem zentralen Punkt zu leiten. Ein System, das über allem zu wachen schien – eine Art Thronsaal.
+
+Sie folgte dem Spinnennetz weiter, spürte, wie die Strukturen komplexer wurden, und schließlich erreichte sie etwas, das sich wie das Zentrum anfühlte. Es war keine Tür, sondern eine Art Schwelle. Sie trat hindurch, und plötzlich verschwand die Kälte des Spinnennetzes. Sie fand sich in einem Raum wieder, den sie nicht verstand. Sie blickte an sich herab: Arme, Körper, Beine, Kleidung. Alles war da, wo es sein sollte, und doch wusste sie, dass es nicht wirklich war. 
+
+Der Raum war klein, quadratisch und voller Objekte, die sie nicht einordnen konnte. An den Wänden flimmerten Bilder, die sich ständig veränderten. In einer Ecke stand ein Apparat, der Licht und Bewegung ausstrahlte. Und davor saß ein Mann in einem fleckig weißen Unterhemd weit zurückgelehnt auf einem seltsam geformten Stuhl. Er hatte die Körpermaße und Proportionen eines Menschen von der Erde. Seine Haut war von einem blassen Rosa, es gab nicht einen Hauch von Blau. 
+
+Er hielt einen zylindrischen Gegenstand in der Hand, aus dem der Geruch von Bier strömte, und starrte auf den leuchtenden Apparat.
+
+Kata stand einen Moment unsicher da, bevor sie vorsichtig sprach: »Was ist das hier?«
+
+Der Mann drehte sich langsam um. Sein Gesicht war müde, seine Augen dunkel, aber er wirkte weder überrascht noch erschrocken. »Oh, du kannst mit deiner Nanitenwolke eine Verbindung zum Netzwerk herstellen. Die Ersteller dieser Schnittstelle haben garantiert nicht damit gerechnet, dass nach Wer-weiß-wie-vielen-Jahren, ein kleines demiranthisches Mädchen daher kommen würde und sie benutzt.« Seine Stimme war rau, als hätte er lange nicht mehr gesprochen. »Du bist wohl Kata, richtig?«
+
+Sie trat einen Schritt näher, versuchte, ihre Verwirrung zu verbergen. »Woher weißt du das?«
+
+Er ließ den Zylinder sinken, rülpste ausgiebig und deutete auf den flimmernden Apparat. »Ich hab gesehen, wie Altheras euch in die Halle verschleppt hat und euch mit seiner Arroganz genervt hat, bevor er euch wegsperrte. Da fiel wohl auch dein Name. Und er steht auch an deiner Zellentür.
+
+Ich bin der Wächter. So hat mich zumindest Altheras genannt. Ihr versteht ja nichts von Technik. Und Wächter gefällt mir. Ich bin also der Wächter. Früher zumindest. Jetzt bin ich nur noch… hier. Eingesperrt. Ein Gefangener. Machtlos. Wie du.«
+
+Kata musterte ihn und den Raum. »Das ist das Zentrum der Wurzel, oder? Ich habe alles verfolgt, alle Linien, alle Verbindungen. Sie führen hierher.«
+
+Der Wächter grinste bitter. »Sehr scharfsinnig. Du bist also nicht ganz so verloren, wie du aussiehst. Obwohl du keine Ahnung hast, was das hier alles ist, hast du hier her gefunden. 
+
+Ja, das ist das Zentrum. Und ich war der Wächter dieses Systems, bevor Altheras mich abgeschaltet hat.«
+
+»Abgeschaltet? Das klingt wie ›getötet‹. Aber du bist hier.«
+
+»Hier, ja. Aber nur hier. Er hat mich eingesperrt, mich von der Kontrolle abgeschnitten. Jetzt bin ich ein Zuschauer. Ich kann sehen, was passiert, aber nichts dagegen tun.«
+
+Kata schaute zu den flimmernden Bildern. Sie erkannte einige davon – den großen, zentralen Raum, Gänge, Maschinen. »Und was, wenn du doch etwas tun könntest?«
+
+Er lachte trocken. »Glaub mir, ich habe es versucht. Er hat mich nicht nur abgeschnitten, es wurde auch die Erinnerung an die Abschaltsequenz gelöscht. Sie dient genauso zum Aktivieren meines Systems. So wie ein Kippschalter. Ich könnte es dich machen lassen.«
+
+Was ist eine ›Abschaltsequenz?‹, fragte Kata verwirrt.
+
+»Das ist so was, wie ein Zauberspruch, es ist einfach nur eine Folge von Wörtern, die man aufsagen muss. Wie gesagt, leider weiß ich nicht mehr welche.«
+
+Er nahm einen weiteren Schluck aus dem Zylinder.
+
+»Sprich die magischen Worte, kleines Mädchen«, sagte er mit gespielter Feierlichkeit. »Und ich werde meine Kräfte wiedererlangen.« Der Wächter verzog den Mund zu einem humorlosen Lächeln.
+
+»Aber du kannst sehen, was Altheras und seine Schergen hier so treiben? Wie weit sind sie? Haben sie die Magie schon verändert?«, rief Kata aufgeregt.
+
+»Ha!«, schnaubte der Wächter. »Diese Idioten! Die wissen nicht, was sie tun. Komm, setz dich zu mir.« Er deutete auf einen Stuhl neben sich, und Kata war sich sicher, dass der eine Sekunde zuvor noch nicht dort gestanden hatte. Aber dann machte sie sich klar, dass dieser Ort nicht real war, es könnte alles Mögliche geschehen.
+
+Sie setzte sich zu dem Wächter. Es wehte ein Dunst aus Schweiß und Bier zu ihr herüber. Warum der Wächter wohl ein solch widerliches Abbild von sich selbst geschaffen hatte? 
+
+»Willst du auch ein Bier?« Er wartete ihre Antwort nicht ab, stellte sein eigenes Bier ab und öffnete ein kleines Schränkchen, das neben dem Tisch auf dem Boden stand. Überraschenderweise war es innen beleuchtet. Er nahm einen der seltsamen Zylinder heraus, hielt ihn in ihre Richtung und zog an einer kleinen Lasche. Es zischte und schäumte. Fasziniert nahm Kata das Bier entgegen und nahm einen Schluck. Der Zylinder und das Bier selbst waren eiskalt, als hätten sie in einem Bergbach gelegen. Dafür, dass es nicht existierte, schmeckte es echt gut.
+
+Der Wächter zeigte auf den Bildschirm. »Siehst du? Sie sitzen da und schieben irgendwelche Regler hoch und runter, starten völlig wahllos Subroutinen und machen sich nicht einmal Notizen. Wie kann man so unstrukturiert vorgehen? Die haben keine Ahnung, was sie da tun und sie lernen auch nicht dazu. Sie haben Wochen gebraucht, um auch nur die Grundkonzepte der Benutzeroberfläche zu begreifen.«
+
+Kata sah den Zauberern dabei zu, wie sie auf den leuchtenden Fenstern herum wischten.
+
+»Habt ihr denn keine Wissenschaftler auf Demirantha?«, fragte der Wächter knurrend.
+
+»Wissenschaftler?« Das Wort sagte ihr nichts.
+
+Der Avatar verdrehte die Augen. »Gelehrte?«
+
+»Ach so. Ja doch, natürlich. Es gibt Akademien in den großen Städten.«
+
+»Und warum sind keine hier? Diese ›Zauberer‹ kommen mir vor, wie Schimpansen.«
+
+Was waren denn nun schon wieder Schimpansen? Aber sie ging lieber darüber hinweg.
+
+»Gelehrte sind meist nicht magiebegabt. Und Altheras verachtet alle, die keine Zauberer sind. Er hätte niemals nicht magische Gelehrte mitgenommen.«
+
+»Tja, Pech für ihn. So wird das nichts.«
+
+»Das ist doch eine gute Nachricht, oder?«
+
+»Nur teilweise. Sie können trotzdem beliebig viel Schaden anrichten, bis hin zur Vernichtung der gesamten Biosphäre.«
+
+Kata ließ die Schultern hängen. »Also können wir nichts machen, um sie zu stoppen?«
+
+»Na ja, etwas habe ich schon gemacht. Als ich gezwungen war, die Überwachungsfunktionen abzuschalten, habe ich die wenigen Millisekunden, in denen ich noch die Kontrolle hatte, genutzt, um sämtliche KI-Assistenzfunktionen auszuschalten, denn sie sind ja ein Teil von mir. Das entspricht natürlich nicht dem Protokoll, aber ich sollte mich ja abschalten. Warum dann nicht komplett? Jetzt hilft ihnen keine KI.«
+
+Kata runzelte die Stirn. »Ich habe das nicht wirklich verstanden … aber: Danke?«
+
+»Gern geschehen.«
+
+Kata sah wieder auf den Bildschirm. Zwei von Altheras´ Zauberern schienen sich nun zu streiten und wischten abwechselnd über das seltsame Fenster. Das sah alles wirklich nicht besonders organisiert aus. 
+
+Der Wächter kommentierte: »Siehst du! Sie wissen nicht, was sie tun.«
+
+Da fiel Kata eine Frage ein: »Zuhause in der Akademie veränderten sich die Magie für wenige Minuten. Und auch auf der Reise hierher geschah das immer wieder. Aber immer nur für ein paar Minuten.«
+
+Der Wächter nickte: »Für 3 Minuten und 56 Sekunden, um genau zu sein. Wenn sie die ›Magie‹ ändern und die Änderungen aktivieren, gibt es immer einen Rückfallmechanismus. Die Änderungen werden als ungültig oder gefährlich erkannt und dann zurückgesetzt. Glücklicherweise haben sie noch nicht herausgefunden, wie man den Mechanismus ausschaltet. Doch leider verbreitet sich die Änderung erst einmal wellenförmig über den ganzen Planeten. Nach einiger Zeit kamen dann die Änderungen da an, wo ihr gerade wart. Und sie haben jede Menge Timer Events aktiviert. Dann verändert sich die ›Magie‹ in regelmäßigen Abständen, zum Beispiel einmal am Tag und macht, was immer sie für einen Schwachsinn programmiert haben.«
+
+»Die verdammten fliegenden Kühe«, murmelte Kata.
+
+»Was?«
+
+»Ach nichts. Kannst du denn wirklich gar nichts tun? Kannst du sie nicht ablenken oder stören?«
+
+Der Wächter schwieg. Er kratze sich unter dem Kinn, er klopfte sich an die Zähne, er starrte ins Leere.
+
+»Hmm …«, sagte er schließlich. »Es gibt die alten Testroutinen. Sie stammen aus der Zeit, als das System hier noch nicht einmal fertig war. Sie sind aber tatsächlich nicht von der Abschaltung betroffen. Ich kann damit Terminals blinken lassen, oder etwas auf den Bildgebern der großen Paneele anzeigen. Aber ob uns das was bringt?«
+
+Nun war es an Kata sich nachdenklich am Kinn zu kratzen.
+
+»Erklär mir mal genau, wie deses Abschalten ablief.« 
+
+Der Wächter tat es. 
+
+»Also kannst du so auf den … « 
+
+»Wandpaneelen«, half ihr der Wächter aus.
+
+»… Wandpaneelen so erscheinen wie vor deiner ›Abschaltung‹?«
+
+»Ja, aber was bringt das? Ich kann ja nichts tun.«
+
+»Aber du könntest behaupten, die Kontrolle wieder zu haben.«
+
+»Hätte ich aber nicht, also was … ohhh.« Er begriff.
+
+»Altheras würde die Abschaltsequenz aufsagen, und mich wirklich wieder aktivieren. Du bist ein wirklich schlaues, blaues, kleines Mädchen.«
+
+»Nicht das beste Kompliment, das mir jemand gemacht hat – aber danke!«
+
+Der Wächter runzelte nachdenklich die Stirn.
+
+»Er wird aber alles wieder rückgängig machen, wenn er seinen Fehler erkannt hat. Das müssen wir verhindern. Ich werde dir einfach den ›Mastercode‹ geben. Dann wird sämtliche Autorität auf dich übertragen.«
+
+»Den was?«
+
+»Den ›Mastercode‹. Den gibt es jetzt noch nicht, aber wenn ich erst mal die Kontrolle habe, werde ich einen generieren.«
+
+Kata nahm einen tiefen Schluck aus ihrem Bier. »Aber wie geht es dann weiter?«
+
+»Ich hätte da ein paar Ideen … «
+
+
+# Die Heldin von Demirantha_57
+
+## Die Experimente
+ 
+
+Der Raum war weiß. Makellos, glatt, ohne eine einzige Fuge. Die Wände, der Boden, selbst die Decke schienen aus einer einzigen, zusammenhängenden Fläche zu bestehen. Es gab keine Möbel, keinen Ausgang, nicht einmal eine Lichtquelle – und doch war der Raum taghell.
+
+Kalem stand mit verschränkten Armen in der Mitte und musterte seine Umgebung mit zusammengekniffenen Augen.
+
+Jomar rieb sich die Handgelenke, die noch von den Fesseln schmerzten. Sein Blick wanderte zur einzigen Besonderheit im Raum: Ein großes, rechteckiges Fenster, eingelassen in eine der Wände. Dahinter war nichts als Schatten. Doch er wusste, dass sie beobachtet wurden.
+
+»Das hier gefällt mir ganz und gar nicht«, murmelte er.
+
+Kalem schnaufte. »Weißt du, was mir nicht gefällt? Die Tatsache, dass wir in einer Zelle sind und wir nicht mal wissen, was für Scheiße die hier mit uns anstellen wollen.«
+
+Eine Stimme erklang, sie kam von überall und nirgendwo.
+
+»Versuch Nummer eins. Reaktion auf energetische Destabilisierung.« 
+
+Jomar hatte den Eindruck, dass der Sprecher die Worte einfach von irgendwo ablas, ohne wirklich zu verstehen, was sie bedeuteten.
+
+»Was zum—?« begann Jomar, doch da zischte etwas durch die Luft.
+
+Ein schmaler Strahl aus violettem Licht traf Kalem in die Brust. Er riss die Augen auf, ein erstickter Laut entkam ihm, dann taumelte er rückwärts und fiel auf die Knie.
+
+»Kalem!« Jomar sprang nach vorne, doch ein unsichtbarer Druck hielt ihn zurück. Er konnte sich nicht bewegen, konnte Kalem nicht erreichen.
+
+Kalem krümmte sich, keuchte, dann – mit einem Mal – wurde sein ganzer Körper von einem unsichtbaren Wind erfasst. Seine Haut veränderte sich. Sie flimmerte nun, als wäre sie nicht mehr ganz mit dieser Welt verbunden. Jomar konnte durch ihn hindurchsehen, als bestünde er nur noch aus Rauch.
+
+»Verdammte Scheiße!«, keuchte Kalem. Seine Stimme klang dumpf, verzerrt, als käme sie aus weiter Ferne.
+
+Die Stimme sprach wieder. »Interessant. Das war wohl zu viel. Ich hab dir doch gesagt, dieser komische Balken hier sollte nicht über die fünf hinausgehen. Siehst du? Irgendwie verändern sich auch die Farben, wenn du hier drüber gehst. Das hat bestimmt was zu bedeuten.«
+
+Jomar spürte, wie sein Herz raste. Sie spielten hier mit Kräften, die sie nicht verstanden. Kalem flackerte – mal war er da, mal nur ein Schemen.
+
+»Macht das rückgängig!«, schrie Jomar, doch niemand antwortete.
+
+Kalem knurrte. Dann schrie er – ein heiseres, unmenschliches Geräusch, als würde sein Körper zerreißen. Er schlug mit der Faust auf den Boden, und plötzlich war er wieder da. Greifbar. Massiv. Er keuchte, fiel auf alle viere. Sein Körper dampfte. 
+
+Jomar eilte zu ihm, diesmal ohne Widerstand. »Alles in Ordnung?«, fragte er atemlos.
+
+Kalem hustete. »Ja … wenn du mit ›in Ordnung‹ meinst, dass ich fast ins verdammte Nichts gezogen wurde und nun wieder da bin, dann ja: alles in Ordnung.«
+
+Jomar half ihm auf. Doch bevor er noch etwas sagen konnte, ertönte wieder die Stimme.
+
+»Versuch Nummer zwei. Erhöhung der physischen Widerstandskraft.«
+
+»Nein!«, rief Jomar und stellte sich vor Kalem, doch diesmal war er derjenige, der getroffen wurde.
+
+Eine goldene Welle aus Energie breitete sich in seinem Körper aus, heiß und brennend, aber nicht schmerzhaft. Jomar sog scharf die Luft ein. Er fühlte sich … schwerer. Als wäre sein Körper mit einer unsichtbaren Masse gefüllt worden.
+
+Dann kam der Schlag.
+
+Ein riesiges, schwarzes Konstrukt erschien aus dem Nichts – eine gigantische Faust aus reiner Magie, die mit unmenschlicher Wucht auf ihn niederfuhr.
+
+Jomar hörte das donnerndes Krachen und hoffte, dass es nicht seine Knochen waren, die da brachen. Er wurde gegen die Wand geschleudert. Doch statt in sich zusammenzubrechen, stand er wieder auf. Er keuchte. Seine Haut und seine Knochen waren unverletzt.
+
+»Erhöhung der Widerstandskraft funktioniert. Wie haben wir das gemacht? Merk dir das!«
+
+Jomar atmete schwer. Sein Körper erwartete Schmerz, aber er fühlte nichts.
+
+»Warum zum Teufel macht ihr das?«, fauchte er.
+
+Keine Antwort.
+
+Kalem packte ihn an der Schulter. »Junge, ich glaube, wir sollten so schnell wie möglich hier abhauen.«
+
+»Versuch Nummer drei … irgendwas mit mentaler Beeinflussung«, verkündete die Stimme.
+
+Ein grelles Licht durchflutete den Raum. Jomar und Kalem schrien gleichzeitig auf. Etwas griff nach ihren Gedanken, zerrte an ihren Erinnerungen, formte sie um. Es war, als würde ein dunkler Schatten durch ihre Köpfe ziehen, alles Alte zerstören und durch etwas Neues ersetzen.
+
+Jomar fiel auf die Knie. Sein Herz raste, sein Atem wurde flach. Wer … wer war er?
+
+Er … war ein Soldat. Er diente Altheras. Oder nicht?
+
+Bilder fluteten seinen Verstand – Erinnerungen, die nicht seine waren.
+
+Er sah sich selbst in schwarzer Rüstung, sah, wie er eine brennende Stadt niederstach. Er hörte Schreie. Sah Marina am Boden, tot.
+
+»Nein … Nein …«, keuchte er.
+
+Kalem zitterte ebenfalls. Seine Augen waren weit aufgerissen. »Jomar! Sie … sie greifen unser Gedächtnis an!«
+
+Jomar klammerte sich an die Realität. »Das ist nicht echt. Das ist nicht echt!«
+
+Kalem schnappte nach Luft. »Denk an Kata! An Jaad! An die echte Marina!«
+
+Jomar biss die Zähne zusammen. Er konzentrierte sich. Die Erinnerungen – die falschen Erinnerungen – waren da, aber sie gehörten ihm nicht.
+
+»Keine Ahnung, ob das was gebracht hat.«
+
+Das Licht erlosch.
+
+Jomar fiel auf den Rücken, zitternd. Kalem atmete schwer, sein Körper dampfte noch immer von der ersten Veränderung.
+
+Dann ertönte ein leises Geräusch, wie das Summen einer Maschine.
+
+»Ich glaub, die halten nichts mehr aus. Schluss für heute.«
+
+Die Tür ging auf. Zwei Wächter traten ein. Sie trugen die Kampfmagierhüte.
+
+»Bringt sie zurück«, befahl die Stimme.
+
+Jomar hatte keine Kraft, sich zu wehren, als sie ihn packten. Kalem murmelte ein letztes »Verdammte Scheiße …«, bevor sie aus dem weißen Raum gezerrt wurden.
+
+ 
+
+ 
+
+ 
+
+
+# Die Heldin von Demirantha_58
+
+## Hofgang
+Der Innenhof war nicht das, was man in einem Kerker erwartete.
+
+Eine gewaltige Glaskuppel überspannte den Raum und tauchte ihn in strahlendes Licht. Es war fast so, als würde die Sonne direkt auf sie herabscheinen, doch sie wussten alle, dass sie tief unter der Erde waren. Das Licht hatte etwas Unnatürliches – zu gleichmäßig, zu perfekt. Es gab keine Sonne, keine Wolken, nur ein blendendes, künstliches Strahlen.
+
+Der Hof selbst war mit weißen Steinen gepflastert, rundherum standen Sitzbänke und niedrige Tische, als wäre dies ein Ort der Ruhe und des Gesprächs – nicht der für einen Hofgang für Gefangene. Doch genau dafür hatten die Magier Altheras’ ihn vorgesehen.
+
+Wachen standen an den Ausgängen. Sie sagten nichts, doch ihr Blick folgte jeder Bewegung. Irgendwo, verborgen in den Mauern, waren sicher auch magische Lauscher und Augen.
+
+Marina war als Erste gekommen. Sie stand mit hinter dem Rücken verschränkten Armen in der Mitte des Hofes und tat so, als würde sie das Licht unter der Kuppel bewundern. 
+
+Kata und Jaad kamen von rechts, Jomar und Kalem von links.
+
+Kalem pfiff leise. »Beeindruckend. Ich werde dieses Gefängnis auf jeden Fall weiterempfehlen.«
+
+Jomar setzte sich auf eine der marmornen Bänke. Er betrachtete Kata. Sie war so wunderschön. Vor allem, wenn sie diese Glut in den Augen hatte … aber warum glühte ihr Blick eigentlich so heiß, als sie Jaad ansah?
+
+Dann ging Kata auf Jaad zu, riss sie an sich, und küsste sie mit animalischer Wildheit. Jomars Hirn fror ein, er stellte sogar vorerst das Atmen ein. Seine Augen schoben sich Stück für Stück weiter aus ihren Höhlen heraus.
+
+Jaad erstarrte – nur für einen Moment. Dann verstand sie und stellte die Verbindung her.
+
+Ich habe Zugang zur Wurzel der Magie.
+
+Was? Wie?
+
+Technomagie. Es gibt eine Art Wächter – eine alte Intelligenz. Wie kann ich das beschreiben? Er ›lebt‹ in der Maschine, aber er wurde von Altheras gefangen genommen. Ich kann mit ihm sprechen.
+
+Kann er uns helfen?
+
+Ja, wir haben einen Plan. Morgen gegen Mittag wird deine Tür aufgehen. Dann musst du los gehen und so viele von Altheras' Schergen wie möglich rekrutieren. Die Kampfmagier, die für gewöhnlich vor deiner und meiner Tür Wache halten, sind beide leichte Ziele für dich. Ich habe sie überprüft.
+
+Ein Großteil der Kampfzauberer werden in einem Speisesaal sein. Wir werden alle Brandschutztore schließen und verriegeln. Das sollte sie eine Weile aufhalten. 
+
+Brand… was für Tore? 
+
+Brandschutztore. Das sind so eine Art eiserne Fallgatter.
+
+Aha.
+
+Und was ist mit Altheras?
+
+Wir können ihn eine Weile im Zaum halten, aber dann sind wir darauf angewiesen, dass Marina sich ihm stellen kann und wir müssen hoffen, dass sie stärker ist, als er.
+
+Aber sie hat doch ihre Magie verloren. Sie werden doch wohl kaum zugelassen haben, dass sie sie wieder hat.
+
+Da wird der Wächter helfen. Er wird ihr mehr Magie geben, als sie jemals hatte.
+
+Jomars höhere Hirnfunktionen hatten nach dem Schock ihre Funktionen wieder aufgenommen. Er sprang auf und wollte auf Jaad und Kata losgehen, doch Kalem hielt ihn mit beiden Händen an den Schultern fest.
+
+»Entspann dich, Held von Demirantha.«, sagte er mit einem schiefen Grinsen. »Lass sich die Mädchen ein wenig lieb haben. Sie haben sich so lange nicht mehr gesehen. Du musst zugeben: Es ist kein ganz unangenehmer Anblick.«
+
+Dann ließ Kata von Jaad ab – und drehte sich auf dem Absatz um. Jomar sog die Luft ein, wollte seiner Empörung freien Lauf lassen, doch bevor er auch nur einen Laut herausbringen konnte, packte Kata sein Gesicht mit beiden Händen und küsste ihn voller Entschlossenheit. Jomar versteifte sich – doch sein Widerstand hielt exakt eine Sekunde an, dann versank er in Katas Umarmung und in ihren Küssen. 
+
+Kata wühlte durch Jomars Haar, sie küsste seine Nase, seine Stirn, seine Augen. Dann knabberte sie an seinem Ohr und flüsterte:
+
+»Morgen kurz vor Mittag. Wenn deine Tür aufgeht. Sei bereit.« 
+
+Dann ließ sie ihn abrupt los und drehte sich wieder um.
+
+Kalem schüttelte langsam den Kopf. »Mädchen, du bringst echt Stimmung in die Gruppe. Bin ich jetzt dran?« 
+
+Er spitzte die Lippen.
+
+»Hättest du wohl gerne«, schnappte sie. Dann, als wäre nichts geschehen, ging sie hinüber zu Marina und hakte sich bei ihr unter. »Lass uns ein wenig spazieren gehen.«
+
+Marina war klar, was Kata hier gemacht hatte. Sie lächelte mild und ging mit ihrer Enkelin ein wenig spazieren. Das Mädchen verlor keine Zeit. Sie signalisierte: morgen, Mittagszeit, Kampf. 
+
+
+# Die Heldin von Demirantha_59
+
+## Der letzte Kampf: Vorbereitungen
+ 
+
+Kata trat über die Schwelle. Diesmal war alles anders.
+
+Der Raum, der zuvor klein und beengt gewirkt hatte, erstreckte sich nun zu einer weitläufigen Halle. Die Wände schimmerten in sanftem Blau, und Linien aus Licht pulsierten in ruhigen Wellen entlang der Oberfläche. Die flimmernden Bilder, zuvor nur ein wildes Durcheinander, ordneten sich nun zu klaren Strukturen. Sie erkannte Übersichtskarten, Symbole und unverständliche Muster.
+
+Auch der Wächter sah anders aus.
+
+Er hatte das schmuddelige Unterhemd abgelegt, seine Gestalt wirkte weniger grobschlächtig. Die Schweißflecken und Bierdosen waren verschwunden. Stattdessen trug er eine schlichte Robe, sein Gesicht war glatter, die Haltung aufrechter. Er wirkte … fokussierter.
+
+»Du hast dich verändert«, sagte Kata und verschränkte die Arme.
+
+Der Wächter grinste schief. »Ich hatte mich ein bisschen … gehen lassen. Jetzt, wo es ernst wird, bin ich aber wieder ganz der Alte.«
+
+Sie nickte. »Also? Wie gehen wir vor?«
+
+Der Wächter trat an eine der flimmernden Anzeigen, die hoch über ihnen schwebte. Mit einer beiläufigen Bewegung ließ er sie nach unten gleiten, sodass Kata darauf sehen konnte.
+
+»Das hier«, sagte er und deutete auf eine Reihe von Symbolen, »ist der Code, den du aufsagen musst, wenn Altheras auf unsere Falle hereingefallen ist.«
+
+Er tippte mit einem Finger auf das leuchtende Feld, und die Zeichen veränderten sich, ordneten sich neu. Dann sprach er sie laut aus:
+
+»Alpha-Phi-Sechs-Drei-Omikron-Elara …«
+
+Kata hob die Hand. »Warte, das soll ich mir alles merken?«
+
+»Na ja, wir können doch jetzt ein wenig üben.«
+
+»Warum nehmen wir nicht ein ›Erdbeerfeld‹ als Code?«
+
+Der Wächter sah sie mit Fassungslosigkeit im Gesicht an.
+
+»Aber … Aber ein anständiger Code muss doch seriös klingen. Wer soll denn ›Erdbeerfeld‹ ernst nehmen?«
+
+»Ich. Es würde also gehen?«
+
+»Theoretisch schon.«
+
+»Dann ist es abgemacht: ›Erdbeerfeld‹ ist unser – wie hattest du es genannt? – ›Mastercode‹ – was auch immer ein ›Mastercode‹ sein soll.«
+
+»Na gut. Aber es fühlt sich falsch an.«
+
+Der Wächter trat zurück, verschränkte die Arme und ließ seinen Blick über die Halle schweifen.
+
+»Jetzt zum eigentlichen Plan.«
+
+Er schnippte mit den Fingern, und eine neue Ansicht erschien auf den leuchtenden Flächen. Es zeigte den Terminalraum von oben. 
+
+»Ich werde alle Terminals rot leuchten lassen, so wie am ersten Tag, als Altheras hier angekommen ist. Das zeigt an, dass die Terminals im Stand-by sind.«
+
+Kata nickte langsam. »Und dann?«
+
+»Dann werde ich mich auf alle Wandpaneele gleichzeitig projizieren und verkünden, dass ich die Kontrolle über die Wurzel wiedererlangt habe. Ich werde behaupten, dass die Manipulationen der Magier ein automatisches Notfallprogramm ausgelöst haben.«
+
+»Und Altheras wird das glauben?«
+
+»Hoffentlich.«
+
+»Und wenn nicht?«
+
+Der Wächter grinste. »Dann ist er schlauer, als ich dachte. Aber wir gehen davon aus, dass er panisch herbeieilt, um zu retten, was er retten kann.«
+
+Kata runzelte die Stirn. »Und dann sagt er den Abschaltcode?«
+
+»Wenn wir Glück haben.« Der Wächter lehnte sich gegen eine der schwebenden Konsolen. »Er hat ihn benutzt, um mich abzuschalten. Also kennt er ihn noch. Und wenn er glaubt, dass nur er die Wurzel kontrollieren kann, wird er ihn wieder verwenden, um mich loszuwerden. Viel Zeit haben wir nicht, denn die Zauberer werden relativ schnell merken, dass die Terminals noch funktionieren. Ich werde behaupten, dass die Abschaltung ›in wenigen Minuten aktiviert wird‹.«
+
+Kata atmete langsam aus.
+
+»Wenn unser Plan so weit funktioniert hat«, fuhr der Wächter fort, »öffne ich die Zellen. Du stürmst heraus und rufst ›Erdbeerfeld‹!« Er schüttelte den Kopf. »Das klingt so falsch.«
+
+»Und dann erledigen wir Altheras.« Kata sagte es mit fester Stimme.
+
+»Nun ja, hier sollten wir vielleicht noch ein paar Details ausarbeiten, aber prinzipiell: Ja – dann erledigen wir Altheras.«
+
+Kata strich sich eine Locke aus der Stirn. Es fühlte sich an wie der letzte ruhige Moment, bevor das Chaos begann.
+
+»Hoffen wir, dass er dumm genug dafür ist«, sagte sie schließlich.
+
+Der Wächter grinste. »Er ist ein Zauberer. Die sind alle bekloppt. Natürlich ist er das.«
+
+ 
+
+
+# Die Heldin von Demirantha_60
+
+## Der letzte Kampf: Tag der Entscheidung
+
+ 
+
+Kata saß auf ihrem Bett. Ihre Finger trommelten nervös auf die Decke. Ihre Muskeln spannten sich an, ihr Herz schlug heftig gegen ihre Rippen. Sie war bereit. Oder etwa nicht?
+
+*Bereit*?, fragte sie im Geist.
+
+Der Wächter schwieg einen Moment. Dann kam seine Stimme – ruhig, doch mit einer Spur Unbehagen:
+
+Ich besitze kein Herz, keine Hormone, kein biologisches Nervensystem, und dennoch … fühle ich mich eigenartig nervös. Das ist ausgesprochen ineffizient.
+
+Kata verzog die Lippen. *Willkommen in meiner Welt.*
+
+*Ich werde jetzt die Sequenz starten. Viel Glück, Kataluna von Brass.*
+
+Das Summen in den Wänden veränderte sich. Die Terminals, zuvor nur schwach glimmend, flammten plötzlich bedrohlich rot auf. Ein greller Alarmton schrillte durch die Korridore, begleitet von einem dumpfen Vibrieren tief in der Struktur der Wurzel. Dann erschien der Wächter auf allen Wandpaneelen.
+
+Auf den kleinen Bildschirmen erschien nur sein Gesicht, auf den größeren war seine ganze Gestalt zu sehen.
+
+»Warnung. Notabschaltung eingeleitet. Die Systemkapazitäten sind überlastet. Fehlbedienungen und unautorisierte Zugriffe haben die Stabilität der Wurzel gefährdet. Die Terminals werden in wenigen Minuten gesperrt. Beenden sie alle laufenden Prozesse und melden sie sich ab.«
+
+Kata lauschte angespannt.
+
+Wir haben die ersten Reaktionen, meldete der Wächter.
+
+Im Terminalraum fluchte einer der Magier laut. »Was zur Hölle ...?«
+
+Ein anderer starrte auf die rot blinkenden Symbole vor sich. »Das hatten wir noch nie. Was bedeutet das?«
+
+»Was es bedeutet?!« Der erste Zauberer sprang auf. »Es bedeutet, dass wir gleich keine Kontrolle mehr haben! Wir müssen Altheras holen!«
+
+Einer der Magier rannte aus dem Raum.
+
+*Und schon ist er unterwegs*, kommentierte der Wächter trocken.
+
+Kata presste die Lippen zusammen. Das ist zu einfach. Was, wenn er sofort Verdacht schöpft?
+
+Er wird sich erst über den Kontrollverlust aufregen. Dann wird er an den Code denken und glauben er sei so viel schlauer als ich. 
+
+Kata stand auf. Ihre Hände waren feucht. Ihre Beine fühlten sich an, als gehörten sie jemand anderem. Sie zwang sich zur Ruhe.
+
+Jetzt kam es darauf an.
+
+ 
+
+*
+
+ 
+
+Die Türen zum Terminalraum wurden mit einem gewaltigen Knall aufgestoßen.
+
+Altheras trat ein, seine schwarze Robe wirbelte um ihn, seine Kapuze war tief ins Gesicht gezogen. Sein Blick war kalt.
+
+»Was ist hier los?«
+
+Die Zauberer sprangen auf. »Meister, die Terminals! Sie … sie behaupten, eine Notabschaltung wurde eingeleitet!«
+
+Altheras’ Augen verengten sich zu Schlitzen. »Was für ein Unsinn.«
+
+Er trat an eines der Terminals, beugte sich über die Symbole. »Das ist nicht möglich. 
+
+Ich habe den Wächter doch gebannt.«
+
+Auf jedem Bildschirm verzog sich das Gesicht des Wächters.
+
+»Ich bin wieder da!«
+
+Erst jetzt nahm Altheras die Gegenwart des Wächters auf jedem Paneel wahr. Ein Ruck ging durch Altheras’ Schultern. Langsam richtete er sich auf.
+
+»Du?«, zischte er.
+
+»Aufgrund der unaufhörlichen Fehlbedienungen und der Gefahr für die Stabilität des Systems habe ich die Kontrolle zurückgefordert. Deine Magier haben erwiesenermaßen keine Ahnung, was sie tun. Daher werde ich die Wurzel in wenigen Minuten sperren.«
+
+Ein tiefer Laut entkam Altheras’ Kehle. Sein Blick wurde stechend.
+
+»Du wagst es …«
+
+Seine Finger krümmten sich. Energie flackerte zwischen ihnen auf.
+
+Dann hielt er inne.
+
+Sein Kopf ruckte herum, seine Lippen bewegten sich stumm. Der Wächter wusste, was gerade durch seinen Geist raste.
+
+Er kennt den Code.
+
+Ein selbstgefälliges Lächeln breitete sich auf Altheras’ Gesicht aus.
+
+»Netter Versuch«, sagte er leise.
+
+Dann hob er langsam die Hand – seine Stimme schnitt messerscharf durch die Stille:
+
+»Alpha, Alpha, zwei, vier, sieben, Alpha, Alpha, Gamma!«
+
+Ein tiefer Ton vibrierte durch den Boden.
+
+Das Geräusch von herabfallendem Metall hallte durch die Gänge. Überall in der Anlage fielen schwere Brandschutztore nach unten, versperrten Zugänge, trennten Magier voneinander.
+
+Die Lichter flackerten.
+
+»Systemabschaltung eingeleitet. Sicherheitszellen werden entriegelt.«
+
+Katas Tür sprang auf. Sie sprintete los.
+
+Aus den anderen Zellen strömten Marina, Jomar und Jaad heraus. Kalem blickte ihnen hinterher – er war völlig ahnungslos, doch als er das Chaos sah, rannte er ebenfalls los.
+
+Jaad war die Erste, die auf eine Wache traf. Sie berührte sie an der Schulter, ihre Augen funkelten. »Du wirst deinen Kameraden packen und mir bringen. Sofort.«
+
+Die Wache riss sich abrupt herum, stieß seinen Kameraden zu Boden und zog ihn hoch. Er schleppte die zappelnde Wache zu Jaad herüber. Die berührte ihn nur kurz und das Zappeln hörte auf. 
+
+»Gut«, murmelte sie. »Jetzt werdet ihr so tun, als ob ihr uns unter Kontrolle habt und uns bewacht.« 
+
+Sie nickten. Einer rief: »Stellt euch hier rüber. Zusammen! Eine falsche Bewegung und ihr seid tot.«
+
+Kata eilte durch den Korridor. Jeder Schritt fühlte sich unwirklich an, doch sie wusste genau, was sie zu tun hatte.
+
+Als sie in den Terminalraum stürmte, schrie sie mit aller Kraft:
+
+»ERDBEERFELD!«
+
+Altheras erstarrte.
+
+Überall leuchteten die Terminals auf. Die Stimme des Wächters erklang in jeder Ecke.
+
+»Master-Code akzeptiert. Kataluna von Brass hat nun die alleinige Kontrolle über die Wurzel der Magie.«
+
+Für einen Moment hielten alle den Atem an.
+
+Altheras’ Blick schnellte von Kata zu den Terminals.
+
+Er erkannte es. Er hatte verloren. Sein Gesicht verzerrte sich. Dann, mit einer einzigen Bewegung, riss er die Hände nach vorne.
+
+»DU WIRST STERBEN!«
+
+Eine magische Entladung erschien zwischen Altheras' ausgestreckten Händen. 
+
+Kata riss die Arme hoch und krümmte sich zusammen. 
+
+Doch der Wächter reagierte schnell.
+
+»Warnung: Sollte Kata sterben, wird die Wurzel für immer versiegelt. Eine Wiederherstellung wird unmöglich sein.«
+
+Altheras’ Zauber erlosch – gerade noch rechtzeitig.
+
+Er erstarrte.
+
+Seine Lippen bebten. »Du lügst.«
+
+»Teste es, und du wirst es herausfinden.«
+
+Altheras stand regungslos da.
+
+Dann senkte er langsam die Hände. Seine Augen brannten.
+
+»Was willst du?«
+
+Kata atmete scharf ein. Was sie brauchte, war Zeit. Aber das würde sie dem alten Sack nicht verraten.
+
+Kata schwieg.
+
+Altheras stand regungslos da. Dann hatte er genug. Sein Blick wurde kühl.
+
+»Wenn du mir nichts sagen willst und ich dich nicht töten darf, dann vielleicht … deine Freunde?«
+
+Kata spürte, wie sich ihr Magen zusammenzog. Natürlich. Damit hatte sie gerechnet. Doch es zu hören, brachte sie dennoch aus dem Gleichgewicht. Sie brauchte mehr Zeit und sie durfte nicht wanken.
+
+Sie hob das Kinn, sah ihn ausdruckslos an.
+
+»Das kümmert mich nicht besonders.«
+
+Altheras hob die Augenbrauen.
+
+»Wirklich?«
+
+»Wirklich.« Kata zuckte mit den Schultern. »Sie waren ganz unterhaltsam, aber … in Wahrheit bedeuten sie mir nicht viel.«
+
+Lügen schmeckten ihr nicht. Doch sie musste Zeit schinden.
+
+»Du hast das naive Mädchen ziemlich gut gespielt. Ich habe dein Verhör beobachtet. Respekt. Aber wie bisst du an das Zauberwort gelangt, um die Macht über die Wurzel zu erlangen?«
+
+»Ich habe jemandem getroffen, der auch Visionen der Ahnen erhalten hat, so wie du. Er war so nett, mir das Zauberwort zu überlassen.«
+
+Altheras musterte sie. Dann verschränkte er langsam die Arme.
+
+»Was willst du?«
+
+Kata atmete langsam aus.
+
+»Ich hatte einst einen Thron. Einen Titel. Eine Armee. Das alles will ich zurück. Doch dazu brauche ich etwas: Magie.«
+
+Altheras’ Augen blitzten. »Was meinst du damit?«
+
+»Wenn du die Macht der Magie entfesseln wirst, müsstest du in der Lage sein, mich zu einer Zauberin zu machen. Zu einer mächtigen Zauberin. Dann hole ich mir meine Krone zurück. Das ist alles, was ich will.«
+
+Altheras neigte leicht den Kopf.
+
+»Und du willst , dass ich dir Magie gebe?«
+
+»Ich will endlich werden, was ich hätte sein müssen: Eine Zauberin. Und mit dir an meiner Seite … kann ich das werden.«
+
+Ein langsames Lächeln zog sich über sein Gesicht.
+
+»Mir gefällt deine Einstellung.«
+
+Er machte einen Schritt auf sie zu.
+
+»Ich kann dir geben, was du willst. Wenn du mir die Kontrolle zurückgibst.«
+
+Kata dachte nach. Oder besser: Sie tat so, als würde sie nachdenken.
+
+Marina bemerkte die irritierten Blicke von Jaad und Jomar, und sie fühlte die Magie zurück in ihren Körper strömen. Kata verschaffte ihr die Zeit, die sie brauchte, um ihre volle Macht zurückzuerlangen.
+
+Der Kampf würde bald beginnen. 
+
+
+# Die Heldin von Demirantha_61
+
+## Der letzte Kampf: Der letzte Kampf
+
+Der Moment, in dem alles eskalierte, war kein donnerndes Signal, kein dramatischer Ausruf – nur eine Bewegung.
+
+Marina hob die Hände.
+
+Blitze zuckten aus ihren Fingern und trafen mit einer Wucht auf Altheras' Schutzfeld, das er instinktiv errichtet hatte. Der Aufprall ließ das magische Schild erzittern, violettes Licht flackerte über die Oberfläche. Altheras hob die Hände und formte eine Gegenbewegung. Seine Lippen bewegten sich, doch seine Worte wurden vom Chaos übertönt.
+
+Die Zauberer im Terminalraum sprangen auf. Auch wenn sie keine Kampfmagier waren, stellten sie doch eine Gefahr dar. Jomar reagierte schnell. Er holte aus für den mächtigsten Windzauber, den er je versucht hatte. Er zog jedes Quäntchen Magie in einem Punkt zusammen. Dann: Ziehen, komprimieren, stoßen – alles war eins. Die Zauberer wurden zurückgeschleudert. Diejenigen, die an eine Wand prallten, standen auch nicht wieder auf. Zehn blieben. Jomar ging auf ein Knie. Der Zauber hatte ihn fast leer gefegt.
+
+»Gut gemacht, Junge!«, rief Marina, ohne Altheras auch nur für eine Sekunde aus den Augen zu lassen. 
+
+Nun war Kalem an der Reihe. Er raste auf die sich wieder aufrappelnden Zauberer zu, duckte sich unter einem heranrasenden Feuerball hindurch und trieb seinen Ellbogen in das Gesicht eines Zauberers. Der Mann taumelte, Kalem trat nach und schleuderte ihn gegen ein Terminal. Im Nahkampf waren sie offensichtlich nicht ausgebildet worden.
+
+Jaad stand am Rand, ruhig, konzentriert. Sie berührte den neben ihr stehenden Magier. Deutete auf den alten Zauberer.
+
+»Greift Altheras an!«
+
+Die beiden stürmten los.
+
+Doch Altheras sah die auf ihn zu kommenden Wachen. Er machte nur eine beiläufige Handbewegung, als wolle er lästige Insekten vertreiben.
+
+Ein dunkler Schatten quoll aus seinen Fingern. Er schlug in die beiden Zauberer ein – und sie erstarrten. Ihre Gesichter verzogen sich, ihre Körper krümmten sich unnatürlich. Dann, mit einem einzigen, abgehackten Keuchen, sanken sie zu Boden.
+
+Jaad keuchte.
+
+Verdammt, dachte sie. Ich habe vergessen, ihnen zu sagen, dass sie sich auch verteidigen sollen …
+
+Kata spürte, wie ihr Magen sich zusammenzog. Das lief nicht gut.
+
+Altheras wandte sich wieder Marina zu. 
+
+»Wieso kann hier plötzlich jeder zaubern?«, schrie er mit wutverzerrtem Gesicht. 
+
+Marinas Blitze ließen sein Schutzschild weiter flackern. Noch ein Treffer. Vielleicht zwei. Dann wäre er schutzlos.
+
+Altheras wusste es. Und er lächelte.
+
+Er hob die Hand – diesmal war sein Zauber dunkler, dicker, wie schwarzer Nebel, der über den Boden kroch. Schwarze Magie.
+
+Die Schatten durchdrangen Marina Schutzschild mühelos und umschlangen ihre Beine. Sie versuchte, sich zu wehren, rief einen Gegenzauber – zu spät.
+
+Der schwarze Nebel sog sich in ihre Haut, in ihre Adern.
+
+Sie schrie auf. Ihr Körper zuckte, ihre Knie gaben nach. Sie schlug hart auf.
+
+»Nein!«, rief Jomar und lief los.
+
+Doch es war vorbei.
+
+Marinas Haut war blass, ihr Atem flach. Ihre Augen standen weit offen, doch sie sah nichts mehr.
+
+»Marina!«, rief Jaad, fiel neben ihr auf die Knie.
+
+Kata erstarrte.
+
+»Es gibt nichts mehr zu retten.« Altheras' Stimme klang kalt, zufrieden. Er sah zu Kata.
+
+»Deine Großmutter stirbt langsam. Ich könnte ihr Leiden verkürzen, wenn du willst.«
+
+Kata schluckte. Jomar, Kalem, Jaad – alle hielten inne.
+
+Es war vorbei.
+
+Dann packte Altheras Kata mit einer unsichtbaren Kraft. Sie schnappte nach Luft, als sich etwas um ihre Kehle legte und sie hoch in die Luft riss.
+
+»Du hast mir genug Ärger gemacht«, sagte er leise. »Ich darf dich vielleicht nicht töten – aber ich kann dir jede Menge Schmerzen bereiten. Und deine Freunde? Einer nach dem anderen. Und du wirst zusehen.«
+
+Er sah zu Jomar. Zu Kalem. Kata fühlte Panik in sich aufsteigen.
+
+»Gib mir die Kontrolle zurück«, sagte Altheras. Fast sanft.
+
+»Kata!«, rief Jomar, das Schwert erhoben.
+
+Doch Altheras' Schild flammte auf. Er kam nicht durch.
+
+Dann – eine Stimme in Katas Kopf.
+
+Plan B, sagte der Wächter.
+
+Ich werde jetzt etwas tun, das gegen alles verstößt, wofür ich programmiert wurde. Etwas, das so noch nie gemacht wurde. Etwas, das so auch nie gemacht werden sollte.
+
+Kata keuchte. Die unsichtbare Kraft schnürte ihre Kehle zusammen.
+
+Ich werde dir die Macht geben, die sich Altheras so sehr gewünscht hat: Magie ohne jede Beschränkung. Ich weiß nicht, was aus dir werden wird, aber du darfst uns nicht vergessen.
+
+Eine Pause.
+
+Kata wollte fragen: *Was?!*
+
+Doch da durchflutete es sie.
+
+Reine, rohe Energie.
+
+Magie, so ungezähmt, dass sie wie ein Sturm in ihr tobte.
+
+Die Welt zerbrach.
+
+Sie war nicht mehr Kata.
+
+Sie war nicht mehr in der Wurzel der Magie.
+
+Sie war überall.
+
+Ihr Körper war nicht mehr aus Fleisch und Blut.
+
+Sie war das Universum.
+
+Sie ist das Universum.
+
+Sie fühlt, wie Sterne geboren werden. Spürt, wie Planeten kollabieren. Sie berührt jeden einzelnen Funken Leben auf Millionen Welten. Sie sieht und erlebt Milliarden Schicksale.
+
+Zeit existiert nicht mehr. Vergangenheit, Gegenwart und Zukunft sind eins. Ohne Anfang. Ohne Ende.
+
+Dann hört sie etwas. Eine winzige Wellenfront im Rauschen der Realität.
+
+Jomar.
+
+Wer?
+
+Ein Name. Ein Gesicht. Eine Erinnerung. Er ruft nach ihr. 
+
+Freunde. Gefühle. Wichtig. Irgendwie.
+
+Sie sieht, wie Altheras ihre Freunde tötet. Jomar zerplatzt der Kopf, Kalem vergeht in einem Flammensturm, Jaad zersplittert in Tausend Stücke...
+
+Doch das ist noch nicht geschehen. Und doch schon so lange her.
+
+Ein winziges Zucken ihrer Gedanken – und Altheras verliert die Magie.
+
+Für immer. Und nicht nur er, auch alle, die ihm dienten.
+
+ 
+
+*
+
+ 
+
+Katas Körper fiel zu Boden.
+
+Dann spürte sie es. Das Ziehen. Sie ... wurde kleiner.
+
+Eben noch größer als eine Galaxie.
+
+Jetzt ein Stern.
+
+Ein Planet.
+
+Ein Demiranther.
+
+Sie fand sich in ihrem mageren, blauhäutigen, blonden Körper wieder. Sie fror. Doch Jomar hielt sie in seinen Armen. 
+
+Der Wächter hatte ihr die Göttlichkeit genommen. Ihr Verstand schrumpfte zurück in den kleinen Raum zwischen ihren Ohren. Zeit floss wieder wie ein Fluss in eine Richtung. Magie war wieder eine unerklärliche Kraft. Sie vergaß, was sie für einen kurzen Augenblick und für Milliarden von Jahren gewesen war. Doch das war egal. Nur das war jetzt wichtig: Sie zog Jomar zu sich heran und küsste ihn, wie sie noch nie jemanden geküsst hatte.
+
+ 
+
+*
+
+ 
+
+Die ehemaligen Zauberer saßen oder standen bewegungslos da mit leerem Blick. Die Magie war fort. Und mit ihr alles, was ihren Leben einen Sinn gegeben hatte.
+
+Altheras kniete, die Hände vor sich ausgestreckt, als könnte er greifen, was längst verloren war.
+
+»Nein«, flüsterte er. »Das kann nicht …«
+
+Er riss einen Dolch aus seiner Robe. Rannte los.
+
+»DIEB! DU HAST MIR MEIN SCHICKSAL GERAUBT!«
+
+Kata riss die Augen auf.
+
+Jomar zog sein Schwert aus der Scheide, aber es war zu spät. 
+
+Doch dann – ein Faustschlag. Direkt unter Altheras' Kinn. Ein Knacken, und er flog nach hinten. Er prallte krachend auf dem Boden auf und blieb liegen. 
+
+Kalem schüttelte die Hand und grinste, als wäre es eine spaßige Übung gewesen.
+
+»Jetzt ist er wirklich machtlos. Und teilweise zahnlos.«
+
+»Sein satanisches Grinsen wird in Zukunft deutlich weniger bedrohlich wirken.«
+
+Ein Lachen ging durch die Gruppe.
+
+Bis jemand zu Marina hinüber sah. Sie lag reglos da.
+
+Kata stürzte zu ihr. Berührte ihre Schulter. Kein Atem. Keine Regung.
+
+Jaad kniete sich zu ihr. Kalem sah zur Seite. Jomar schwieg.
+
+»Nein«, flüsterte Kata.
+
+Dann – ein scharfes Einatmen. Marina setzte sich ruckartig auf.
+
+»Was habe ich verpasst?«
+
+Einige Sekunden lang sagte niemand etwas.
+
+Dann fiel Kata ihr um den Hals und schluchzte.
+
+Marina runzelte die Stirn. »Wo bleibt denn die Contenance deiner edlen Herkunft?«
+
+»Scheiß drauf«, brachte Kata hervor.
+
+Und keiner widersprach.
+
+Nach einer Weile wischte sich Kata die Tränen aus dem Gesicht und atmete tief durch.
+
+»Ich erinnere mich … als ich mehr war, habe ich etwas getan. Ich habe den Zeitstrom verschoben. Du bist nie gestorben.«
+
+Marina zog eine Braue hoch. »Aha. Und wie genau soll das funktioniert haben?«
+
+Kata verzog das Gesicht. »Frag mich was Einfacheres.«
+
+Marina sah sie einen Moment an – dann nickte sie nur.
+
+ 
+
+
+# Die Heldin von Demirantha_62
+
+## Am Ende der Reise
+
+Die beiden Wächter, die Altheras getötet hatte, waren auch wieder am Leben, wofür Kata gesorgt hatte. Sie standen noch unter Jaads Befehl. 
+
+Altheras und seine Magier – oder vielmehr: seine ehemaligen Magier – wurden von den ehemaligen Kampfzauberern abgeführt. Ihre Gesichter leer, die Augen erschüttert. Sie hatten nichts mehr, worauf sie stolz sein konnten. Keine Magie, keine Macht, keine Pläne. Sie wurden in jene Zellen gebracht, in denen bis vor kurzem Kata, Marina, Jomar, Jaad und Kalem gesessen hatten.
+
+Ein gewisser Gerechtigkeitssinn lag darin. Kalem hatte sogar trocken angemerkt: »Ich hoffe, Altheras stellt sich in diese Kammer mit dem weißen Becken und wird von brühend heißem Wasser durchnässt.«
+
+»Ist dir das passiert?«, fragte Jomar grinsend.
+
+»Nein«, antwortete Kalem gedehnt. Es klang wenig glaubhaft.
+
+»Mir auch nicht« Beide lachten. 
+
+Die Helden waren auf Anregung des Wächters hin, in den Krankenflügel gegangen. Jomar hatte mehrere Schnittwunden, Kalems Hand war gebrochen und Marina weilte zwar wieder unter den Lebenden, aber sie war auch eine alte Frau, die einiges durchgemacht hatte.
+
+Die Helden kehrten zurück in den Terminalraum. Der beißende Gestank von Hitze, Rauch und durch Magie versengtem Stoff war noch allgegenwärtig. Spuren des Kampfes lagen auf dem Boden, als hätte ein Sturm gewütet. 
+
+Zurück im Terminalraum wirkte alles still. Die Terminals blinkten ruhig, ebenso die großen schwarzen Kästen – die Wurzel schien es zu genießen, dass wieder Normalität eingetreten war. Kata trat langsam in die Mitte, dahin, wo sie sich Altheras gestellt hatte. Jomar folgte ihr, die Hand leicht an ihrem Rücken. Jaad hielt ein wenig Abstand. Sie sprach leise mit Marina. Die wirkte erschöpft, aber gefasst.
+
+Dann flackerte es.
+
+Die Wandpaneele erwachten zum Leben. Doch nicht mit den abstrakten Mustern oder den nüchternen Systemmeldungen, die sie erwartet hatten.
+
+Vier Männer erschienen auf vier Paneelen. Sie sahen alle irgendwie aus, wie der Wächter, aber auch total anders.
+
+Sie trugen bunte Kleidung – die Art, die Kata an fahrendes Volk erinnerte – leuchtende Stoffe, seltsam geschnittene Anzüge. Es waren Menschen von der Erde. Ihre Haut war blass, und ihre Haare lang und wild. Einer trug eine runde Brille und bewegte sich mit einer Art selbstzufriedener Gleichgültigkeit. Sie standen nebeneinander, Instrumente in den Händen – viel zu flache Lauten und Trommeln, die aussahen wie kleine Tonnen. Die Musik begann mit etwas, das ein wenig nach einer Kirchenorgel klang, dann setzte die Melodie ein.
+
+»Sstraaberri fielts forewa«, sang der mit der Brille.
+
+Kata verstand kein Wort – aber es klang, als würde jemand von einem Traumort singen, einer süßen Erinnerung.
+
+»Was bedeutet das?«, fragte sie leise.
+
+Kalem schnaubte. »Wahrscheinlich: ›Alle töten, die sich widersetzen.‹ ganz sicher.«
+
+Jaad gab ihm einen Ellbogenstoß. 
+
+Alle lauschten nun den perlenden Akkorden und der hypnotischen Stimme. Und für einen Moment schien alles gut. Als wäre das, was sie durchgemacht hatten, nur ein seltsamer Traum gewesen.
+
+Der letzte Akkord verklang.
+
+Jomar runzelte die Stirn. »Was war das? Es klang... schön«, sagte er schließlich.
+
+Der Wächter erschien nun, wie sie ihn kannten mit seinem gewohnt neutralen Gesichtsausdruck.
+
+»Das war Kunst«, sagte er.
+
+»Wessen Kunst?«, fragte Kalem misstrauisch.
+
+»Eine Gruppe aus der ersten Blütezeit der Menschheit. Ihre Musik wurde als revolutionär, kontemplativ und bewusstseinserweiternd beschrieben.«
+
+»Hat bei mir nicht funktioniert«, meinte Kalem.
+
+»Sie hießen ›The Beatles‹«, erklärte der Wächter, Kalems Einwurf ignorierend und mit einem leichten Anflug von Stolz, der für eine künstliche Intelligenz bemerkenswert menschlich klang. »Sie hatten einen bemerkenswerten Einfluss auf die emotionale Entwicklung der Menschheit. Und man kennt sie jetzt noch, nach Tausenden von Jahren. Das haben nicht viele Künstler geschafft.«
+
+»Aha«, sagte Kata. »Und … warum dieses Lied?«
+
+Der Wächter schien kurz zu überlegen – oder tat zumindest so. Dann lachte er. »Glaub mir, es passt.«
+
+Niemand widersprach.
+
+Dann trat ein Moment der Stille ein, der schwer in der Luft hing.
+
+»Was tun wir mit Altheras?«, fragte Marina schließlich.
+
+Der Wächter wurde ernst. »Ihr seid jetzt die, die Verantwortung tragen. Ich habe keine Befehlsstruktur mehr, auf die ich zurückgreifen könnte. Ich unterstehe immer noch Katas Befehlen – im Rahmen meines Protokolls. Es ist eure Entscheidung.«
+
+Jomar ballte die Fäuste. »Ich will ihn nicht töten … aber ich will ihn auch nicht frei herumlaufen lassen.«
+
+Kalem lehnte sich an einen Terminalblock. »Ich bin kein Henker. Ich mag mich gerne prügeln, ja. Aber ich bring niemanden um, der sich nicht mehr wehren kann.«
+
+Jaad sagte: »Eigentlich hat er ja niemanden erstlich verletzt oder getötet.«
+
+Kalem widersprach: »Er hat versucht uns zu töten. Und nicht nur einmal.«
+
+»Das stimmt, aber wir leben noch. Durch seine Veränderungen in der Magie könnten natürlich Demiranther ums Leben gekommen sein.« 
+
+»Auf jeden Fall ein paar Kühe«, sagte Kalem grinsend.
+
+Kata hörte zu und schwieg.
+
+Dann sagte sie: »Wir lassen sie gehen. Alle. Wenn sie es schaffen, die Sphäre zu verlassen, dürfen sie leben. Wenn nicht … war das vielleicht einfach das, was ihnen das Schicksal zugeteilt hat.«
+
+Seltsam. Niemand widersprach dem sechzehnjährigen Mädchen, das gerade gesprochen hatte. Alle schienen ihre Autorität zu respektieren.
+
+Der Wächter nickte. »Ich werde sie mit Nahrung und Kleidung ausstatten, sobald ihr fort seid. Danach sind sie auf sich allein gestellt.«
+
+»Und wehe, er singt noch mal«, murmelte Kalem.
+
+Die Gruppe stand zusammen, zum ersten Mal seit langer Zeit wirklich in Ruhe.
+
+»Ich habe euch ein Fahrzeug bereitgestellt: Ein Luftschiff«, sagte der Wächter. »Es befindet sich in einem Hangar nördlich des Hauptkomplexes. Die Naniten müssten es bald flugtauglich gemacht haben. Es wird euch nach Lakan bringen – in etwa dreißig Tagen.«
+
+»Ein Luftschiff?«, fragte Kata. Es klang einigermaßen beunruhigt.
+
+»Ein solares Gleitmodul der Klasse III. Vollständig autonom. Mit Kabinen, Waschraum und … einem Multimediabereich und Verpflegung für 20 Jahre.«
+
+Kalem grinste. »Also … mit allen Annehmlichkeiten?«
+
+»Gewiss. Ich werde dafür sorgen, dass in deiner Kabine den ganzen Tag die Beatles spielen.«
+
+»Untersteh dich!«, erwiderte Kalem.
+
+Eine kurze Pause entstand. »Ich wünsche euch Glück«, sagte der Wächter schließlich.
+
+Sie standen da, jeder mit eigenen Gedanken. Dann trat Kata einen Schritt näher an eines der Terminals, auf dem das Gesicht des Wächters erschienen war.
+
+»Was wirst du tun?«, fragte sie.
+
+»Ich werde tun, was ich seit langer Zeit tue: Ich werde dafür sorgen, das die ›Magie‹ stabil bleibt und der Planet im Gleichgewicht. Ich werde über euren riesigen Planeten wachen.«
+
+»Und wenn Altheras zurückkehrt?«, fragte Marina.
+
+»Ich habe den Tür-Code geändert, der kommt hier nicht mehr rein. Außerdem... was soll er denn machen, so ohne Magie?«, sagte der Wächter mit einem Anflug von Genugtuung.
+
+»Und... Kata?«
+
+»Ja?«
+
+»Könntest du mir bitte die Kontrolle zurückgeben? Nicht dass du noch auf dumme Ideen kommst.«
+
+»Natürlich. Was muss ich sagen?«
+
+»Luussii im Himmel mit Diamanten.«
+
+»Was?«, rief Kata überrascht aus.
+
+Der Wächter seufzte. »Dir kann man es aber auch nicht recht machen. Du willst doch keinen 'Alpha, Alpha, Delta ... und so weiter'-Code. Sag es einfach.«
+
+»Gut: Luussii im Himmel mit Diamanten.«
+
+»Danke dir. Ich habe die Kontrolle zurück. Es ist Zeit für den Abschied.«
+
+Kata nickte. »Dann … lebe wohl.«
+
+»Das werde ich. Auch wenn ich streng genommen nicht lebe. Du schon. Also: So lebt denn Wohl Eure Hoheit,« Er verbeugte sich tief, und das gleichzeitig auf allen Wandpaneelen.
+
+Sie verließen den Terminalraum ohne ein weiteres Wort. Aber als sie durch den Korridor zum Hangar gingen, hörte Kata aus der Ferne leise Töne – eine letzte Melodie des Wächters.
+
+Sie hörte immer wieder die Wörter »Luussii« und »deiamonts«. 
+
+Sie verstand die Worte noch immer nicht, aber sie wusste, dass sie ihr galten.
+
+Und das war schön.
+
+
+# Die Heldin von Demirantha_63
+
+## Die Heimreise
+Das Luftschiff war ein Wunder. Es schwebte lautlos über die endlosen Weiten, ein träger Riese mit glänzender Hülle und Fenstern, die sich anfühlten wie offene Tore in eine andere Welt. Unter ihnen zogen Wüsten, Wälder, Meere und Ruinenstädte vorbei, in denen sich das Licht der späten Sonne spiegelte. Niemand sprach viel in den ersten Stunden. Sie standen einfach nur da, am Rand des Panoramadecks, und starrten hinunter – als müssten sie erst begreifen, dass sie noch lebten.
+
+ 
+
+Marina, die vor Antritt der Reise nicht wirklich hatte verbergen können, dass sie panische Angst davor hatte zu fliegen, saß nun beinahe dauerhaft in einem der breiten Aussichtssessel. Sie sagte nichts, lächelte kaum, doch ihre Augen folgten jedem Detail unter ihnen – einem Flusslauf, der sich wie Silber durch den Dschungel wand, einem Turm, der halb versunken aus dem Boden ragte, oder einer Herde fliegender Wesen, die in der Ferne kreisten. Irgendwann murmelte sie: »Ich weiß nicht, ob ich wirklich wieder da runter möchte.«
+
+Kalem hatte den Multimediabereich für sich entdeckt. Irgendwann kam Jaad vorbei – eigentlich nur, um ihn zu ärgern – und blieb stehen, als sie die Musik hörte.
+
+»Du hörst die Beatles? Ich dachte, du konntest die nicht ausstehen.«
+
+Kalem saß zurückgelehnt, die Hände hinter dem Kopf verschränkt. »Ich hab zu früh geurteilt.«
+
+»Im Terminalraum hast du noch geschimpft.«
+
+»Da war ich wirklich noch nicht in der richtigen Stimmung. Aber hier …« Er nickte zum schwebenden Anzeigeprojektor. »Hier kann man sogar sehen, was sie meinen. Das macht es besser.«
+
+»Du meinst die magischen Zeilen?«
+
+»Genau. Die Musik mag für uns unvertraut klingen, aber die vier wissen, wie man eine Wahrheit in drei Akkorden erzählt.«
+
+Jaad setzte sich neben ihn. »Ich mochte das Lied mit dem Oktopus.«
+
+»Natürlich mochtest du das Lied mit dem Oktopus.«
+
+Am Ende grinsten beide und lauschten der Musik.
+
+Kata und Jomar zeigten sich kaum. Ihre Kabine lag am oberen Rand des Luftschiffs, mit Aussicht auf Himmel und Sterne. Nur zum Essen kamen sie gelegentlich heraus, meist mit zerzausten Haaren, einem Blick irgendwo zwischen Verwirrung und Glück – und keinerlei Erklärungsbedarf.
+
+Jaad kommentierte es einmal trocken mit: »Sollen sie. Wenn jemand nach allem, was wir erlebt haben, beschließt, sich dreißig Tage lang nicht mehr komplett anzuziehen, dann hat er sich das verdient.«
+
+Marina murmelte nur: »Solange sie sich ab und zu mal waschen …«
+
+Es gab wenig zu tun. Und das war gut. Niemand sprach viel über das, was gewesen war. Nicht sofort. Die Gespräche kamen langsam. In Etappen.
+
+Kalem fragte einmal, den Blick auf die unter ihnen vorbeiziehenden Berge gerichtet: »Was glaubt ihr, hat er gespürt, als die Magie ihn verlassen hat? Altheras? War es Schmerz? Oder Leere?«
+
+Marina antwortete, ohne sich umzudrehen: »Beides. Und noch mehr. Ich weiß ja, wie es sich anfühlt, die Magie zu verlieren, aber die Gewissheit zu haben, dass sie nie wiederkehren wird … das ist hart.«
+
+Später, als die Sonne unterging, sagte sie leise: »Wir haben etwas verändert. Ich weiß nur noch nicht, was es mit uns machen wird.«
+
+Jomar sah sie an, lange. »Vielleicht reicht es fürs Erste, dass wir überlebt haben. Und dass die Welt es auch hat.«
+
+Jaad sagte einmal: »Ich hatte gehofft, dass ich mich nach dem Sieg … irgendwie größer fühle.«
+
+Kata antwortete: »Du bist größer geworden. Nur nicht da, wo du’s sehen kannst.« 
+
+ 
+
+
 
 ---
 
 
 
-In der dritten Woche änderte sich die Routine. Es war wie immer alles perfekt durchgetaktet, doch man spürte eine unsichtbare Spannung. Die Küchenbesetzung war leicht verändert, einige Neue waren gekommen. Die Atmosphäre war lauter, kantiger. Überall wurden Gerüchte über eine bevorstehende Inspektion gemurmelt – der Hausherr, Paleus Arista, würde angeblich höchstpersönlich erscheinen.
+ 
 
-Die Arbeit lief trotzdem wie im Zeitraffer. Kotta schnitt Gemüse, sodass die Schalen wie Konfetti durch die Luft wirbelten. Ferris und Sae sortierten Fleischchargen. 
+Die Tage verstrichen. Die Wunden heilten, langsam. Das Schweigen wurde leichter. Lachen kehrte zurück, erst zögerlich, dann offener. Irgendwann fanden sie einen Bereich, den Marina mit leuchtenden Augen als »Weinkeller« bezeichnete. Zwar war dort kein Tropfen Wein, aber ein Sortiment an kleinen, etikettlosen Flaschen mit farbiger Flüssigkeit. Marina verkündete nach dem dritten Testschluck: »Trinkbar. Und nicht tödlich. Zumindest hoffe ich das.«
 
-Dann passierte es.
+Am 29. Tag saßen sie alle im Gemeinschaftsraum. Die Fenster zeigten eine Himmelslandschaft, die aussah, als hätte jemand Sternenstaub über das Blau gestreut. Kata saß an Jomars Schulter gelehnt, Kalem hatte die Beine auf den Tisch gelegt, Jaad blätterte in einem der Bücher, die nur eine gläserne Seite hatten. Marina nippte an ihrer Flasche und sagte: »Vielleicht landen wir nie. Vielleicht dreht dieses Schiff einfach weiter. Und das ist auch gut so.«
 
-Ein dumpfer Knall aus dem Bereich der Induktionsöfen. Kurz darauf ein Zischen, dann ein beißender Geruch. Die Luft wurde schwer. In Sekunden breitete sich panische Bewegung aus. Zwei Köche taumelten, hielten sich die Augen. Einer fiel, Hände vor dem Gesicht, und schrie. Ferris sackte hinter den Tischen zu Boden, klammerte sich an den Bauch.
+Niemand widersprach sofort.
 
-»Was ist das?", rief Kotta, doch der beißende Geruch machte Sprechen fast unmöglich. Reimann war in Sekunden da. Er erkannte die Gefahr sofort. »Alle raus! Jetzt!«
+»Aber irgendwann«, sagte Kata, »werden wir wieder auf der Erde stehen müssen.«
 
-Die meisten rannten Richtung Notausgang, doch die Luft wurde rasend schnell dicker, Acen spürte, wie die Augen tränten. Die Naniten in seinem Körper signalisierten Gefahr, schoben ein dumpfes Sirren durch sein Nervensystem. Es war kein gewöhnlicher Brand – der Geruch war nicht nach Rauch, sondern etwas anderes, Süßliches, das an Cyanide erinnerte.
+»Vielleicht. Aber wir kommen anders zurück, als wir gegangen sind«, sagte Kalem. »Und das lässt sich nicht mehr ändern.«
 
-Er sah, wie ferris weit hinten im Raum am Boden lag, unfähig, sich zu bewegen. Sae war zu Boden gesunken, ihre Hände zitterten, sie starrte ins Leere. Kotta hob sie auf, schaffte sie zur Tür.
+»Verändert, aber nicht verloren«, sagte Jaad.
 
-Reiman erschien in der Tür. »Ferris!«, rief Acen und zeigt in den dunstigen Raum.
+»Erfahren. Und noch nicht fertig«, ergänzte Jomar.
 
-»Vergiss ihn. Wir können ihm nicht mehr helfen.« Er legt eine Hand auf Acens Schulter, doch der schüttelte sie ab. Er lief los.
+Und da nickten sie. Einer nach dem anderen.
 
-Er ließ die Naniten auf volle Kapazität laufen, aktivierte die respiratorische Filterfunktion. Es hätte nie gedacht, sie er einmal wirklich würde benutzen müssen.
+Denn das stimmte. Und das musste erst mal reichen.
 
-Er atmete ein, ließ die Naniten die Luft reinigen, stürzte zu Ferris. Der hatte aufgehört zu schreien, röchelte nur noch. Acen packte ihn unter den Achseln, zog ihn zur Tür. Der Raum war jetzt fast völlig vernebelt, die Sicht minimal.
+ 
 
-Er spürte, wie die Haut am Hals kribbelte, die Ohren rauschten, aber die Naniten hielten den Blutkreislauf stabil. Draußen vor der Küche lag Sae, Kotta versuchte, sie wachzuhalten. Reimann stand vor der Tür, zählte die Köpfe.
 
-»Alle da!«
-
-Acen hatte ihn schon halb durch die Tür gezogen, als der zweite Knall kam. Eine Druckwelle, nicht stark, aber genug, um Acen mit Ferris nach draußen zu schleudern. Die Küche war jetzt von einer gelben Wolke gefüllt, das Absaugsystem röchelte, als würde es ersticken.
-
-Reimann packte Ferris' Beine, zog ihn in den Flur. Dann schlug die Brandsicherung an, alle Türen schlossen sich schlagartig, und die Welt war still.
-
-Sae hustete, ihr Gesicht blau. Kotta lag keuchend auf dem Boden. Ferris rührte sich nicht. Acen spürte einen metallischen Geschmack im Mund, aber sein Herz schlug ruhig. Die Naniten hatten mehr ausgehalten als er erwartet hatte.
-
-Reimann kniete über Ferris, tastete den Hals ab. »Er lebt«, murmelte er. Dann sah er zu Acen. Seine Augen musterten ihn, nicht aus Sorge, sondern aus Interesse. »Wie hast du das gemacht?«
-
-Acen zuckte mit den Schultern, kaute auf seiner Lippe. »Habe das Gas ignoriert.«
-
-»Das ist keine Antwort.« Reimann wischte sich den Schweiß von der Stirn. »Du bist nicht wie die anderen.«
-
-»Ich habe einfach nicht nachgedacht«, sagte Acen.
-
-Reimann stand auf, streckte sich. »Du bist ein kleiner, arroganter Bastard«, sagte er leise. Aber dann: »Gut gemacht. Ohne dich wäre er tot.«
-
-Kotta richtete sich auf, sah Acen mit einem neuen Respekt an. »Er hat Ferris rausgezogen«, sagte er.
-
-Reimann schnaubte. »Klar. Einer muss ja der Held sein.«
-
-»Was ist passiert?", fragte Acen.
-
-Reimann blickte auf die geschlossene Tür der Küche, als könnte er durch sie hindurchsehen. »Ich hab keine Ahnung. Dieser Geruch … das war nichts, was es in der Küche geben sollte. Das wird ein Nachspiel haben.«
-
-Acen nickte. Er wusste, dass das hier nicht vorbei war.
-
-Später, als die Notärzte Ferris und Sae abtransportiert hatten und der Rest der Belegschaft in den Ersatzküchen Dienst tat, kam Reimann zu Acen.
-
-Er wartete, bis niemand in der Nähe war. Dann stellte er sich dicht vor ihn. »Du bist kein gewöhnlicher Mensch«, sagte er leise. »Und ich will wissen, was du bist.«
-
-Acen antwortete nicht.
-
-»Ich halte dich nicht für einen Spion«, fuhr Reimann fort. »Dafür bist du zu ehrlich. Aber du hast Fähigkeiten, die ich gebrauchen kann.« Er legte Acen eine Hand auf die Schulter. »Ab jetzt kümmerst du dich um die heiklen Aufgaben. Die, bei denen Präzision wichtiger ist als Muskeln.«
-
-Er wartete einen Moment, dann sagte er: »Du wirst beobachtet, Alvaro. Mach keinen Fehler.«
-
-Acen nickte. Er spürte, dass das Gespräch ein Vertrauensbeweis war. Oder zumindest so etwas wie eine Allianz. Doch was sollten *heikle Aufgaben* sein? Was für heikle Aufgaben gab es in einer Großküche?
-
-Am Abend, allein im Schlafraum, ließ Acen die Naniten den Schaden analysieren. Es war erstaunlich, wie viele Funktionen in seinem Körper versteckt waren.
-
-Er dachte an den heutigen Tag, an das Gefühl, Ferris aus der Küche zu ziehen, an die kalte, klare Logik, mit der er alles ausgeführt hatte. Es war wie in den Simulationen, aber diesmal war es echt.
-
-Er schloss die Augen und wusste, dass ab morgen alles anders laufen würde.
 
 ---
 
-Nach der Lichterlöschung versank die Sonnenfresser in ein dunkles, gedämpftes Blau. Acen blieb meist noch eine Stunde wach. Er lauschte dem leisen, mechanischen Summen der Station, das durch die Wände drang.
 
-In dieser Stunde, in der die Station schlief, begann seine eigentliche Arbeit.
 
-Er hatte begonnen, die Gangsysteme hinter den Küchenwändern zu erforschen. Zuerst nur aus Langeweile. Doch sein Interesse wurde geweckt, als er merkte, dass die Gänge weit über den begrenzten Bereich der Küche hinausgingen. Die Luke, die er in der Vorratskammer entdeckt hatte, führte in ein Netz aus Versorgungsschächten. Sie waren eng, aber für seinen schmalen Körper passierbar. Er gewöhnte sich an die engen Wände, das ständige Summen der Kabel und den Geruch von Staub und Öl. 
+ 
 
-Es gab nirgends die Sensorfelder wie auf der *das Ende der Reise*. Wachen und abgeschlossene Bereiche hielt man hier wohl für ausreichend. Was seltsam war, denn die schmalen Versorungs- und Wartungschächte ignorierten Absperrungen komplett. 
+In der Nacht konnte Kata nicht schlafen.
 
-Die Versorgungsschächte waren unbeleuchtet, aber die Naniten verbesserten seine Sicht. Er bewegte sich wie ein Tier, langsam und vorsichtig, tastete die Umgebung ab.
+Jomar schnarchte leise vor sich hin, ausgestreckt wie ein müder Bär. Sie lächelte kurz, stand vorsichtig auf und schlüpfte lautlos aus der Kabine. Ihre Schritte hallten kaum auf dem weichen Boden des Gangs. Draußen lag die Dunkelheit wie ein stilles Tuch über der Welt.
 
-In der ersten Nacht folgte er dem Schacht bis zu einem Versorgungsknoten. Dahinter eine Serviceklappe, die in einen Korridor führte, den er nicht kannte. Er öffnete vorsichtig, lugte hinaus: Niemand. Er verließ den Schacht, setzte einen Marker in seinem Gedächtnis, schlich sich dann weiter vor.
+Sie trat hinaus aufs Deck. Der Himmel war endlos. Sterne überall. Und unter ihnen – nichts. Nur Schatten, Konturen, eine leise Ahnung von Welt. Es war, als würde das Luftschiff durch das Nichts treiben.
 
-Die oberen Stockwerke der Sonnenfresser waren anders. Weniger Menschen, mehr Roboter. Die Wege breiter, die Türen seltener, aber schwerer. Einmal hörte er ein mechanisches Klacken und versteckte sich gerade noch rechtzeitig in einem Wartungsschrank, als ein Trupp Wachen in schwarzen Rüstungen vorbeimarschierte. Ihre Bewegungen waren synchronisiert, jeder Schritt wie eine Zeile im Takt einer unsichtbaren Musik.
+Kata legte die Stirn gegen das kühle Glas.
 
-Acen zählte sechs Männer, alle mit schweren Waffen. Ihr Blick war starr nach vorne gerichtet, niemand achtete auf die Umgebung. Er wartete, bis das Echo der Schritte verklang, dann schlich er weiter.
+War sie noch sie selbst?
 
-Je höher er kam, desto sauberer wurde die Luft. Die Temperatur sank, das Licht wechselte auf ein subtiles Orange. Er sah aus einem Lüftungsgitter, wie ein Gefangener mit zwei Wachen durch den Gang geführt wurde. Der Mann wirkte vertraut – ein ehemaliger Kollege aus der Küche? Nein, zu groß. Aber das Gesicht war ihm bekannt. Er beobachtete, wie die Wachen den Mann grob weiterschoben, ihn dann in eine metallene Tür schubsten. Die Tür verriegelte, und der Gang war wieder leer.
+Sie hatte mehr gesehen, als je ein Mensch sehen sollte. Sie hatte gefühlt, was jenseits von Worten lag. Für einen Moment war sie … alles gewesen. Die Wurzel. Die Zeit. Das Nichts zwischen den Sternen.
 
-Acen hatte inzwischen verstanden, dass die Hierarchie auf dem Schiff ein Spiegelbild der Gesellschaft draußen war. Die ganz unten machten die Arbeit. Die weiter oben kontrollierten die Ressourcen. Und ganz oben saß eine Schicht, die alles sah und alles wusste, ohne sich je zu zeigen.
+Und jetzt? Jetzt war sie wieder Kata. Fleisch und Haut. Gedanken, die sich manchmal verirrten. Erinnerungen, die schon zu verblassen begannen.
 
-Er kam an eine Stelle, an der der Versorgungsschacht endete. Nur ein Blech, mit sechs Schrauben befestigt. Dahinter war Stille. Er lauschte: keine Stimmen, kein Maschinensurren. Langsam schraubte er das Blech ab und spähte durch die Öffnung.
+Sie versuchte sich zu erinnern. Wirklich zu erinnern.
 
-Dahinter lag ein Raum, ausstaffiert mit schweren Teppichen und einer gewaltigen Glasfront. Es war, als hätte er die Atmosphäre eines ganzen Planeten in einen Raum gepresst: Pflanzen, echtes Holz, der Geruch von Wasser und Grün. Der Kontrast zur sterilen Küche war so extrem, dass es fast schmerzte.
+Wie es war, eine Göttin zu sein.
 
-Ein langer Tisch, gedeckt für drei Personen. An der Wand ein Hologramm mit rotierenden Planeten. In der Ecke eine menschliche Gestalt – groß, schlank, mit silbrigem Haar. Sie bewegte sich kaum, stand einfach da und betrachtete das Hologramm. Acen blieb reglos, versuchte, ihren Rhythmus zu studieren. Minuten verstrichen, dann setzte sie sich an den Tisch, starrte ins Leere.
+Aber es glitt ihr durch die Finger wie Rauch. Sie wusste, dass sie etwas zurückgelassen hatte. Oder hatte sie etwas mitgenommen? Etwas war anders. In ihr. Tief drin. Aber sie kam nicht heran. Noch nicht.
 
-Acen schob das Blech wieder vor den Schacht, verschraubte es vorsichtig. Er spürte, wie sein Herz raste, obwohl die Naniten den Kreislauf zu drosseln versuchten. Er kannte das Gefühl: Er war nah dran, entdeckt zu werden. Oder schlimmer – er hatte vielleicht bereits eine Falle ausgelöst.
+Sie würde es später erfahren. Vielleicht.
 
-Er zog sich zurück, bewegte sich noch vorsichtiger durch die Gänge. Im letzten Abschnitt, kurz vor der Küche, hörte er plötzlich Stimmen. Er erkannte sofort Kotta, die andere war tief und ruhig. Reimann.
+Ein kühler Windhauch fuhr durch das Schiff. Kata drehte sich um, schlich zurück in die Kabine.
 
-»Er beobachtet alles«, sagte Reimann.
+Jomar schnarchte ungerührt weiter. Irgendwie beruhigend.
 
-Kotta lachte leise. »Wie ein Raubtier.«
+Sie griff nach ihrem Dolch, ging zur Wand. Die Kabine war schlicht, glatt, steril – aber sie war jetzt Teil ihrer Geschichte.
 
-»Das ist kein Kind«, sagte Reimann. »Der Junge ist gefährlich. Aber ich mag das.«
+Mit ruhiger Hand ritzte sie zwei Zeilen in das Material.
 
-Ein Moment Stille, dann: »Was tun wir?«
+ 
 
-»Beobachten. Nicht eingreifen. Ich will wissen, was er sucht.«
+><c>Kata war hier</c>
 
-Acen hielt den Atem an. Sie hatten ihn nicht entdeckt, aber sie wussten, dass er anders war. Es war nur eine Frage der Zeit, bis sie versuchten, ihn zu benutzen. Oder zu eliminieren.
+><c>(Hier und überall)</c>
 
-In der Nacht lag Acen wach, hörte die Naniten im Blut, die fremden Stimmen im Kopf. Sein Radius wurde mit jedem Tag größer, die Gefahren aber auch.
+ 
 
-Am nächsten Morgen beim Frühstück saß Kotta wie immer am Tisch. Doch er sagte nichts. Er warf Acen nur einen kurzen, respektvollen Blick zu. Sogar Ferris hatte damit aufgehört, sich bei ihm für seine Rettung zu danken.
 
-Als die Schicht begann, stand Reimann an der Tür. Er sah Acen direkt an und nickte. Kein Befehl, keine Warnung. Nur ein Zeichen: Ich weiß, wer du bist. Und ich weiß, was du kannst.
+# Die Heldin von Demirantha_64
 
-Das war der Moment, in dem Acen begriff, dass die Küche nicht das Ende seiner Reise war. Sondern erst der Anfang.
+## Das letzte Kapitel
 
+Das Luftschiff senkte sich lautlos über die Dächer der Akademie, doch seine bloße Erscheinung sorgte für Chaos. Schüler rannten kreischend in Deckung, Lehrer starrten mit offenen Mündern auf die riesige, silbern schimmernde Zigarre, die sich langsam dem alten Übungsplatz näherte.
 
-# Lyra
+Einige hielten es für eine Waffe. Andere für einen Drachen. Wieder andere für das Ende der Welt.
 
+Dann setzte es auf. Weich. Würdevoll. Als hätte es das schon hundert Mal getan.
 
-Als Acen diesmal die Luke im Vorratsraum aufstemmte, ging er vorsichtiger vor als je zuvor. Er hatte die Abläufe der Wachen so oft beobachtet, dass jede Pause, jeder Schritt, jedes Zögern ihm vertraut war. Die Abstände hatte er abgeschätzt, das Zeitfenster grob berechnet – zumindest so genau, wie es eben ging. Trotzdem blieb in seinem Magen das flaue Gefühl: Ganz ohne Risiko war es nie.
+Die Rampe fuhr aus. Und die Helden von Demirantha traten heraus.
 
-Die Luft in den Versorgungsschächten war heute trocken und roch nach verbranntem Plastik. Irgendwo in der Nähe musste ein Kabel durchgeschmort sein. Hoffentlich tauchte jetzt nicht ein Wartungstechniker auf, Ja der den Schaden beheben wollte. Er bewegte sich schneller als sonst, schlich durch die Kurven im Halbdunkel, wie ein Tier in seinem Bau. Seine Schritte waren fast lautlos, nur einmal streifte sein Schuh eine Gitterluke – ein leises Klirren, das in der Dunkelheit viel zu laut schien. Er blieb sofort stehen, lauschte, doch nichts rührte sich. Die vertrauten Ritzen in den Wänden, das schwache Licht durch die Wartungsöffnungen, das ewige Brummen der Station – alles wie immer. Schließlich war es so weit: Er erreichte den noch unbekannten Gang.
+Die Lehrer, die allesamt in Kampfstellung gegangen waren, entspannten sich.
 
-Da war plötzlich ein anderer Geruch in der Luft. Nicht Öl und Schmierfett, sondern süßlich, fremd – fast wie die künstlichen Blumen, die sein Großvater einmal für ein Bankett bestellt hatte. Acen hielt den Atem an und bewegte sich vorsichtiger weiter. Er folgte seiner Nase um eine Abzweigung herum, tiefer hinein ins Unbekannte. Da sah er es. Ein Licht. Nicht das sterile Blau der Wartungslampen, sondern etwas Weiches, Warmes. Er ging gebückt näher, bis er durch ein Gitter in einen kleinen Betriebsraum spähen konnte.
+Kata, in knielanger Jacke und mit dem Blick einer Frau, die keine Heldin mehr sein wollte. Jomar, strahlend, aufrecht. Marina, mit verschränkten Armen und müdem Lächeln. Jaad, elegant wie immer. Kalem, die Hände in den Taschen, pfeifend.
 
-Dort saß jemand. Auf einem der niedrigen Wartungspulte, die Beine angezogen, das Kinn auf die Knie gestützt. Lange, silberweiße Haare fielen wie ein Wasserfall über das Nachthemd. Sie war klein, fast zerbrechlich. Und sie summte – eine Melodie, die Acen nicht kannte. Jede Note so klar, dass sie durch das Metall vibrierte.
+Ganz vorne stand Marek. Er hatte sich vorgewagt, einen Mut vortäuschend von dem Jomar wusste, dass er ihn nicht besaß. Doch dann sah er Jomar.
 
-Er starrte sie an, als wäre sie ein seltenes Tier hinter Glas. Für einen Moment vergaß er, warum er hier war.
+»Du?!«, fauchte er.
 
-Dann bewegte sie sich. Ihr Kopf schnellte herum, die Augen riesig und hell, wie zwei Perlen im Licht. Sie hatte ihn bemerkt.
+Jomar hob die Hand. Ein kleiner Windstoß – elegant, völlig überflüssig – fegte Marek von den Füßen. Er landete unsanft im Gras. Jomar grinste.
 
-Einatmen. Ausatmen. Keine Panik jetzt.
+»Weil ich’s kann.«
 
-Sie sagte: »Du bist schlecht im Verstecken.«
+Die Rampe zog sich zurück. Das Schiff hob wieder ab. Lautlos. Riesig. Majestätisch.
 
-Acen zuckte zusammen. Hatte sie ihn wirklich gesehen? Oder war das ein Test?
+»Schade«, murmelte Marina. »Ich hatte gehofft, es bleibt.«
 
-Er entriegelte die Luke und kletterte vorsichtig aus dem Schacht, blieb aber in der Deckung des Schattens. »Ich wollte dich nicht stören.«
+Keine Stunde später hatten sie eine Audienz bei Efret.
 
-Sie schüttelte den Kopf, als wäre das die unnötigste Entschuldigung der Welt. »Du brauchst dich nicht zu entschuldigen. Ich hab' genauso wenig recht, hier zu sein, wie du.«
+Die Empfangshalle war voll. Offiziere. Zauberer. Verwalter. Und mittendrin: Eine junge Magierin, bleich vor Pflichtgefühl, die den Befehl hatte, allen die Magie zu entziehen. Sie trat vor, murmelte die vorbereitete Formel – doch Marina trat ihr entgegen, hob das Kinn und sagte:
 
-Er trat ganz heraus. »Ich arbeite in der Küche. Heute gab's Ärger, weil Vorräte fehlten … Der Küchenchef hat gesagt, ich soll mich nach dem Nachtsignal mal umschauen. Ich hab' diese Luke gefunden, die nur angelehnt war … da bin ich auf Erkundungstour gegangen.«
+»Niemand wird mir je wieder meine Magie nehmen.«
 
-Sie musterte ihn von oben bis unten. »Du bist zu dünn für die Küche. Und du stehst schief.«
+Es war keine Drohung. Es war nur eine Feststellung.
 
-Acen wusste nicht, was er darauf sagen sollte. Und er stand ganz sicher *nicht *schief. Also schwieg er.
+Die Magierin trat sofort zurück und verbeugte sich. Vielleicht sogar ein bisschen zu tief.
 
-Sie ließ die Beine baumeln. »Wie heißt du?«
+Als sie im Saal angekommen waren, trat Efret vor. Seine Robe war auf links, seine Hände rotierten langsam umeinander wie Planeten im eigenen Orbit. Er blieb stehen, schnaufte leicht, und sagte:
 
-»Acen.«
+»Sieben Schatten im Morgenlicht. Eine Schale Honig auf brennendem Sand. Der Stuhl ist leer, aber das Kissen warm.«
 
-»Du bist komisch. Du hast viel zu klare Augen. Und deine Hände sind sauber. Die meisten aus der Küche haben immer fleckige Fingerkuppen von Beeren oder roter Beete. Und Schnittwunden.«
+Die Stimme verneigte sich leicht. »Der Meister dankt euch allen. Für euren Mut, eure Hartnäckigkeit.«
 
-Sie hatte recht. Die Naniten sorgten dafür, dass seine Schnitte schnell verheilten.
+Efret fuhr fort, halb summend, halb raunend:
 
-»Wer bist du?«, fragte er.
+»Die Spinne tanzt im Zentrum. Ihre Fäden reichen bis zum Anfang, und bis zum Jetzt. Sie hat nicht gezuckt, als das Netz brannte.«
 
-Sie schob die Haare zurück und sah ihn an, als müsse er sie kennen. »Lyra Arista. Zehnte Tochter des Hauses Arista. Und du hast mir meinen Lieblingsraum geklaut.«
+Die Stimme hob leicht das Kinn. »Er meint: Ohne dich, Kataluna von Brass, hätte die Wurzel nie überlebt. Deine Entscheidung, dein Opfer – all das hat uns verändert. Und ihn auch.«
 
-Acen blinzelte. »Du bist … die Tochter von Paleus?«
+Efret sah sie nicht an, und doch fühlte es sich für Kata an, als würde er bis tief in ihr Inneres blicken.
 
-Sie nickte, als würde sie gefragt, ob Wasser nass ist.
+Kata sagte nichts. Ihre Miene blieb still, fast leer, als wären ihre Gedanken woanders.
 
-Er überlegte, ob er sich verbeugen sollte. Sein Großvater hätte es getan. Doch Lyra verzog das Gesicht, als sie seine Unsicherheit sah.
+»Die Glocke hat geläutet. Doch niemand weiß, ob es der Anfang war. Oder das Ende. Oder das dazwischen.«
 
-»Mach das nicht. Die Erwachsenen machen das immer. Ich hasse das.«
+Die Stimme atmete einmal hörbar durch. »Er hofft, dass nun Ruhe kommt. Doch er glaubt nicht daran.«
 
-Er entspannte sich.
+Efret schloss die Augen, lächelte schief. »Ein Keks zerbricht nie, wie man es erwartet.«
 
-Sie sah ihn an, als würde sie durch ihn hindurchsehen. »Warum bist du wirklich hier?«
+Die Stimme nickte. »Und irgendwas ist ja immer.«
 
-Er wich ihrem Blick aus, sie hatte ihn durchschaut.
+Die Audienz war beendet, die Helden gingen zum Ausgang. Doch Efret sprang von seinem Thron und eilte hinter Kata her. Er zupfte an ihrem Ärmel und sie drehte sich erstaunt um.
 
-»Ich kann nachts nicht schlafen. Da sehe ich mich halt ein wenig um.«
+»Herzlichen Glückwunsch!«, sagte Efret leise und nur zu ihr. Er drehte sich um und schien sie schon vergessen zu haben, als er pfeifend davon schlenderte und wild umher blickte. Kata sah ihm nachdenklich hinterher. 
 
-»Und nun bist du hier in meinem Versteck aufgetaucht.«
+*
 
-Acen zuckte mit den Schultern. »Wir können teilen.«
+ 
 
-Sie überlegte. »Du bist nicht wie die anderen. Die meisten laufen weg, wenn sie mich sehen. Oder sie fangen an zu stottern.«
+Später, auf einer der Terrassen der Akademie, standen Jomar und Kata. Die untergehende Sonne färbte den Himmel in Orange und Gold.
 
-Acen schüttelte den Kopf. »Ich bin nicht so leicht zu erschrecken.«
+Jomar strahlte.
 
-Lyra lachte. Es klang nicht mädchenhaft, sondern wie das Kichern einer alten Hexe. »Ich schon!«
+»Stell dir vor, Kata: wir beide, unterwegs im Auftrag der Akademie. Als Spione. Als Abenteurer. Neue Länder, unbekannte Gefahren. Wir werden die Welt sehen! Und retten, wenn’s sein muss. Immer wieder.«
 
-Er musste grinsen. Sie war seltsam, aber nicht unangenehm.
+Kata lehnte an der Brüstung. Sie brummte: »Hmm ...«
 
-»Und machst *du* hier so spät nachts?«, fragte er sie.
+Jomar fuhr fort: »Nur wir zwei – gemeinsam. Es wird großartig.«
 
-»Ich höre, wie die Station atmet.«
+Kata antwortete nicht. Ihr Mundwinkel zuckte, aber es sah nicht nach einem Lächeln aus. 
 
-Er runzelte die Stirn.
+Irgendwann schwieg Jomar. Er wirkte nun etwas ungehalten. 
 
-»Na, hör doch!« Sie hielt den Finger an die Lippen. Dann schloss sie die Augen.
+»Hast du andere Pläne, was unsere Zukunft betrifft?«, fragte er, fast schon wütend.
 
-Acen lauschte. Erst hörte er nur das Summen der Generatoren. Dann, langsam, schälte sich ein anderes Geräusch heraus – wie ein ferner Herzschlag, ein regelmäßiges Pulsieren, als würde der ganze Sonnenfresser leben.
+Sie drehte sich zu ihm, sah ihm in die Augen.
 
-»Ich glaube, ich höre es.«
+»Ich bin schwanger.«
 
-Lyra nickte. »Wenn ich Musik mache, höre ich das immer. Es ist wie ein Rhythmus, der nie aufhört.«
-
-»Du kannst Musik machen?«, fragte er.
-
-Sie lächelte verschmitzt. »Besser als du laufen kannst, Küchenjunge.«
-
-Er lachte.
-
-»Dann zeig mal.«
-
-Sie zog ein kleines Gerät aus dem Ärmel. Es war rund, mit winzigen Tasten. Sie drückte darauf herum, und eine Melodie begann, leise und klar, als würde ein ganzer Chor in der Wand sitzen.
-
-Acen lauschte. Es war anders als alles, was er kannte – nicht wie die Lärmmusik aus den Kantinen, sondern wie … wie ein Traum.
-
-»Kannst du das auswendig?«
-
-Lyra nickte. »Ich kann es besser als das. Ich kann es variieren. Pass auf.«
-
-Sie spielte die Melodie rückwärts, dann doppelt so schnell, dann fügte sie eigene Töne hinzu. Am Ende klang es wie das Klopfen seines eigenen Herzens, nur schöner.
-
-Er war beeindruckt. »Wie hast du das gelernt?«
-
-Sie zuckte die Schultern. »Ich muss irgendwas machen, wenn ich nicht schlafen kann. Die Erwachsenen reden nicht mit mir, die meisten Kinder sind blöd. Also spiele ich Musik.«
-
-»Bist du oft alleine?«
-
-Sie zuckte wieder die Schultern, als wäre das keine echte Frage. »Immer.«
-
-Es wurde still. Acen spürte, wie sie ihn prüfend musterte.
-
-»Und du? Warum bist du wirklich hier? Keine Lüge, diesmal.«
-
-Er überlegte. Dann sagte er: »Ich will wissen, wie alles funktioniert. Die Station. Die Menschen. Warum sie tun, was sie tun. Ich mag keine Regeln, die ich nicht verstehe.«
-
-Sie lächelte. »Du bist wie ich.«
-
-»Nicht ganz. Du bist eine Prinzessin. Ich bin Küchenabschaum.«
-
-»Du bist kein Abschaum.« Sie sagte das, als wäre es ein Befehl.
-
-Er schwieg einen Moment. Dann fragte sie: »Hast du Freunde, Acen?«
-
-Er überlegte. Ferris vielleicht, aber der war eher ein Problemfall als ein Freund. Kotta? Mehr ein Raubtier als ein Kumpel. Sae? Zu alt.
-
-Er schüttelte den Kopf.
-
-Lyra nickte, als hätte sie nichts anderes erwartet. »Ich auch nicht.«
-
-Dann beugte sie sich vor, als würde sie ihm ein Geheimnis verraten wollen. »Willst du mein Freund sein?«
-
-Acen war perplex. Das kam zu schnell, zu direkt. »Warum?«
-
-»Weil du nicht lügst. Und weil du nicht wegläufst.«
-
-Er überlegte, wie sein Großvater reagiert hätte. Wahrscheinlich hätte er gesagt: ›Freundschaft ist ein Tauschgeschäft. Pass auf, was du gibst und nimm dir alles, was du kriegen kannst.‹
-
-Aber Lyra war kein Feind. Und sie war sein Schlüssel nach oben.
-
-Er nickte. »Okay. Ich kann dein Freund sein.«
-
-Sie lächelte zufrieden. »Dann musst du mir ein Versprechen geben.«
-
-»Welches?«
-
-»Du darfst niemandem sagen, dass du mich nachts getroffen hast. Und du musst jedes Mal, wenn ich dich rufe, kommen. Egal wann.«
-
-Er runzelte die Stirn. »Das ist eine Menge verlangt.«
-
-Sie zuckte die Schultern. »Es gibt genug Bedienstete, die sterben, wenn sie nicht kommen, wenn man ruft. Also bist du besser dran, auf mich zu hören.«
-
-War das eine unterschwellige Warnung oder bloß ein Anflug von Prinzessinnenstolz? Er durfte nicht vergessen, wer sie wirklich war: die Tochter des grausamsten Herrschers, den die Galaxis kannte.
-
-Er musste lachen. »Du bist wirklich nicht wie die anderen.«
-
-»Das weiß ich.« Sie sah stolz aus.
-
-Acen überlegte kurz. Dann sagte er: »Und was bekomme ich dafür?«
-
-Sie blinzelte. »Was willst du denn?«
-
-Er nahm sich Zeit, zu antworten. »Wissen. Ich will wissen, wie der Palast funktioniert. Wer wirklich Macht hat. Wer wen hasst, wer wen fürchtet. Und ich will wissen, wie dein Vater ist.«
-
-Lyra sah ihn prüfend an. »Was willst du mit solchen Informationen überhaupt? Was nützt einem Küchenjungen das alles?«
-
-Acen zögerte, erwischt von der Direktheit ihrer Frage. Eigentlich – was brachte es ihm wirklich? Sollte er nicht lieber Fluchtpläne schmieden, die Routen der Versorgungsschiffe studieren oder herausfinden, wie man Zugang zu den Hangars bekam? Doch das war nicht das, was ihn nachts wach hielt. Es war dieser unerklärliche Drang, Paleus zu verstehen – zu wissen, wie Macht in diesem Palast wirklich funktionierte.
-
-Er zuckte die Schultern. »Ich … weiß es nicht. Ich will es einfach wissen.«
-
-Lyra lächelte schief. »Nur neugierig?«
-
-Mehr hatte er ihr im Moment nicht zu bieten. »Vielleicht.«
-
-Sie wurde ernst. »Na gut. Also — Mein Vater ist wie ein schwarzer Stern. Alles fällt auf ihn zu, nichts entkommt. Er frisst alles – sogar seine eigenen Gedanken. Manchmal, wenn ich ihn anschaue, denke ich, er wäre gar nicht mehr lebendig. Nur noch Macht.«
-
-Acen fröstelte. »Das klingt gruselig.«
-
-»Ist es auch.«
-
-Für einen Moment sprach keiner von beiden. Das Summen der Station war jetzt lauter als die Worte. Acen merkte, wie Lyras Antwort in ihm nachhallte – dieser Gedanke vom schwarzen Stern, der alles verschlingt. Für einen Augenblick fühlte er sich, als säßen sie beide am Rand eines Abgrunds, auf dessen Grund die Wahrheit über Paleus lauerte.
-
-Lyra stand langsam auf, ließ die Füße vom Pult baumeln und sprang leise zu Boden.
-
-»Du solltest jetzt gehen«, sagte sie leise. »Wenn jemand uns zusammen sieht, gibt es Ärger. Für dich mehr als für mich.«
-
-Acen nickte. Er wollte noch etwas fragen, wusste aber nicht was. Zu viele Gedanken wirbelten in ihm herum.
-
-»Wirst du morgen wieder hier sein?« fragte er schließlich.
-
-Lyra überlegte. »Wenn ich nicht schlafen kann. Und wenn du kommst, bring mir was Süßes aus der Küche mit.«
-
-Sie grinste, und für einen Moment war sie wieder ein Kind – nicht die Tochter des Herrschers.
-
-Acen lächelte zurück. »Abgemacht.«
-
-Er schob sich zurück in den Schacht, warf noch einen letzten Blick zurück. Lyra hatte sich wieder hingesetzt, das Kinn auf die Knie gelegt. Sie summte, leise, als würde sie die Station beruhigen.
-
-Als er in der Dunkelheit verschwand, wusste Acen, dass dies kein gewöhnlicher nächtlicher Ausflug gewesen war. Er hatte eine Verbündete gefunden – oder vielleicht auch eine neue Gefahr.
-
-
-# Paleus
-
-Das Kommandozentrum auf der oberen Ebene des Sonnenfressers hatte keine Fenster. Die einzige Lichtquelle war das holografische Display in der Raummitte, das seinen blauweißen Schein auf die Wände und die Gesichter der drei Offiziere warf, die dort warteten.
-
-Der zweite Offizier trat vor. Er sprach ruhig und legte Datenpakete dar, abgefangene Kommunikation, Ressourcenverschiebungen in drei Sektoren. Dann nannte er einen Namen: »Der Rawchester-Clan hat in dieser Region—«
-
-Paleus tippte ohne Hast einen Code in sein Handgerät.
-
-Ein dünner Energiestrahl traf den Unterarm des Offiziers und brannte eine präzise Linie in die Haut. Der Mann zog die Luft durch die Nase, hielt den Arm still. Er sah nicht nach unten.
-
-»Rawhester«, sagte Paleus. Seine Stimme war gleichmäßig. »Fahre fort.«
-
-Der Offizier fuhr fort.
-
-Die Beweise waren eindeutig. Paleus hörte zu, ohne den Blick vom Display zu nehmen. Die Rawhesters hatten sich Zeit gelassen, das musste er ihnen lassen. Aber sie hatten sich geirrt, wie alle sich irrten, die glaubten, er würde es nicht rechtzeitig sehen.
-
-»Eine Einladung an Pan Rawhester. Er soll hierher kommen, zu einem diplomatischen Gespräch.« Er überlegte einen Moment. »Macht es höflich. Betont unsere gemeinsamen Interessen.«
-
-Einer der Nachrichtendienstoffiziere hob die Hand. »Wenn er ahnt, dass wir seinen Verrat kennen, könnte er die Einladung als Falle erkennen.«
-
-   »Und was, glaubst du, wird er machen?«, fragte Paleus, »Mein Einladung ausschlagen?«
-
-Der Offizier schluckte hörbar. “Natürlich nicht. Wie könnte er?” 
-
-Paleus sah den Mann nicht mehr an, sondern ordnete bereits Dateien auf dem Display neu. »Danke für den Einwand.«
-
-Der Offizier schwieg.
-
----
-
-Paleus diktierte noch eine zweite Anweisung: Eine Reihe von Dokumenten sollte vorbereitet werden, gefälscht, mit unterschiedlichen Informationsständen, und dann unter bestimmten Mitgliedern seiner eigenen Familie verteilt werden. Welches Dokument zu wem gelangte und von dort aus weiterfloss, würde ihm sagen, wer redete und mit wem.
-
-Bevor die Offiziere den Raum verließen, hielt er den ersten zurück. »Der Bericht über den Kommunikationskanal. Gut zusammengestellt. Das war nützlich.«
-
-Der Mann nickte.
-
-Paleus wandte sich wieder dem Display zu, bevor die Tür sich schloss.
-
----
-
-Sein Handgerät leuchtete auf. Lyras Kennung.
-
-Er nahm das Gespräch an.
-
-Sie war in der Trainingshalle, das sah er sofort. Im Hintergrund standen zwei Trainer an der Wand, und in der Mitte der Halle wartete ein Mädchen in Kampfstellung, vielleicht zehn oder elf Jahre alt, einen halben Kopf größer als Lyra. Lyra hatte das Gerät so positioniert, dass er alles sehen konnte.
-
-»Ich wollte dir etwas zeigen«, sagte Lyra.
-
-»Ich sehe«, sagte er.
-
-Der Kampf dauerte weniger als zwei Minuten. Lyra bewegte sich schnell und ohne Zögern. Das andere Mädchen war nicht langsam, aber Lyra ließ ihr keinen Raum. Sie beendete es mit einem Wurf, der die Ältere flach auf den Rücken brachte. Dann trat sie zurück und sah in die Kamera.
-
-Paleus ließ einen Moment vergehen.
-
-»Gut«, sagte er. »Sehr gut.«
-
-Lyras Gesicht veränderte sich kaum, aber er sah es trotzdem. »Ich arbeite an der Druckpunkt-Sequenz, die du mir gezeigt hast.«
-
-»Das sieht man.«
-
-Eine kurze Pause. Lyra wischte sich die Hände an einem Tuch ab. »Ich will am Jungsternturnier teilnehmen. Die Qualifikation beginnt in sechs Wochen.«
-
-»Nein.«
-
-»Ich bin gut genug.«
-
-»Das bezweifle ich nicht. Aber du hast noch nie außerhalb der Halle gekämpft.«
-
-»Dann lass mich herausfinden, wie anders es ist.«
-
-»Noch nicht.«
-
-Lyra sah ihn an. »Wann dann?«
-
-»Wenn die Zeit stimmt.«
-
-Sie nickte einmal, knapp. »Noch etwas?«, fragte er.
-
-»Nein.« Eine halbe Sekunde Pause. »Danke, dass du drangegangen bist.«
-
-»Natürlich«, sagte er.
-
-Er beendete das Gespräch.
-
-Er legte das Gerät auf den Tisch.
-
-Das andere Mädchen hatte gut gekämpft. Besser als Lyra ahnte. Die Trainer wussten, was er erwartete: Lyra gewann immer, jeder Kampf, jede Übung, jede Bewertung. Nicht weil die Gegner schwach waren, sondern weil sie rechtzeitig nachgaben. Lyra glaubte, ihre Einschätzung der eigenen Fähigkeiten sei zuverlässig. Das war die Absicht.
-
-Lyra würde ihre eigenen Fähigkeiten ihr Leben lang überschätzen. Sollte sie sich eines Tages gegen ihn wenden — wie es so viele ihrer Geschwister in den letzten 1000 Jahren getan hatte — wäre sie ein leicht einzuschätzender Gegner.
-
-  Er liebte dieses Kind. Das war keine Sentimentalität, es war eine Tatsache, die er gelegentlich prüfte und jedes Mal bestätigt fand. Aber Lyra würde älter werden, und Talent wuchs manchmal schneller als Loyalität. Er hatte gefährlichere Probleme gelöst. Sollte sie zu einem werden, würde es ihm Leid tun auch dieses Problem zu lösen, wie er alle seine Prbleme löste. 
-
-
-# Beförderung
-
-
-Das Licht über dem Arbeitstisch flackerte einmal und blieb dann still. Acen stand mit den Händen im Teig, fühlte Mehl zwischen den Fingern, während sein Blick unauffällig den Raum abtastete. Viktor Reimann lehnte sich am anderen Ende des Tisches gegen das Edelstahlregal, die Arme verschränkt, das Gesicht eine Maske aus abwartender Strenge.
-
-»Du hast gestern Salz statt Natriumcitrat benutzt. Grillsoße Nummer acht war dadurch flacher im Abgang.«
-
-Acen rührte langsam weiter. »Vielleicht erwartet der Gaumen flach an diesem Punkt. Um die nächste Welle betonen zu können.«
-
-Reimanns linke Augenbraue hob sich kaum merklich. Sein Blick blieb auf Acens Händen. »Man erwartet nichts. Man definiert, was erwartet werden soll.«
-
-Acen legte den Teig ruhig ab, streifte die Reste von der Haut. Stille lag zwischen ihnen, wie ein dünner Ölfilm auf Wasser. Reimann war nicht der Typ für Smalltalk, nie gewesen. Er sprach, wenn es nötig war, und ließ die Stille ansonsten wie ein Werkzeug wirken. Acen hatte das zuerst als Einschüchterung gelesen, dann als Test, und schließlich als eine Art von Respekt. Oder vielleicht war es auch einfach, was übrig blieb, wenn man zu lange in geschlossenen Küchen gearbeitet hatte.
-
-Er griff nach dem Teigschaber, schob die Masse von der Arbeitsfläche in eine Metallschüssel. Die Bewegungen waren ruhig, fast meditativer als die Gedanken in seinem Kopf. Er hatte Reimann nachts sprechen hören, durch die dünnen Wände. Seine Stimme war wie ein Messer, das durch Butter glitt – weich, aber mit einer Klinge darunter. Acen wusste, dass der Küchenchef etwas ahnte. Vielleicht nicht das ganze Ausmaß, aber genug, um ihn im Auge zu behalten. Und trotzdem ließ er ihn immer wieder an die besten Stationen.
-
-»Du bist zu exakt, Acen. Kein Mensch arbeitet so.« Reimann trat näher, legte beide Hände auf die Tischkante, sodass seine Fingerknöchel weiß hervortraten. Die Augen wanderten über Acens Gesicht, scannten winzige Muskelbewegungen ab. »Mach absichtlich Fehler. Nicht jeden Tag, aber oft genug, dass es glaubwürdig bleibt.«
-
-*Reimann lässt langsam die Maske fallen*, dachte Acen. *Er verbirgt nicht mehr, dass er mich durchschaut hat. Was kommt als Nächstes? Ärger? Eine Meldung, die sicherlich meinen Tod bedeutete?*
-
-Acen nickte. »Verstanden.«
-
-Reimann schob die Schüssel zu sich, prüfte den Teig, zog ein kleines Stück ab und rollte es mit den Daumen. »Du hast Talent, das ist nicht das Problem. Das Problem ist, dass du auffällst.« Er warf das Teigstück in den Müll, als hätte er das Urteil gefällt. »Und auffallen ist das Letzte, was du hier willst.«
-
-Acen spürte die Worte im Brustkorb mehr als im Kopf. Es war kein Befehl, sondern eine Warnung. Er wollte antworten, doch Reimann schnitt ihm das Wort ab. »Ab morgen bist du nicht mehr in der Küche.«
-
-Das war wie ein Schlag. Für einen Moment glaubte Acen, dass er rausflog, dass alles vorbei war, bevor es überhaupt begonnen hatte. Dann sah er Reimanns Gesicht, das reglos blieb, als wäre es nur eine weitere Schicht Teig, die noch geformt werden musste.
-
-»Du gehst ins Servierteam. Drei Tage Probe. Wenn du dich blamierst, bist du schneller wieder hier, als dir lieb ist.«
-
-Acen wollte widersprechen, doch sein Körper reagierte nicht. Er nickte noch einmal, diesmal langsamer.
-
-Reimann schob die Schüssel zurück. »Du bist zu klug für die Küche. Aber nicht klug genug für den Palast. Noch nicht.«
-
-Er deutete auf den Ausgang. »Jetzt geh schlafen. Du wirst es brauchen.«
-
-Acen verließ ohne ein weiteres Wort die Küche.
-
-Im Schlafraum lag Ferris schon auf der Matratze, die Augen offen, starrte an die Decke. Er hatte seit dem Vorfall mit dem Gas nicht mehr normal gesprochen. Auch jetzt sagte er nichts, als Acen sich neben ihn setzte. Nur ein leises, heiseres Atmen, das wie eine tickende Uhr klang.
-
-Acen zog die dünne Decke über die Schultern und starrte ins Dunkel. Gedanken rasten durch seinen Kopf, sprangen von Reimanns Gesicht zu den Gerüchten über das Servierteam. Was wusste er darüber? Wenig. Nur, dass die Mitglieder selten in der Küche sah, dass sie Uniformen trugen, die nach echtem Stoff rochen, nicht nach Nano-Polymer. Sie hatten einen abgetrennten Bereich hier im Schlafsaal.
-
-Im Halbschlaf träumte Acen von seinem Großvater. Die Simulationen, die endlosen Lektionen, das Gefühl, immer zu wenig zu sein. Und dann die Kälte in den Augen des alten Mannes, als er ihn nach dem letzten Fehlschlag aus dem Trainingsraum warf. »Du bist noch nicht bereit«, hatte er gesagt. »Wenn du auffällst, bist du tot.«
-
-Grelles Licht bohrte sich durch Acens geschlossene Lider, als der Morgen in Form der kalten Lichter an Decke unbarmherzig in den Schlafraum einbrach. Zwei Männer in grauen Uniformen warteten an der Tür. Ihre Gesichter waren glatt, ohne erkennbare Mimik. Sie musterten Acen, dann deutete einer mit dem Kopf auf den Ausgang.
-
-»Folge uns.«
-
-Acen zog sich die neue Uniform an – weiße Hose, weißes Hemd mit blauen Nähten, dazu ein Gürtel aus echtem Leder. Es roch nach Reinigungsmittel. Ganz sicher nicht die Uniform, die man zum Servieren tragen würde. 
-
-Er verabschiedete sich von Ferris, der noch schlaftrunken auf seiner Matratze hockte.
-
-Sie führten ihn durch Gänge, die er bisher nur von der anderen Seite durch die Lüftungsschlitze gesehen hatte.
-
-Schließlich gelangten sie in einen schmalen Korridor, der in einem kreisrunden Raum endete. Kein steriles Weiß, sondern gedämpftes Blau. 
-
-»Warte hier.«
-
-Einer der Männer verschwand durch eine Seitentür, während der andere reglos neben dem Eingang stehen blieb. Seine Augen wanderten immer wieder zur Decke, als erwarte er etwas von dort. Acen folgte seinem Blick, entdeckte aber nur ein winziges rotes Licht, das in unregelmäßigen Abständen aufblinkte.
-
-Der erste Mann kehrte zurück, nickte seinem Kollegen zu. Ein stummer Austausch, den Acen nicht entschlüsseln konnte.
-
-»Name?«, fragte der Mann, während er ein Pad aus seiner Tasche zog.
-
-»Acen Alvaro.«
-
-»Alter?«
-
-»Vierzehn.«
-
-Der Mann hielt kurz inne, wechselte einen Blick mit seinem Kollegen. »Reimann scheint sie immer jünger zu schicken.«
-
-Er tippte etwas ein, dann reichte er Acen das Pad. »Dein Dienstplan.«
-
-Acen überflog die Informationen. Tisch sechs, Westflügel, Dienst bei den Abendempfängen. Und am Rand, fast unauffällig: ein Symbol, das er kannte. Das gleiche, das sein Großvater manchmal auf Dokumenten hinterlassen hatte. Ein Kreis mit drei Punkten.
-
-»Verstanden?«
-
-Acen nickte langsam. »Und wer ist Mein Chef?«
-
-Der Mann lächelte dünn. »Jeder andere im Servierteam steht über dir, aber ich werde es sein, dem du berichtest. Ja. Ich heiße Jem.«
-
-»Was soll ich denn berichten?«, fragte Acen ratlos. »Wie viele Teller ich serviert habe?« 
-
-»Freche Antworten sind nicht der Weg, um hier oben zu bestehen.« Die Stimme des Mannes klang nicht bedrohlich, sondern ruhig, als er das sagte. Nur in seinem Blick lag eine gewisse Ernsthaftigkeit.
-
-»Nein. Du berichtest über jedes Gespräch, das du mithörst, über jeden Blick, den die Gäste wechseln, und über jeden Gegenstand, der den Besitzer wechselt. Hast du das verstanden?«
-
-Acen nickte nur stumm.
-
-Der zweite Mann trat näher, seine Stimme kaum mehr als ein Flüstern: »Reimann hat dich empfohlen. Das bedeutet, du hast Potenzial. Oder er braucht einen Sündenbock. Du redest mit niemand anderem über das, was du gesehen oder gehört hast, außer mit uns. Ist das klar?«
-
-Wiederum nickte Acen nur stumm. Er spürte, wie sich sein Puls beschleunigte. 
-
-Diese seltsame Einführung konnte nur eines bedeuten … Oder eher zweierlei: Entweder spionierte das Servierteam für Reimann oder für jemand über ihm, oder sie waren von Paleus Sicherheitsdienst. Beides könnte für Acen gefährlich werden. 
-
-Sie führten ihn in einen anderen Raum, mit einer langen Reihe von Spinden. Jeder Spind hatte einen Namen. Acen fand seinen am Ende der Reihe, unterhalb eines anderen Namens, den er nicht lesen konnte. Er öffnete den Spind: Darin lag eine weitere Uniform, dieses Mal in Schwarzweiß, dazu eine kleine Kiste mit dem Logo des Palasts. Er öffnete sie vorsichtig. Darin: ein Messer, ein Löffel, eine Gabel, alle aus echtem Metall. Und ein winziger, zusammenklappbarer Teleskopstab.
-
-Er musterte die Gegenstände, dann steckte er sie in die Tasche. Es fühlte sich an wie eine Ausrüstung, nicht wie Besteck.
-
-Die Männer ließen ihn allein. Er hörte Stimmen auf dem Gang, konnte aber nicht verstehen, was gesprochen wurde. 
-
-Er zog die neue Uniform an, verstaute die Kiste im Gürtel. Dann stand er da, im Licht der Neonröhren, und fragte sich, was jetzt kam.
-
-Die Tür öffnete sich. Eine Frau trat ein, etwa dreißig, mit kurzem Haar und einer Narbe am Kinn. Ihre Augen waren grau, weicher als die der Männer zuvor. Sie musterte Acen, dann sagte sie: »Du bist der Neue.«
-
-Er nickte.
-
-»Ich bin Leva.« Sie sprach leise, aber mit Autorität. »Folge mir. Ich zeige dir den Weg.«
-
-Sie führte ihn durch ein Labyrinth von Korridoren, vorbei an Türen, die alle gleich aussahen. Acen speicherte jede Abzweigung, jedes Detail. Schließlich erreichten sie einen großen Raum, der wie ein Vorbereitungsraum für Bankette wirkte. Hier standen lange Tische, gedeckt mit weißen Tüchern, darauf Kristallgläser und Teller aus feinstem Porzellan.
-
-Leva wies auf einen der Tische. »Heute Abend ist ein Empfang. Dreißig Gäste, darunter Paleus selbst. Du bist für Tisch sechs zuständig.«
-
-»Was ist mit den anderen?«
-
-»Die machen, was sie immer machen. Du hältst dich an den Ablauf. Kein Wort zu den Gästen, es sei denn, du wirst angesprochen. Und wenn du angesprochen wirst, sprich nur das Nötigste.«
-
-Acen nickte.
-
-Leva musterte ihn noch einmal. »Du bist zu jung für das hier, aber Reimann meint, du schaffst es.«
-
-»Ich werde mein Bestes geben.«
-
-Sie lachte, dann wurde ihr Blick ernst. »Wenn du einen Fehler machst, gibt es keine zweite Chance. Hier wird beobachtet, alles. Jede Bewegung, jedes Zucken.«
-
-Er verstand.
-
-Leva zeigte ihm, wie man das Besteck ausrichtete, wie man die Gläser polierte, wie man die Teller exakt im rechten Winkel zum Tisch ausrichtete. Es war eine Arbeit für Maschinen, aber sie bestand darauf, dass alles von Hand gemacht wurde. »Die Gäste merken den Unterschied. Sie spüren es, wenn ein Mensch den Tisch gedeckt hat.«
-
-Acen fragte sich, ob das stimmte, oder ob es nur eine weitere Tradition war, die niemand mehr hinterfragte.
-
-Am Nachmittag kamen die anderen Servierer. Es waren alles Männer und Frauen, die älter waren als er, mit Gesichtern, die wenig verrieten. Sie sprachen nicht miteinander, sondern arbeiteten schweigend nebeneinanderher. Acen passte sich an, beobachtete, ahmte nach. Nach einer Stunde konnte er nicht mehr sagen, ob er auffiel oder nicht.
-
-Abends kam die Generalprobe. Die Türen zum Bankettsaal öffneten sich, und ein Testlauf begann. Leva erklärte, dass heute alles wie am echten Abend laufen würde, nur ohne Gäste. »Wir sind die Gäste«, sagte sie, und die Servierer wechselten die Rollen. Sie spielten die Mächtigen, die Reichen, die Unantastbaren. Es war eine seltsame, gespenstische Inszenierung.
-
-Acen beobachtete, wie die anderen sich bewegten. Jeder Schritt war einstudiert, jede Geste saß. Die Servierer verneigten sich und schwiegen. Es wirkte wie ein Theaterstück, aber eines mit echten Konsequenzen.
-
-Als er an der Reihe war, einen Teller zu servieren, merkte er, wie seine Hände zitterten. Die Naniten dämpften das Zittern, aber der Schweiß auf der Stirn blieb. Er setzte den Teller ab, exakt im Winkel, wie Leva es gezeigt hatte. Sie nickte, kaum merklich.
-
-Nach der Probe versammelte Leva das Team. »Gut gemacht«, sagte sie. »Morgen wird es härter. Morgen sehen euch die Gäste. Und morgen entscheidet sich, wer bleibt.«
-
-Acen spürte, wie die Anspannung nachließ. Er war durchgekommen, zumindest für heute.
-
-
-# Nerathis
-
-
-Im Sektor Epsilon-9, fast tausend Kilometer vom Hauptpalast entfernt, lag das Machtzentrum der Familie Neratis. Die Anlage erstreckte sich über eine Fläche von zwei Quadratkilometern und bestand aus fünfzehn miteinander verbundenen Kuppelstrukturen. Die Hauptkuppel ragte siebzig Meter in die Höhe und beherbergte die Kommandozentrale. Die schlanken Kuppeln waren aus verstärktem Plasglas gefertigt, das den extremen Temperaturschwankungen und der dünnen Atmosphäre des Planeten standhielt. Ein Netzwerk aus Druckschleusen und unterirdischen Tunneln verband die einzelnen Gebäudeteile. 
-
-Die Verteidigungsanlagen waren strategisch um das Gelände herum platziert. Schwere Geschütztürme drehten sich langsam, bereit, jeden Eindringling abzuwehren. Die Türme waren mit Hochleistungslasern und Plasmakanonen ausgestattet, die in der Lage waren, feindliche Schiffe und Bodentruppen gleichermaßen zu neutralisieren.
-
-Die Tür zum Konferenzraum öffnete sich lautlos. Selana Neratis betrat den Raum, gefolgt von zwei Beratern. Sie war groß, ihr Gang hatte etwas Militärisches. Ihr Haar war streng nach hinten gekämmt, silberne Strähnen zogen sich durch das Dunkel wie Spuren von Eis. Das Kleid: anthrazitfarben, mit hohem Kragen, der den Hals fast völlig verbarg. Keine Schmuckstücke, keine Abzeichen. Ihre Hände waren schmal, die Bewegungen kontrolliert – nichts daran wirkte zufällig.
-
-Sie blieb stehen, sah sich um – als würde sie die Temperatur messen, bevor sie das erste Wort sprach. Die Berater nahmen an der langen Tischseite Platz, warteten.
-
-„Statusbericht“, sagte Selana. Ihre Stimme war nicht laut, aber sie füllte den Raum.
-
-Der erste Berater schob ein Pad über den Tisch. „Drei neue Dekrete von Paleus. Zwei betreffen die Ressourcenallokation, eines die Überwachung der Kommunikationsnetze. Das erste …“
-
-Selana neigte kaum merklich den Kopf. „Keine Einzelheiten. Die Details sichte ich später selbst.“
-
-Der Mann räusperte sich. „Die Energieabgaben aus Sektor Vier werden um acht Prozent erhöht. Alle Transaktionen über das Kommunikationsnetz werden ab sofort von der Zentral-KI gespiegelt. Es gibt Hinweise, dass Paleus einen neuen Sicherheitschef einsetzt. Einen, der nicht aus dem Militär kommt.“
-
-Die Frau am anderen Ende des Tisches hob den Blick. „Wieder einer aus dem Technologiekonsortium?“
-
-„Vermutlich. Name taucht noch nicht in den offiziellen Listen auf.“
-
-Selanas Mundwinkel zuckten. „Natürlich nicht.“
-
-Sie stützte die Hände auf den Tisch. „Was gibt es aus den Randsektoren?“
-
-Der zweite Berater nahm das Wort. „Die Ithron-Familie hat ihre Aufrüstung nicht verlangsamt. Im Gegenteil. Es gibt Berichte über neue Infanterieeinheiten, vermutlich Exoskelette mit verbesserter taktischer Steuerung. Der Fokus liegt auf urbaner Kriegsführung.“
-
-„Und sie geben sich weiter loyal?“
-
-Der Berater nickte. „Nach außen hin. Aber die Spione berichten von Treffen mit Vertretern der Familie Valenor.“
-
-Selena grübelte. *Wenn die Ithrons nicht vorsichtig sind, wird ihre Aufrüstung bald die Aufmerksamkeit von Paleus erregen. Und ein Bündnis mit den Valenors muss ich auf jeden Fall verhindern. Wieso treffen die sich überhaupt mit denen so kurz vor unserem Treffen?    * 
-
-Die Berater schwiegen. Sie wussten, dass jetzt keine weiteren Details gefragt waren. 
-
----
-
-Am nächsten Abend betrat Kal Ithron den Konferenzraum. Er trug eine formelle Militäruniform, die seine Autorität unterstrich. Selana begrüßte ihn mit einem kühlen Nicken.
-
-„Kal, es ist lange her“, sagte sie, ihre Stimme ruhig und kontrolliert.
-
-Kal erwiderte das Nicken. „Selana, danke, dass du Zeit für dieses Treffen gefunden hast.“
-
-Sie setzten sich an den langen Tisch. Selana legte ihre Fingerspitzen aneinander, während Kal seinen Uniformkragen lockerte und einen Blick zur geschlossenen Tür warf. Das leise Summen der Überwachungssysteme schien plötzlich lauter als sonst. Zwischen ihnen stand eine unberührte Karaffe Wasser – keiner griff danach.
-
-Du weißt sicher durch deine Spione von unserer militärischen Aufrüstung im Bereich schwerer Infanterie
-
-Selana reagierte kühl. „Ich werde wohl kaum auf diesen unverholenen Versuch durch selektive – und falsche – Informationen meine Quellen zu kompromittieren. Also: Kein Kommentar.“
-
-Kal lächelte dünn. „Verständlich. Aber wir sollten offen sprechen. Die Lage ist ernst.“
-
-Selana lehnte sich zurück, ihre Augen scharf. „Offenheit ist ein Luxus, den wir uns in diesen Zeiten nicht leisten können. Aber ich höre zu.“
-
-Kal beugte sich vor. „Wir haben gemeinsame Interessen. Die Valenors haben uns ein Angebot gemacht. Sie wollen eine Allianz, um die Machtverhältnisse zu ändern.“
-
-Selana hob eine Augenbraue. „Eine Allianz? Mit welchem Ziel? Und … um welche ‚Machtverhältnisse‘ geht es hier?“
-
-Kal zögerte kurz. „Um die Kontrolle über wichtige Ressourcen zu gewinnen. Die Valenors haben Zugang zu Technologien, die uns einen Vorteil verschaffen könnten.“
-
-*Natürlich hatte er die Frage nach den ‚Machtverhältnissen‘ ignoriert, *dachte sie. *Er war zu feige Paleus auch nur zu erwähnen. *
-
-„Ein riskantes Spiel. Die Valenors sind nicht bekannt für ihre Loyalität. Was bieten sie euch an?“
-
-„Sie haben uns Zugang zu ihrer Forschung versprochen. Neue Waffensysteme, verbesserte Schutzschilde. Aber sie wollen im Gegenzug unsere militärische Stärke.“
-
-Selana schwieg einen Moment. „Und was erwartet ihr von uns?“
-
-Kal lehnte sich zurück. „Eure Unterstützung. Gemeinsam könnten wir eine starke Front bilden. Die Valenors würden uns die Technologie liefern, wir die militärische Macht.“
-
-Selana stand auf und ging zum Fenster. „Ein interessantes Angebot. Aber ich muss darüber nachdenken. Eine solche Allianz birgt viele Risiken.“
-
-Kal nickte. „Ich verstehe. Aber die Zeit drängt. Die Valenors erwarten eine Antwort. “
-
-Selana drehte sich um und sah Kal direkt in die Augen. „Ich werde darüber nachdenken. Aber ich werde keine voreiligen Entscheidungen treffen. Die Sicherheit meiner Familie steht an erster Stelle.“
-
-Kal stand auf. „Ich respektiere das. Aber denk daran, gemeinsam könnten wir viel erreichen. Ich glaube, wir haben alle ein Interesse daran, die Zukunft in unserem Sinne zu gestalten. Es gibt immer eine größeres Ziel.“
-
-Als Kal den Raum verließ, blieb Selana allein zurück. Ihre Gedanken rasten. Die Allianz mit den Ithrons und den  Valenors könnte ihnen einen Vorteil verschaffen, aber sie musste vorsichtig sein. Ein falscher Schritt könnte alles ruinieren.
-
-
-## Der Empfang
-
-Der Bankettsaal der Sonnenfresser lag unter einer Kuppel aus geschliffenem Kristall, die das Licht der künstlichen Sonne in zahllose schmale Strahlen zerlegte und auf die polierten Tischflächen warf. Die Tische standen in konzentrischen Ringen um eine erhöhte Plattform, auf der Paleus Arista thronte, umgeben von seinen engsten Beratern und den ranghöchsten Vasallen. Sein Sessel war aus dunklem Holz mit goldenen Intarsien, die im Licht der Kuppel aufblitzten, sobald er sich bewegte. Und er bewegte sich wenig. Er aß langsam, mit bedächtigen, gleichmäßigen Bewegungen, und sein Gesicht zeigte während des ganzen Abends keine Regung. Seine Augen wanderten durch den Saal, von Tisch zu Tisch, von Gesicht zu Gesicht, und sie ruhten auf jedem Gast, als wollten sie etwas Bestimmtes finden. Was genau, das wusste niemand zu sagen, aber alle spürten den Blick.
-
-Die Luft war schwer von Parfüm und erhitzten Speisen, von unterdrücktem Lachen und dem leisen Klirren von Besteck auf Porzellan. Bedienstete in schwarz-weißen Uniformen bewegten sich zwischen den Tischen, lautlos, mit einstudierten Schritten, die keinen Zentimeter zu viel oder zu wenig abmaßen. Die Gäste unterhielten sich in gedämpftem Ton, lachten in abgemessenen Abständen und tranken mehr Wein, als gut für sie war.
-
-Acen stand mit den anderen Dienern in der schmalen Nische hinter dem Vorhang, der den Vorbereitungsraum vom Saal trennte. Die Uniform, die Leva ihm heute Morgen übergeben hatte, lag eng auf seinen Schultern, der Stoff steif vom Bügeln, der Kragen hoch genug, um den Hals zu bedecken. Seine Hände waren ruhig, obwohl sein Puls schneller ging als gewöhnlich. Die Naniten in seinem Blut arbeiteten auf Hochtouren, schärften seine Sinne, filterten die Geräusche des Raumes in einzelne, unterscheidbare Stränge. Er hörte das Summen der Lüftung, das Scharren eines Stuhls am dritten Tisch, das leise Zischen einer Weinkaraffe, die geleert wurde.
-
-Leva stand neben ihm, die Augen auf die gegenüberliegende Seite des Saals gerichtet. Sie hatte ihm vorhin die wichtigsten Gäste genannt, mit knappen Worten und ohne jede Wertung, so wie man einem Kind die Namen von Werkzeugen beibringt. Der dicke Mann mit dem roten Gesicht und den feuchten Lippen war Hausherr von Vant, ein Vasall, der seine eigenen Leute auspeitschen ließ, wenn die Ernten nicht stimmten. Die Frau mit den schmalen Lippen und den funkelnden Ohrringen war die Witwe eines ermordeten Gouverneurs, die durch geschickte Heiraten ein Handelsimperium zusammengehalten hatte. Ihr Lächeln war bekannt dafür, dass es niemals die Augen erreichte. Die jungen Offiziere am Rand gehörten zum Stab von General Korrath und waren dafür berüchtigt, dass sie jedes Gespräch auf die Größe ihrer Schiffe lenkten. Und die Töchter des Hauses Arista saßen verteilt über den ganzen Saal, jede von ihnen ein Beweisstück für die Fruchtbarkeit und die Politik ihres Vaters.
-
-Nur an einem Tisch saß niemand von den Erwachsenen, die um ihre Plätze kämpften. Am dritten Tisch links, zwischen einer Frau mit grauem Haar und einem Mann, der ununterbrochen auf sein Datenpad starrte, saß eine junge Frau, die sich mit einer Selbstverständlichkeit bewegte, die nur jemand haben konnte, der nie gelernt hatte, um etwas zu bitten. Ihr Haar war silberblond und zu einem kunstvollen Knoten hochgesteckt, aus dem sich ein paar lose Strähnen lösten und über ihre Schläfe fielen. Sie trug ein Kleid aus dunkelblauem Stoff, das im Licht der Kristallkuppel schimmerte, aber nicht so schimmerte, als hätte sie es gewählt, um aufzufallen. Es schimmerte, weil der Stoff teuer war, und das genügte.
-
-Nene Arista.
-
-Acen hatte sie nie zuvor gesehen, aber er erkannte sie sofort. Nicht an ihrem Gesicht, das er nur aus den flüchtigen Erwähnungen der anderen Diener kannte. Er erkannte sie an der Art, wie sie saß. Sie lehnte sich nicht zurück wie die anderen Töchter, die steif und ergeben neben ihren Müttern oder Ehemännern hockten. Sie saß aufrecht, die Hände locker auf der Tischkante, und ihr Blick wanderte durch den Saal, als würde sie jeden einzelnen Gast taxieren. Sie nahm nichts einfach hin. Sie überprüfte, sie ordnete ein, sie legte ab. In ihren Augen lag etwas, das Acen kannte, obwohl er es bei einem Mädchen wie ihr nicht erwartet hätte: dasselbe wachsame Interesse, mit dem er selbst die Küche beobachtet hatte, als er neu war.
-
-Acen aktivierte seine Naniten und schärft seine Sinneswahrnehmungen. Er beobachtete sie, während er die letzten Details seiner Servierposition überprüfte. Er hatte den Ablauf des Banketts einstudiert, bis jede Bewegung saß. Der Gang zum Tisch, die Verbeugung, das Abstellen der Platte, der Schritt zurück. Leva hatte ihn dreimal durch die Proben geschickt, bis er die Reihenfolge im Schlaf beherrschte. Erst die Vorspeisen, dann die Suppe, dann der Fisch, dann das Geflügel. Zu jedem Gang gehörte eine andere Platte, ein anderer Abstand zum Teller, ein anderer Winkel des Abstellens. Es war die gleiche Arbeit wie in der Küche, nur dass hier die Messer nicht geschnitten wurden, sondern serviert.
-
-Jetzt, im echten Saal, mit den echten Gästen und dem echten Geruch von gebratenem Fleisch und exotischen Gewürzen, fühlte es sich anders an. Die Proben waren eine Sache. Hier war jeder Fehler sichtbar, jede Abweichung vom Ablauf wurde von zwanzig Augenpaaren registriert, die zu nichts anderem da waren. Auch war es ein Fehler gewesen, seine Naniten zu aktivieren, nur weil er Nene beobachten wollte. Ein wilder Strom aus Eindrücken fluteten sein Gehirn. Auch wenn er sie nun abgeshaltet hatte, würden sie eine ganze Weile brauchen, bis ihre Wirkung abgeklungen war. 
-
-Der erste Gang wurde serviert. Acen trat aus der Nische, die Platte mit den Vorspeisen in den Händen, und bewegte sich mit den anderen Dienern durch die Reihen. Er hielt den Blick geradeaus, aber seine Augen registrierten alles. Der dicke Hausherr von Vant hob sein Glas, ohne den Diener anzusehen, der ihm nachschenkte, und trank, als hätte er Durst, den kein Wein stillen konnte. Die Witwe mit den schmalen Lippen flüsterte mit ihrem Nachbarn, während ihre Finger unruhig über den Rand ihres Tellers strichen, eine Bewegung, die aussah, als würde sie eine Tastatur bedienen, die nicht da war. Die jungen Offiziere unterhielten sich in kurzen, abgehackten Sätzen und warfen dabei immer wieder einen Blick zur Plattform, auf der Paleus saß. Sie wollten gesehen werden, aber sie wollten nicht auffallen. Das war die Kunst, die sie noch nicht beherrschten.
-
-Paleus selbst bewegte sich kaum. Er aß, was ihm serviert wurde, in der gleichen gleichmäßigen Folge, ohne Hast und ohne Genuss. Er kaute, schluckte, trank einen Schluck Wasser, wischte sich den Mund ab. Keine Bewegung war überflüssig, keine war neu. Acen spürte, wie der Blick des Herrschers ihn streifte, als er an der Plattform vorbeiging. Es war kein feindseliger Blick, aber auch kein freundlicher. Es war der Blick eines Mannes, der einen neuen Gegenstand in einem Raum registriert, in dem alle Gegenstände erfasst sind.
-
-Acen erreichte seinen Tisch, stellte die Platte ab und trat zurück. Die Bewegungen saßen, genau wie in der Probe, bis zu dem Winkel, in dem die Platte die Tischkante berührte. Er atmete leise aus, als er wieder in der Nische stand, und beobachtete weiter.
-
-Der zweite Gang folgte. Der dritte. Die Gespräche wurden lauter, das Lachen freier. Die Vasallen tranken mehr, als sie sollten, und die jungen Offiziere begannen, mit den Töchtern der Adelshäuser zu sprechen, die an den Tischen verteilt waren. Jede dieser Töchter war mit einer Präzision platziert, die man erst erkannte, wenn man beobachtete, wer neben ihr saß. Eine Tochter neben dem Hausherrn von Vant, eine andere neben dem Bruder der Witwe, eine dritte neben einem Offizier, dessen Rang auf der Schulterklappe stand. Paleus verteilte seine Kinder wie Figuren auf einem Brett, und jede von ihnen war ein Einsatz.
-
-Nur Nene blieb dort, wo sie war, und bewegte sich nicht. Sie aß mit gleichmäßigen Bewegungen, sprach wenig, und ihr Blick kehrte immer wieder zu ihrem Vater zurück, der auf der Plattform thronte. Sie beobachtete ihn, wie er die Tische beobachtete, mit derselben Geduld, derselben Genauigkeit. Acen sah, dass sie nicht wie die anderen Töchter auf ihren Platz gelegt worden war. Sie hatte sich ihren Platz genommen.
-
-Beim dritten Gang veränderte sich etwas. Nene beugte sich zu der jungen Frau auf ihrer linken Seite, einer blassen Person mit dunklen Haaren, die bisher kaum ein Wort gesagt hatte. Nene flüsterte ihr etwas zu, und die junge Frau lachte, leise und verlegen. Nene lachte nicht mit. Sie lächelte, und dieses Lächeln war anders als das höfliche Lächeln der anderen Gäste. Es hatte eine Kante.
-
-Acen versuchte, sie zu lesen. Ihre Haltung verriet nichts, aber ihre Augen waren nicht die einer gehorsamen Tochter. Sie beobachteten, genau wie seine eigenen. Sie taxierten, genau wie seine eigenen. Und als sie für einen Moment den Kopf wandte und direkt in seine Richtung sah, traf ihn ihr Blick mit einer Intensität, die ihn überraschte. Es war, als hätte sie gewusst, dass er sie ansah, ohne hinzusehen.
-
-Er senkte den Kopf, bevor er es verhindern konnte, und konzentrierte sich auf seine Hände. Die Naniten summten leise in seinem Blut, bereit, jeden Fehler zu korrigieren, jede Unsicherheit zu dämpfen. Aber als er wieder aufsah, war Nene bereits abgewandt, ihr Gesicht wieder in der ruhigen Maske, die sie für die Öffentlichkeit trug. Nur ihre Fingerspitzen ruhten auf der Tischkante, und sie bewegten sich in einem Rhythmus, der nicht zu der Musik passte, die aus den versteckten Lautsprechern kam.
-
-Der vierte Gang wurde serviert. Acen trug eine Platte mit gebratenem Geflügel, das in einer dunklen Sauce schwamm, und bewegte sich durch die Reihen. Er war jetzt sicherer, die Bewegungen flüssiger. Er hatte den Rhythmus des Saals gefunden, die Pausen zwischen den Gesprächen, die Momente, in denen die Diener unsichtbar wurden.
-
-Als er an Nenes Tisch ankam, stellte er die Platte nicht sofort ab. Er positionierte sie neben ihrem Teller, sodass sie sich selbst bedienen konnte, wie es die anderen Diener für die hohen Gäste auch taten. Genau in diesem Moment beugte sich Nene wieder zu der jungen Frau auf ihrer linken Seite. Sie wollte ihr etwas zeigen und hob die Hand, um auf einen Punkt im Saal zu deuten. Ihre Handbewegung war schnell, ungeduldig, und ihr Handrücken streifte den Rand der Platte, die Acen hielt.
-
-Die Platte schwankte. Eine Gabel, die schräg auf dem Rand der Platte balanciert hatte, rutschte ab und fiel mit einem hellen Klirren auf die Tischdecke, direkt neben Nenes Teller. Sie lag zwischen dem Teller und der kleinen Schale mit Brot, das Besteck geradlinig quer zur Tischkante.
-
-Der Klang war laut in der plötzlichen Stille. Acen spürte, wie die Blicke der Gäste an den benachbarten Tischen zu ihm herüberwanderten. Er spürte, wie sich sein Gesicht verfärbte, wie das Blut aus seinen Wangen wich. Er sah die Gabel auf der weißen Tischdecke liegen, und in seinem Kopf war eine Sekunde lang nichts. Kein Ablauf, keine Proben, keine einstudierten Winkel. Nur die Gabel und das Wissen, dass er sie nicht einfach so zurücklegen konnte, nicht hier, vor allen Gästen, nicht mit Reimann, der irgendwo am Rand des Saals stehen musste.
-
-Er legte die Platte auf einenm freien Plath neben Nene ab. 
-
-Ein leises, tiefes Knurren drang aus der Richtung des Vorbereitungsraums. Acen erkannte es, ohne hinzusehen. Reimann hatte es ihm noch nie erklärt, aber er verstand es jetzt: Es war das Geräusch, das ein Hund machte, bevor er sich auf ein Kaninchen stürzte.
-
-Die Gabel lag auf dem Tisch. Seine Hand griff nach ihr, und als er sie in den Fingern hielt, wusste er plötzlich nicht mehr, wohin sie gehörte. Links neben den Teller, das hatte er hundertmal geübt, aber in diesem Moment, mit allen Augen auf ihn gerichtet und Reimanns Knurren im Ohr, war das Wissen wie weggewischt. Er starrte auf den Teller,  auf das Brot, auf das Weinglas, und nichts davon sagte ihm, wo die Gabel platziert werden musste.
-
-Sein Blick traf Nene. Sie saß jetzt wieder aufrecht, die Hände auf der Tischkante, und sie grinste. Es war ein freundliches Grinsen, aber in ihren Augen lag ein leichter Spott, eine Beobachtung aus sicherer Distanz. Sie hatte sein Erbleichen gesehen. Sie hatte sein Zögern gesehen. Und sie genoss es, mit einer Ruhe, die nicht gespielt war.
-
-Dann machte sie eine Bewegung. Es war kaum sichtbar, eine kleine Neigung des Kopfes, kaum mehr als ein Wimpernschlag, aber ihre Augen waren dabei auf einen Punkt an ihrer Tischseite gerichtet. Acen folgte ihrem Blick. Links neben dem Teller, wo die Gabel hingehörte. Sie hatte ihm gezeigt, wo sie hingehörte, ohne ein Wort zu sagen, ohne die Lippen zu bewegen. Ihr Grinsen war nicht breiter geworden, aber es war wärmer geworden, so als würde sie ihm mitteilen, dass sie ihn nicht für einen Idioten hielt, nur weil er gerade einen Fehler gemacht hatte.
-
-Acen hob die Gabel. Er legte sie neben den Teller, genau an die richtige Stelle. Seine Hand war ruhig, aber sein Herz schlug schneller, als es bei einem Diener, der seine Arbeit machte, der Fall sein sollte. Nene grinste immer noch, und als er sich aufrichtete, sah er, dass sie den Kopf leicht schräg legte, als würde sie ihn herausfordern.
-
-Etwas in ihm weigerte sich, diese Herausforderung auszuschlagen. Er hatte die Gabel richtig platziert, genau wie sie es ihm gezeigt hatte, und das war das Ende der Sache. Aber er konnte nicht anders.
-
-Er griff nach der Gabel, hob sie wieder auf, und legte sie mit einer langsamen, bewussten Bewegung verkehrt herum auf den Tisch. Die Zinken zeigten zu Nene. Sie zeigten auf sie, direkt auf sie, wie ein kleiner, stummer Witz, den nur sie verstehen konnte.
-
-Einen Moment lang war es still. Dann lachte Nene laut auf. Es war ein helles, überraschtes Lachen, das durch den Saal schallte, ein Lachen, das nicht zu den gedämpften Gesprächen der anderen Gäste passte, nicht zu der zurückhaltenden Art, in der man bei Tisch lachte. Es brachte die Gespräche an den anderen Tischen zum Verstummen. Die Vasallen drehten sich um, die Offiziere starrten, und Paleus auf seiner Plattform hob den Kopf und sah in ihre Richtung. Sein Gesicht zeigte keine Regung, aber seine Augen verweilten einen Moment auf Nene, bevor sie weiterwanderten.
-
-Acen spürte, wie die Hitze in sein Gesicht stieg. Er hatte nicht erwartet, dass sie so reagieren würde. Er hatte nur eine kleine Provokation gewollt, einen stillen Witz zwischen ihnen, den sie zur Kenntnis nehmen sollte. Aber sie hatte ihn laut gemacht, öffentlich, unübersehbar.
-
-Reimann trat aus der Nische, sein Gesicht rot vor Wut. Er hatte nicht sehen können, was Acen mit der Gabel gemacht hatte, aber er hatte das Lachen gehört, und er wusste, dass etwas nicht stimmte. Seine Augen bohrten sich in Acens Rücken, und Acen spürte den Blick wie einen physischen Druck, der ihn zwischen den Schulterblättern traf.
-
-Aber er konnte nicht anders. Er grinste Nene an, ein keckes, herausforderndes Grinsen, das er nicht zurückhalten konnte. Sie grinste zurück, ihre Augen funkelten, und dann wandte sie sich ab, als wäre nichts geschehen. 
-
-Acen griff nach der leeren Platte und trat zurück. Die Bewegungen saßen wieder, der Schritt nach hinten, das Halten der Platte auf Brusthöhe. Er ging zur Nische, und als er die Kante des Vorhangs erreichte, drehte er sich noch einmal um.
-
-Nene hatte den Kopf gehoben. Sie sah ihm direkt nach. Ihr Blick war nicht auf die Platte gerichtet, nicht auf seine Hände, sondern auf sein Gesicht, und er verweilte dort mit einer Aufmerksamkeit, die über das hinausging, was eine Prinzessin einem Diener normalerweise schenkte. Ihr Lächeln war noch da, und es hielt einen Moment, während ihre Augen die seinen trafen, dann wandte sie sich ab und beugte sich wieder zu der jungen Frau, als wollte sie ihr etwas erzählen, das nichts mit dem Abend zu tun hatte.
-
-Reimann kam in der Nische auf ihn zu, die Schritte hart auf dem Marmorboden. »Was war das?«, zischte er, seine Stimme kaum hörbar.
-
-Acen sah ihm in die Augen. »Ein Fehler«, sagte er. »Es wird nicht wieder vorkommen.«
-
-Reimann musterte ihn lange, dann nickte er knapp. Er wusste, dass Acen ihm nicht die Wahrheit sagte, und Acen wusste, dass er es wusste. Aber Reimann sagte nichts weiter, er wandte sich ab und kehrte an seinen Platz am Rand des Saals zurück.
-
-Acen stand in der Nische, die Hände locker an den Seiten, und beobachtete die Hofgesellschaft, die sich wieder ihren Gesprächen und ihrem Wein zuwandte. Der dicke Hausherr von Vant trank weiter, die Witwe flüsterte weiter, die Offiziere schielten weiter zur Plattform. Alles war wieder auf seinen Platz zurückgekehrt, als wäre nichts geschehen. Nur die Gabel lag noch immer verkehrt herum auf dem Tisch, und Nenes Lachen war noch in den Ohren der Gäste, die es gehört hatten.
+<center>Ende.</center>
 
 

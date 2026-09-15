@@ -24,7 +24,6 @@ $remoteFile = "${RemoteDir}/${currentName}"
 $latestTxtName = "Manuskript-windows-x64.txt"
 $versionTxtName = [System.IO.Path]::GetFileNameWithoutExtension($currentName) + ".txt"
 $jsLocal = Join-Path $PSScriptRoot "manuskript-download.js"
-$htmlLocal = Join-Path $PSScriptRoot "downloads.html"
 
 $releaseNotesFile = Join-Path $PSScriptRoot "manuskript-release-notes.txt"
 $releaseNotes = ""
@@ -65,9 +64,7 @@ if ($LASTEXITCODE -ne 0) { throw "scp von $versionTxtName fehlgeschlagen." }
 if (Test-Path $jsLocal) {
     scp -o BatchMode=yes $jsLocal "${DeployHost}:/home/gehack/home/js/manuskript-download.js"
 }
-if (Test-Path $htmlLocal) {
-    scp -o BatchMode=yes $htmlLocal "${DeployHost}:/home/gehack/home/downloads.html"
-}
+# downloads.html nicht überschreiben – dort stehen auch andere Projekte (DeltaBlade, …).
 
 $ext = if ($Kind -eq "zip") { "zip" } else { "exe" }
 $pattern = "Manuskript-*-windows-x64.$ext"

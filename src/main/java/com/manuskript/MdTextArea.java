@@ -350,7 +350,7 @@ public class MdTextArea extends VBox {
 
     /**
      * Entfernt die Toolbar aus dieser VBox und bindet den Zeilenumbruch an die übergebene Breite
-     * (typisch: Spalte rechts neben der Kapitel-Seitenleiste).
+     * (Host-Fensterbreite, nicht die Editor-Spalte neben der Kapitel-Liste).
      */
     public void useExternalToolbarLayout(ObservableDoubleValue wrapWidthSource) {
         if (toolbarBox == null) {
@@ -450,6 +450,14 @@ public class MdTextArea extends VBox {
     public void applyTheme(int themeIndex) {
         applyThemeToNode(this, themeIndex);
         editor.applyTheme(themeIndex);
+        if (toolbarBox != null) {
+            applyThemeToNode(toolbarBox, themeIndex);
+        }
+    }
+
+    public void applyEmbeddedFieldTheme(int themeIndex) {
+        applyThemeToNode(this, themeIndex);
+        editor.applyEmbeddedFieldTheme(themeIndex);
         if (toolbarBox != null) {
             applyThemeToNode(toolbarBox, themeIndex);
         }

@@ -56,6 +56,10 @@ public final class WhisperRuntime {
         return isWindows();
     }
 
+    public static boolean isLinuxOS() {
+        return isLinux();
+    }
+
     public static boolean isExecutableMissing() {
         return resolveExecutable() == null;
     }
@@ -128,8 +132,32 @@ public final class WhisperRuntime {
         if (isMacOS()) {
             return installWhisperCppViaHomebrew(log);
         }
+        if (isLinux()) {
+            return installWhisperCppLinux(log);
+        }
         return "Automatische whisper-cli-Installation ist unter diesem Betriebssystem nicht verfügbar. "
                 + "Bitte whisper.cpp manuell installieren oder OpenAI-Backend nutzen.";
+    }
+
+    /**
+     * Linux: whisper-cli aus PATH, sonst Hinweis für apt/pacman.
+     */
+    public static String installWhisperCppLinux(Consumer<String> log) {
+        Consumer<String> out = log != null ? log : msg -> {};
+        if (!isLinux()) {
+            return "Linux-Installation ist nur unter Linux verfügbar.";
+        }
+        String existing = resolveExecutable();
+        if (existing != null) {
+            out.accept("whisper-cli gefunden: " + existing);
+            return null;
+        }
+        return """
+                whisper-cli nicht im PATH.
+                Debian/Ubuntu: sudo apt install whisper
+                Arch:          sudo pacman -S whisper.cpp
+                oder von https://github.com/ggml-org/whisper.cpp bauen.
+                Danach „Diktat einrichten“ erneut wählen oder dictation.local_whisper_command setzen.""";
     }
 
     /**
@@ -493,6 +521,7 @@ public final class WhisperRuntime {
                    macOS: brew install whisper-cpp
                    Windows: in Manuskript „Diktat einrichten“ (lädt whisper-bin-x64.zip),
                             oder manuell von https://github.com/ggml-org/whisper.cpp/releases
+                   Linux: sudo apt install whisper   oder   sudo pacman -S whisper.cpp
 
                 2) Modell ablegen (einer der Ordner):
                    %s/whisper/models/ggml-base.bin
@@ -552,6 +581,10 @@ public final class WhisperRuntime {
             dirs.add("/opt/homebrew/bin");
             dirs.add("/usr/local/bin");
         }
+        if (isLinux()) {
+            dirs.add("/usr/local/bin");
+            dirs.add("/usr/bin");
+        }
         return new ArrayList<>(dirs);
     }
 
@@ -585,6 +618,10 @@ public final class WhisperRuntime {
 
     private static boolean isMac() {
         return System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("mac");
+    }
+
+    private static boolean isLinux() {
+        return System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("linux");
     }
 
     private static boolean isWindows() {

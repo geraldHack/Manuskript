@@ -27,4 +27,7 @@ interface WorldEditorTabContent {
 
     default void attachImageLightbox(MarkdownImageLightbox lightbox) {
     }
+
+    default void applyTheme(int themeIndex) {
+    }
 }

@@ -122,7 +122,12 @@
     if (!pack || !pack.filename) {
       return null;
     }
-    var base = String(pack.filename).replace(/\.(dmg|exe|zip)$/i, "");
+    var filename = String(pack.filename);
+    var base = filename
+      .replace(/\.pkg\.tar\.zst$/i, "-arch")
+      .replace(/\.AppImage$/i, "-appimage")
+      .replace(/\.deb$/i, "-deb")
+      .replace(/\.(dmg|exe|zip)$/i, "");
     if (!base) {
       return null;
     }
@@ -159,12 +164,18 @@
 
   Promise.all([
     loadPlatform("/downloads/Manuskript-macos-arm64.txt"),
-    loadPlatform("/downloads/Manuskript-windows-x64.txt")
+    loadPlatform("/downloads/Manuskript-windows-x64.txt"),
+    loadPlatform("/downloads/Manuskript-linux-x64-deb.txt"),
+    loadPlatform("/downloads/Manuskript-linux-x64-appimage.txt"),
+    loadPlatform("/downloads/Manuskript-linux-x64-arch.txt")
   ]).then(function (packs) {
     var macos = packs[0];
     var windows = packs[1];
     fillPrefix("macos", macos);
     fillPrefix("windows", windows);
+    fillPrefix("linux-deb", packs[2]);
+    fillPrefix("linux-appimage", packs[3]);
+    fillPrefix("linux-arch", packs[4]);
     fillLegacy(macos || windows);
   });
 })();

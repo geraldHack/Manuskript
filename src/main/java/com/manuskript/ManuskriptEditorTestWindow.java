@@ -499,7 +499,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
         VBox editorContentColumn = new VBox(0);
         HBox.setHgrow(editorContentColumn, Priority.ALWAYS);
-        mdTextArea.useExternalSegmentedToolbar(editorContentColumn.widthProperty());
+        mdTextArea.useExternalSegmentedToolbar(editorRoot.widthProperty());
 
         niReviewSupport = new com.manuskript.review.NiReviewChapterSupport(editor);
         niReviewSupport.setOnBaseChanged(() -> setDirty(true));

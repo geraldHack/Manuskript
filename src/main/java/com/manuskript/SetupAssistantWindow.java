@@ -849,7 +849,7 @@ public final class SetupAssistantWindow {
         }
         chooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Programme und Plugins",
-                        "*.jar", "*.sh", "*.bat", "*.exe", "*.app", "*.command"),
+                        "*.jar", "*.sh", "*.bat", "*.exe", "*.app", "*.command", "*"),
                 new FileChooser.ExtensionFilter("Alle Dateien", "*.*"));
         File chosen = chooser.showOpenDialog(null);
         onChosen.accept(chosen);

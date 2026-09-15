@@ -813,6 +813,9 @@ public class ChapterTtsEditorWindow {
         elevenLabsBalanceLabel.setMaxWidth(Double.MAX_VALUE);
         elevenLabsSpeedSlider = new Slider(0.7, 1.2, 1.0);
         elevenLabsSpeedSlider.setBlockIncrement(0.05);
+        elevenLabsSpeedSlider.setMajorTickUnit(0.05);
+        elevenLabsSpeedSlider.setMinorTickCount(0);
+        elevenLabsSpeedSlider.setSnapToTicks(true);
         Label elevenLabsSpeedLabel = new Label("1.00");
         elevenLabsSpeedLabel.setMinWidth(28);
         elevenLabsSpeedSlider.valueProperty().addListener((o, a, b) -> {
@@ -4823,6 +4826,42 @@ public class ChapterTtsEditorWindow {
         voiceCombo.getItems().setAll(combined);
     }
 
+    /** Speed aus dem Slider (Anzeige), nicht aus der gespeicherten Stimme. */
+    private double getUiElevenLabsSpeed(ComfyUIClient.SavedVoice fallback) {
+        if (elevenLabsSpeedSlider != null) {
+            return Math.max(0.7, Math.min(1.2, elevenLabsSpeedSlider.getValue()));
+        }
+        return fallback != null ? fallback.getElevenLabsSpeed() : 1.0;
+    }
+
+    /** Übernimmt die sichtbaren ElevenLabs-Regler auf die Stimme, damit Erzeugung = Anzeige. */
+    private void copyElevenLabsUiParamsToVoice(ComfyUIClient.SavedVoice target, ComfyUIClient.SavedVoice fallback) {
+        if (target == null) return;
+        ComfyUIClient.SavedVoice src = fallback != null ? fallback : target;
+        if (elevenLabsModelCombo != null && elevenLabsModelCombo.getSelectionModel().getSelectedItem() != null) {
+            target.setElevenLabsModelId(elevenLabsModelCombo.getSelectionModel().getSelectedItem());
+        } else if (src.getElevenLabsModelId() != null) {
+            target.setElevenLabsModelId(src.getElevenLabsModelId());
+        }
+        if (elevenLabsStabilitySlider != null) {
+            target.setElevenLabsStability(elevenLabsStabilitySlider.getValue());
+        } else {
+            target.setElevenLabsStability(src.getElevenLabsStability());
+        }
+        if (elevenLabsSimilaritySlider != null) {
+            target.setElevenLabsSimilarityBoost(elevenLabsSimilaritySlider.getValue());
+        } else {
+            target.setElevenLabsSimilarityBoost(src.getElevenLabsSimilarityBoost());
+        }
+        target.setElevenLabsSpeed(getUiElevenLabsSpeed(src));
+        if (elevenLabsSpeakerBoostCheck != null) {
+            target.setElevenLabsUseSpeakerBoost(elevenLabsSpeakerBoostCheck.isSelected());
+        } else {
+            target.setElevenLabsUseSpeakerBoost(src.isElevenLabsUseSpeakerBoost());
+        }
+        target.setElevenLabsStyle(src.getElevenLabsStyle());
+    }
+
     /** Schreibt die ElevenLabs-Parameter der aktuell gewählten Stimme in die tts-voices.json. Ist die Stimme noch nicht in der Datei (z. B. nur aus der API-Liste), wird sie mit aktuellen Parametern hinzugefügt. */
     private void persistSelectedVoiceElevenLabsParams() {
         ComfyUIClient.SavedVoice v = voiceCombo.getSelectionModel().getSelectedItem();
@@ -5642,9 +5681,11 @@ public class ChapterTtsEditorWindow {
                 String m = elevenLabsModelCombo.getSelectionModel().getSelectedItem();
                 sb.append("|elm:").append(m != null ? m : "");
             }
-            sb.append("|sta:").append(String.format(java.util.Locale.ROOT, "%.4f", voice.getElevenLabsStability()));
-            sb.append("|sim:").append(String.format(java.util.Locale.ROOT, "%.4f", voice.getElevenLabsSimilarityBoost()));
-            sb.append("|spd:").append(String.format(java.util.Locale.ROOT, "%.4f", voice.getElevenLabsSpeed()));
+            sb.append("|sta:").append(String.format(java.util.Locale.ROOT, "%.4f",
+                    elevenLabsStabilitySlider != null ? elevenLabsStabilitySlider.getValue() : voice.getElevenLabsStability()));
+            sb.append("|sim:").append(String.format(java.util.Locale.ROOT, "%.4f",
+                    elevenLabsSimilaritySlider != null ? elevenLabsSimilaritySlider.getValue() : voice.getElevenLabsSimilarityBoost()));
+            sb.append("|spd:").append(String.format(java.util.Locale.ROOT, "%.4f", getUiElevenLabsSpeed(voice)));
             sb.append("|spb:").append(voice.isElevenLabsUseSpeakerBoost());
             sb.append("|sty:").append(String.format(java.util.Locale.ROOT, "%.4f", voice.getElevenLabsStyle()));
             sb.append("|vid:").append(voice.getElevenLabsVoiceId() != null ? voice.getElevenLabsVoiceId() : "");
@@ -5814,14 +5855,8 @@ public class ChapterTtsEditorWindow {
             effectiveVoice = new ComfyUIClient.SavedVoice(voice.getName(), ComfyUIClient.DEFAULT_SEED, ComfyUIClient.DEFAULT_TEMPERATURE, "", true, false);
             effectiveVoice.setProvider("elevenlabs");
             effectiveVoice.setElevenLabsVoiceId(voice.getElevenLabsVoiceId());
-            String modelId = (elevenLabsModelCombo != null && elevenLabsModelCombo.getSelectionModel().getSelectedItem() != null)
-                ? elevenLabsModelCombo.getSelectionModel().getSelectedItem() : voice.getElevenLabsModelId();
-            effectiveVoice.setElevenLabsModelId(modelId != null ? modelId : "");
-            effectiveVoice.setElevenLabsStability(voice.getElevenLabsStability());
-            effectiveVoice.setElevenLabsSimilarityBoost(voice.getElevenLabsSimilarityBoost());
-            effectiveVoice.setElevenLabsSpeed(voice.getElevenLabsSpeed());
-            effectiveVoice.setElevenLabsUseSpeakerBoost(voice.isElevenLabsUseSpeakerBoost());
-            effectiveVoice.setElevenLabsStyle(voice.getElevenLabsStyle());
+            copyElevenLabsUiParamsToVoice(effectiveVoice, voice);
+            copyElevenLabsUiParamsToVoice(voice, voice);
         } else if (voice.isVoiceClone()) {
             effectiveVoice = new ComfyUIClient.SavedVoice(
                 voice.getName(), seed, temp, voiceDesc, hq, true,
@@ -5833,8 +5868,10 @@ public class ChapterTtsEditorWindow {
                 topP, topK, repPen, speakerId);
         }
         // Alle Parameter loggen; voiceDesc wird an ComfyUI instruct angehängt („Stimme: …“)
-        logger.info("TTS Erstellen – voiceDescription=\"{}\" | voiceName={} | effectiveSeed={} | temperature={} | topP={} | topK={} | repetitionPenalty={} | highQuality={} | textLength={}",
-            voiceDesc, voice.getName(), seed, temp, topP, topK, repPen, hq, sel != null ? sel.length() : 0);
+        logger.info("TTS Erstellen – voiceDescription=\"{}\" | voiceName={} | effectiveSeed={} | temperature={} | topP={} | topK={} | repetitionPenalty={} | highQuality={} | textLength={} | elSpeed={}",
+            voiceDesc, voice.getName(), seed, temp, topP, topK, repPen, hq, sel != null ? sel.length() : 0,
+            "elevenlabs".equalsIgnoreCase(voice.getProvider())
+                ? String.format(java.util.Locale.ROOT, "%.2f", getUiElevenLabsSpeed(voice)) : "-");
         ttsRequestId++;
         final int myRequestId = ttsRequestId;
         setTtsGenerationBusy(true);
@@ -6167,7 +6204,7 @@ public class ChapterTtsEditorWindow {
                     seg.elevenLabsModelId = voice.getElevenLabsModelId() != null ? voice.getElevenLabsModelId() : "";
                     seg.elevenLabsStability = voice.getElevenLabsStability();
                     seg.elevenLabsSimilarityBoost = voice.getElevenLabsSimilarityBoost();
-                    seg.elevenLabsSpeed = voice.getElevenLabsSpeed();
+                    seg.elevenLabsSpeed = getUiElevenLabsSpeed(voice);
                     seg.elevenLabsUseSpeakerBoost = voice.isElevenLabsUseSpeakerBoost();
                     seg.elevenLabsStyle = voice.getElevenLabsStyle();
                 }
@@ -6213,6 +6250,14 @@ public class ChapterTtsEditorWindow {
         } else {
             einschwingPrefix = null;
         }
+        if ("elevenlabs".equalsIgnoreCase(voice.getProvider())) {
+            copyElevenLabsUiParamsToVoice(voice, voice);
+            logger.info("TTS Batch – voiceName={} elSpeed={} model={} segments={}",
+                    voice.getName(),
+                    String.format(java.util.Locale.ROOT, "%.2f", getUiElevenLabsSpeed(voice)),
+                    voice.getElevenLabsModelId(),
+                    unmarked.size());
+        }
         TTS_EXECUTOR.execute(() -> runBatch(unmarked, fullText, voice, byParagraph, einschwingPrefix));
     }
 
@@ -6232,14 +6277,8 @@ public class ChapterTtsEditorWindow {
             effectiveVoice = new ComfyUIClient.SavedVoice(voice.getName(), ComfyUIClient.DEFAULT_SEED, ComfyUIClient.DEFAULT_TEMPERATURE, "", true, false);
             effectiveVoice.setProvider("elevenlabs");
             effectiveVoice.setElevenLabsVoiceId(voice.getElevenLabsVoiceId());
-            String modelId = (elevenLabsModelCombo != null && elevenLabsModelCombo.getSelectionModel().getSelectedItem() != null)
-                ? elevenLabsModelCombo.getSelectionModel().getSelectedItem() : voice.getElevenLabsModelId();
-            effectiveVoice.setElevenLabsModelId(modelId != null ? modelId : "");
-            effectiveVoice.setElevenLabsStability(voice.getElevenLabsStability());
-            effectiveVoice.setElevenLabsSimilarityBoost(voice.getElevenLabsSimilarityBoost());
-            effectiveVoice.setElevenLabsSpeed(voice.getElevenLabsSpeed());
-            effectiveVoice.setElevenLabsUseSpeakerBoost(voice.isElevenLabsUseSpeakerBoost());
-            effectiveVoice.setElevenLabsStyle(voice.getElevenLabsStyle());
+            copyElevenLabsUiParamsToVoice(effectiveVoice, voice);
+            copyElevenLabsUiParamsToVoice(voice, voice);
         } else if (voice.isVoiceClone()) {
             effectiveVoice = new ComfyUIClient.SavedVoice(voice.getName(), seed, temp, voiceDesc, hq, true, topP, topK, repPen, speakerId, voice.getRefAudioPath(), voice.getVoiceCloneTranscript(), true);
         } else {
@@ -6368,12 +6407,17 @@ public class ChapterTtsEditorWindow {
         String elevenLabsVoiceId = voice.getElevenLabsVoiceId();
         ElevenLabsClient.VoiceSettings elevenLabsVoiceSettings = null;
         if (voice != null && "elevenlabs".equalsIgnoreCase(voice.getProvider())) {
+            copyElevenLabsUiParamsToVoice(voice, voice);
             elevenLabsVoiceSettings = new ElevenLabsClient.VoiceSettings(
                     voice.getElevenLabsStability(),
                     voice.getElevenLabsSimilarityBoost(),
-                    voice.getElevenLabsSpeed(),
+                    getUiElevenLabsSpeed(voice),
                     voice.isElevenLabsUseSpeakerBoost(),
                     voice.getElevenLabsStyle());
+            logger.info("TTS Aufnahme/STS – voiceName={} elSpeed={} model={}",
+                    voice.getName(),
+                    String.format(java.util.Locale.ROOT, "%.2f", getUiElevenLabsSpeed(voice)),
+                    voice.getElevenLabsModelId());
         }
         int nextBlock = getNextFreeBlockNumber();
 
@@ -6411,7 +6455,7 @@ public class ChapterTtsEditorWindow {
                     if (v != null && "elevenlabs".equalsIgnoreCase(v.getProvider())) {
                         seg.elevenLabsStability = v.getElevenLabsStability();
                         seg.elevenLabsSimilarityBoost = v.getElevenLabsSimilarityBoost();
-                        seg.elevenLabsSpeed = v.getElevenLabsSpeed();
+                        seg.elevenLabsSpeed = getUiElevenLabsSpeed(v);
                         seg.elevenLabsUseSpeakerBoost = v.isElevenLabsUseSpeakerBoost();
                         seg.elevenLabsStyle = v.getElevenLabsStyle();
                     } else {
@@ -6522,7 +6566,7 @@ public class ChapterTtsEditorWindow {
                 seg.elevenLabsModelId = voice.getElevenLabsModelId() != null ? voice.getElevenLabsModelId() : "";
                 seg.elevenLabsStability = voice.getElevenLabsStability();
                 seg.elevenLabsSimilarityBoost = voice.getElevenLabsSimilarityBoost();
-                seg.elevenLabsSpeed = voice.getElevenLabsSpeed();
+                seg.elevenLabsSpeed = getUiElevenLabsSpeed(voice);
                 seg.elevenLabsUseSpeakerBoost = voice.isElevenLabsUseSpeakerBoost();
                 seg.elevenLabsStyle = voice.getElevenLabsStyle();
             }

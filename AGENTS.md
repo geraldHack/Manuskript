@@ -14,7 +14,7 @@ Manuskript is a JavaFX 21 desktop application for manuscript editing with AI int
 |------|---------|
 | Compile | `mvn compile` |
 | Run tests | `mvn test` |
-| Run application | `DISPLAY=:1 mvn javafx:run` |
+| Run application | `./run-developer.sh` oder `mvn javafx:run` (Cloud-VM: `DISPLAY=:1 mvn javafx:run`) |
 | Package fat JAR | `mvn package` |
 | Resolve dependencies | `mvn dependency:resolve` |
 | OpenRouter Monitor (optional) | `cd tools/openrouter-monitor && mvn package` dann `./run-openrouter-monitor.sh` |
@@ -22,7 +22,7 @@ Manuskript is a JavaFX 21 desktop application for manuscript editing with AI int
 ### Wichtig: Welcher Code laeuft?
 - **`mvn compile`** schreibt nur nach `target/classes`. Die **JAR** (z.B. `target/manuskript-standalone.jar`) und das **App-Image** (z.B. `installer-output\Manuskript\`) werden dabei **nicht** aktualisiert.
 - Wenn die App ueber **Manuskript.exe** / **Manuskript.app** (installer-output) oder eine **alte JAR** gestartet wird, laeuft der Stand des letzten **`mvn package`** bzw. **`create-installer.bat`** (Windows) / **`create-installer.sh`** (macOS arm64).
-- Damit nach Aenderungen der **aktuelle Code** laeuft: App mit **`mvn javafx:run`** starten (oder `run-developer.bat` unter Windows), oder vor dem Start **`mvn package`** ausfuehren und danach die gebaute App starten.
+- Damit nach Aenderungen der **aktuelle Code** laeuft: App mit **`mvn javafx:run`** starten (`run-developer.sh` unter Linux/macOS, `run-developer.bat` unter Windows), oder vor dem Start **`mvn package`** ausfuehren und danach die gebaute App starten.
 
 ### Windows (Entwicklung und App-Image)
 - **JDK 21** erforderlich (z.B. Eclipse Adoptium). `find-java21.bat` sucht uebliche Installationspfade; optional einmal `.\set-java21-env.ps1` ausfuehren.
@@ -30,7 +30,18 @@ Manuskript is a JavaFX 21 desktop application for manuscript editing with AI int
 - **Installer/App-Image:** `create-installer.bat` (braucht `jpackage.exe` aus JDK 21). Setup-EXE braucht WiX 3; `deploy\windows\ensure-wix3.ps1` findet eine Installation oder lädt portable 3.14-Binaries nach `%LOCALAPPDATA%\Manuskript\wix3`. Windows-Icon: `deploy\windows\ensure-windows-icon.ps1` erzeugt `installer-assets\Manuskript.ico` aus der PNG; jpackage bekommt `--icon` für App-Image und Setup-EXE. Ressourcen (`config`, `ffmpeg`, `pandoc`, `language tool`, Demo) landen unter `installer-output\Manuskript\app\` — dort erwartet sie auch `ApplicationPaths`.
 - **Start gebuendelt:** `installer-output\Manuskript\Manuskript.exe`. Nach Code-Aenderungen Installer neu bauen, sonst laeuft alter Stand.
 - **JavaFX-SDK:** lokal `javafx-sdk-21.0.6\` (gitignored) fuer `javafx:run`; jmods laedt das Installer-Skript bei Bedarf.
-- **Whisper (Diktat):** Unter Windows automatische Einrichtung (Download von `whisper-bin-x64.zip` nach `whisper/`); unter macOS weiterhin via Homebrew. Modell-Download plattformuebergreifend.
+- **Whisper (Diktat):** Unter Windows automatische Einrichtung (Download von `whisper-bin-x64.zip` nach `whisper/`); unter macOS via Homebrew; unter Linux PATH bzw. `apt install whisper` / `pacman -S whisper.cpp`. Modell-Download plattformuebergreifend.
+
+### Linux (Entwicklung und Pakete)
+- **Dev-Start:** `./run-developer.sh` (`mvn compile javafx:run`). Kein festes `DISPLAY=:1` – eine Wayland-Session bleibt erhalten.
+- **Wayland:** JavaFX 21 hat kein natives Wayland-Backend. Unter GNOME/KDE/Sway laeuft die App ueber **XWayland**. `GDK_BACKEND` wird nicht gesetzt (weder `wayland` noch erzwungenes `x11`).
+- **Installer:** `./create-installer-linux.sh` (x86_64). Auf dem Mac via Docker `linux/amd64`. Ergebnis in `installer-output/`:
+  - App-Image `Manuskript/` (Start: `installer-output/Manuskript/bin/Manuskript`)
+  - `Manuskript-*-linux-x64.deb`
+  - `Manuskript-*-linux-x64.AppImage`
+  - `Manuskript-*-linux-x64.pkg.tar.zst` (Arch, `deploy/linux/PKGBUILD`)
+- Ressourcen landen unter `lib/app/` (Linux-jpackage). Bundles: `prepare-linux-bundles.sh` erzeugt `pandoc-linux.zip` und `ffmpeg-linux.zip`.
+- **JavaFX-SDK:** lokal `javafx-sdk-21.0.6/` fuer `javafx:run`; jmods laedt das Installer-Skript (linux-x64).
 
 ### Kapitel-Editor (nur Canvas – Legacy ignoriert)
 - **Aktiver Editor:** `ManuskriptEditorTestWindow` / `ManuskriptTextEditor` / `MdTextArea`.
@@ -40,7 +51,7 @@ Manuskript is a JavaFX 21 desktop application for manuscript editing with AI int
 - Im Canvas-Editor: Agenten-Panel, Makros, Textanalyse, Szenen-Outline, Online-Lektorat (Toolbar).
 
 ### Important Gotchas
-- **Display**: The JavaFX app requires `DISPLAY=:1` (the VM desktop) to render. Do NOT use headless mode.
+- **Display**: Auf der Cloud-VM `DISPLAY=:1`. Lokal unter Linux/macOS die vorhandene Session nutzen (Wayland → XWayland). Nicht headless starten.
 - **No Maven wrapper**: The repo does not include `mvnw`. System-installed Maven is required.
 - **Deprecation warnings**: `OllamaWindow.java` and `MainController.java` produce compiler warnings (deprecated API, unchecked operations) — these are expected and non-blocking.
 - **First launch**: Shows "Willkommen zu Manuskript" so the user can confirm the project root. Packaged default is `~/Documents/Manuskript` (Gott demo copied there once). Dev (`mvn javafx:run`) still suggests repo `Manuskripte/`.

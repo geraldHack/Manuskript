@@ -22,6 +22,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -89,7 +90,7 @@ public final class CharacterCardsEditor extends BorderPane implements WorldEdito
 
     private final Window owner;
     private final File projectDirectory;
-    private final int themeIndex;
+    private int themeIndex;
     private final Preferences imagePrefs;
 
     private String preamble = "";
@@ -155,6 +156,16 @@ public final class CharacterCardsEditor extends BorderPane implements WorldEdito
     @Override
     public void attachImageLightbox(MarkdownImageLightbox lightbox) {
         this.imageLightbox = lightbox;
+    }
+
+    @Override
+    public void applyTheme(int newThemeIndex) {
+        this.themeIndex = newThemeIndex;
+        EditorDialogThemes.applyToNode(this, newThemeIndex);
+        for (MdTextArea area : fieldEditors.values()) {
+            EditorDialogThemes.applyToNode(area, newThemeIndex);
+            area.getEditor().applyEmbeddedFieldTheme(newThemeIndex);
+        }
     }
 
     @Override
@@ -266,8 +277,15 @@ public final class CharacterCardsEditor extends BorderPane implements WorldEdito
 
             {
                 box.getStyleClass().add("character-card-list-cell-content");
+                box.setFillWidth(true);
+                box.setMaxWidth(Double.MAX_VALUE);
+                box.setBackground(Background.EMPTY);
                 title.getStyleClass().add("character-card-list-title");
+                title.setMaxWidth(Double.MAX_VALUE);
+                title.setBackground(Background.EMPTY);
                 subtitle.getStyleClass().add("character-card-list-subtitle");
+                subtitle.setMaxWidth(Double.MAX_VALUE);
+                subtitle.setBackground(Background.EMPTY);
             }
 
             @Override
@@ -299,6 +317,7 @@ public final class CharacterCardsEditor extends BorderPane implements WorldEdito
         setLeft(sidebar);
 
         detailScroll.setFitToWidth(true);
+        detailScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         detailScroll.setPadding(new Insets(6));
         detailScroll.getStyleClass().add("character-card-detail-scroll");
         detailBox.getStyleClass().add("character-card-detail");

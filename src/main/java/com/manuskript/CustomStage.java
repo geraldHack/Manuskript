@@ -6,8 +6,8 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
-import javafx.scene.control.Spinner;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -21,8 +21,13 @@ import javafx.scene.shape.Rectangle;
 import javafx.geometry.Insets;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.stage.WindowEvent;
+import javafx.util.Duration;
 import javafx.stage.Screen;
 import javafx.geometry.Pos;
 import javafx.scene.input.MouseButton;
@@ -36,6 +41,7 @@ import com.manuskript.windowhandling.MacWindowManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Eigene Stage-Klasse mit benutzerdefinierter Titelleiste
@@ -110,6 +116,11 @@ public class CustomStage extends Stage {
     private String currentTextColor = DEFAULT_TEXT_COLOR; // Aktuelle Textfarbe für Hover-Effekte
     private int activeThemeIndex = -1;
     private boolean windowSizeLoaded = false; // Flag um mehrfaches Laden zu verhindern
+    private Consumer<Integer> onThemeChanged;
+    private Runnable onScreenReset;
+    private static final List<String> THEME_STYLE_CLASSES = List.of(
+            "theme-dark", "theme-light", "weiss-theme", "pastell-theme",
+            "blau-theme", "gruen-theme", "lila-theme");
     
     private HBox titleBar;
     private Label titleLabel;
@@ -146,11 +157,9 @@ public class CustomStage extends Stage {
         });
 
         installMinimizeRestoreRecovery();
+        PreferencesManager.MultiMonitorValidator.installGlobalScreenWatcher();
+        addEventHandler(WindowEvent.WINDOW_SHOWN, event -> scheduleOnScreenCheck());
     }
-
-    /**
-     * Initialisiert den macOS Window Manager, falls auf macOS.
-     */
     private void initializeMacWindowManager() {
         useMacWindowManager = isMacPlatform();
     }
@@ -175,6 +184,9 @@ public class CustomStage extends Stage {
             if (Boolean.TRUE.equals(isFocused) && restoreInputPending && !isIconified()) {
                 restoreInputPending = false;
                 Platform.runLater(this::recoverAfterRestoreFromMinimize);
+            }
+            if (Boolean.TRUE.equals(isFocused) && isShowing() && !Boolean.TRUE.equals(isIconified())) {
+                PreferencesManager.MultiMonitorValidator.ensureStageVisible(this);
             }
         });
     }
@@ -675,6 +687,43 @@ public class CustomStage extends Stage {
         isMaximized = false;
     }
 
+    public void setOnScreenReset(Runnable onScreenReset) {
+        this.onScreenReset = onScreenReset;
+    }
+
+    private void scheduleOnScreenCheck() {
+        Platform.runLater(() -> PreferencesManager.MultiMonitorValidator.ensureStageVisible(this));
+        PauseTransition delayed = new PauseTransition(Duration.millis(800));
+        delayed.setOnFinished(e -> PreferencesManager.MultiMonitorValidator.ensureStageVisible(this));
+        delayed.play();
+    }
+
+    private void installScreenResetShortcut(Scene scene) {
+        if (scene == null) {
+            return;
+        }
+        EditingShortcuts.bindPlatformAccelerators(
+                scene.getAccelerators(),
+                "R",
+                this::handleScreenReset);
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (EditingShortcuts.isShortcutDown(event) && event.getCode() == KeyCode.R) {
+                handleScreenReset();
+                event.consume();
+            }
+        });
+    }
+
+    private void handleScreenReset() {
+        if (onScreenReset != null) {
+            onScreenReset.run();
+            return;
+        }
+        PreferencesManager.applyDefaultWindowGeometry(this, getWidth(), getHeight());
+        toFront();
+        requestFocus();
+    }
+
     /** True wenn das Fenster maximiert ist (eigener oder JavaFX-Zustand). */
     public boolean isEffectivelyMaximized() {
         return isMaximized || isMaximized();
@@ -730,6 +779,7 @@ public class CustomStage extends Stage {
 
             super.setScene(newScene);
             DebugWindow.bindOpenShortcut(newScene, this);
+            installScreenResetShortcut(newScene);
             // Drag weiterverfolgen, wenn die Maus die schmale Zone verlässt
             setupResizeDragFollow(newScene);
 
@@ -1228,50 +1278,33 @@ public class CustomStage extends Stage {
     }
     
     /**
-     * Wendet das Theme sowohl auf Titelleiste als auch auf den Inhalt an
+     * Wird nach einem Theme-Wechsel aufgerufen, damit Fenster Canvas-Farben nachziehen können.
+     */
+    public void setOnThemeChanged(Consumer<Integer> listener) {
+        this.onThemeChanged = listener;
+    }
+
+    /**
+     * Wendet das Theme auf Titelleiste und Inhaltswurzel an.
+     * Theme-Klassen gehören nur auf Wurzeln (CSS-Descendant-Selektoren), nicht auf jedes Kind.
      */
     public void setFullTheme(int themeIndex) {
-        // Erst Titelleiste aktualisieren
         setTitleBarTheme(themeIndex);
-        
-        // Dann Inhalt aktualisieren
+
         if (getScene() != null && getScene().getRoot() != null) {
             Node root = getScene().getRoot();
             applyThemeClassesToNode(root, themeIndex);
-            
-            // Versuche, den tatsächlichen Inhalt zu stylen (unter Titelleiste)
+
             Node contentNode = findContentNode(root);
             if (contentNode != null) {
-                contentNode.getStyleClass().removeAll("theme-dark", "theme-light", "weiss-theme", "pastell-theme", "blau-theme", "gruen-theme", "lila-theme");
-                
-                switch (themeIndex) {
-                    case 0: // Weiß
-                        contentNode.getStyleClass().add("weiss-theme");
-                        break;
-                    case 1: // Schwarz
-                        contentNode.getStyleClass().add("theme-dark");
-                        break;
-                    case 2: // Pastell
-                        contentNode.getStyleClass().add("pastell-theme");
-                        break;
-                    case 3: // Blau
-                        contentNode.getStyleClass().add("theme-dark");
-                        contentNode.getStyleClass().add("blau-theme");
-                        break;
-                    case 4: // Grün
-                        contentNode.getStyleClass().add("theme-dark");
-                        contentNode.getStyleClass().add("gruen-theme");
-                        break;
-                    case 5: // Lila
-                        contentNode.getStyleClass().add("theme-dark");
-                        contentNode.getStyleClass().add("lila-theme");
-                        break;
-                }
+                applyThemeClassesToNode(contentNode, themeIndex);
             }
-            
-            // WICHTIG: Alle UI-Elemente rekursiv durchgehen und Theme anwenden
-            applyThemeToAllNodes(root, themeIndex);
+            stripThemeClassesFromDescendants(root, root, contentNode);
+            refreshPaintedThemeNodes(root, themeIndex);
             applyResizeHandleTheme(themeIndex);
+        }
+        if (onThemeChanged != null) {
+            onThemeChanged.accept(themeIndex);
         }
     }
 
@@ -1288,49 +1321,60 @@ public class CustomStage extends Stage {
     }
     
     /**
-     * Wendet das Theme rekursiv auf alle UI-Elemente an
+     * Entfernt Theme-Klassen von Nachfahren. Die CSS-Regeln sind Descendant-Selektoren
+     * ({@code .theme-dark .tab}); Klassen auf Labels/Text machen Tab-Schrift unsichtbar.
      */
-    private void applyThemeToAllNodes(Node node, int themeIndex) {
-        if (node == null) return;
-        // Titelleiste / Resize-Chrome nicht mit Theme-Klassen überdecken
-        if (node.getStyleClass().contains("title-bar")
-                || node.getStyleClass().contains("window-resize-handle")
-                || node.getStyleClass().contains("window-resize-edge")) {
-            if (node instanceof Parent) {
-                Parent parent = (Parent) node;
-                for (Node child : parent.getChildrenUnmodifiable()) {
-                    applyThemeToAllNodes(child, themeIndex);
-                }
-            }
+    private void stripThemeClassesFromDescendants(Node node, Node sceneRoot, Node contentRoot) {
+        if (node == null) {
             return;
         }
-        if (!(node instanceof Spinner || node instanceof Slider || isInsideThemedControl(node))) {
-            node.getStyleClass().removeAll("theme-dark", "theme-light", "weiss-theme", "pastell-theme",
-                    "blau-theme", "gruen-theme", "lila-theme");
-            switch (themeIndex) {
-                case 0 -> node.getStyleClass().add("weiss-theme");
-                case 1 -> node.getStyleClass().add("theme-dark");
-                case 2 -> node.getStyleClass().add("pastell-theme");
-                case 3 -> node.getStyleClass().addAll("theme-dark", "blau-theme");
-                case 4 -> node.getStyleClass().addAll("theme-dark", "gruen-theme");
-                case 5 -> node.getStyleClass().addAll("theme-dark", "lila-theme");
-                default -> node.getStyleClass().add("theme-dark");
+        if (node != sceneRoot && node != contentRoot
+                && !node.getStyleClass().contains("title-bar")) {
+            node.getStyleClass().removeAll(THEME_STYLE_CLASSES);
+        }
+        if (node instanceof TabPane tabPane) {
+            for (Tab tab : tabPane.getTabs()) {
+                stripThemeClassesFromDescendants(tab.getContent(), sceneRoot, contentRoot);
+                stripThemeClassesFromDescendants(tab.getGraphic(), sceneRoot, contentRoot);
             }
         }
         if (node instanceof Parent parent) {
             for (Node child : parent.getChildrenUnmodifiable()) {
-                applyThemeToAllNodes(child, themeIndex);
+                stripThemeClassesFromDescendants(child, sceneRoot, contentRoot);
             }
         }
     }
 
-    private static boolean isInsideThemedControl(Node node) {
-        for (Node parent = node.getParent(); parent != null; parent = parent.getParent()) {
-            if (parent instanceof Spinner || parent instanceof Slider) {
-                return true;
+    private void refreshPaintedThemeNodes(Node node, int themeIndex) {
+        if (node == null) {
+            return;
+        }
+        if (node instanceof CharacterCardsEditor cards) {
+            cards.applyTheme(themeIndex);
+            return;
+        }
+        if (node instanceof MdTextArea md) {
+            if (md.getStyleClass().contains("character-card-field-editor")) {
+                md.applyEmbeddedFieldTheme(themeIndex);
+            } else {
+                md.applyTheme(themeIndex);
+            }
+            return;
+        }
+        if (node instanceof CustomChatArea chat) {
+            chat.setThemeIndex(themeIndex);
+            return;
+        }
+        if (node instanceof TabPane tabPane) {
+            for (Tab tab : tabPane.getTabs()) {
+                refreshPaintedThemeNodes(tab.getContent(), themeIndex);
             }
         }
-        return false;
+        if (node instanceof Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                refreshPaintedThemeNodes(child, themeIndex);
+            }
+        }
     }
 
     private String createTitleLabelStyle(String textColor) {
