@@ -18,7 +18,8 @@ public final class PluginCatalogUrls {
             "projekt-backup",
             "schreib-statistik",
             "publish-paket",
-            "mindmap");
+            "mindmap",
+            "buch-preview");
 
     private static final Pattern FILE_NAME = Pattern.compile("[A-Za-z0-9._-]+\\.jar");
     private static final Pattern PLUGIN_ID = Pattern.compile("[a-z0-9][a-z0-9._-]*");

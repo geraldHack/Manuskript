@@ -27,21 +27,47 @@ public final class PluginLoader {
     static final String SERVICE_PATH = "META-INF/services/com.manuskript.plugin.ManuskriptPlugin";
 
     private static final List<URLClassLoader> LOADERS = new ArrayList<>();
+    private static final List<ManuskriptPlugin> INSTANCES = new ArrayList<>();
 
     private PluginLoader() {
     }
 
     public static PluginLoadResult load() {
-        return loadFromDirectories(pluginDirectories());
+        unload();
+        PluginLoadResult result = loadFromDirectories(pluginDirectories());
+        INSTANCES.clear();
+        INSTANCES.addAll(result.plugins());
+        return result;
+    }
+
+    /** Plugins anhalten und ClassLoader schließen, damit die JAR gelöscht werden kann. */
+    public static void unload() {
+        for (ManuskriptPlugin plugin : INSTANCES) {
+            try {
+                plugin.stop();
+            } catch (Exception e) {
+                logger.debug("Plugin stop fehlgeschlagen: {}", plugin.id(), e);
+            }
+        }
+        INSTANCES.clear();
+        for (URLClassLoader loader : LOADERS) {
+            try {
+                loader.close();
+            } catch (IOException e) {
+                logger.debug("Plugin-ClassLoader nicht geschlossen", e);
+            }
+        }
+        LOADERS.clear();
     }
 
     static PluginLoadResult loadFromDirectories(List<File> directories) {
         List<ManuskriptPlugin> plugins = new ArrayList<>();
         List<String> errors = new ArrayList<>();
-        Set<String> seen = new LinkedHashSet<>();
+        Set<String> seenJars = new LinkedHashSet<>();
+        Set<String> seenIds = new LinkedHashSet<>();
         if (directories != null) {
             for (File dir : directories) {
-                loadFromDirectory(dir, seen, plugins, errors);
+                loadFromDirectory(dir, seenJars, seenIds, plugins, errors);
             }
         }
         return new PluginLoadResult(List.copyOf(plugins), List.copyOf(errors));
@@ -51,7 +77,6 @@ public final class PluginLoader {
         List<File> dirs = new ArrayList<>();
         Set<String> seen = new LinkedHashSet<>();
         addDirectory(dirs, seen, ApplicationPaths.resolvePluginsDirectory());
-        addDirectory(dirs, seen, new File(System.getProperty("user.dir", "."), "plugins"));
         return dirs;
     }
 
@@ -78,7 +103,7 @@ public final class PluginLoader {
         dirs.add(dir);
     }
 
-    private static void loadFromDirectory(File dir, Set<String> seenJars,
+    private static void loadFromDirectory(File dir, Set<String> seenJars, Set<String> seenIds,
                                           List<ManuskriptPlugin> plugins, List<String> errors) {
         File[] jars = dir.listFiles(file -> file.isFile() && file.getName().toLowerCase().endsWith(".jar"));
         if (jars == null) {
@@ -93,7 +118,7 @@ public final class PluginLoader {
                 continue;
             }
             try {
-                loadPluginJar(jar, plugins);
+                loadPluginJar(jar, seenIds, plugins);
             } catch (Exception | java.util.ServiceConfigurationError e) {
                 logger.warn("Plugin-JAR konnte nicht geladen werden: {}", jar.getAbsolutePath(), e);
                 errors.add(jar.getName() + ": " + message(e));
@@ -101,10 +126,10 @@ public final class PluginLoader {
         }
     }
 
-    private static void loadPluginJar(File jar, List<ManuskriptPlugin> plugins) throws Exception {
-        URLClassLoader loader = new URLClassLoader(
-                new URL[]{jar.toURI().toURL()},
-                ManuskriptPlugin.class.getClassLoader());
+    private static void loadPluginJar(File jar, Set<String> seenIds, List<ManuskriptPlugin> plugins) throws Exception {
+        URL url = jar.toURI().toURL();
+        url.openConnection().setDefaultUseCaches(false);
+        URLClassLoader loader = new URLClassLoader(new URL[]{url}, ManuskriptPlugin.class.getClassLoader());
         LOADERS.add(loader);
         ServiceLoader<ManuskriptPlugin> serviceLoader = ServiceLoader.load(ManuskriptPlugin.class, loader);
         boolean found = false;
@@ -113,6 +138,11 @@ public final class PluginLoader {
                 continue;
             }
             found = true;
+            String id = plugin.id() == null ? "" : plugin.id().trim().toLowerCase(java.util.Locale.ROOT);
+            if (id.isEmpty() || !seenIds.add(id)) {
+                logger.info("Plugin {} übersprungen (bereits geladen)", id.isEmpty() ? jar.getName() : id);
+                continue;
+            }
             plugins.add(plugin);
             logger.info("Plugin geladen: {} ({}) aus {}", plugin.label(), plugin.id(), jar.getName());
         }

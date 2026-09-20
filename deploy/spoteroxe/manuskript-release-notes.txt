@@ -1,1 +1,3 @@
+Linux: Export ohne FX-Thread-Fehler; Exportfenster scrollbar
+Linux: Plugins/Config unter ~/.local/share/manuskript
 neu: NI (Natürliche Intelligenz) Lektorat

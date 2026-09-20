@@ -69,4 +69,20 @@ class PluginLoaderTest {
         assertFalse(PluginLoader.hasPluginDescriptor(zip));
         assertFalse(PluginLoader.hasPluginDescriptor(null));
     }
+
+    @Test
+    void loadsDuplicatePluginIdOnlyOnce() throws Exception {
+        File jar = new File("tools/openrouter-monitor/target/openrouter-monitor.jar");
+        org.junit.jupiter.api.Assumptions.assumeTrue(jar.isFile(), "Monitor-JAR wurde nicht gebaut");
+        File dirA = tempDir.resolve("a").toFile();
+        File dirB = tempDir.resolve("b").toFile();
+        assertTrue(dirA.mkdirs());
+        assertTrue(dirB.mkdirs());
+        java.nio.file.Files.copy(jar.toPath(), dirA.toPath().resolve("openrouter-monitor.jar"));
+        java.nio.file.Files.copy(jar.toPath(), dirB.toPath().resolve("openrouter-monitor-1.0.0.jar"));
+        PluginLoader.PluginLoadResult result = PluginLoader.loadFromDirectories(List.of(dirA, dirB));
+        assertTrue(result.errors().isEmpty(), () -> result.errors().toString());
+        assertEquals(1, result.plugins().size());
+        assertEquals("openrouter-monitor", result.plugins().get(0).id());
+    }
 }

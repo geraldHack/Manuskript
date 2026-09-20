@@ -785,6 +785,7 @@ public class ChatbotAgentTab extends ScrollPane {
     }
 
     public void applyEditorFont(String fontFamily, int fontSizePx) {
+        AgentFontSizeSupport.applyEditorFont(this, fontSizePx, fontFamily, null);
         chatArea.applyEditorFont(fontFamily, fontSizePx);
         applyInputFont(fontFamily, fontSizePx);
     }

@@ -37,7 +37,8 @@ public final class UnsavedChangesDiffDialog {
         String baseline = loadSavedBaseline(host);
         String current = host.getText() != null ? host.getText() : "";
         String title = host.getEditorKey() != null ? host.getEditorKey() : "Kapitel";
-        show(host.getStage(), host.getThemeIndex(), title, baseline, current);
+        show(host.getStage(), host.getThemeIndex(), title, baseline, current,
+                host.getEditorFontSizePx(), host.getEditorFontFamily());
     }
 
     static String loadSavedBaseline(ChapterEditorHost host) {
@@ -57,6 +58,12 @@ public final class UnsavedChangesDiffDialog {
 
     public static void show(Window owner, int themeIndex, String chapterLabel,
                             String savedBaseline, String currentText) {
+        show(owner, themeIndex, chapterLabel, savedBaseline, currentText, 0, null);
+    }
+
+    public static void show(Window owner, int themeIndex, String chapterLabel,
+                            String savedBaseline, String currentText,
+                            int editorFontSizePx, String editorFontFamily) {
         String baseline = savedBaseline != null ? savedBaseline : "";
         String current = currentText != null ? currentText : "";
 
@@ -112,6 +119,9 @@ public final class UnsavedChangesDiffDialog {
             diffGrid.getChildren().clear();
             diffGrid.getRowConstraints().clear();
             buildDiffRows(diffGrid, diff.getDiffLines(), text, border, hide);
+            if (editorFontSizePx > 0) {
+                EditorDialogThemes.applyEditorFont(diffGrid, editorFontSizePx, editorFontFamily);
+            }
         });
 
         ScrollPane scroll = new ScrollPane(diffGrid);
@@ -126,6 +136,9 @@ public final class UnsavedChangesDiffDialog {
         buttons.setAlignment(Pos.CENTER_RIGHT);
 
         root.getChildren().addAll(titleLabel, hintLabel, hideUnchanged, headerGrid, scroll, buttons);
+        if (editorFontSizePx > 0) {
+            EditorDialogThemes.applyEditorFont(root, editorFontSizePx, editorFontFamily);
+        }
 
         Scene scene = new Scene(root, 1200, 720);
         scene.setFill(javafx.scene.paint.Color.web(bg));

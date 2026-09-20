@@ -19,8 +19,8 @@ public interface PluginHost {
     Path applicationHome();
 
     /**
-     * Wurzel für Konfiguration — in Manuskript dasselbe wie {@link #applicationHome()}
-     * (darunter liegt {@code config/}).
+     * Schreibbare Wurzel für Konfiguration (darunter liegt {@code config/}).
+     * Bei AppImage/{@code /opt}/{@code /usr} ist das nicht {@link #applicationHome()}.
      */
     Path configDir();
 

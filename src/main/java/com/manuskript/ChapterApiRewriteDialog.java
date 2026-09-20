@@ -129,6 +129,7 @@ public final class ChapterApiRewriteDialog {
 
         root.getChildren().addAll(originalLabel, originalArea, instructionLabel, instructionField, persistInstructionCheck,
                 tempLabel, tempBox, modelLabel, modelField, answersLabel, progressBar, scrollPane, buttonBox);
+        EditorDialogThemes.applyEditorFont(root, host);
 
         Scene scene = new Scene(root);
         scene.setFill(javafx.scene.paint.Color.web(EditorDialogThemes.color(themeIndex, 0)));
@@ -221,7 +222,9 @@ public final class ChapterApiRewriteDialog {
             api.chat(systemPrompt, userMessage, 2048)
                     .thenAccept(response -> Platform.runLater(() -> {
                         if (response == null || response.trim().isEmpty()) {
-                            answersBox.getChildren().add(errorLabel("Keine Antwort von der API."));
+                            Label err = errorLabel("Keine Antwort von der API.");
+                            EditorDialogThemes.applyEditorFont(err, host);
+                            answersBox.getChildren().add(err);
                             resetGenerateButton(btnGenerate, progressBar);
                             clearHostBusy.run();
                             return;
@@ -244,6 +247,7 @@ public final class ChapterApiRewriteDialog {
                             VBox variantBox = new VBox(5);
                             variantBox.getChildren().addAll(answerBtn, answerText);
                             EditorDialogThemes.applyToNode(variantBox, themeIndex);
+                            EditorDialogThemes.applyEditorFont(variantBox, host);
                             answerBtn.setOnAction(ev -> {
                                 if (ChapterRewriteReplaceHelper.replaceIfUnchanged(
                                         host, startPos, endPos, originalText, variant, "Text ersetzt.")) {
@@ -261,7 +265,9 @@ public final class ChapterApiRewriteDialog {
                             String msg = throwable != null && throwable.getCause() != null
                                     ? throwable.getCause().getMessage()
                                     : (throwable != null ? throwable.getMessage() : "Unbekannter Fehler");
-                            answersBox.getChildren().add(errorLabel("Fehler: " + msg));
+                            Label err = errorLabel("Fehler: " + msg);
+                            EditorDialogThemes.applyEditorFont(err, host);
+                            answersBox.getChildren().add(err);
                             resetGenerateButton(btnGenerate, progressBar);
                             clearHostBusy.run();
                         });

@@ -250,6 +250,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                     if (sceneOutlineWindow != null && sceneOutlineWindow.isShowing()) {
                         sceneOutlineWindow.applyEditorFont(value, mdTextArea.getEditorFontSize());
                     }
+                    syncContextWindowsEditorFont();
                 })
                 .onFontSizeChanged(value -> {
                     preferences.putDouble(PREF_FONT_SIZE, value);
@@ -263,6 +264,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                     if (sceneOutlineWindow != null && sceneOutlineWindow.isShowing()) {
                         sceneOutlineWindow.applyEditorFont(getEditorFontFamily(), value);
                     }
+                    syncContextWindowsEditorFont();
                 })
                 .onLineSpacingChanged(value -> preferences.putDouble(PREF_LINE_SPACING, value))
                 .onParagraphSpacingChanged(value -> preferences.putDouble(PREF_PARAGRAPH_SPACING, value))
@@ -448,6 +450,16 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             @Override
             public void applyThemeToNode(Node node, int themeIndex) {
                 ManuskriptEditorTestWindow.this.applyThemeToNode(node, themeIndex);
+            }
+
+            @Override
+            public int getEditorFontSizePx() {
+                return ManuskriptEditorTestWindow.this.getEditorFontSizePx();
+            }
+
+            @Override
+            public String getEditorFontFamily() {
+                return ManuskriptEditorTestWindow.this.getEditorFontFamily();
             }
         };
     }
@@ -921,9 +933,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                             "Diktat-Glossar bearbeiten (data/dictation-glossary.txt)",
                             () -> dictationSupport.openGlossaryEditor()));
         }
-        werkzeugeSegmentPane.getChildren().addAll(
-                insertImage, editImage, deleteImage,
-                saveDocxAlongside);
+        werkzeugeSegmentPane.getChildren().addAll(insertImage, editImage, deleteImage);
 
         toolbarSegmentToggleGroup = new ToggleGroup();
         chipSchrift = createToolbarSegmentChip("Schrift", "Schrift, Abstände und Ansicht", HostToolbarSegment.SCHRIFT);
@@ -947,6 +957,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 editorHelpMenu,
                 chipRow,
                 statusSpacer,
+                saveDocxAlongside,
                 saveChapter,
                 languageToolStatusBox,
                 lblSelectionCount,
@@ -1937,7 +1948,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 entry.displayLabel(),
                 historyContent,
                 editor.getText(),
-                this::applyRestoredHistoryContent);
+                this::applyRestoredHistoryContent,
+                getEditorFontSizePx(),
+                getEditorFontFamily());
     }
 
     private void restoreSelectedHistoryVersion() {
@@ -2447,6 +2460,15 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             textAnalysisWindow = new ChapterTextAnalysisWindow(createTextAnalysisHost());
         }
         textAnalysisWindow.toggle();
+    }
+
+    private void syncContextWindowsEditorFont() {
+        if (textAnalysisWindow != null && textAnalysisWindow.isShowing()) {
+            textAnalysisWindow.applyEditorFont();
+        }
+        if (macroWindow != null && macroWindow.isShowing()) {
+            macroWindow.applyEditorFont();
+        }
     }
 
     private ChapterMacroWindow.Host createMacroHost() {

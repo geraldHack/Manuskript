@@ -524,6 +524,9 @@ public class AgentTab extends ScrollPane {
         }
         AgentAnswerMdArea.applyFont(freeformOutputArea, currentFontFamily, size);
         AgentAnswerMdArea.applyFont(rewriteTextArea, currentFontFamily, size);
+        if (revisionInstructionField != null) {
+            revisionInstructionField.setMinHeight(Math.max(48, 4 * size * 1.35));
+        }
         applyAnswerTheme(currentThemeIndex);
         AgentActionButtonSupport.applyFontSize(12, analyzeButton, realtimeToggle);
         if (copyPromptButton != null && analyzeButton != null) {
@@ -1031,7 +1034,8 @@ public class AgentTab extends ScrollPane {
                     + "(kürzer als die Markierung). Beim Übernehmen wird der Rest der Markierung behalten, "
                     + "falls möglich — sonst bitte erneut analysieren.");
             truncWarn.setWrapText(true);
-            truncWarn.setStyle("-fx-text-fill: #b45309; -fx-font-size: 11px;");
+            truncWarn.setStyle(String.format("-fx-text-fill: #b45309; -fx-font-size: %dpx;",
+                    Math.max(10, editorFontSize - 1)));
             truncWarn.setMaxWidth(Double.MAX_VALUE);
             suggestionsBox.getChildren().add(truncWarn);
         }

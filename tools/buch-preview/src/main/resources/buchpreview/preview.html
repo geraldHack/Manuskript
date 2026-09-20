@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Taschenbuch-Preview</title>
+  <style>
+    :root {
+      --bg: #1e1e1e;
+      --text: #f2f2f2;
+      --panel: #2a2a2a;
+      --border: #555;
+    }
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    #app { height: 100%; display: flex; flex-direction: column; }
+    #views { flex: 1; overflow: hidden; position: relative; }
+    .view { display: none; height: 100%; align-items: center; justify-content: center; }
+    .view.active { display: flex; }
+    #measure {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      visibility: hidden;
+      overflow: hidden;
+    }
+    .page-inner {
+      box-sizing: border-box;
+      overflow: hidden;
+      font-size: 11pt;
+      line-height: 1.45;
+      text-align: justify;
+      text-justify: inter-word;
+      overflow-wrap: break-word;
+      word-break: normal;
+      hyphens: none !important;
+      -webkit-hyphens: none !important;
+      -ms-hyphens: none !important;
+      hyphenate-character: "-";
+      -webkit-hyphenate-character: "-";
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    .page-inner p, .page-inner h1, .page-inner h2, .page-inner h3, .page-inner li {
+      hyphens: none !important;
+      -webkit-hyphens: none !important;
+      font-family: inherit;
+    }
+    .page-inner p { margin: 0 0 0.7em 0; text-align: justify; text-justify: inter-word; }
+    .page-inner p:empty { display: none; }
+    .page-inner img {
+      max-width: 100%;
+      max-height: none;
+      height: auto;
+      display: block;
+      margin: 0.8em auto;
+      visibility: visible;
+    }
+    .page-inner p.bp-image {
+      text-align: center;
+      text-indent: 0;
+      margin: 0.8em 0;
+    }
+    .page-inner img.cover-image,
+    .page-inner img[alt="Cover"] {
+      display: none;
+    }
+    .page-inner h1, .page-inner h2, .page-inner h3 { page-break-after: avoid; margin: 1.1em 0 0.5em; }
+    .spread {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+      transform-origin: center center;
+    }
+    .sheet {
+      background: #f7f3ea;
+      color: #1a1a1a;
+      box-shadow: 0 8px 24px rgba(0,0,0,.35);
+      position: relative;
+      overflow: hidden;
+    }
+    .sheet .folio {
+      position: absolute;
+      bottom: 6px;
+      width: 100%;
+      text-align: center;
+      font-size: 9px;
+      color: #666;
+    }
+    .nav {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      z-index: 2;
+    }
+    .nav button {
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .cover-wrap {
+      display: flex;
+      align-items: stretch;
+      transform: rotateY(-22deg);
+      transform-style: preserve-3d;
+    }
+    .cover-front, .cover-back, .cover-spine {
+      box-shadow: 0 10px 28px rgba(0,0,0,.4);
+    }
+    .cover-front {
+      background: #222 center/cover no-repeat;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      color: #fff;
+      text-shadow: 0 1px 4px #000;
+      font-size: 13px;
+      padding: 8px;
+    }
+    .cover-spine {
+      background: linear-gradient(90deg, #050505, #1a1a1a 48%, #050505);
+      color: #f4f4f4;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      padding: 14px 4px;
+      box-sizing: border-box;
+    }
+    .cover-back {
+      background: #111;
+      color: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-sizing: border-box;
+      padding: 9% 8%;
+      overflow: hidden;
+    }
+    .cover-blurb {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      font-size: 8px;
+      line-height: 1.35;
+      text-align: justify;
+      text-justify: inter-word;
+      white-space: pre-wrap;
+      hyphens: none;
+    }
+    .cover-author {
+      flex-shrink: 0;
+      margin-top: 0.7em;
+      padding-top: 0.55em;
+      border-top: 1px solid rgba(255, 255, 255, 0.28);
+      font-size: 7px;
+      line-height: 1.3;
+      letter-spacing: 0.01em;
+    }
+    .cover-author-name {
+      font-weight: 700;
+      margin-bottom: 0.25em;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .cover-author-info {
+      opacity: 0.88;
+      white-space: pre-wrap;
+    }
+    .dummy-stage {
+      perspective: 1400px;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+    }
+    .dummy-iso {
+      display: flex;
+      align-items: stretch;
+      transform: rotateY(-38deg) rotateX(8deg);
+      transform-style: preserve-3d;
+      filter: drop-shadow(12px 22px 28px rgba(0, 0, 0, 0.5));
+    }
+    .dummy-spine {
+      box-sizing: border-box;
+      background: linear-gradient(90deg, #050505 0%, #1a1a1a 46%, #050505 100%);
+      color: #f4f4f4;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px 5px;
+      letter-spacing: 0.14em;
+      font-size: 13px;
+      line-height: 1.15;
+      transform: rotateY(-22deg);
+      transform-origin: right center;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .dummy-spine .spine-title {
+      font-weight: 600;
+    }
+    .dummy-spine .spine-author {
+      opacity: 0.88;
+      font-size: 11px;
+    }
+    .dummy-pages {
+      width: 7px;
+      background: repeating-linear-gradient(
+          to bottom,
+          #f3efe6 0px,
+          #f3efe6 2px,
+          #d9d2c4 3px
+      );
+      box-shadow: inset -2px 0 0 rgba(0, 0, 0, 0.12);
+    }
+    .dummy-front {
+      background: #444 center/cover no-repeat;
+      transform: rotateY(18deg);
+      transform-origin: left center;
+      box-shadow: 8px 0 16px rgba(0, 0, 0, 0.28);
+    }
+    .dummy-caption {
+      font-size: 12px;
+      color: #c8c8c8;
+    }
+    #hint {
+      padding: 24px;
+      max-width: 40em;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="views">
+      <div id="view-cover" class="view active"></div>
+      <div id="view-dummy" class="view"></div>
+      <div id="view-flip" class="view"></div>
+    </div>
+    <div class="nav" id="flip-nav" style="display:none">
+      <button type="button" id="prev">Zurück</button>
+      <span id="spread-label"></span>
+      <button type="button" id="next">Weiter</button>
+    </div>
+  </div>
+  <div id="measure"></div>
+  <script>
+    /*BP_BOOT*/
+    var state = { pages: [], format: null, payload: null, spreadIndex: 0 };
+    var MM = 3.779527559;
+
+    function jsStr(v) {
+      if (v == null) {
+        return "";
+      }
+      return "" + v;
+    }
+
+    function loadPreviewFromJava() {
+      try {
+        var fmt = {};
+        try {
+          fmt = JSON.parse(jsStr(window.bpFormatJson) || "{}");
+        } catch (ignore) {
+          fmt = {};
+        }
+        var payload = {
+          bodyHtml: jsStr(window.bpBodyHtml),
+          blurb: jsStr(window.bpBlurb),
+          title: jsStr(window.bpTitle),
+          author: jsStr(window.bpAuthor),
+          authorInfo: jsStr(window.bpAuthorInfo),
+          coverDataUri: jsStr(window.bpCover),
+          format: fmt
+        };
+        loadPreview(payload);
+        return state.pages ? state.pages.length : 0;
+      } catch (e) {
+        var msg = (e && e.message) ? e.message : String(e);
+        document.getElementById("view-cover").innerHTML =
+            "<div id='hint'>Vorschau: " + escapeHtml(msg) + "</div>";
+        return "ERR:" + msg;
+      }
+    }
+
+    function showView(name) {
+      var ids = ["cover", "dummy", "flip"];
+      for (var i = 0; i < ids.length; i++) {
+        var el = document.getElementById("view-" + ids[i]);
+        if (!el) {
+          continue;
+        }
+        if (ids[i] === name) {
+          el.className = "view active";
+        } else {
+          el.className = "view";
+        }
+      }
+      document.getElementById("flip-nav").style.display = name === "flip" ? "flex" : "none";
+      fitPreview();
+    }
+
+    function loadPreview(payload) {
+      state.payload = payload;
+      state.format = payload.format || {};
+      state.spreadIndex = 0;
+      var pages = paginate(jsStr(payload.bodyHtml), payload.format || {});
+      state.pages = pages;
+      var spine = spineMm(pages.length, payload.format || {});
+      renderCover(payload, pages.length, spine);
+      renderDummy(payload, pages.length, spine);
+      renderFlip();
+      fitPreview();
+    }
+
+    function spineMm(pages, fmt) {
+      var paper = Number(fmt.paperMm) > 0 ? Number(fmt.paperMm) : 0.10;
+      var spine = (Math.max(pages, 1) / 2) * paper;
+      if (fmt.hardcover) {
+        spine += Number(fmt.coverExtraMm) > 0 ? Number(fmt.coverExtraMm) : 3;
+      }
+      return spine;
+    }
+
+    function innerSize(fmt) {
+      var w = (Number(fmt.widthMm) || 125) - (Number(fmt.marginInnerMm) || 16) - (Number(fmt.marginOuterMm) || 12);
+      var h = (Number(fmt.heightMm) || 190) - (Number(fmt.marginTopMm) || 14) - (Number(fmt.marginBottomMm) || 16);
+      return { wMm: Math.max(40, w), hMm: Math.max(60, h) };
+    }
+
+    function outerJoin(arr) {
+      var s = "";
+      for (var i = 0; i < arr.length; i++) {
+        if (arr[i] && arr[i].outerHTML) {
+          s += arr[i].outerHTML;
+        }
+      }
+      return s;
+    }
+
+    function isCoverImage(node) {
+      if (!node) {
+        return false;
+      }
+      var cls = node.className ? String(node.className) : "";
+      var alt = node.getAttribute ? (node.getAttribute("alt") || "") : "";
+      return cls.indexOf("cover-image") >= 0 || alt === "Cover";
+    }
+
+    function isBlankBlock(node) {
+      if (!node) {
+        return true;
+      }
+      var tag = node.tagName ? String(node.tagName).toLowerCase() : "";
+      if (tag === "img") {
+        return isCoverImage(node);
+      }
+      if (node.getElementsByTagName) {
+        var imgs = node.getElementsByTagName("img");
+        if (imgs && imgs.length > 0) {
+          for (var i = 0; i < imgs.length; i++) {
+            if (!isCoverImage(imgs[i])) {
+              return false;
+            }
+          }
+        }
+      }
+      var t = node.textContent ? String(node.textContent).replace(/[\s\u00a0]+/g, "") : "";
+      if (tag === "hr" || tag === "br") {
+        return false;
+      }
+      return t.length === 0;
+    }
+
+    function collectBlocks(root, blocks) {
+      var nodes = root.childNodes;
+      for (var n = 0; n < nodes.length; n++) {
+        var node = nodes[n];
+        if (node.nodeType === 3) {
+          var t = node.textContent ? String(node.textContent).replace(/^\s+|\s+$/g, "") : "";
+          if (t) {
+            var pNode = document.createElement("p");
+            pNode.textContent = t;
+            blocks.push(pNode);
+          }
+        } else if (node.nodeType === 1) {
+          var tag = node.tagName ? String(node.tagName).toLowerCase() : "";
+          if (tag === "div" || tag === "article" || tag === "section" || tag === "main") {
+            collectBlocks(node, blocks);
+          } else if (!isBlankBlock(node)) {
+            blocks.push(node);
+          }
+        }
+      }
+    }
+
+    function fitPreview() {
+      function fit(viewId) {
+        var view = document.getElementById(viewId);
+        if (!view) {
+          return;
+        }
+        var inner = view.firstElementChild;
+        if (!inner) {
+          return;
+        }
+        inner.style.transform = "none";
+        var vw = view.clientWidth - 40;
+        var vh = view.clientHeight - 40;
+        if (vw < 80 || vh < 80) {
+          return;
+        }
+        var sw = inner.scrollWidth || inner.offsetWidth;
+        var sh = inner.scrollHeight || inner.offsetHeight;
+        if (sw < 1 || sh < 1) {
+          return;
+        }
+        var scale = Math.min(1, vw / sw, vh / sh);
+        inner.style.transformOrigin = "center center";
+        inner.style.transform = "scale(" + scale + ")";
+      }
+      fit("view-flip");
+      fit("view-cover");
+      fit("view-dummy");
+    }
+
+    function isChapterHeading(node) {
+      if (!node || !node.tagName) {
+        return false;
+      }
+      var tag = String(node.tagName).toLowerCase();
+      if (tag !== "h1" && tag !== "h2") {
+        return false;
+      }
+      var cls = node.className ? String(node.className) : "";
+      return cls.indexOf("title") < 0 && cls.indexOf("subtitle") < 0 && cls.indexOf("author") < 0;
+    }
+
+    function hasNonHeading(blocks) {
+      for (var i = 0; i < blocks.length; i++) {
+        if (!isChapterHeading(blocks[i])) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function blockHasImage(node) {
+      if (!node) {
+        return false;
+      }
+      var tag = node.tagName ? String(node.tagName).toLowerCase() : "";
+      if (tag === "img") {
+        return !isCoverImage(node);
+      }
+      if (!node.getElementsByTagName) {
+        return false;
+      }
+      var imgs = node.getElementsByTagName("img");
+      for (var i = 0; i < imgs.length; i++) {
+        if (!isCoverImage(imgs[i])) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function paginate(html, fmt) {
+      var size = innerSize(fmt);
+      var measure = document.getElementById("measure");
+      measure.innerHTML = "";
+      var host = document.createElement("div");
+      host.className = "page-inner";
+      host.style.width = size.wMm + "mm";
+      host.style.height = size.hMm + "mm";
+      measure.appendChild(host);
+
+      var wrap = document.createElement("div");
+      wrap.innerHTML = html || "<p></p>";
+      var blocks = [];
+      collectBlocks(wrap, blocks);
+      if (blocks.length === 0) {
+        var p = document.createElement("p");
+        p.textContent = wrap.textContent || "";
+        blocks.push(p);
+      }
+
+      var pages = [];
+      var current = [];
+      function flush() {
+        if (current.length === 0) {
+          return;
+        }
+        pages.push(outerJoin(current));
+        current = [];
+      }
+      for (var b = 0; b < blocks.length; b++) {
+        var clone = blocks[b].cloneNode(true);
+        if (blockHasImage(clone)) {
+          flush();
+          current.push(clone);
+          flush();
+          continue;
+        }
+        if (isChapterHeading(clone) && hasNonHeading(current)) {
+          flush();
+        }
+        current.push(clone);
+        host.innerHTML = outerJoin(current);
+        if (host.scrollHeight > host.clientHeight + 2) {
+          current.pop();
+          flush();
+          current.push(clone);
+          host.innerHTML = clone.outerHTML || "";
+          if (host.scrollHeight > host.clientHeight + 2) {
+            flush();
+          }
+        }
+      }
+      flush();
+      if (pages.length === 0) {
+        pages.push("<p></p>");
+      }
+      return pages;
+    }
+
+    function sheetStyle(fmt) {
+      return "width:" + (fmt.widthMm || 125) + "mm;height:" + (fmt.heightMm || 190) + "mm;";
+    }
+
+    function innerPad(fmt, verso) {
+      var inner = (fmt.marginInnerMm || 16) + "mm";
+      var outer = (fmt.marginOuterMm || 12) + "mm";
+      return "padding:" + (fmt.marginTopMm || 14) + "mm "
+          + (verso ? inner : outer) + " "
+          + (fmt.marginBottomMm || 16) + "mm "
+          + (verso ? outer : inner);
+    }
+
+    function spineLabel(payload) {
+      var title = jsStr(payload.title) || "Ohne Titel";
+      var author = jsStr(payload.author);
+      var titleHtml = '<span class="spine-title">' + escapeHtml(title) + '</span>';
+      if (!author) {
+        return titleHtml;
+      }
+      return '<span class="spine-author">' + escapeHtml(author) + '</span>' + titleHtml;
+    }
+
+    function renderCover(payload, pages, spine) {
+      var fmt = payload.format || {};
+      var w = (fmt.widthMm || 125) * MM * 0.55;
+      var h = (fmt.heightMm || 190) * MM * 0.55;
+      var sw = Math.max(28, spine * MM * 0.55);
+      var coverUri = jsStr(payload.coverDataUri);
+      var frontBg = coverUri
+          ? "background-image:url('" + coverUri + "');"
+          : "background:#3a3a3a;";
+      var title = escapeHtml(jsStr(payload.title));
+      var blurb = escapeHtml(jsStr(payload.blurb) || "Kein Klappentext im Exportmodul (Abstract).");
+      var author = jsStr(payload.author);
+      var authorInfo = jsStr(payload.authorInfo);
+      var blurbPx = Math.max(7, Math.round(h * 0.022));
+      var authorPx = Math.max(6, Math.round(h * 0.018));
+      var authorHtml = "";
+      if (author || authorInfo) {
+        authorHtml = '<div class="cover-author" style="font-size:' + authorPx + 'px">';
+        if (author) {
+          authorHtml += '<div class="cover-author-name">' + escapeHtml(author) + '</div>';
+        }
+        if (authorInfo) {
+          authorHtml += '<div class="cover-author-info">' + escapeHtml(authorInfo) + '</div>';
+        }
+        authorHtml += '</div>';
+      }
+      document.getElementById("view-cover").innerHTML =
+          '<div class="cover-wrap">' +
+          '<div class="cover-back" style="width:' + w + 'px;height:' + h + 'px">' +
+          '<div class="cover-blurb" style="font-size:' + blurbPx + 'px">' + blurb + '</div>' +
+          authorHtml +
+          '</div>' +
+          '<div class="cover-spine" style="width:' + sw + 'px;height:' + h + 'px">' + spineLabel(payload) + '</div>' +
+          '<div class="cover-front" style="width:' + w + 'px;height:' + h + 'px;' + frontBg + '">' +
+          (coverUri ? "" : title) + '</div></div>';
+      fitPreview();
+    }
+
+    function renderDummy(payload, pages, spine) {
+      var fmt = payload.format || {};
+      var extra = fmt.hardcover ? 10 : 0;
+      var scale = 0.78;
+      var w = (fmt.widthMm || 125) * MM * scale + extra;
+      var h = (fmt.heightMm || 190) * MM * scale + extra;
+      var sw = Math.max(44, spine * MM * scale);
+      var coverUri = jsStr(payload.coverDataUri);
+      var frontBg = coverUri
+          ? "background-image:url('" + coverUri + "');"
+          : "background:#454545;";
+      var mm = Math.round(spine);
+      document.getElementById("view-dummy").innerHTML =
+          '<div class="dummy-stage">' +
+          '<div class="dummy-iso" style="height:' + h + 'px">' +
+          '<div class="dummy-spine" style="width:' + sw + 'px;height:' + h + 'px">' + spineLabel(payload) + '</div>' +
+          '<div class="dummy-pages" style="height:' + h + 'px"></div>' +
+          '<div class="dummy-front" style="width:' + w + 'px;height:' + h + 'px;' + frontBg + '"></div>' +
+          '</div>' +
+          '<div class="dummy-caption">Buchrücken ' + mm + ' mm · ' + escapeHtml(jsStr(payload.title) || "Ohne Titel") + '</div>' +
+          '</div>';
+      fitPreview();
+    }
+
+    function renderFlip() {
+      var fmt = state.format || {};
+      var pages = state.pages;
+      if (state.spreadIndex < 0) {
+        state.spreadIndex = 0;
+      }
+      var last = Math.max(0, Math.floor(pages.length / 2));
+      if (state.spreadIndex > last) {
+        state.spreadIndex = last;
+      }
+
+      var leftNum;
+      var rightNum;
+      if (state.spreadIndex === 0) {
+        leftNum = null;
+        rightNum = 1;
+      } else {
+        leftNum = state.spreadIndex * 2;
+        rightNum = leftNum + 1;
+      }
+
+      function pageHtml(num, verso) {
+        if (num == null || num < 1 || num > pages.length) {
+          return '<div class="sheet" style="' + sheetStyle(fmt) + 'background:#ddd"></div>';
+        }
+        return '<div class="sheet" style="' + sheetStyle(fmt) + '">' +
+            '<div class="page-inner" style="' + innerPad(fmt, verso) + '">' + pages[num - 1] + '</div>' +
+            '<div class="folio">' + num + '</div></div>';
+      }
+
+      document.getElementById("view-flip").innerHTML =
+          '<div class="spread">' + pageHtml(leftNum, true) + pageHtml(rightNum, false) + '</div>';
+      document.getElementById("spread-label").textContent =
+          (leftNum ? leftNum + "–" : "") + (rightNum || "") + " / " + pages.length;
+      var flipView = document.getElementById("view-flip");
+      document.getElementById("flip-nav").style.display =
+          flipView.className.indexOf("active") >= 0 ? "flex" : "none";
+      fitPreview();
+    }
+
+    function escapeHtml(s) {
+      return String(s || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+    }
+
+    document.getElementById("prev").onclick = function () {
+      state.spreadIndex = Math.max(0, state.spreadIndex - 1);
+      renderFlip();
+    };
+    document.getElementById("next").onclick = function () {
+      var last = Math.max(0, Math.floor(state.pages.length / 2));
+      state.spreadIndex = Math.min(last, state.spreadIndex + 1);
+      renderFlip();
+    };
+
+    window.loadPreviewFromJava = loadPreviewFromJava;
+    window.showView = showView;
+    window.fitPreview = fitPreview;
+    window.addEventListener("resize", fitPreview);
+  </script>
+</body>
+</html>

@@ -45,13 +45,18 @@ public final class SshBackupTransport {
     }
 
     public static String upload(Path localFile, BackupTarget target) throws IOException {
-        if (localFile == null || !Files.isRegularFile(localFile)) {
-            throw new IllegalArgumentException("Lokale Backup-Datei fehlt");
+        if (localFile == null || (!Files.isRegularFile(localFile) && !Files.isDirectory(localFile))) {
+            throw new IllegalArgumentException("Lokales Backup fehlt");
         }
         requireSsh(target);
         String remoteDir = target.sshRemotePath.trim();
         String remoteFile = remoteDir.replaceAll("/+$", "") + "/" + localFile.getFileName();
         try (SSHClient ssh = connect(target)) {
+            if (Files.isDirectory(localFile)) {
+                try (SFTPClient sftp = ssh.newSFTPClient()) {
+                    sftp.mkdirs(remoteFile);
+                }
+            }
             ssh.newSCPFileTransfer().upload(new FileSystemFile(localFile.toFile()), remoteFile);
         }
         return remoteFile;
@@ -68,20 +73,36 @@ public final class SshBackupTransport {
              SFTPClient sftp = ssh.newSFTPClient()) {
             List<RemoteResourceInfo> files = new ArrayList<>();
             for (RemoteResourceInfo info : sftp.ls(remoteDir)) {
-                if (!info.isRegularFile()) {
+                String name = info.getName();
+                if (!name.startsWith(prefix)) {
                     continue;
                 }
-                String name = info.getName();
-                if (name.startsWith(prefix)
-                        && (name.endsWith(".zip") || name.toLowerCase(Locale.ROOT).endsWith(".zip.enc"))) {
+                if (info.isDirectory()
+                        || (info.isRegularFile()
+                        && (name.endsWith(".zip") || name.toLowerCase(Locale.ROOT).endsWith(".zip.enc")))) {
                     files.add(info);
                 }
             }
             files.sort(Comparator.comparingLong((RemoteResourceInfo info) -> info.getAttributes().getMtime()).reversed());
             for (int i = keepCount; i < files.size(); i++) {
-                sftp.rm(files.get(i).getPath());
+                removeRemote(sftp, files.get(i));
             }
         }
+    }
+
+    private static void removeRemote(SFTPClient sftp, RemoteResourceInfo info) throws IOException {
+        if (info.isDirectory()) {
+            for (RemoteResourceInfo child : sftp.ls(info.getPath())) {
+                String name = child.getName();
+                if (".".equals(name) || "..".equals(name)) {
+                    continue;
+                }
+                removeRemote(sftp, child);
+            }
+            sftp.rmdir(info.getPath());
+            return;
+        }
+        sftp.rm(info.getPath());
     }
 
     static SSHClient connect(BackupTarget target) throws IOException {

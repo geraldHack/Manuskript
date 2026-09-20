@@ -21,6 +21,7 @@ public final class BackupTarget {
     public String sshPassword = "";
     public boolean sshAcceptUnknownHost = false;
     public boolean compress = true;
+    public boolean allProjects = false;
     public boolean encrypt = false;
     public String encryptPassword = "";
     public String schedule = BackupSchedule.OFF.name();
@@ -73,6 +74,7 @@ public final class BackupTarget {
         copy.sshPassword = sshPassword;
         copy.sshAcceptUnknownHost = sshAcceptUnknownHost;
         copy.compress = compress;
+        copy.allProjects = allProjects;
         copy.encrypt = encrypt;
         copy.encryptPassword = encryptPassword;
         copy.schedule = schedule;

@@ -84,6 +84,7 @@ public final class SelectionRevisionDialog {
         root.getChildren().addAll(selectionLabel, selectionArea, instructionLabel, instructionArea, hint, buttons);
         VBox.setVgrow(selectionArea, Priority.SOMETIMES);
         VBox.setVgrow(instructionArea, Priority.NEVER);
+        EditorDialogThemes.applyEditorFont(root, host);
 
         Scene scene = new Scene(root);
         scene.setFill(javafx.scene.paint.Color.web(EditorDialogThemes.color(themeIndex, 0)));

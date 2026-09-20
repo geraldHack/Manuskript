@@ -11,7 +11,7 @@
 Manuskript hat bereits starkes Fundament:
 
 - **In-App:** Agenten, Online-Lektorat, LanguageTool, Textanalyse, Makros, Szenen-Outline, Roman-Assistent, Welt-Editor, Diktat, Hörbuch
-- **JAR-Plugins:** Statistik, OpenRouter-/Mammouth-Monitor, Projekt-Backup, Publish-Paket
+- **JAR-Plugins:** Statistik, OpenRouter-/Mammouth-Monitor, Projekt-Backup, Publish-Paket, Mindmap, Taschenbuch-Preview
 - **PluginHost:** Projektpfad, Kapitel-Markdown, themed Stage, Browser, `completeChat`
 
 **Regel:** Nebenfenster/Workflows → **JAR-Plugin**; Prose-Helfer à la Sudowrite → **Agent** oder **FeaturePack** im Canvas-Editor.
@@ -46,6 +46,7 @@ Manuskript hat bereits starkes Fundament:
 5. **Publish-Paket-Helfer** — **fertig** (`tools/publish-paket/`)
 6. **DeepL-Bridge** — Übersetzung/Glossar für fremdsprachige Passagen
 7. **Mindmap** — **fertig** (`tools/mindmap/`) — WebView editierbar, KI Erstlesen/Aktualisieren
+8. **Taschenbuch-Preview** — **fertig** (`tools/buch-preview/`) — HTML5-Export, Klappentext/Cover aus Exportmodul, Cover/3D/Blättern
 
 ### Tier B — mehr Integration
 

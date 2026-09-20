@@ -116,6 +116,7 @@ public final class ChapterOllamaRewriteDialog {
 
         root.getChildren().addAll(originalLabel, originalArea, instructionLabel, instructionField,
                 creativityLabel, creativityBox, progressBar, scrollPane, buttonBox);
+        EditorDialogThemes.applyEditorFont(root, host);
 
         Scene scene = new Scene(root);
         scene.setFill(javafx.scene.paint.Color.web(EditorDialogThemes.color(themeIndex, 0)));
@@ -185,7 +186,9 @@ public final class ChapterOllamaRewriteDialog {
                             ollamaService.getTopP(), ollamaService.getRepeatPenalty())
                     .thenAccept(response -> Platform.runLater(() -> {
                         if (response == null || response.trim().isEmpty()) {
-                            answersBox.getChildren().add(errorLabel("Keine Antwort von Ollama."));
+                            Label err = errorLabel("Keine Antwort von Ollama.");
+                            EditorDialogThemes.applyEditorFont(err, host);
+                            answersBox.getChildren().add(err);
                             resetGenerateButton(btnGenerate, progressBar);
                             clearHostBusy.run();
                             return;
@@ -206,6 +209,7 @@ public final class ChapterOllamaRewriteDialog {
                             EditorDialogThemes.applyToNode(answerText, themeIndex);
                             VBox variantBox = new VBox(5, answerBtn, answerText);
                             EditorDialogThemes.applyToNode(variantBox, themeIndex);
+                            EditorDialogThemes.applyEditorFont(variantBox, host);
                             answerBtn.setOnAction(ev -> {
                                 if (ChapterRewriteReplaceHelper.replaceIfUnchanged(
                                         host, startPos, endPos, originalText, variant,
@@ -221,7 +225,9 @@ public final class ChapterOllamaRewriteDialog {
                     }))
                     .exceptionally(ex -> {
                         Platform.runLater(() -> {
-                            answersBox.getChildren().add(errorLabel("Ollama-Fehler: " + ex.getMessage()));
+                            Label err = errorLabel("Ollama-Fehler: " + ex.getMessage());
+                            EditorDialogThemes.applyEditorFont(err, host);
+                            answersBox.getChildren().add(err);
                             resetGenerateButton(btnGenerate, progressBar);
                             clearHostBusy.run();
                         });

@@ -9,7 +9,6 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Properties;
 import org.slf4j.Logger;
@@ -95,10 +94,7 @@ public class ResourceManager {
      * Lädt eine CSS-Datei aus dem Config-Ordner
      */
     public static String getCssResource(String resourcePath) {
-        // Externe Datei im Config-Ordner
-        String externalPath = CONFIG_DIR + "/" + resourcePath;
-        File externalFile = new File(externalPath);
-        
+        File externalFile = resolveConfigFile(resourcePath);
         if (externalFile.exists() && externalFile.isFile()) {
             return externalFile.toURI().toString();
         }
@@ -221,7 +217,8 @@ public class ResourceManager {
      */
     public static void saveSession(String sessionName, List<CustomChatArea.QAPair> qaPairs) {
         try {
-            Path sessionsPath = Paths.get(CONFIG_DIR, SESSIONS_DIR);
+            Path sessionsPath = resolveConfigFile(SESSIONS_DIR).toPath();
+            Files.createDirectories(sessionsPath);
             Path sessionFile = sessionsPath.resolve(sessionName + ".json");
             
             // Session als JSON serialisieren
@@ -238,7 +235,7 @@ public class ResourceManager {
      */
     public static List<CustomChatArea.QAPair> loadSession(String sessionName) {
         try {
-            Path sessionsPath = Paths.get(CONFIG_DIR, SESSIONS_DIR);
+            Path sessionsPath = resolveConfigFile(SESSIONS_DIR).toPath();
             Path sessionFile = sessionsPath.resolve(sessionName + ".json");
             
             if (Files.exists(sessionFile)) {
@@ -260,7 +257,7 @@ public class ResourceManager {
      */
     public static void deleteSession(String sessionName) {
         try {
-            Path sessionsPath = Paths.get(CONFIG_DIR, SESSIONS_DIR);
+            Path sessionsPath = resolveConfigFile(SESSIONS_DIR).toPath();
             Path sessionFile = sessionsPath.resolve(sessionName + ".json");
             
             if (Files.exists(sessionFile)) {
@@ -277,7 +274,7 @@ public class ResourceManager {
     public static List<String> getAvailableSessions() {
         List<String> sessions = new ArrayList<>();
         try {
-            Path sessionsPath = Paths.get(CONFIG_DIR, SESSIONS_DIR);
+            Path sessionsPath = resolveConfigFile(SESSIONS_DIR).toPath();
             
             if (Files.exists(sessionsPath)) {
                 Files.list(sessionsPath)
@@ -300,7 +297,7 @@ public class ResourceManager {
      */
     private static void createDefaultCssFile(String configPath) {
         try {
-            Path targetPath = Paths.get(CONFIG_DIR, configPath);
+            Path targetPath = resolveConfigFile(configPath).toPath();
             
             // Nur erstellen falls Ziel-Datei nicht existiert
             if (!Files.exists(targetPath)) {
@@ -423,8 +420,7 @@ public class ResourceManager {
     }
     
     /**
-     * Absoluter Config-Ordner: App-Home ({@code Contents/app/config}), sonst {@code ./config}.
-     * Nicht das CWD der .app ({@code /}) — sonst fehlen Erstinstallations-Dateien.
+     * Absoluter Config-Ordner im schreibbaren Home.
      */
     public static String getConfigDirectory() {
         return ApplicationPaths.resolveConfigPath("config").getAbsolutePath();
@@ -456,7 +452,7 @@ public class ResourceManager {
             
             // Fallback: Aus parameters.properties laden
             Properties props = new Properties();
-            File configFile = new File(CONFIG_DIR + File.separator + "parameters.properties");
+            File configFile = resolveConfigFile("parameters.properties");
             
             if (configFile.exists()) {
                 try (FileInputStream fis = new FileInputStream(configFile)) {
@@ -621,7 +617,7 @@ public class ResourceManager {
      */
     public static void migrateParametersToPreferences() {
         try {
-            File configFile = new File(CONFIG_DIR + File.separator + "parameters.properties");
+            File configFile = resolveConfigFile("parameters.properties");
             if (!configFile.exists()) {
                 return; // Keine Migration nötig
             }
@@ -662,7 +658,7 @@ public class ResourceManager {
             
             if (migratedCount > 0) {
                 // Backup der alten parameters.properties erstellen
-                File backupFile = new File(CONFIG_DIR + File.separator + "parameters.properties.backup");
+                File backupFile = resolveConfigFile("parameters.properties.backup");
                 try {
                     Files.copy(configFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 } catch (IOException e) {
@@ -680,7 +676,7 @@ public class ResourceManager {
      */
     private static String getParameterFromProperties(String key, String defaultValue) {
         try {
-            File configFile = new File(CONFIG_DIR + File.separator + "parameters.properties");
+            File configFile = resolveConfigFile("parameters.properties");
             if (!configFile.exists()) {
                 return defaultValue;
             }

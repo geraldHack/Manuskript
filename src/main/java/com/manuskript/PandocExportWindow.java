@@ -100,6 +100,28 @@ public class PandocExportWindow extends CustomStage {
     private CustomStage installLogStage;
     private TextArea installLogTextArea;
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+    /**
+     * UI-Werte für den Export-Hintergrundthread. JavaFX-Nodes (ComboBox/TextField)
+     * dürfen unter Linux nicht vom Worker-Thread gelesen werden.
+     */
+    private volatile ExportUiSnapshot exportUi;
+
+    private record ExportUiSnapshot(
+            String title,
+            String subtitle,
+            String author,
+            String rights,
+            String date,
+            String abstractText,
+            String format,
+            String template,
+            String coverImage,
+            String outputDirectory,
+            String fileName,
+            int imageSizePercent,
+            boolean initials) {
+    }
     
     public PandocExportWindow(File inputMarkdownFile, String projectName) {
         super();
@@ -113,12 +135,15 @@ public class PandocExportWindow extends CustomStage {
         setTitle("Pandoc Export - " + projectName);
         setWidth(700);
         setHeight(900);
+        setMinWidth(520);
+        setMinHeight(480);
         setResizable(true);
         
         initializeUI();
         loadReferenceTemplates();
         loadProjectMetadata();
         loadWindowProperties();
+        clampWindowToScreen();
         setupWindowListeners();
         
         // Initiale Format-spezifische Felder setzen (Template und Cover sind bereits im Layout)
@@ -126,6 +151,124 @@ public class PandocExportWindow extends CustomStage {
 
         // Titel nochmal setzen nach der Initialisierung
         setTitle("Buch exportieren - " + projectName);
+    }
+
+    private ExportUiSnapshot captureExportUiSnapshot() {
+        return new ExportUiSnapshot(
+                textOrEmpty(titleField),
+                textOrEmpty(subtitleField),
+                textOrEmpty(authorField),
+                textOrEmpty(rightsField),
+                textOrEmpty(dateField),
+                textOrEmpty(abstractArea),
+                formatComboBox != null && formatComboBox.getValue() != null
+                        ? formatComboBox.getValue() : "docx",
+                templateComboBox != null && templateComboBox.getValue() != null
+                        ? templateComboBox.getValue() : "",
+                textOrEmpty(coverImageField),
+                textOrEmpty(outputDirectoryField),
+                textOrEmpty(fileNameField),
+                imageSizeSlider != null ? (int) Math.round(imageSizeSlider.getValue()) : 100,
+                initialsCheckBox != null && initialsCheckBox.isSelected());
+    }
+
+    private static String textOrEmpty(TextInputControl field) {
+        if (field == null || field.getText() == null) {
+            return "";
+        }
+        return field.getText().trim();
+    }
+
+    private String exportTitle() {
+        return exportUi != null ? exportUi.title() : textOrEmpty(titleField);
+    }
+
+    private String exportSubtitle() {
+        return exportUi != null ? exportUi.subtitle() : textOrEmpty(subtitleField);
+    }
+
+    private String exportAuthor() {
+        return exportUi != null ? exportUi.author() : textOrEmpty(authorField);
+    }
+
+    private String exportRights() {
+        return exportUi != null ? exportUi.rights() : textOrEmpty(rightsField);
+    }
+
+    private String exportDate() {
+        return exportUi != null ? exportUi.date() : textOrEmpty(dateField);
+    }
+
+    private String exportAbstract() {
+        return exportUi != null ? exportUi.abstractText() : textOrEmpty(abstractArea);
+    }
+
+    private String exportFormat() {
+        if (exportUi != null) {
+            return exportUi.format();
+        }
+        return formatComboBox != null && formatComboBox.getValue() != null
+                ? formatComboBox.getValue() : "docx";
+    }
+
+    private String exportTemplate() {
+        if (exportUi != null) {
+            return exportUi.template();
+        }
+        return templateComboBox != null && templateComboBox.getValue() != null
+                ? templateComboBox.getValue() : "";
+    }
+
+    private String exportCoverImage() {
+        return exportUi != null ? exportUi.coverImage() : textOrEmpty(coverImageField);
+    }
+
+    private String exportOutputDirectory() {
+        return exportUi != null ? exportUi.outputDirectory() : textOrEmpty(outputDirectoryField);
+    }
+
+    private String exportFileName() {
+        return exportUi != null ? exportUi.fileName() : textOrEmpty(fileNameField);
+    }
+
+    private int exportImageSizePercent() {
+        if (exportUi != null) {
+            return exportUi.imageSizePercent();
+        }
+        return imageSizeSlider != null ? (int) Math.round(imageSizeSlider.getValue()) : 100;
+    }
+
+    private boolean exportInitials() {
+        if (exportUi != null) {
+            return exportUi.initials();
+        }
+        return initialsCheckBox != null && initialsCheckBox.isSelected();
+    }
+
+    private void clampWindowToScreen() {
+        try {
+            javafx.stage.Screen screen = javafx.stage.Screen.getPrimary();
+            if (screen == null) {
+                return;
+            }
+            Rectangle2D bounds = screen.getVisualBounds();
+            double maxW = Math.max(520, bounds.getWidth() - 24);
+            double maxH = Math.max(480, bounds.getHeight() - 24);
+            if (getWidth() > maxW) {
+                setWidth(maxW);
+            }
+            if (getHeight() > maxH) {
+                setHeight(maxH);
+            }
+            if (getX() + getWidth() > bounds.getMaxX()) {
+                setX(Math.max(bounds.getMinX(), bounds.getMaxX() - getWidth()));
+            }
+            if (getY() + getHeight() > bounds.getMaxY()) {
+                setY(Math.max(bounds.getMinY(), bounds.getMaxY() - getHeight()));
+            }
+        } catch (Exception e) {
+            logger.debug("Fenstergröße konnte nicht an Bildschirm angepasst werden: {}", e.getMessage());
+        }
     }
 
     private String buildResourcePath(File... dirs) {
@@ -248,8 +391,9 @@ public class PandocExportWindow extends CustomStage {
         templateComboBox.setOnAction(e -> updateTemplateDescription());
         
         templateDescription = new TextArea();
-        templateDescription.setPrefRowCount(15);
-        templateDescription.setMinHeight(120); // Mindesthöhe setzen
+        templateDescription.setPrefRowCount(4);
+        templateDescription.setMinHeight(60);
+        templateDescription.setMaxHeight(140);
         templateDescription.setEditable(false);
         templateDescription.getStyleClass().add("dialog-textarea");
         templateDescription.setVisible(false); // Initial ausgeblendet
@@ -347,6 +491,14 @@ public class PandocExportWindow extends CustomStage {
             buttonBox
         );
         
+        // ScrollPane: unter Linux (Titelleiste + Schrift) passt der Inhalt sonst nicht
+        ScrollPane scroll = new ScrollPane(root);
+        scroll.setFitToWidth(true);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scroll.setPadding(Insets.EMPTY);
+        scroll.getStyleClass().add("pandoc-export-dialog");
+        
         // Wrapper mit Padding für äußeren Abstand
         StackPane wrapper = new StackPane();
         wrapper.setPadding(new Insets(10)); // 10px Abstand zum Fensterrand
@@ -355,7 +507,7 @@ public class PandocExportWindow extends CustomStage {
         // Border auf den root setzen
         root.setStyle("-fx-border-width: 1px; -fx-border-radius: 5px;");
         
-        wrapper.getChildren().add(root);
+        wrapper.getChildren().add(scroll);
         
         setSceneWithTitleBar(new Scene(wrapper));
         centerOnScreen();
@@ -517,8 +669,9 @@ public class PandocExportWindow extends CustomStage {
         VBox abstractBox = new VBox(5);
         Label abstractLabel = new Label("Abstract:");
         abstractArea = new TextArea();
-        abstractArea.setPrefRowCount(20);
-        abstractArea.setMinHeight(160); // Mindesthöhe setzen (20 Zeilen * 8px pro Zeile)
+        abstractArea.setPrefRowCount(6);
+        abstractArea.setMinHeight(80);
+        abstractArea.setMaxHeight(180);
         abstractArea.setWrapText(true); // Umbruch aktivieren
         abstractArea.setPromptText("Kurze Beschreibung des Werks...");
         abstractArea.getStyleClass().add("dialog-textarea");
@@ -617,7 +770,7 @@ public class PandocExportWindow extends CustomStage {
     }
     
     private void updateTemplateDescription() {
-        String selectedTemplate = templateComboBox.getValue();
+        String selectedTemplate = exportTemplate();
         if (selectedTemplate != null) {
             // Look for description file
             File descriptionFile = new File(ApplicationPaths.resolvePandocDirectory(),
@@ -684,11 +837,21 @@ public class PandocExportWindow extends CustomStage {
         authorField.setText(metadata.getOrDefault("author", preferences.get("pandoc_author", "Gerald Leonard")));
         rightsField.setText(metadata.getOrDefault("rights", preferences.get("pandoc_rights", "© 2025 Gerald Leonard")));
         dateField.setText(metadata.getOrDefault("date", preferences.get("pandoc_date", "Oktober 2025")));
-        outputDirectoryField.setText(metadata.getOrDefault("outputDirectory", preferences.get("pandoc_output_directory", "")));
+        String savedOutput = ExportPathCheck.nativeOrEmpty(
+                metadata.getOrDefault("outputDirectory", preferences.get("pandoc_output_directory", "")));
+        if (savedOutput.isEmpty()) {
+            String fromPrefs = ExportPathCheck.nativeOrEmpty(preferences.get("pandoc_output_directory", ""));
+            savedOutput = fromPrefs;
+        }
+        outputDirectoryField.setText(savedOutput);
         abstractArea.setText(metadata.getOrDefault("abstract", preferences.get("pandoc_abstract", "")));
         
         // Cover-Bild laden
-        String savedCoverImage = metadata.getOrDefault("coverImage", preferences.get("pandoc_cover_image", ""));
+        String savedCoverImage = ExportPathCheck.nativeOrEmpty(
+                metadata.getOrDefault("coverImage", preferences.get("pandoc_cover_image", "")));
+        if (!savedCoverImage.isEmpty() && !new File(savedCoverImage).isFile()) {
+            savedCoverImage = "";
+        }
         if (savedCoverImage.isEmpty()) {
             // Automatisch Cover-Bild aus Projektverzeichnis setzen
             if (projectDirectory != null) {
@@ -738,24 +901,31 @@ public class PandocExportWindow extends CustomStage {
         
         try {
             Map<String, String> metadata = new HashMap<>();
-            metadata.put("title", titleField.getText().trim());
-            metadata.put("subtitle", subtitleField.getText().trim());
-            metadata.put("author", authorField.getText().trim());
-            metadata.put("rights", rightsField.getText().trim());
-            metadata.put("date", dateField.getText().trim());
-            metadata.put("outputDirectory", outputDirectoryField.getText().trim());
-            metadata.put("abstract", abstractArea.getText().trim());
-            metadata.put("coverImage", coverImageField.getText().trim());
-            metadata.put("format", formatComboBox.getValue() != null ? formatComboBox.getValue() : "docx");
-            metadata.put("template", templateComboBox.getValue() != null ? templateComboBox.getValue() : "");
-            metadata.put("imageSize", String.valueOf((int) Math.round(imageSizeSlider.getValue())));
-            
+            metadata.put("title", exportTitle());
+            metadata.put("subtitle", exportSubtitle());
+            metadata.put("author", exportAuthor());
+            metadata.put("rights", exportRights());
+            metadata.put("date", exportDate());
+            metadata.put("outputDirectory", ExportPathCheck.nativeOrEmpty(exportOutputDirectory()));
+            metadata.put("abstract", exportAbstract());
+            metadata.put("coverImage", ExportPathCheck.nativeOrEmpty(exportCoverImage()));
+            metadata.put("format", exportFormat() != null ? exportFormat() : "docx");
+            metadata.put("template", exportTemplate() != null ? exportTemplate() : "");
+            metadata.put("imageSize", String.valueOf(exportImageSizePercent()));
+
             String json = gson.toJson(metadata);
             Files.writeString(metadataFile.toPath(), json, StandardCharsets.UTF_8);
             logger.debug("Metadaten in Projekt-Datei gespeichert: {}", metadataFile.getAbsolutePath());
-            
-            // Auch in globale Preferences speichern für Fallback
-            preferences.put("pandoc_image_size", String.valueOf((int) Math.round(imageSizeSlider.getValue())));
+
+            preferences.put("pandoc_abstract", exportAbstract());
+            preferences.put("pandoc_title", exportTitle());
+            preferences.put("pandoc_author", exportAuthor());
+            preferences.put("pandoc_cover_image", ExportPathCheck.nativeOrEmpty(exportCoverImage()));
+            String nativeOut = ExportPathCheck.nativeOrEmpty(exportOutputDirectory());
+            if (!nativeOut.isEmpty()) {
+                preferences.put("pandoc_output_directory", nativeOut);
+            }
+            preferences.put("pandoc_image_size", String.valueOf(exportImageSizePercent()));
         } catch (IOException e) {
             logger.warn("Fehler beim Speichern der Projekt-Metadaten: {}", e.getMessage());
         }
@@ -763,9 +933,9 @@ public class PandocExportWindow extends CustomStage {
     
     /** Ziel-Datei des aktuellen Export-Dialogs (wie in runPandocExport). */
     private File resolveExportOutputFile() {
-        String format = formatComboBox != null ? formatComboBox.getValue() : "docx";
-        String outputDirPath = outputDirectoryField != null ? outputDirectoryField.getText().trim() : "";
-        String fileName = fileNameField != null ? fileNameField.getText().trim() : "";
+        String format = formatComboBox != null ? exportFormat() : "docx";
+        String outputDirPath = outputDirectoryField != null ? exportOutputDirectory() : "";
+        String fileName = fileNameField != null ? exportFileName() : "";
         if (outputDirPath.isEmpty() || fileName.isEmpty()) {
             return null;
         }
@@ -787,7 +957,7 @@ public class PandocExportWindow extends CustomStage {
         if (file == null) {
             return;
         }
-        String format = formatComboBox != null ? formatComboBox.getValue() : "";
+        String format = formatComboBox != null ? exportFormat() : "";
         boolean waitForPostProcess = "docx".equals(format)
                 || "epub3".equals(format)
                 || "epub".equals(format);
@@ -860,7 +1030,8 @@ public class PandocExportWindow extends CustomStage {
             lastDirectory = preferences.get("pandoc_output_directory", "");
         }
         
-        if (!lastDirectory.isEmpty() && new File(lastDirectory).exists()) {
+        lastDirectory = ExportPathCheck.nativeOrEmpty(lastDirectory);
+        if (!lastDirectory.isEmpty() && new File(lastDirectory).isDirectory()) {
             chooser.setInitialDirectory(new File(lastDirectory));
         }
         
@@ -874,19 +1045,38 @@ public class PandocExportWindow extends CustomStage {
         }
     }
     
+    private String validateExportPaths() {
+        String dirText = outputDirectoryField != null ? exportOutputDirectory() : "";
+        String dirProblem = ExportPathCheck.outputDirectoryProblem(dirText, projectDirectory);
+        if (dirProblem != null) {
+            return dirProblem;
+        }
+        String coverText = coverImageField != null ? exportCoverImage() : "";
+        if (coverText != null && !coverText.isBlank()) {
+            return ExportPathCheck.existingFileProblem(coverText.trim(), "Cover-Bild");
+        }
+        return null;
+    }
+
     private void startExport() {
         // Validate inputs
-        if (titleField.getText().trim().isEmpty()) {
+        if (exportTitle().isEmpty()) {
             showAlert("Fehler", "Bitte geben Sie einen Titel ein.");
             return;
         }
         
-        if (outputDirectoryField.getText().trim().isEmpty()) {
+        if (exportOutputDirectory().isEmpty()) {
             showAlert("Fehler", "Bitte wählen Sie ein Zielverzeichnis.");
             return;
         }
+
+        String pathError = validateExportPaths();
+        if (pathError != null) {
+            showAlert("Pfad prüfen", pathError);
+            return;
+        }
         
-        if (fileNameField.getText().trim().isEmpty()) {
+        if (exportFileName().isEmpty()) {
             showAlert("Fehler", "Bitte geben Sie einen Dateinamen ein.");
             return;
         }
@@ -903,25 +1093,19 @@ public class PandocExportWindow extends CustomStage {
         }
         exportButton.setDisable(true);
         exportButton.setText("Export läuft...");
+
+        final ExportUiSnapshot snapshot = captureExportUiSnapshot();
         
         // Export in separatem Thread ausführen, damit UI nicht blockiert wird
         Task<Boolean> exportTask = new Task<Boolean>() {
             @Override
             protected Boolean call() throws Exception {
+                exportUi = snapshot;
                 try {
                     // YAML-Metadaten direkt in Markdown-Datei einfügen
                     File markdownWithMetadata = createMarkdownWithMetadata();
                     if (markdownWithMetadata == null) {
-                        Platform.runLater(() -> {
-                            isExporting = false;
-                            setCursorLocked(false);
-                            if (getScene() != null) {
-                                getScene().setCursor(Cursor.DEFAULT);
-                            }
-                            exportButton.setDisable(false);
-                            exportButton.setText("Export starten");
-                            showAlert("Fehler", "Konnte Markdown-Datei mit Metadaten nicht erstellen.");
-                        });
+                        lastExportError = "Konnte Markdown-Datei mit Metadaten nicht erstellen.";
                         return false;
                     }
                     
@@ -931,6 +1115,8 @@ public class PandocExportWindow extends CustomStage {
                     logger.error("Fehler beim Export", e);
                     lastExportError = "Export fehlgeschlagen: " + (e.getMessage() != null ? e.getMessage() : "Unbekannter Fehler");
                     return false;
+                } finally {
+                    exportUi = null;
                 }
             }
         };
@@ -1071,8 +1257,9 @@ public class PandocExportWindow extends CustomStage {
         
         // Output-Verzeichnis speichern (globale Präferenz für Verzeichnis-Wahl)
         outputDirectoryField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.trim().isEmpty()) {
-                preferences.put("pandoc_output_directory", newVal.trim());
+            String nativeOut = ExportPathCheck.nativeOrEmpty(newVal);
+            if (!nativeOut.isEmpty()) {
+                preferences.put("pandoc_output_directory", nativeOut);
             }
             saveProjectMetadata();
         });
@@ -1102,27 +1289,27 @@ public class PandocExportWindow extends CustomStage {
             }
             
             try (PrintWriter writer = new PrintWriter(new FileWriter(yamlFile, StandardCharsets.UTF_8))) {
-                writer.println("title: \"" + escapeYamlString(titleField.getText().trim()) + "\"");
+                writer.println("title: \"" + escapeYamlString(exportTitle()) + "\"");
                 
-                if (!subtitleField.getText().trim().isEmpty()) {
-                    writer.println("subtitle: \"" + escapeYamlString(subtitleField.getText().trim()) + "\"");
+                if (!exportSubtitle().isEmpty()) {
+                    writer.println("subtitle: \"" + escapeYamlString(exportSubtitle()) + "\"");
                 }
                 
-                if (!authorField.getText().trim().isEmpty()) {
-                    writer.println("author: \"" + escapeYamlString(authorField.getText().trim()) + "\"");
+                if (!exportAuthor().isEmpty()) {
+                    writer.println("author: \"" + escapeYamlString(exportAuthor()) + "\"");
                 }
                 
-                if (!rightsField.getText().trim().isEmpty()) {
-                    writer.println("rights: \"" + escapeYamlString(rightsField.getText().trim()) + "\"");
+                if (!exportRights().isEmpty()) {
+                    writer.println("rights: \"" + escapeYamlString(exportRights()) + "\"");
                 }
                 
-                if (!dateField.getText().trim().isEmpty()) {
-                    writer.println("date: \"" + escapeYamlString(dateField.getText().trim()) + "\"");
+                if (!exportDate().isEmpty()) {
+                    writer.println("date: \"" + escapeYamlString(exportDate()) + "\"");
                 }
                 
-                if (!abstractArea.getText().trim().isEmpty()) {
+                if (!exportAbstract().isEmpty()) {
                     writer.println("abstract: |");
-                    String[] lines = abstractArea.getText().trim().split("\n");
+                    String[] lines = exportAbstract().split("\n");
                     for (String line : lines) {
                         writer.println("  " + line);
                     }
@@ -1130,13 +1317,13 @@ public class PandocExportWindow extends CustomStage {
                 }
 
                 // Cover-Bild für HTML5 und PDF hinzufügen (falls vorhanden)
-                String format = formatComboBox.getValue();
-                if (("html5".equals(format) || "pdf".equals(format)) && !coverImageField.getText().trim().isEmpty()) {
-                    File coverImageFile = new File(coverImageField.getText().trim());
+                String format = exportFormat();
+                if (("html5".equals(format) || "pdf".equals(format)) && !exportCoverImage().isEmpty()) {
+                    File coverImageFile = new File(exportCoverImage());
                     if (coverImageFile.exists()) {
                         if ("html5".equals(format)) {
-                            String baseName = fileNameField.getText().replace(".html", "");
-                            File htmlDir = new File(outputDirectoryField.getText(), baseName + "_html");
+                            String baseName = exportFileName().replace(".html", "");
+                            File htmlDir = new File(exportOutputDirectory(), baseName + "_html");
                             String coverFileName = getCoverFileName(coverImageFile);
                             File targetCover = new File(htmlDir, coverFileName);
                             writer.println("cover-image: \"" + targetCover.getName() + "\"");
@@ -1209,7 +1396,7 @@ public class PandocExportWindow extends CustomStage {
                 writer.write(lineSeparator);
                 
                 // Titel
-                String title = titleField.getText().trim();
+                String title = exportTitle();
                 if (!title.isEmpty()) {
                     writer.write("title: \"" + escapeYamlString(title) + "\"");
                 } else {
@@ -1218,43 +1405,43 @@ public class PandocExportWindow extends CustomStage {
                 writer.write(lineSeparator);
                 
                 // Untertitel
-                String subtitle = subtitleField.getText().trim();
+                String subtitle = exportSubtitle();
                 if (!subtitle.isEmpty()) {
                     writer.write("subtitle: \"" + escapeYamlString(subtitle) + "\"");
                     writer.write(lineSeparator);
                 }
                 
                 // Autor
-                String author = authorField.getText().trim();
+                String author = exportAuthor();
                 if (!author.isEmpty()) {
                     writer.write("author: \"" + escapeYamlString(author) + "\"");
                     writer.write(lineSeparator);
                 }
                 
                 // Datum
-                String date = dateField.getText().trim();
+                String date = exportDate();
                 if (!date.isEmpty()) {
                     writer.write("date: \"" + escapeYamlString(date) + "\"");
                     writer.write(lineSeparator);
                 }
                 
                 // Rechte
-                String rights = rightsField.getText().trim();
+                String rights = exportRights();
                 if (!rights.isEmpty()) {
                     writer.write("rights: \"" + escapeYamlString(rights) + "\"");
                     writer.write(lineSeparator);
                 }
                 
                 // PDF-spezifische Metadaten
-                String format = formatComboBox.getValue();
+                String format = exportFormat();
                 if ("pdf".equals(format)) {
                     // Nur toc hinzufügen, keine Fonts oder lang (werden nicht benötigt)
                     writer.write("toc: true");
                     writer.write(lineSeparator);
                     
                     // Cover-Bild für PDF hinzufügen (falls vorhanden)
-                    if (!coverImageField.getText().trim().isEmpty()) {
-                        File coverImageFile = new File(coverImageField.getText().trim());
+                    if (!exportCoverImage().isEmpty()) {
+                        File coverImageFile = new File(exportCoverImage());
                         if (coverImageFile.exists()) {
                             String coverFileName = getCoverFileName(coverImageFile);
                             writer.write("cover-image: \"" + coverFileName + "\"");
@@ -1264,7 +1451,7 @@ public class PandocExportWindow extends CustomStage {
                 }
                 
                 // Abstract
-                String abstractText = abstractArea.getText().trim();
+                String abstractText = exportAbstract();
                 if (!abstractText.isEmpty()) {
                     writer.write("abstract: |");
                     writer.write(lineSeparator);
@@ -1402,7 +1589,7 @@ public class PandocExportWindow extends CustomStage {
                 content = normalizeListIndentation(content);
                 
                 // Bildgröße aus Slider lesen
-                int imageSizePercent = (int) Math.round(imageSizeSlider.getValue());
+                int imageSizePercent = exportImageSizePercent();
                 
                 // ZUERST: Reihenfolge korrigieren - wenn Überschrift vor Bild steht, tauschen wir sie im Markdown
                 // Pattern: # Überschrift\n\n![alt](path) -> ![alt](path)\n\n# Überschrift
@@ -1893,14 +2080,22 @@ public class PandocExportWindow extends CustomStage {
         centeredParagraphs.clear();
         
         try {
+            String pathError = validateExportPaths();
+            if (pathError != null) {
+                lastExportError = pathError;
+                return false;
+            }
+
             // Sicherstellen, dass Pandoc verfügbar ist
             if (!ensurePandocAvailable()) {
-                showAlert("Pandoc fehlt", "Pandoc konnte nicht gefunden oder installiert werden. Bitte stellen Sie sicher, dass 'pandoc.zip' im Programmverzeichnis liegt.");
+                lastExportError = "Pandoc konnte nicht gefunden oder installiert werden. "
+                        + "Bitte stellen Sie sicher, dass 'pandoc-linux.zip' bzw. Pandoc im Programmverzeichnis liegt "
+                        + "oder pandoc im PATH verfügbar ist.";
                 return false;
             }
             
             // HTML-Tags durch format-spezifische Befehle ersetzen
-            String format = formatComboBox.getValue();
+            String format = exportFormat();
             if (format != null) {
                 replaceHtmlTagsInMarkdown(markdownFile, format);
             }
@@ -1912,8 +2107,8 @@ public class PandocExportWindow extends CustomStage {
                 : getPandocBinaryName();
             
             // Ausgabedatei
-            String outputDirPath = outputDirectoryField.getText().trim();
-            String fileName = fileNameField.getText().trim();
+            String outputDirPath = exportOutputDirectory();
+            String fileName = exportFileName();
             File outputFile = new File(outputDirPath, fileName);
             File outputDir = new File(outputDirPath);
             
@@ -1921,7 +2116,7 @@ public class PandocExportWindow extends CustomStage {
             File htmlDir = null;
             
             // Template-Datei
-            String selectedTemplate = templateComboBox.getValue();
+            String selectedTemplate = exportTemplate();
             File templateFile = null;
             if (selectedTemplate != null && !referenceTemplates.isEmpty()) {
                 for (File template : referenceTemplates) {
@@ -1941,9 +2136,9 @@ public class PandocExportWindow extends CustomStage {
             // Für HTML5: Ausgabe ins Unterverzeichnis
             String finalOutputPath;
             if ("html5".equals(format)) {
-                String baseName = fileNameField.getText().replace(".html", "");
-                File tempHtmlDir = new File(outputDirectoryField.getText(), baseName + "_html");
-                File htmlFile = new File(tempHtmlDir, fileNameField.getText());
+                String baseName = exportFileName().replace(".html", "");
+                File tempHtmlDir = new File(exportOutputDirectory(), baseName + "_html");
+                File htmlFile = new File(tempHtmlDir, exportFileName());
                 finalOutputPath = htmlFile.getAbsolutePath();
             } else {
                 finalOutputPath = outputFile.getAbsolutePath();
@@ -1973,8 +2168,8 @@ public class PandocExportWindow extends CustomStage {
                 }
 
                 // Cover-Bild für EPUB3
-                if (!coverImageField.getText().trim().isEmpty()) {
-                    File coverImageFile = new File(coverImageField.getText().trim());
+                if (!exportCoverImage().isEmpty()) {
+                    File coverImageFile = new File(exportCoverImage());
                     if (coverImageFile.exists()) {
                         File pandocDir = ApplicationPaths.resolvePandocDirectory();
                         if (pandocDir.exists()) {
@@ -2031,8 +2226,8 @@ public class PandocExportWindow extends CustomStage {
                 // die Styles überschreiben. Versuchen Sie den Export ohne Reference-DOC.
                 
                 // Cover-Bild für DOCX hinzufügen (falls vorhanden)
-                if (!coverImageField.getText().trim().isEmpty()) {
-                    File coverImageFile = new File(coverImageField.getText().trim());
+                if (!exportCoverImage().isEmpty()) {
+                    File coverImageFile = new File(exportCoverImage());
                     if (coverImageFile.exists()) {
                         try {
                             // Cover-Bild ins pandoc-Verzeichnis kopieren
@@ -2069,12 +2264,12 @@ public class PandocExportWindow extends CustomStage {
                 command.add("--standalone"); // Vollständiges HTML-Dokument
 
                 // HTML-Unterverzeichnis erstellen
-                String baseName = fileNameField.getText().replace(".html", "");
-                htmlDir = new File(outputDirectoryField.getText(), baseName + "_html");
+                String baseName = exportFileName().replace(".html", "");
+                htmlDir = new File(exportOutputDirectory(), baseName + "_html");
                 htmlDir.mkdirs();
 
                 // HTML-Datei ins Unterverzeichnis legen
-                String htmlFileName = fileNameField.getText();
+                String htmlFileName = exportFileName();
                 File htmlFile = new File(htmlDir, htmlFileName);
 
                         // CSS-Datei ins Unterverzeichnis kopieren
@@ -2096,8 +2291,8 @@ public class PandocExportWindow extends CustomStage {
                         }
 
                 // Cover-Bild ins Unterverzeichnis kopieren (falls vorhanden)
-                if (!coverImageField.getText().trim().isEmpty()) {
-                    File coverImageFile = new File(coverImageField.getText().trim());
+                if (!exportCoverImage().isEmpty()) {
+                    File coverImageFile = new File(exportCoverImage());
                     if (coverImageFile.exists()) {
                         try {
                             String coverFileName = getCoverFileName(coverImageFile);
@@ -2163,8 +2358,8 @@ public class PandocExportWindow extends CustomStage {
                 command.add("--variable=numbersections:false"); // Kapitelnummerierung deaktivieren
                 
                 // Cover-Bild für PDF hinzufügen (falls vorhanden)
-                if (!coverImageField.getText().trim().isEmpty()) {
-                    File coverImageFile = new File(coverImageField.getText().trim());
+                if (!exportCoverImage().isEmpty()) {
+                    File coverImageFile = new File(exportCoverImage());
                     if (coverImageFile.exists()) {
                         try {
                             // Cover-Bild ins Ausgabeverzeichnis kopieren (XeLaTeX kompiliert dort)
@@ -2265,8 +2460,8 @@ public class PandocExportWindow extends CustomStage {
                 command.add("--variable=numbersections:false"); // Kapitelnummerierung deaktivieren
                 
                 // Cover-Bild für LaTeX hinzufügen (falls vorhanden)
-                if (!coverImageField.getText().trim().isEmpty()) {
-                    File coverImageFile = new File(coverImageField.getText().trim());
+                if (!exportCoverImage().isEmpty()) {
+                    File coverImageFile = new File(exportCoverImage());
                     if (coverImageFile.exists()) {
                         try {
                             // Cover-Bild ins pandoc-Verzeichnis kopieren
@@ -2539,7 +2734,8 @@ public class PandocExportWindow extends CustomStage {
             boolean success = exitCode == 0
                 && resultFile.exists()
                 && resultFile.length() > 0
-                && (previousTimestamp == -1 || resultFile.lastModified() > previousTimestamp || resultFile.length() != previousLength);
+                && (previousTimestamp == -1 || resultFile.lastModified() > previousTimestamp || resultFile.length() != previousLength)
+                && !ExportPathCheck.isForeignToThisOs(outputDirPath);
 
             if (success) {
                 logger.debug("Export erfolgreich erstellt: {}", resultFile.getAbsolutePath());
@@ -2549,13 +2745,15 @@ public class PandocExportWindow extends CustomStage {
                 
                 // Post-Processing in separaten Threads ausführen, damit der Export sofort zurückgegeben wird
                 final File finalResultFile = resultFile;
+                final String coverForPost = exportCoverImage();
+                final boolean initialsForPost = exportInitials();
                 
                 // Post-Processing für DOCX: Abstract-Titel ersetzen und Cover-Bild hinzufügen
                 if ("docx".equals(format)) {
                     Thread docxPostProcessThread = new Thread(() -> {
                         try {
                             Thread.sleep(200); // Kurze Wartezeit, damit die Datei nicht mehr gesperrt ist
-                            postProcessDocx(finalResultFile);
+                            postProcessDocx(finalResultFile, coverForPost, initialsForPost);
                         } catch (Exception e) {
                             logger.warn("DOCX Post-Processing fehlgeschlagen: {}", e.getMessage());
                         }
@@ -2840,19 +3038,22 @@ public class PandocExportWindow extends CustomStage {
                 }
             }
 
-            // 5) Optionales Bundle-Archiv (Windows: pandoc.zip, macOS/Linux: pandoc-mac.zip oder pandoc.zip)
+            // 5) Optionales Bundle-Archiv
             File zip = resolveBundledPandocArchive();
-            if (!zip.exists()) {
-                logger.warn("pandoc.zip nicht gefunden – kann Pandoc nicht automatisch installieren");
+            if (zip == null || !zip.isFile()) {
+                logger.warn("Pandoc-Archiv nicht gefunden – kann Pandoc nicht automatisch installieren");
                 return false;
             }
 
-            // Zielordner ist pandoc
-            File targetDir = ApplicationPaths.resolvePandocDirectory();
-            if (!targetDir.exists()) targetDir.mkdirs();
+            // Ziel: schreibbares Verzeichnis (AppImage/Arch: nicht /opt oder /usr)
+            File targetDir = resolveWritablePandocDirectory();
+            if (!targetDir.exists() && !targetDir.mkdirs()) {
+                logger.error("Pandoc-Zielordner nicht anlegbar: {}", targetDir.getAbsolutePath());
+                return false;
+            }
             boolean ok = unzip(zip, targetDir);
             if (!ok) {
-                logger.error("Entpacken von pandoc.zip fehlgeschlagen");
+                logger.error("Entpacken von {} fehlgeschlagen", zip.getName());
                 return false;
             }
 
@@ -2867,6 +3068,8 @@ public class PandocExportWindow extends CustomStage {
 
             // Fallback: Manche ZIPs enthalten einen Unterordner – versuche zu finden
             File[] searchRoots = {
+                    targetDir,
+                    ApplicationPaths.writableHomeDirectory(),
                     ApplicationPaths.getApplicationHomeDirectory(),
                     ApplicationPaths.resolvePandocDirectory(),
                     new File(".")
@@ -3307,9 +3510,24 @@ public class PandocExportWindow extends CustomStage {
             }
         }
 
+        File inWritable = new File(resolveWritablePandocDirectory(), binaryName);
+        if (inWritable.exists() && inWritable.isFile()) {
+            return inWritable;
+        }
+
+        File nestedWritable = findNamedFile(resolveWritablePandocDirectory(), binaryName, 3);
+        if (nestedWritable != null) {
+            return nestedWritable;
+        }
+
         File inPandocDir = new File(ApplicationPaths.resolvePandocDirectory(), binaryName);
         if (inPandocDir.exists() && inPandocDir.isFile()) {
             return inPandocDir;
+        }
+
+        File nestedBundled = findNamedFile(ApplicationPaths.resolvePandocDirectory(), binaryName, 3);
+        if (nestedBundled != null) {
+            return nestedBundled;
         }
 
         File inAppHome = new File(ApplicationPaths.getApplicationHomeDirectory(), binaryName);
@@ -3322,6 +3540,47 @@ public class PandocExportWindow extends CustomStage {
             return inProjectRoot;
         }
 
+        return null;
+    }
+
+    /** Schreibbarer Pandoc-Ordner (bei AppImage/Arch nicht das Installationsverzeichnis). */
+    private File resolveWritablePandocDirectory() {
+        File bundled = ApplicationPaths.resolvePandocDirectory();
+        if (bundled != null && bundled.isDirectory() && bundled.canWrite()) {
+            File probe = new File(bundled, ".write-probe");
+            try {
+                Files.writeString(probe.toPath(), "ok");
+                Files.deleteIfExists(probe.toPath());
+                return bundled;
+            } catch (Exception ignored) {
+                // fall through
+            }
+        }
+        File writable = new File(ApplicationPaths.writableHomeDirectory(), "pandoc");
+        writable.mkdirs();
+        return writable;
+    }
+
+    private static File findNamedFile(File root, String fileName, int maxDepth) {
+        if (root == null || !root.isDirectory() || maxDepth < 0 || fileName == null || fileName.isBlank()) {
+            return null;
+        }
+        File direct = new File(root, fileName);
+        if (direct.isFile()) {
+            return direct;
+        }
+        File[] children = root.listFiles();
+        if (children == null) {
+            return null;
+        }
+        for (File child : children) {
+            if (child.isDirectory()) {
+                File found = findNamedFile(child, fileName, maxDepth - 1);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
         return null;
     }
 
@@ -3348,23 +3607,43 @@ public class PandocExportWindow extends CustomStage {
     }
 
     private File resolveBundledPandocArchive() {
-        String[] archiveNames = isWindows()
-            ? new String[] {"pandoc.zip"}
-            : new String[] {"pandoc-mac.zip", "pandoc.zip"};
+        String[] archiveNames;
+        if (isWindows()) {
+            archiveNames = new String[] {"pandoc.zip"};
+        } else if (isMac()) {
+            archiveNames = new String[] {"pandoc-mac.zip", "pandoc.zip"};
+        } else {
+            archiveNames = new String[] {"pandoc-linux.zip", "pandoc.zip"};
+        }
 
         for (String archiveName : archiveNames) {
             File inPandocDir = new File(ApplicationPaths.resolvePandocDirectory(), archiveName);
-            if (inPandocDir.exists()) {
+            if (inPandocDir.isFile()) {
                 return inPandocDir;
             }
 
+            File inWritable = new File(resolveWritablePandocDirectory(), archiveName);
+            if (inWritable.isFile()) {
+                return inWritable;
+            }
+
+            File inAppHome = new File(ApplicationPaths.getApplicationHomeDirectory(), archiveName);
+            if (inAppHome.isFile()) {
+                return inAppHome;
+            }
+
             File inProjectRoot = new File(archiveName);
-            if (inProjectRoot.exists()) {
+            if (inProjectRoot.isFile()) {
                 return inProjectRoot;
             }
         }
 
-        return ApplicationPaths.resolveBundledPath("pandoc.zip");
+        File fallback = ApplicationPaths.resolveBundledPath("pandoc/pandoc-linux.zip");
+        if (fallback.isFile()) {
+            return fallback;
+        }
+        fallback = ApplicationPaths.resolveBundledPath("pandoc.zip");
+        return fallback.isFile() ? fallback : null;
     }
 
     private void ensureBinaryExecutable(File binary) {
@@ -3430,7 +3709,7 @@ public class PandocExportWindow extends CustomStage {
     }
     
     private String getOutputFormat() {
-        String format = formatComboBox.getValue();
+        String format = exportFormat();
         switch (format) {
             case "docx": return "docx";
             case "odt": return "odt";
@@ -3446,7 +3725,7 @@ public class PandocExportWindow extends CustomStage {
     }
     
     private void updateFormatSpecificFields() {
-        String format = formatComboBox.getValue();
+        String format = exportFormat();
 
         // Template-Felder für EPUB3, HTML5 und PDF ausblenden
         boolean showTemplate = !format.equals("epub3") && !format.equals("html5") && !format.equals("pdf");
@@ -3470,7 +3749,7 @@ public class PandocExportWindow extends CustomStage {
     }
     
     private void updateInitialsVisibility() {
-        String format = formatComboBox.getValue();
+        String format = exportFormat();
         boolean showInitials = "docx".equals(format);
         initialsCheckBox.setVisible(showInitials);
         initialsCheckBox.setManaged(showInitials);
@@ -3514,8 +3793,8 @@ public class PandocExportWindow extends CustomStage {
     }
     
     private void updateFileNameExtension() {
-        String format = formatComboBox.getValue();
-        String currentFileName = fileNameField.getText();
+        String format = exportFormat();
+        String currentFileName = exportFileName();
         
         // Aktuelle Dateiendung entfernen
         String baseName = currentFileName;
@@ -3743,6 +4022,28 @@ public class PandocExportWindow extends CustomStage {
     }
 
     private void showAlert(String title, String message) {
+        if (Platform.isFxApplicationThread()) {
+            showAlertOnFx(title, message);
+            return;
+        }
+        CountDownLatch done = new CountDownLatch(1);
+        Platform.runLater(() -> {
+            try {
+                showAlertOnFx(title, message);
+            } finally {
+                done.countDown();
+            }
+        });
+        try {
+            if (!done.await(60, TimeUnit.SECONDS)) {
+                logger.warn("Timeout beim Anzeigen von Alert: {}", title);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private void showAlertOnFx(String title, String message) {
         CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, title);
         alert.setHeaderText(null);
         alert.setContentText(message);
@@ -3752,6 +4053,26 @@ public class PandocExportWindow extends CustomStage {
     }
     
     private void showErrorWithHelp(String message) {
+        if (!Platform.isFxApplicationThread()) {
+            CountDownLatch done = new CountDownLatch(1);
+            Platform.runLater(() -> {
+                try {
+                    showErrorWithHelpOnFx(message);
+                } finally {
+                    done.countDown();
+                }
+            });
+            try {
+                done.await(60, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            return;
+        }
+        showErrorWithHelpOnFx(message);
+    }
+
+    private void showErrorWithHelpOnFx(String message) {
         CustomAlert alert = new CustomAlert(Alert.AlertType.ERROR, "Export Fehler");
         alert.setHeaderText("Export fehlgeschlagen");
         
@@ -3789,7 +4110,7 @@ public class PandocExportWindow extends CustomStage {
      * Post-Processing für DOCX: Ersetzt "Abstract" durch "Zusammenfassung" und fügt Cover-Bild hinzu
      */
     
-    private void postProcessDocx(File docxFile) {
+    private void postProcessDocx(File docxFile, String coverImagePath, boolean addInitials) {
         try {
             logger.debug("Post-Processing für DOCX: {}", docxFile.getName());
             
@@ -3959,7 +4280,7 @@ public class PandocExportWindow extends CustomStage {
                 enableHierarchicalListNumbering(document);
                 
                 // DANN: Initialen für "First Paragraph" Absätze hinzufügen (nur wenn aktiviert)
-                if (initialsCheckBox != null && initialsCheckBox.isSelected()) {
+                if (addInitials) {
                     logger.debug("Initialen-Checkbox ist aktiviert - füge Initialen hinzu");
                     addInitialsToFirstParagraphs(document);
                 } else {
@@ -3975,8 +4296,8 @@ public class PandocExportWindow extends CustomStage {
                 formatTables(document);
                 
                 // DANN: Cover-Bild hinzufügen (falls vorhanden)
-                if (!coverImageField.getText().trim().isEmpty()) {
-                    File coverImageFile = new File(coverImageField.getText().trim());
+                if (coverImagePath != null && !coverImagePath.isBlank()) {
+                    File coverImageFile = new File(coverImagePath.trim());
                     if (coverImageFile.exists()) {
                         try {
                             // Cover-Bild am Anfang einfügen (ohne Dokument neu aufzubauen)

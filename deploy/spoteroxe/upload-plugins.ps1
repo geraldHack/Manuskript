@@ -57,6 +57,9 @@ Upload-PluginPair openrouter-monitor
 Upload-PluginPair mammouth-monitor
 Upload-PluginPair projekt-backup
 Upload-PluginPair schreib-statistik
+Upload-PluginPair mindmap
+Upload-PluginPair publish-paket
+Upload-PluginPair buch-preview
 
 Write-Host "[OK] https://spoteroxe.de/downloads/plugins/"
 Write-Host "     Verzeichnislisting muss öffentlich sein (Apache Options Indexes)."

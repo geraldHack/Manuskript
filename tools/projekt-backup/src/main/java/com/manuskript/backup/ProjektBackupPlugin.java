@@ -45,6 +45,7 @@ public final class ProjektBackupPlugin implements ManuskriptPlugin {
 
     @Override
     public void stop() {
+        BackupWindow.closeVisible();
         if (monitor != null) {
             monitor.stop();
             monitor = null;

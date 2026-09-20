@@ -26,6 +26,7 @@ import javafx.util.StringConverter;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -55,6 +56,7 @@ public final class BackupWindow {
     private PasswordField sshPassword;
     private CheckBox sshUnknownHost;
     private CheckBox compressBox;
+    private CheckBox allProjectsBox;
     private CheckBox encryptBox;
     private PasswordField encryptPassword;
     private PasswordField encryptRepeat;
@@ -94,6 +96,26 @@ public final class BackupWindow {
         show(null);
     }
 
+    static void closeVisible() {
+        BackupWindow window = visible;
+        if (window == null) {
+            return;
+        }
+        Runnable hide = () -> {
+            if (window.stage != null) {
+                window.stage.hide();
+            }
+            if (visible == window) {
+                visible = null;
+            }
+        };
+        if (Platform.isFxApplicationThread()) {
+            hide.run();
+        } else {
+            Platform.runLater(hide);
+        }
+    }
+
     public void show(String notice) {
         visible = this;
         if (stage != null && stage.isShowing()) {
@@ -130,7 +152,8 @@ public final class BackupWindow {
     private VBox buildUi(String notice) {
         Label intro = new Label(
                 "Mehrere Ziele, jedes mit eigenem Rhythmus. Dateisystem (USB, Dropbox, iCloud, …) "
-                        + "oder SSH/SCP. Gesichert wird das aktuell geöffnete Buch (nicht die Projektwurzel). "
+                        + "oder SSH/SCP. Standard ist das aktuell geöffnete Buch. Mit „Alle Projekte“ "
+                        + "werden alle Bücher im Projektordner gesichert. "
                         + "Der Überwachungsmodus läuft ohne dieses Fenster, solange "
                         + "Manuskript geöffnet und das Plugin aktiv ist.");
         intro.setWrapText(true);
@@ -147,7 +170,20 @@ public final class BackupWindow {
             @Override
             protected void updateItem(BackupTarget item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty || item == null ? null : item.displayName() + " · " + item.kind().label());
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    return;
+                }
+                setText(item.displayName() + " · " + item.kind().label());
+                if (item.allProjects) {
+                    Label badge = new Label("Alle");
+                    badge.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 1 6 1 6; "
+                            + "-fx-background-radius: 8; -fx-background-color: rgba(0,0,0,0.18);");
+                    setGraphic(badge);
+                } else {
+                    setGraphic(null);
+                }
             }
         });
         list.getSelectionModel().selectedItemProperty().addListener((obs, old, now) -> {
@@ -272,7 +308,13 @@ public final class BackupWindow {
         sshBox.setVisible(false);
         sshBox.setManaged(false);
 
-        compressBox = new CheckBox("Komprimieren");
+        compressBox = new CheckBox("Als ZIP komprimieren");
+        compressBox.setTooltip(new javafx.scene.control.Tooltip(
+                "An: ZIP-Archiv. Aus: Ordnerkopie ohne ZIP."));
+        allProjectsBox = new CheckBox("Alle Projekte im Projektordner sichern");
+        allProjectsBox.setWrapText(true);
+        allProjectsBox.setTooltip(new javafx.scene.control.Tooltip(
+                "Sichert jedes Buch im selben Ordner wie das geöffnete Buch, nicht nur das aktuelle."));
         encryptBox = new CheckBox("Verschlüsseln (AES, nur mit diesem Plugin wiederherstellbar)");
         encryptBox.setWrapText(true);
         encryptPassword = new PasswordField();
@@ -324,6 +366,7 @@ public final class BackupWindow {
                 filesystemBox,
                 sshBox,
                 compressBox,
+                allProjectsBox,
                 encryptBox,
                 encryptPassword,
                 encryptRepeat,
@@ -345,6 +388,7 @@ public final class BackupWindow {
         encryptPassword.textProperty().addListener((o, w, n) -> persistFromUi());
         enabledBox.selectedProperty().addListener((o, w, n) -> persistFromUi());
         compressBox.selectedProperty().addListener((o, w, n) -> persistFromUi());
+        allProjectsBox.selectedProperty().addListener((o, w, n) -> persistFromUi());
         encryptBox.selectedProperty().addListener((o, w, n) -> persistFromUi());
         rememberEncrypt.selectedProperty().addListener((o, w, n) -> persistFromUi());
         sshUnknownHost.selectedProperty().addListener((o, w, n) -> persistFromUi());
@@ -389,9 +433,13 @@ public final class BackupWindow {
         nameField.setDisable(empty);
         enabledBox.setDisable(empty);
         kindBox.setDisable(empty);
+        compressBox.setDisable(empty);
+        allProjectsBox.setDisable(empty);
         if (target == null) {
             nameField.clear();
+            allProjectsBox.setSelected(false);
             applying = false;
+            refreshSourcePath();
             return;
         }
         nameField.setText(target.name);
@@ -406,6 +454,7 @@ public final class BackupWindow {
         sshPassword.setText(target.sshPassword == null ? "" : target.sshPassword);
         sshUnknownHost.setSelected(target.sshAcceptUnknownHost);
         compressBox.setSelected(target.compress);
+        allProjectsBox.setSelected(target.allProjects);
         encryptBox.setSelected(target.encrypt);
         encryptPassword.setText(target.encryptPassword == null ? "" : target.encryptPassword);
         encryptRepeat.setText(target.encryptPassword == null ? "" : target.encryptPassword);
@@ -414,6 +463,7 @@ public final class BackupWindow {
         keepSpinner.getValueFactory().setValue(Math.max(1, target.keep));
         applyKindVisibility(target.kind());
         applying = false;
+        refreshSourcePath();
         if (target.lastError != null && !target.lastError.isBlank()) {
             status.setText("Letzter Fehler: " + target.lastError);
         } else if (target.lastBackupFile != null && !target.lastBackupFile.isBlank()) {
@@ -451,6 +501,7 @@ public final class BackupWindow {
             return;
         }
         list.refresh();
+        refreshSourcePath();
     }
 
     private void applyFormTo(BackupTarget target) {
@@ -466,6 +517,7 @@ public final class BackupWindow {
         target.sshPassword = sshPassword.getText() == null ? "" : sshPassword.getText();
         target.sshAcceptUnknownHost = sshUnknownHost.isSelected();
         target.compress = compressBox.isSelected();
+        target.allProjects = allProjectsBox.isSelected();
         target.encrypt = encryptBox.isSelected();
         if (rememberEncrypt.isSelected()) {
             String pass = encryptPassword.getText() == null ? "" : encryptPassword.getText();
@@ -567,10 +619,18 @@ public final class BackupWindow {
             return;
         }
         Path project = host.projectRoot().orElse(null);
-        if (project != null && Files.isDirectory(project)) {
-            sourcePathLabel.setText("Aktuelles Buch: " + project);
-        } else {
+        if (project == null || !Files.isDirectory(project)) {
             sourcePathLabel.setText("Aktuelles Buch: keines — bitte zuerst ein Buch öffnen.");
+            return;
+        }
+        boolean all = (allProjectsBox != null && allProjectsBox.isSelected())
+                || (selected() != null && selected().allProjects);
+        if (all) {
+            Path folder = ProjectScan.folderOf(project);
+            List<Path> books = ProjectScan.booksToBackup(project, true);
+            sourcePathLabel.setText("Alle Projekte in " + folder + " (" + books.size() + ")");
+        } else {
+            sourcePathLabel.setText("Aktuelles Buch: " + project);
         }
     }
 
@@ -614,11 +674,14 @@ public final class BackupWindow {
         Consumer<String> progress = message -> Platform.runLater(() -> status.setText(message));
         CompletableFuture.runAsync(() -> {
             try {
-                Path file = BackupEngine.createBackup(project, snapshot, passCopy, progress);
-                snapshot.markSuccess(file.toString());
+                BackupEngine.Batch batch = BackupEngine.backup(project, snapshot, passCopy, progress);
+                snapshot.markSuccess(batch.label());
+                if (!batch.errors.isEmpty()) {
+                    snapshot.markError(String.join("; ", batch.errors));
+                }
                 settings.save(host.configDir());
                 Platform.runLater(() -> {
-                    status.setText("Gespeichert: " + file);
+                    status.setText(batch.paths.isEmpty() ? batch.label() : "Gespeichert: " + batch.label());
                     list.refresh();
                 });
             } catch (Exception e) {
@@ -642,22 +705,41 @@ public final class BackupWindow {
     }
 
     private void startRestore() {
-        FileChooser chooser = new FileChooser();
-        chooser.setTitle("Backup öffnen");
-        chooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Backups", "*.zip", "*.enc", "*.zip.enc"),
-                new FileChooser.ExtensionFilter("Alle Dateien", "*.*"));
         BackupTarget target = selected();
+        Path initialDest = null;
         if (target != null && target.kind() == BackupKind.FILESYSTEM
                 && target.destination != null && !target.destination.isBlank()) {
             Path dest = Path.of(target.destination);
             if (Files.isDirectory(dest)) {
-                chooser.setInitialDirectory(dest.toFile());
+                initialDest = dest;
             }
         }
-        var file = chooser.showOpenDialog(stage);
-        if (file == null) {
-            return;
+        Path backup;
+        if (target != null && !target.compress) {
+            DirectoryChooser backupChooser = new DirectoryChooser();
+            backupChooser.setTitle("Backup-Ordner wählen");
+            if (initialDest != null) {
+                backupChooser.setInitialDirectory(initialDest.toFile());
+            }
+            var dir = backupChooser.showDialog(stage);
+            if (dir == null) {
+                return;
+            }
+            backup = dir.toPath();
+        } else {
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Backup öffnen");
+            chooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("Backups", "*.zip", "*.enc", "*.zip.enc"),
+                    new FileChooser.ExtensionFilter("Alle Dateien", "*.*"));
+            if (initialDest != null) {
+                chooser.setInitialDirectory(initialDest.toFile());
+            }
+            var file = chooser.showOpenDialog(stage);
+            if (file == null) {
+                return;
+            }
+            backup = file.toPath();
         }
         DirectoryChooser dirChooser = new DirectoryChooser();
         dirChooser.setTitle("Wiederherstellen nach");
@@ -672,7 +754,7 @@ public final class BackupWindow {
             return;
         }
         char[] password = null;
-        if (file.getName().toLowerCase().endsWith(".enc")) {
+        if (Files.isRegularFile(backup) && backup.getFileName().toString().toLowerCase().endsWith(".enc")) {
             String a = encryptPassword.getText() == null ? "" : encryptPassword.getText();
             if (a.isEmpty()) {
                 status.setText("Passwort für die Wiederherstellung eingeben.");
@@ -682,7 +764,6 @@ public final class BackupWindow {
         }
         status.setText("Stelle wieder her …");
         char[] passCopy = password == null ? null : password.clone();
-        Path backup = file.toPath();
         Path into = targetDir.toPath();
         CompletableFuture.runAsync(() -> {
             try {

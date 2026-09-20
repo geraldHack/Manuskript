@@ -41,6 +41,7 @@ Manuskript is a JavaFX 21 desktop application for manuscript editing with AI int
   - `Manuskript-*-linux-x64.AppImage`
   - `Manuskript-*-linux-x64.pkg.tar.zst` (Arch, `deploy/linux/PKGBUILD`)
 - Ressourcen landen unter `lib/app/` (Linux-jpackage). Bundles: `prepare-linux-bundles.sh` erzeugt `pandoc-linux.zip` und `ffmpeg-linux.zip`.
+- **Schreibbare Daten:** AppImage/`/opt`/`/usr` sind nur lesbar. Plugins, Config, Logs und Whisper liegen unter `~/.local/share/manuskript` (`ApplicationPaths.writableHomeDirectory()`). Pandoc/FFmpeg bleiben im Paket.
 - **JavaFX-SDK:** lokal `javafx-sdk-21.0.6/` fuer `javafx:run`; jmods laedt das Installer-Skript (linux-x64).
 
 ### Kapitel-Editor (nur Canvas – Legacy ignoriert)

@@ -37,6 +37,7 @@ class PluginCatalogUrlsTest {
     void validatesIdsNamesAndHashes() {
         assertTrue(PluginCatalogUrls.OFFICIAL_IDS.contains("schreib-statistik"));
         assertTrue(PluginCatalogUrls.OFFICIAL_IDS.contains("publish-paket"));
+        assertTrue(PluginCatalogUrls.OFFICIAL_IDS.contains("buch-preview"));
         assertTrue(PluginCatalogUrls.isAllowedId("mindmap"));
         assertTrue(PluginCatalogUrls.isAllowedId("openrouter-monitor"));
         assertFalse(PluginCatalogUrls.isAllowedId("../etc"));

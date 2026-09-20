@@ -126,7 +126,7 @@ public final class ToolSetupSupport {
         if (zip == null) {
             return "Kein Pandoc-Binary und kein Bundle-Archiv (pandoc-mac.zip / pandoc.zip).";
         }
-        File targetDir = ApplicationPaths.resolvePandocDirectory();
+        File targetDir = ApplicationPaths.resolveWritableToolDirectory("pandoc");
         out.accept("Entpacke " + zip.getName() + " nach " + targetDir.getAbsolutePath());
         try {
             Files.createDirectories(targetDir.toPath());
@@ -165,7 +165,7 @@ public final class ToolSetupSupport {
         if (zip == null) {
             return "Kein FFmpeg-Binary und kein Bundle-Archiv (ffmpeg-mac.zip / ffmpeg.zip).";
         }
-        File targetDir = ApplicationPaths.resolveBundledPath("ffmpeg");
+        File targetDir = ApplicationPaths.resolveWritableToolDirectory("ffmpeg");
         out.accept("Entpacke " + zip.getName() + " nach " + targetDir.getAbsolutePath());
         try {
             Files.createDirectories(targetDir.toPath());
@@ -379,6 +379,7 @@ public final class ToolSetupSupport {
     public static File resolvePandocBinary() {
         String name = isWindows() ? "pandoc.exe" : "pandoc";
         File[] candidates = {
+                new File(ApplicationPaths.resolveWritableToolDirectory("pandoc"), name),
                 new File(ApplicationPaths.resolvePandocDirectory(), name),
                 new File(ApplicationPaths.getApplicationHomeDirectory(), name),
                 new File(name)
@@ -387,6 +388,11 @@ public final class ToolSetupSupport {
             if (c.isFile()) {
                 return c;
             }
+        }
+        File writableDir = ApplicationPaths.resolveWritableToolDirectory("pandoc");
+        File nestedWritable = findNamedFile(writableDir, name, 3);
+        if (nestedWritable != null) {
+            return nestedWritable;
         }
         File pandocDir = ApplicationPaths.resolvePandocDirectory();
         File nested = findNamedFile(pandocDir, name, 3);
@@ -405,18 +411,23 @@ public final class ToolSetupSupport {
 
     public static File resolveFfmpegBinary(boolean allowPathFallback) {
         String name = isWindows() ? "ffmpeg.exe" : "ffmpeg";
-        File dir = ApplicationPaths.resolveBundledPath("ffmpeg");
-        File exe = new File(dir, name);
-        if (exe.isFile()) {
-            return exe;
-        }
-        File binExe = new File(dir, "bin" + File.separator + name);
-        if (binExe.isFile()) {
-            return binExe;
-        }
-        File nested = findNamedFile(dir, name, 3);
-        if (nested != null) {
-            return nested;
+        File[] dirs = {
+                ApplicationPaths.resolveWritableToolDirectory("ffmpeg"),
+                ApplicationPaths.resolveBundledPath("ffmpeg")
+        };
+        for (File dir : dirs) {
+            File exe = new File(dir, name);
+            if (exe.isFile()) {
+                return exe;
+            }
+            File binExe = new File(dir, "bin" + File.separator + name);
+            if (binExe.isFile()) {
+                return binExe;
+            }
+            File nested = findNamedFile(dir, name, 3);
+            if (nested != null) {
+                return nested;
+            }
         }
         String[] known = {"/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg", "/usr/bin/ffmpeg"};
         for (String path : known) {

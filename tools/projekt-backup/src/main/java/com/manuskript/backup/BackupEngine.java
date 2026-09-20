@@ -23,7 +23,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 /**
- * ZIP-Backup eines Projektordners, optional AES-verschlüsselt, lokal oder per SSH.
+ * Backup eines Projektordners: ZIP oder Ordnerkopie, optional AES, lokal oder per SSH.
  */
 public final class BackupEngine {
 
@@ -55,34 +55,89 @@ public final class BackupEngine {
             BackupTarget target,
             char[] password,
             Consumer<String> progress) throws Exception {
-        if (projectRoot == null || !Files.isDirectory(projectRoot)) {
-            throw new IllegalArgumentException("Kein Projektverzeichnis");
+        Batch batch = backup(projectRoot, target, password, progress);
+        if (batch.paths.isEmpty()) {
+            throw new IOException(batch.label());
         }
+        return batch.paths.get(batch.paths.size() - 1);
+    }
+
+    /**
+     * Ein Buch oder — wenn {@link BackupTarget#allProjects} — jedes Buch im Projektordner.
+     */
+    public static Batch backup(
+            Path projectRoot,
+            BackupTarget target,
+            char[] password,
+            Consumer<String> progress) throws Exception {
         if (target == null) {
             throw new IllegalArgumentException("Kein Ziel");
         }
+        List<Path> books = ProjectScan.booksToBackup(projectRoot, target.allProjects);
+        if (books.isEmpty()) {
+            throw new IllegalArgumentException("Kein Projektverzeichnis");
+        }
         report(progress, "Prüfe Ziel …");
         preflight(target);
+        List<Path> paths = new ArrayList<>();
+        List<String> errors = new ArrayList<>();
+        int total = books.size();
+        int index = 0;
+        for (Path book : books) {
+            index++;
+            String name = book.getFileName() == null ? book.toString() : book.getFileName().toString();
+            if (total > 1) {
+                report(progress, "Sichere " + index + "/" + total + " · " + name + " …");
+            }
+            try {
+                paths.add(createOne(book, target, password, progress));
+            } catch (Exception e) {
+                String message = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+                errors.add(name + ": " + message);
+            }
+        }
+        if (paths.isEmpty()) {
+            throw new IOException(errors.isEmpty()
+                    ? "Kein Projekt gesichert"
+                    : "Kein Projekt gesichert. " + String.join("; ", errors));
+        }
+        return new Batch(paths, errors, total);
+    }
 
+    private static Path createOne(
+            Path projectRoot,
+            BackupTarget target,
+            char[] password,
+            Consumer<String> progress) throws Exception {
         Path projectReal = projectRoot.toAbsolutePath().normalize();
         String stamp = LocalDateTime.now().format(STAMP);
         String base = sanitize(projectRoot.getFileName().toString()) + "-" + stamp;
         boolean encrypt = password != null && password.length > 0;
+        boolean folderCopy = !target.compress && !encrypt;
         Path staging = Files.createTempDirectory("msk-backup-");
-        Path tempZip = staging.resolve(base + ".zip");
-        Path archive = encrypt ? staging.resolve(base + ".zip.enc") : tempZip;
         try {
             Path skip = skipDirectory(projectReal, target);
-            report(progress, "Packe Projekt …");
-            writeZip(projectReal, skip, tempZip, target.compress, progress);
-            if (encrypt) {
-                report(progress, "Verschlüssele …");
-                BackupCrypto.encrypt(tempZip, archive, password);
-                Files.deleteIfExists(tempZip);
+            Path artifact;
+            if (folderCopy) {
+                report(progress, "Kopiere Projekt …");
+                artifact = staging.resolve(base);
+                copyProject(projectReal, skip, artifact, progress);
+            } else {
+                Path tempZip = staging.resolve(base + ".zip");
+                report(progress, "Packe Projekt …");
+                writeZip(projectReal, skip, tempZip, target.compress, progress);
+                if (encrypt) {
+                    report(progress, "Verschlüssele …");
+                    artifact = staging.resolve(base + ".zip.enc");
+                    BackupCrypto.encrypt(tempZip, artifact, password);
+                    Files.deleteIfExists(tempZip);
+                } else {
+                    artifact = tempZip;
+                }
             }
             if (target.kind() == BackupKind.SSH) {
                 report(progress, "Lade per SSH hoch …");
-                String remote = SshBackupTransport.upload(archive, target);
+                String remote = SshBackupTransport.upload(artifact, target);
                 SshBackupTransport.prune(target, sanitize(projectRoot.getFileName().toString()), target.keep);
                 return Path.of(remote);
             }
@@ -90,12 +145,8 @@ public final class BackupEngine {
             Path destDir = filesystemDestination(target);
             Files.createDirectories(destDir);
             Path destReal = destDir.toRealPath();
-            Path finalPath = destReal.resolve(archive.getFileName().toString());
-            try {
-                Files.move(archive, finalPath, StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException e) {
-                Files.copy(archive, finalPath, StandardCopyOption.REPLACE_EXISTING);
-            }
+            Path finalPath = destReal.resolve(artifact.getFileName().toString());
+            publishArtifact(artifact, finalPath);
             pruneOld(destReal, sanitize(projectRoot.getFileName().toString()), target.keep);
             return finalPath;
         } finally {
@@ -103,11 +154,46 @@ public final class BackupEngine {
         }
     }
 
+    public static final class Batch {
+        public final List<Path> paths;
+        public final List<String> errors;
+        public final int total;
+
+        Batch(List<Path> paths, List<String> errors, int total) {
+            this.paths = paths;
+            this.errors = errors;
+            this.total = total;
+        }
+
+        public String label() {
+            if (paths.isEmpty()) {
+                return errors.isEmpty()
+                        ? "Kein Projekt gesichert"
+                        : "Kein Projekt gesichert. " + String.join("; ", errors);
+            }
+            String files = paths.stream()
+                    .map(path -> path.getFileName() == null ? path.toString() : path.getFileName().toString())
+                    .reduce((a, b) -> a + ", " + b)
+                    .orElse("");
+            String head = total > 1
+                    ? paths.size() + " von " + total + " Projekten: " + files
+                    : files;
+            if (errors.isEmpty()) {
+                return head;
+            }
+            return head + " — Fehler: " + String.join("; ", errors);
+        }
+    }
+
     public static void restore(Path backupFile, Path targetDir, char[] password) throws Exception {
-        if (backupFile == null || !Files.isRegularFile(backupFile)) {
-            throw new IllegalArgumentException("Backup-Datei fehlt");
+        if (backupFile == null || (!Files.isRegularFile(backupFile) && !Files.isDirectory(backupFile))) {
+            throw new IllegalArgumentException("Backup fehlt");
         }
         Files.createDirectories(targetDir);
+        if (Files.isDirectory(backupFile)) {
+            copyProject(backupFile.toAbsolutePath().normalize(), null, targetDir.toAbsolutePath().normalize(), null);
+            return;
+        }
         Path zip = backupFile;
         Path temp = null;
         try {
@@ -130,6 +216,77 @@ public final class BackupEngine {
         }
         String cleaned = name.replaceAll("[^A-Za-z0-9._-]+", "_");
         return cleaned.isBlank() ? "projekt" : cleaned;
+    }
+
+    static void copyProject(
+            Path projectReal,
+            Path skipDirOrNull,
+            Path destDir,
+            Consumer<String> progress) throws IOException {
+        Path skip = skipDirOrNull == null ? null : skipDirOrNull.toAbsolutePath().normalize();
+        Path destReal = destDir.toAbsolutePath().normalize();
+        Files.createDirectories(destReal);
+        int[] fileCount = {0};
+        Files.walkFileTree(projectReal, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                Path real = absolute(dir);
+                if (skip != null && !real.equals(projectReal) && (real.equals(skip) || real.startsWith(skip))) {
+                    return FileVisitResult.SKIP_SUBTREE;
+                }
+                if (!real.equals(projectReal)) {
+                    Path target = destReal.resolve(projectReal.relativize(real).toString());
+                    Files.createDirectories(target);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                String fileName = file.getFileName().toString();
+                if (fileName.equals(".DS_Store") || fileName.equals("Thumbs.db")) {
+                    return FileVisitResult.CONTINUE;
+                }
+                Path real = absolute(file);
+                if (skip != null && real.startsWith(skip)) {
+                    return FileVisitResult.CONTINUE;
+                }
+                if (!real.startsWith(projectReal)) {
+                    return FileVisitResult.CONTINUE;
+                }
+                Path target = destReal.resolve(projectReal.relativize(real).toString());
+                Files.createDirectories(target.getParent());
+                Files.copy(real, target, StandardCopyOption.REPLACE_EXISTING);
+                fileCount[0]++;
+                if (fileCount[0] == 1 || fileCount[0] % 25 == 0) {
+                    report(progress, "Kopiere Projekt … (" + fileCount[0] + " Dateien)");
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFileFailed(Path file, IOException exc) {
+                return FileVisitResult.CONTINUE;
+            }
+        });
+        report(progress, "Kopie fertig (" + fileCount[0] + " Dateien)");
+    }
+
+    private static void publishArtifact(Path artifact, Path finalPath) throws IOException {
+        if (Files.isDirectory(finalPath)) {
+            deleteTree(finalPath);
+        } else {
+            Files.deleteIfExists(finalPath);
+        }
+        try {
+            Files.move(artifact, finalPath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            if (Files.isDirectory(artifact)) {
+                copyProject(artifact, null, finalPath, null);
+            } else {
+                Files.copy(artifact, finalPath, StandardCopyOption.REPLACE_EXISTING);
+            }
+        }
     }
 
     static void writeZip(Path projectReal, Path skipDirOrNull, Path zipFile, boolean compress) throws IOException {
@@ -222,10 +379,15 @@ public final class BackupEngine {
         String prefix = projectPrefix + "-";
         List<Path> files = new ArrayList<>();
         try (var stream = Files.list(destDir)) {
-            stream.filter(Files::isRegularFile)
-                    .filter(path -> {
+            stream.filter(path -> {
                         String name = path.getFileName().toString();
-                        return name.startsWith(prefix)
+                        if (!name.startsWith(prefix)) {
+                            return false;
+                        }
+                        if (Files.isDirectory(path)) {
+                            return true;
+                        }
+                        return Files.isRegularFile(path)
                                 && (name.endsWith(".zip") || name.endsWith(".zip.enc"));
                     })
                     .forEach(files::add);
@@ -238,7 +400,12 @@ public final class BackupEngine {
             }
         }).reversed());
         for (int i = keepCount; i < files.size(); i++) {
-            Files.deleteIfExists(files.get(i));
+            Path obsolete = files.get(i);
+            if (Files.isDirectory(obsolete)) {
+                deleteTree(obsolete);
+            } else {
+                Files.deleteIfExists(obsolete);
+            }
         }
     }
 

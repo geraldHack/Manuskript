@@ -38,9 +38,15 @@ public final class BackupMonitor {
 
     public synchronized void stop() {
         started = false;
-        if (scheduler != null) {
-            scheduler.shutdownNow();
-            scheduler = null;
+        ScheduledExecutorService current = scheduler;
+        scheduler = null;
+        if (current != null) {
+            current.shutdownNow();
+            try {
+                current.awaitTermination(3, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
@@ -69,8 +75,11 @@ public final class BackupMonitor {
                 continue;
             }
             try {
-                Path result = BackupEngine.createBackup(project, target, password);
-                target.markSuccess(result.toString());
+                BackupEngine.Batch batch = BackupEngine.backup(project, target, password, null);
+                target.markSuccess(batch.label());
+                if (!batch.errors.isEmpty()) {
+                    target.markError(String.join("; ", batch.errors));
+                }
                 changed = true;
             } catch (Exception e) {
                 String message = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();

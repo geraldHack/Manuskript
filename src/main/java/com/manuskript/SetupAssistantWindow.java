@@ -86,7 +86,7 @@ public final class SetupAssistantWindow {
 
         Tab pluginsTab = new Tab("Plugins");
         pluginsTab.setClosable(false);
-        pluginsTab.setContent(wrapScroll(buildPluginsPane(themeIndex), themeIndex));
+        pluginsTab.setContent(wrapScroll(buildPluginsPane(themeIndex, onClosed), themeIndex));
 
         VBox checksBox = new VBox(10);
         checksBox.setPadding(new Insets(4, 0, 4, 0));
@@ -359,7 +359,7 @@ public final class SetupAssistantWindow {
                 + "; -fx-padding: 8px 14px;");
     }
 
-    private static VBox buildPluginsPane(int themeIndex) {
+    private static VBox buildPluginsPane(int themeIndex, Runnable onPluginsChanged) {
         File catalogDir = PluginCatalog.catalogDirectory();
         String catalogPath = catalogDir != null ? catalogDir.getAbsolutePath() : "plugin-catalog";
 
@@ -367,6 +367,8 @@ public final class SetupAssistantWindow {
                 "Offizielle Erweiterungen stehen im Ordner auf spoteroxe.de "
                         + "(jede JAR plus gleichnamige TXT). Hier lädst du sie und schaltest sie ein oder aus. "
                         + "An = Kopie nach plugins/ (Toolbar), aus = wieder entfernen. "
+                        + "Unter Linux (Installation in /opt oder AppImage) liegt dieser Ordner unter "
+                        + "~/.local/share/manuskript — nicht im Installationsverzeichnis. "
                         + "Eigene JARs kannst du zusätzlich in diesen Ordner legen:");
         intro.setWrapText(true);
         intro.getStyleClass().add("dialog-label");
@@ -398,7 +400,7 @@ public final class SetupAssistantWindow {
                 list.getChildren().add(empty);
             } else {
                 for (PluginCatalogItem item : items) {
-                    list.getChildren().add(buildPluginRow(item, status, paintHolder[0], themeIndex));
+                    list.getChildren().add(buildPluginRow(item, status, paintHolder[0], themeIndex, onPluginsChanged));
                 }
             }
             EditorDialogThemes.applyToNode(list, themeIndex);
@@ -452,7 +454,8 @@ public final class SetupAssistantWindow {
             PluginCatalogItem item,
             Label status,
             Runnable refreshList,
-            int themeIndex) {
+            int themeIndex,
+            Runnable onPluginsChanged) {
         CheckBox enabled = new CheckBox(item.label());
         enabled.setSelected(item.canEnable() && item.local().enabled());
         enabled.setDisable(!item.canEnable());
@@ -479,6 +482,9 @@ public final class SetupAssistantWindow {
                 detail.setText(on
                         ? "Aktiv — liegt in plugins/" + fresh.fileName()
                         : "Aus — nur im Katalog (" + item.fileName() + ")");
+                if (onPluginsChanged != null) {
+                    onPluginsChanged.run();
+                }
             } catch (RuntimeException ex) {
                 enabled.setSelected(was);
                 detail.setText("Fehler: " + (ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName()));
@@ -861,12 +867,18 @@ public final class SetupAssistantWindow {
         if (openRouter != null) {
             out.add(openRouter);
         }
-        File appPlugins = new File(ApplicationPaths.getApplicationHomeDirectory(), "plugins");
+        File appPlugins = ApplicationPaths.resolvePluginsDirectory();
         File[] extra = appPlugins.isDirectory() ? appPlugins.listFiles(File::isFile) : null;
         addExtraPluginLaunchers(out, extra, openRouter);
         File appCatalog = ApplicationPaths.resolvePluginCatalogDirectory();
         if (appCatalog.isDirectory() && !appCatalog.getAbsoluteFile().equals(appPlugins.getAbsoluteFile())) {
             addExtraPluginLaunchers(out, appCatalog.listFiles(File::isFile), openRouter);
+        }
+        File bundledCatalog = ApplicationPaths.resolveBundledPluginCatalogDirectory();
+        if (bundledCatalog.isDirectory()
+                && !bundledCatalog.getAbsoluteFile().equals(appCatalog.getAbsoluteFile())
+                && !bundledCatalog.getAbsoluteFile().equals(appPlugins.getAbsoluteFile())) {
+            addExtraPluginLaunchers(out, bundledCatalog.listFiles(File::isFile), openRouter);
         }
         File repoPlugins = new File(System.getProperty("user.dir", "."), "plugins");
         if (!repoPlugins.getAbsoluteFile().equals(appPlugins.getAbsoluteFile())) {
@@ -911,6 +923,8 @@ public final class SetupAssistantWindow {
         File cwd = new File(System.getProperty("user.dir", "."));
         File[] candidates = {
                 new File(ApplicationPaths.resolvePluginCatalogDirectory(), script),
+                new File(ApplicationPaths.resolveBundledPluginCatalogDirectory(), script),
+                new File(ApplicationPaths.resolvePluginsDirectory(), script),
                 new File(ApplicationPaths.getApplicationHomeDirectory(), "plugins" + File.separator + script),
                 new File(cwd, "plugin-catalog" + File.separator + script),
                 new File(cwd, "plugins" + File.separator + script),

@@ -27,11 +27,7 @@ class PluginCatalogTest {
         assertTrue(catalog.mkdirs());
         assertTrue(plugins.mkdirs());
         File jar = new File(catalog, "demo.jar");
-        try (JarOutputStream out = new JarOutputStream(Files.newOutputStream(jar.toPath()))) {
-            out.putNextEntry(new JarEntry(PluginLoader.SERVICE_PATH));
-            out.write("com.example.Dummy\n".getBytes(StandardCharsets.UTF_8));
-            out.closeEntry();
-        }
+        writeDescriptor(jar);
 
         List<PluginCatalog.Entry> listed = PluginCatalog.list(catalog, plugins);
         assertEquals(1, listed.size());
@@ -50,13 +46,24 @@ class PluginCatalogTest {
     }
 
     @Test
+    void listSkipsVersionedCatalogJars() throws Exception {
+        File catalog = tempDir.resolve("catalog-v").toFile();
+        File plugins = tempDir.resolve("plugins-v").toFile();
+        assertTrue(catalog.mkdirs());
+        assertTrue(plugins.mkdirs());
+        File latest = new File(catalog, "projekt-backup.jar");
+        File versioned = new File(catalog, "projekt-backup-1.0.5.jar");
+        writeDescriptor(latest);
+        writeDescriptor(versioned);
+        List<PluginCatalog.Entry> listed = PluginCatalog.list(catalog, plugins);
+        assertEquals(1, listed.size());
+        assertEquals("projekt-backup.jar", listed.get(0).fileName());
+    }
+
+    @Test
     void installJarRejectsPathInFileName() throws Exception {
         File source = tempDir.resolve("ok.jar").toFile();
-        try (JarOutputStream out = new JarOutputStream(Files.newOutputStream(source.toPath()))) {
-            out.putNextEntry(new JarEntry(PluginLoader.SERVICE_PATH));
-            out.write("com.example.Dummy\n".getBytes(StandardCharsets.UTF_8));
-            out.closeEntry();
-        }
+        writeDescriptor(source);
         try {
             PluginCatalog.installJar(source, "../evil.jar");
             throw new AssertionError("expected IllegalArgumentException");
@@ -77,5 +84,42 @@ class PluginCatalogTest {
             out.closeEntry();
         }
         assertTrue(PluginCatalog.list(catalog, plugins).isEmpty());
+    }
+
+    @Test
+    void listMergesBundledCatalogAndWritableOverlay() throws Exception {
+        File bundled = tempDir.resolve("bundled-catalog").toFile();
+        File writable = tempDir.resolve("user-catalog").toFile();
+        File plugins = tempDir.resolve("plugins-merge").toFile();
+        assertTrue(bundled.mkdirs());
+        assertTrue(writable.mkdirs());
+        assertTrue(plugins.mkdirs());
+        writeDescriptor(new File(bundled, "bundled-only.jar"));
+        writeDescriptor(new File(bundled, "shared.jar"));
+        writeDescriptor(new File(writable, "shared.jar"));
+        writeDescriptor(new File(writable, "user-only.jar"));
+
+        List<PluginCatalog.Entry> listed = PluginCatalog.list(bundled, writable, plugins);
+        assertEquals(3, listed.size());
+        assertEquals("user-only.jar", listed.stream()
+                .filter(e -> "user-only.jar".equals(e.fileName()))
+                .findFirst()
+                .orElseThrow()
+                .catalogFile()
+                .getName());
+        File shared = listed.stream()
+                .filter(e -> "shared.jar".equals(e.fileName()))
+                .findFirst()
+                .orElseThrow()
+                .catalogFile();
+        assertEquals(writable.getCanonicalFile(), shared.getParentFile().getCanonicalFile());
+    }
+
+    private static void writeDescriptor(File jar) throws Exception {
+        try (JarOutputStream out = new JarOutputStream(Files.newOutputStream(jar.toPath()))) {
+            out.putNextEntry(new JarEntry(PluginLoader.SERVICE_PATH));
+            out.write("com.example.Dummy\n".getBytes(StandardCharsets.UTF_8));
+            out.closeEntry();
+        }
     }
 }

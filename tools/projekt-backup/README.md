@@ -1,6 +1,6 @@
 # Projekt-Backup
 
-Sichert das geöffnete Manuskript-Projekt als ZIP. Mehrere Ziele, jeweils mit eigenem Zeitplan.
+Sichert das geöffnete Manuskript-Projekt. Mehrere Ziele, jeweils mit eigenem Zeitplan.
 
 ## Ziele
 
@@ -9,7 +9,8 @@ Sichert das geöffnete Manuskript-Projekt als ZIP. Mehrere Ziele, jeweils mit ei
 
 ## Funktionen
 
-- Komprimiertes oder unkomprimiertes ZIP
+- ZIP (komprimiert) oder Ordnerkopie, wenn „Als ZIP komprimieren“ aus ist
+- Optional alle Bücher im Projektordner, inklusive Bände in Serien (Marker **Alle** in der Zielliste)
 - Optional AES-256-GCM (`.zip.enc`, Wiederherstellung nur im Plugin)
 - Überwachungsmodus ohne Fenster, sobald das Plugin aktiv ist: stündlich / täglich / wöchentlich / monatlich
 - Alte Backups begrenzen (lokal und remote)

@@ -40,6 +40,16 @@ public class ChapterMacroWindow {
         int getThemeIndex();
 
         void applyThemeToNode(Node node, int themeIndex);
+
+        default int getEditorFontSizePx() {
+            ChapterEditorHost editor = getChapterEditor();
+            return editor != null ? editor.getEditorFontSizePx() : 16;
+        }
+
+        default String getEditorFontFamily() {
+            ChapterEditorHost editor = getChapterEditor();
+            return editor != null ? editor.getEditorFontFamily() : "Segoe UI";
+        }
     }
 
     private final Host host;
@@ -47,6 +57,7 @@ public class ChapterMacroWindow {
     private final Preferences preferences = Preferences.userNodeForPackage(EditorWindow.class);
 
     private CustomStage stage;
+    private VBox panelRoot;
     private ComboBox<String> cmbMacroList;
     private VBox macroDetailsPanel;
     private TableView<MacroStep> tblMacroSteps;
@@ -80,6 +91,7 @@ public class ChapterMacroWindow {
             createStage();
         }
         applyThemeToPanel();
+        applyEditorFont();
         stage.setTitleBarTheme(host.getThemeIndex());
         stage.show();
         stage.toFront();
@@ -100,6 +112,12 @@ public class ChapterMacroWindow {
         }
     }
 
+    public void applyEditorFont() {
+        if (panelRoot != null) {
+            EditorDialogThemes.applyEditorFont(panelRoot, host.getEditorFontSizePx(), host.getEditorFontFamily());
+        }
+    }
+
     private void applyThemeToPanel() {
         if (stage != null && stage.getScene() != null) {
             host.applyThemeToNode(stage.getScene().getRoot(), host.getThemeIndex());
@@ -112,14 +130,15 @@ public class ChapterMacroWindow {
         stage.setTitleBarTheme(host.getThemeIndex());
         stage.initModality(Modality.NONE);
 
-        VBox root = buildPanel();
-        Scene scene = new Scene(root);
+        panelRoot = buildPanel();
+        Scene scene = new Scene(panelRoot);
         String css = ResourceManager.getCssResource("css/manuskript.css");
         if (css != null) {
             scene.getStylesheets().add(css);
         }
         stage.setSceneWithTitleBar(scene);
         applyThemeToPanel();
+        applyEditorFont();
         loadWindowProperties();
 
         stage.setOnCloseRequest(event -> {

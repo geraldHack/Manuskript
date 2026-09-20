@@ -112,9 +112,9 @@ public final class WhisperRuntime {
         return null;
     }
 
-    /** Zielpfad für das Standard-Modell unter App-Home. */
+    /** Zielpfad für das Standard-Modell unter dem schreibbaren App-Home. */
     static Path defaultModelTargetPath() {
-        return new File(ApplicationPaths.getApplicationHomeDirectory(), WHISPER_DIR)
+        return new File(ApplicationPaths.writableHomeDirectory(), WHISPER_DIR)
                 .toPath()
                 .resolve("models")
                 .resolve("ggml-base.bin");
@@ -227,7 +227,7 @@ public final class WhisperRuntime {
         if (!isWindows()) {
             return "Windows-ZIP-Installation ist nur unter Windows verfügbar.";
         }
-        File targetDir = new File(ApplicationPaths.getApplicationHomeDirectory(), WHISPER_DIR);
+        File targetDir = new File(ApplicationPaths.writableHomeDirectory(), WHISPER_DIR);
         try {
             Files.createDirectories(targetDir.toPath());
             Path zipPath = targetDir.toPath().resolve("whisper-bin-x64.zip");
@@ -484,7 +484,7 @@ public final class WhisperRuntime {
                     return candidate;
                 }
             }
-            Path fallback = ApplicationPaths.getApplicationHomeDirectory().toPath().resolve(configured).normalize();
+            Path fallback = ApplicationPaths.writableHomeDirectory().toPath().resolve(configured).normalize();
             logger.warn("Konfiguriertes Whisper-Modell nicht gefunden: {}", fallback);
             return fallback;
         }
@@ -500,7 +500,7 @@ public final class WhisperRuntime {
             }
         }
 
-        return new File(ApplicationPaths.getApplicationHomeDirectory(), WHISPER_DIR)
+        return new File(ApplicationPaths.writableHomeDirectory(), WHISPER_DIR)
                 .toPath().resolve("models/ggml-base.bin");
     }
 
@@ -512,7 +512,7 @@ public final class WhisperRuntime {
     }
 
     static String buildSetupHint() {
-        File appHome = ApplicationPaths.getApplicationHomeDirectory();
+        File appHome = ApplicationPaths.writableHomeDirectory();
         String home = System.getProperty("user.home", "~");
         return """
                 Lokales Whisper (offline, kein OpenAI-Key):
@@ -540,6 +540,7 @@ public final class WhisperRuntime {
     private static List<File> baseDirectories() {
         Set<String> seen = new LinkedHashSet<>();
         List<File> bases = new ArrayList<>();
+        addBase(bases, seen, ApplicationPaths.writableHomeDirectory());
         addBase(bases, seen, ApplicationPaths.getApplicationHomeDirectory());
         addBase(bases, seen, new File(System.getProperty("user.dir", ".")));
         String home = System.getProperty("user.home");

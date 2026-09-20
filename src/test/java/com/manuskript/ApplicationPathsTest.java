@@ -142,4 +142,75 @@ class ApplicationPathsTest {
         assertEquals("alt", Files.readString(to.resolve("Der Gott von Demirantha").resolve("a.docx")));
         assertEquals("buch", Files.readString(to.resolve("Neues Buch").resolve("b.docx")));
     }
+
+    @Test
+    void userDataDirectoryUsesXdgOnLinux() {
+        assertEquals(new File("/home/u/.local/share/manuskript"),
+                ApplicationPaths.userDataDirectory("/home/u", "Linux", null, null));
+        assertEquals(new File("/xdg/manuskript"),
+                ApplicationPaths.userDataDirectory("/home/u", "Linux", "/xdg", null));
+    }
+
+    @Test
+    void userDataDirectoryUsesApplicationSupportOnMac() {
+        assertEquals(new File("/Users/u/Library/Application Support/Manuskript"),
+                ApplicationPaths.userDataDirectory("/Users/u", "Mac OS X", null, null));
+    }
+
+    @Test
+    void writableHomeStaysBesideAppWhenPluginsAreWritable(@TempDir Path temp) throws Exception {
+        Path app = temp.resolve("app");
+        Files.createDirectories(app);
+        Path data = temp.resolve("data");
+        File chosen = ApplicationPaths.chooseWritableHome(app.toFile(), data.toFile());
+        assertEquals(app.toFile().getCanonicalFile(), chosen.getCanonicalFile());
+        assertTrue(Files.isDirectory(app.resolve("plugins")));
+    }
+
+    @Test
+    void writableHomeAvoidsOptEvenIfPluginsLookWritable(@TempDir Path temp) throws Exception {
+        Path optApp = temp.resolve("opt").resolve("manuskript").resolve("lib").resolve("app");
+        Files.createDirectories(optApp.resolve("plugins"));
+        Path data = temp.resolve("data");
+
+        // Pfad enthält /opt/ → Systeminstallation, unabhängig von Schreibrechten im Temp-Baum
+        File fakeOpt = new File("/opt/manuskript/lib/app");
+        assertTrue(ApplicationPaths.isSystemManagedInstall(fakeOpt));
+        assertTrue(ApplicationPaths.isSystemManagedInstall(new File("/usr/lib/manuskript")));
+        assertFalse(ApplicationPaths.isSystemManagedInstall(optApp.toFile()));
+
+        File chosen = ApplicationPaths.chooseWritableHome(fakeOpt, data.toFile());
+        assertEquals(data.toFile().getCanonicalFile(), chosen.getCanonicalFile());
+        assertTrue(Files.isDirectory(data.resolve("plugins")));
+    }
+
+    @Test
+    void writableHomeFallsBackWhenPluginsCannotBeCreated(@TempDir Path temp) throws Exception {
+        Path app = temp.resolve("app");
+        Files.createDirectories(app);
+        Files.writeString(app.resolve("plugins"), "kein-ordner");
+        Path data = temp.resolve("data");
+
+        File chosen = ApplicationPaths.chooseWritableHome(app.toFile(), data.toFile());
+        assertEquals(data.toFile().getCanonicalFile(), chosen.getCanonicalFile());
+        assertTrue(Files.isDirectory(data.resolve("plugins")));
+        assertTrue(Files.isDirectory(data.resolve("config")));
+        assertTrue(Files.isDirectory(data.resolve("logs")));
+    }
+
+    @Test
+    void seedMissingFilesSkipsExisting(@TempDir Path temp) throws Exception {
+        Path bundled = temp.resolve("bundled");
+        Path dest = temp.resolve("dest");
+        Files.createDirectories(bundled);
+        Files.writeString(bundled.resolve("a.txt"), "neu");
+        Files.createDirectories(dest);
+        Files.writeString(dest.resolve("a.txt"), "alt");
+        Files.writeString(bundled.resolve("b.txt"), "dazu");
+
+        ApplicationPaths.seedMissingFiles(bundled.toFile(), dest.toFile());
+
+        assertEquals("alt", Files.readString(dest.resolve("a.txt")));
+        assertEquals("dazu", Files.readString(dest.resolve("b.txt")));
+    }
 }

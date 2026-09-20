@@ -238,6 +238,7 @@ public class MdTextArea extends VBox {
             hideMarkupCheckbox.selectedProperty().addListener((obs, oldValue, newValue) -> {
                 editor.setRenderMarkupHidden(newValue);
                 notifyConsumer(opts.onHideMarkupChanged(), newValue);
+                editor.requestInputFocus();
             });
             row.getChildren().add(hideMarkupCheckbox);
         }

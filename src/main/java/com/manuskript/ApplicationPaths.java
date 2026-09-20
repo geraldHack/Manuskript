@@ -169,26 +169,167 @@ public final class ApplicationPaths {
                 || new File(dir, "Manuskripte").isDirectory();
     }
 
+    /** System-Property für das schreibbare Datenverzeichnis. */
+    public static final String DATA_DIR_PROPERTY = "manuskript.data.dir";
+
+    private static volatile File cachedWritableHome;
+
     /**
-     * Aktive In-Process-Plugins ({@code Contents/app/plugins}). Nur JARs hier werden geladen.
+     * Schreibbares App-Verzeichnis: neben der JAR, wenn das geht, sonst
+     * {@code ~/.local/share/manuskript} (Linux), Application Support (macOS)
+     * bzw. {@code %LOCALAPPDATA%\Manuskript} (Windows).
+     * AppImage, {@code /opt} und {@code /usr} sind schreibgeschützt — dort
+     * dürfen Plugins, Config und Logs nicht landen.
      */
-    public static File resolvePluginsDirectory() {
-        File packaged = new File(getApplicationHomeDirectory(), "plugins");
-        if (packaged.isDirectory()) {
-            return canonicalOrSelf(packaged);
+    public static File writableHomeDirectory() {
+        File cached = cachedWritableHome;
+        if (cached != null) {
+            return cached;
         }
-        File repo = new File(System.getProperty("user.dir", "."), "plugins");
-        if (repo.isDirectory()) {
-            return canonicalOrSelf(repo);
+        synchronized (ApplicationPaths.class) {
+            if (cachedWritableHome == null) {
+                cachedWritableHome = chooseWritableHome(getApplicationHomeDirectory(), userDataDirectory());
+            }
+            return cachedWritableHome;
         }
-        return packaged;
+    }
+
+    static File chooseWritableHome(File appHome, File userData) {
+        if (appHome != null
+                && !isSystemManagedInstall(appHome)
+                && tryPrepareWritableDir(new File(appHome, "plugins"))) {
+            return appHome;
+        }
+        File data = userData != null ? userData : userDataDirectory();
+        ensureDirectory(data);
+        ensureDirectory(new File(data, "plugins"));
+        ensureDirectory(new File(data, "config"));
+        ensureDirectory(new File(data, "logs"));
+        File bundledConfig = appHome != null ? new File(appHome, "config") : null;
+        seedMissingFiles(bundledConfig, new File(data, "config"));
+        return data;
     }
 
     /**
-     * Mitgelieferte, noch nicht aktivierte Plugins ({@code plugin-catalog/}).
-     * Werden erst nach Auswahl im Setup nach {@link #resolvePluginsDirectory()} kopiert.
+     * System- oder nur-lese-Installation: nie schreibbare Nutzerdaten dort ablegen,
+     * auch wenn ein leerer {@code plugins/}-Ordner zufällig beschreibbar wirkt.
      */
-    public static File resolvePluginCatalogDirectory() {
+    static boolean isSystemManagedInstall(File appHome) {
+        if (appHome == null) {
+            return false;
+        }
+        String path;
+        try {
+            path = appHome.getCanonicalPath().replace('\\', '/');
+        } catch (IOException e) {
+            path = appHome.getAbsolutePath().replace('\\', '/');
+        }
+        String lower = path.toLowerCase(java.util.Locale.ROOT);
+        if (lower.equals("/opt") || lower.startsWith("/opt/")
+                || lower.equals("/usr") || lower.startsWith("/usr/")
+                || lower.startsWith("/snap/")
+                || lower.contains("/tmp/.mount_")
+                || lower.contains("/appimage")) {
+            return true;
+        }
+        // AppImage/squashfs und ähnliche nur-lese-Mounts
+        try {
+            return Files.getFileStore(appHome.toPath()).isReadOnly();
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    /**
+     * Ein Nutzerordner für alle schreibbaren App-Daten (nicht die Manuskripte).
+     */
+    public static File userDataDirectory() {
+        String override = System.getProperty(DATA_DIR_PROPERTY);
+        if (override != null && !override.isBlank()) {
+            File dir = new File(override.trim());
+            ensureDirectory(dir);
+            return dir;
+        }
+        return userDataDirectory(
+                System.getProperty("user.home", "."),
+                System.getProperty("os.name", ""),
+                System.getenv("XDG_DATA_HOME"),
+                System.getenv("LOCALAPPDATA"));
+    }
+
+    static File userDataDirectory(String userHome, String osName, String xdgDataHome, String localAppData) {
+        String home = userHome != null && !userHome.isBlank() ? userHome : ".";
+        String os = osName == null ? "" : osName.toLowerCase();
+        if (os.contains("mac")) {
+            return new File(home, "Library/Application Support/Manuskript");
+        }
+        if (os.contains("win")) {
+            if (localAppData != null && !localAppData.isBlank()) {
+                return new File(localAppData, "Manuskript");
+            }
+            return new File(home, "AppData/Local/Manuskript");
+        }
+        if (xdgDataHome != null && !xdgDataHome.isBlank()) {
+            return new File(xdgDataHome, "manuskript");
+        }
+        return new File(home, ".local/share/manuskript");
+    }
+
+    static void seedMissingFiles(File bundled, File dest) {
+        if (bundled == null || dest == null || !bundled.isDirectory()) {
+            return;
+        }
+        try {
+            Path fromRoot = bundled.toPath();
+            Path toRoot = dest.toPath();
+            Files.createDirectories(toRoot);
+            try (var stream = Files.walk(fromRoot)) {
+                stream.forEach(from -> {
+                    try {
+                        if (".DS_Store".equals(from.getFileName().toString())) {
+                            return;
+                        }
+                        Path relative = fromRoot.relativize(from);
+                        Path to = toRoot.resolve(relative.toString());
+                        if (Files.isDirectory(from)) {
+                            Files.createDirectories(to);
+                        } else if (!Files.exists(to)) {
+                            Path parent = to.getParent();
+                            if (parent != null) {
+                                Files.createDirectories(parent);
+                            }
+                            Files.copy(from, to, StandardCopyOption.COPY_ATTRIBUTES);
+                        }
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                });
+            }
+        } catch (UncheckedIOException e) {
+            logger.warn("Config konnte nicht ins Nutzerverzeichnis kopiert werden: {}", e.getCause().toString());
+        } catch (IOException e) {
+            logger.warn("Config konnte nicht ins Nutzerverzeichnis kopiert werden", e);
+        }
+    }
+
+    /**
+     * Aktive In-Process-Plugins. Schreibbar — nie nach {@code /usr} oder ins AppImage.
+     */
+    public static File resolvePluginsDirectory() {
+        File writable = new File(writableHomeDirectory(), "plugins");
+        ensureDirectory(writable);
+        if (writable.isDirectory()) {
+            return canonicalOrSelf(writable);
+        }
+        File repo = new File(System.getProperty("user.dir", "."), "plugins");
+        ensureDirectory(repo);
+        return canonicalOrSelf(repo);
+    }
+
+    /**
+     * Mitgelieferter Katalog im Installationsordner (oft nur lesbar).
+     */
+    public static File resolveBundledPluginCatalogDirectory() {
         File packaged = new File(getApplicationHomeDirectory(), "plugin-catalog");
         if (packaged.isDirectory()) {
             return canonicalOrSelf(packaged);
@@ -198,6 +339,18 @@ public final class ApplicationPaths {
             return canonicalOrSelf(repo);
         }
         return packaged;
+    }
+
+    /**
+     * Katalog für Downloads und eigene JARs: schreibbares Home.
+     */
+    public static File resolvePluginCatalogDirectory() {
+        File writable = new File(writableHomeDirectory(), "plugin-catalog");
+        ensureDirectory(writable);
+        if (writable.isDirectory()) {
+            return canonicalOrSelf(writable);
+        }
+        return resolveBundledPluginCatalogDirectory();
     }
 
     private static File canonicalOrSelf(File file) {
@@ -545,15 +698,16 @@ public final class ApplicationPaths {
     }
 
     /**
-     * Pfad unter {@code config/…}: zuerst App-Home (jpackage {@code Contents/app}),
-     * sonst relatives Arbeitsverzeichnis (Dev mit {@code mvn javafx:run}).
+     * Pfad unter {@code config/…} im schreibbaren Home.
+     * Vorlagen aus dem Installationsordner werden beim ersten Start kopiert.
      *
      * @param relativePath z. B. {@code config/defaultCovers} oder {@code config/plugins}
      */
     public static File resolveConfigPath(String relativePath) {
-        return resolveBundledPath(relativePath != null && !relativePath.isBlank()
+        String relative = relativePath != null && !relativePath.isBlank()
                 ? relativePath
-                : "config");
+                : "config";
+        return new File(writableHomeDirectory(), relative.replace('/', File.separatorChar));
     }
 
     /**
@@ -599,6 +753,27 @@ public final class ApplicationPaths {
     }
 
     /**
+     * Schreibbares Tool-Verzeichnis für Setup-Entpacken (Pandoc/FFmpeg).
+     * Liest weiterhin zuerst aus dem Bundle; schreibt nie nach {@code /opt} / {@code /usr}.
+     */
+    public static File resolveWritableToolDirectory(String relativePath) {
+        if (relativePath == null || relativePath.isBlank()) {
+            return writableHomeDirectory();
+        }
+        String normalized = relativePath.replace('\\', '/');
+        while (normalized.startsWith("./")) {
+            normalized = normalized.substring(2);
+        }
+        File bundled = resolveBundledPath(normalized);
+        if (!isSystemManagedInstall(getApplicationHomeDirectory()) && tryPrepareWritableDir(bundled)) {
+            return bundled;
+        }
+        File writable = new File(writableHomeDirectory(), normalized.replace('/', File.separatorChar));
+        ensureDirectory(writable);
+        return writable;
+    }
+
+    /**
      * Schreibbares Log-Verzeichnis.
      * Relatives {@code logs/} (CWD) funktioniert in jpackage-.app oft nicht
      * (CWD={@code /}, Bundle nicht schreibbar) — deshalb: App-Home wenn möglich,
@@ -612,7 +787,7 @@ public final class ApplicationPaths {
             return dir;
         }
 
-        File besideApp = new File(getApplicationHomeDirectory(), "logs");
+        File besideApp = new File(writableHomeDirectory(), "logs");
         if (tryPrepareWritableDir(besideApp)) {
             return besideApp;
         }

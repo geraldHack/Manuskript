@@ -80,6 +80,7 @@ public final class DictationPreviewDialog {
 
         root.getChildren().addAll(rawLabel, rawArea, processedLabel, processedArea, buttons);
         VBox.setVgrow(processedArea, Priority.ALWAYS);
+        EditorDialogThemes.applyEditorFont(root, host);
 
         Scene scene = new Scene(root);
         scene.setFill(javafx.scene.paint.Color.web(EditorDialogThemes.color(themeIndex, 0)));

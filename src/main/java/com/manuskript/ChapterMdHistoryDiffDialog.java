@@ -31,6 +31,12 @@ public final class ChapterMdHistoryDiffDialog {
 
     public static void show(Window owner, int themeIndex, String chapterLabel, String versionLabel,
                             String historyContent, String currentText, Consumer<String> onRestore) {
+        show(owner, themeIndex, chapterLabel, versionLabel, historyContent, currentText, onRestore, 0, null);
+    }
+
+    public static void show(Window owner, int themeIndex, String chapterLabel, String versionLabel,
+                            String historyContent, String currentText, Consumer<String> onRestore,
+                            int editorFontSizePx, String editorFontFamily) {
         String baseline = ChapterMarkdownFormat.normalizeParagraphSpacing(historyContent);
         String current = ChapterMarkdownFormat.normalizeParagraphSpacing(currentText);
 
@@ -81,6 +87,9 @@ public final class ChapterMdHistoryDiffDialog {
             diffGrid.getChildren().clear();
             diffGrid.getRowConstraints().clear();
             buildDiffRows(diffGrid, diff.getDiffLines(), text, border, hide);
+            if (editorFontSizePx > 0) {
+                EditorDialogThemes.applyEditorFont(diffGrid, editorFontSizePx, editorFontFamily);
+            }
         });
 
         ScrollPane scroll = new ScrollPane(diffGrid);
@@ -94,6 +103,9 @@ public final class ChapterMdHistoryDiffDialog {
             root.getChildren().addAll(headerGrid, scroll);
         }
         addButtons(root, stage, onRestore, baseline, text);
+        if (editorFontSizePx > 0) {
+            EditorDialogThemes.applyEditorFont(root, editorFontSizePx, editorFontFamily);
+        }
         showStage(stage, root, themeIndex, bg);
     }
 

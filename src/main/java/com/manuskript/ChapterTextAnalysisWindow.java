@@ -37,6 +37,14 @@ public class ChapterTextAnalysisWindow {
         int getThemeIndex();
 
         void applyThemeToNode(Node node, int themeIndex);
+
+        default int getEditorFontSizePx() {
+            return 16;
+        }
+
+        default String getEditorFontFamily() {
+            return "Segoe UI";
+        }
     }
 
     private final Host host;
@@ -45,6 +53,7 @@ public class ChapterTextAnalysisWindow {
     private CustomStage stage;
     private TextArea statusArea;
     private TextField abstandField;
+    private VBox panelRoot;
 
     private TextAnalysisEngine.AnalysisResult currentResult;
     private int currentNavIndex = -1;
@@ -71,6 +80,7 @@ public class ChapterTextAnalysisWindow {
         }
         stage.setTitleBarTheme(host.getThemeIndex());
         host.applyThemeToNode(stage.getScene().getRoot(), host.getThemeIndex());
+        applyEditorFont();
         stage.show();
         stage.toFront();
         host.updateStatus("Textanalyse-Fenster geöffnet");
@@ -90,6 +100,12 @@ public class ChapterTextAnalysisWindow {
         }
     }
 
+    public void applyEditorFont() {
+        if (panelRoot != null) {
+            EditorDialogThemes.applyEditorFont(panelRoot, host.getEditorFontSizePx(), host.getEditorFontFamily());
+        }
+    }
+
     private void createStage() {
         stage = StageManager.createStage("Textanalyse");
         stage.setTitle("Textanalyse");
@@ -98,14 +114,15 @@ public class ChapterTextAnalysisWindow {
         stage.setTitleBarTheme(host.getThemeIndex());
         stage.initModality(Modality.NONE);
 
-        VBox root = buildPanel();
-        Scene scene = new Scene(root);
+        panelRoot = buildPanel();
+        Scene scene = new Scene(panelRoot);
         String cssPath = ResourceManager.getCssResource("css/manuskript.css");
         if (cssPath != null) {
             scene.getStylesheets().add(cssPath);
         }
         stage.setSceneWithTitleBar(scene);
-        host.applyThemeToNode(root, host.getThemeIndex());
+        host.applyThemeToNode(panelRoot, host.getThemeIndex());
+        applyEditorFont();
 
         stage.setOnCloseRequest(event -> {
             event.consume();

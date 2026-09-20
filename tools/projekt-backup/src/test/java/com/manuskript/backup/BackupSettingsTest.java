@@ -47,6 +47,7 @@ class BackupSettingsTest {
         ssh.sshUser = "gerd";
         ssh.sshRemotePath = "/backups/manuskript";
         ssh.schedule = BackupSchedule.HOURLY.name();
+        ssh.allProjects = true;
         settings.targets.add(ssh);
         settings.save(config);
         BackupSettings loaded = BackupSettings.load(config);
@@ -55,6 +56,7 @@ class BackupSettingsTest {
         assertEquals(BackupKind.SSH, loaded.targets.get(0).kind());
         assertEquals("example.test", loaded.targets.get(0).sshHost);
         assertEquals(BackupSchedule.HOURLY, loaded.targets.get(0).scheduleEnum());
+        assertTrue(loaded.targets.get(0).allProjects);
     }
 
     @Test

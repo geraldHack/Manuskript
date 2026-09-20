@@ -10277,7 +10277,12 @@ public class MainController implements Initializable {
         }
         launcherToolbarBox.setVisible(true);
         launcherToolbarBox.setManaged(true);
+        java.util.Set<String> seenPluginIds = new java.util.LinkedHashSet<>();
         for (ManuskriptPlugin plugin : loadedPlugins) {
+            String id = plugin.id() == null ? "" : plugin.id().trim().toLowerCase();
+            if (!id.isEmpty() && !seenPluginIds.add(id)) {
+                continue;
+            }
             Button button = new Button(plugin.label());
             button.getStyleClass().add("main-toolbar-button");
             button.setMinWidth(Region.USE_PREF_SIZE);
@@ -10344,7 +10349,8 @@ public class MainController implements Initializable {
 
             @Override
             public Path configDir() {
-                return applicationHome();
+                File home = ApplicationPaths.writableHomeDirectory();
+                return home != null ? home.toPath() : applicationHome();
             }
 
             @Override
@@ -10426,7 +10432,7 @@ public class MainController implements Initializable {
     private void startProgramLauncher(ProgramLauncher launcher) {
         try {
             String projectRoot = txtDirectoryPath != null ? getCurrentProjectPath() : null;
-            File home = ApplicationPaths.getApplicationHomeDirectory();
+            File home = ApplicationPaths.writableHomeDirectory();
             String configDir = home != null ? home.getAbsolutePath() : System.getProperty("user.dir", ".");
             DocxFile selected = tableViewSelected != null
                     ? tableViewSelected.getSelectionModel().getSelectedItem() : null;

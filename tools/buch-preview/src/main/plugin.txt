@@ -1,0 +1,8 @@
+Taschenbuch-Preview
+@project.version@
+
+HTML-Vorschau für Taschenbuch und Hardcover: Wörter, Sätze, Seiten, Cover, 3D-Dummy und Durchblättern.
+Nutzt den HTML5-Export und Klappentext/Cover aus dem Exportmodul. Kein PDF.
+
+1.1.8: Nimmt das HTML zum offenen Buch, auch wenn in den Metadaten noch ein anderer Titel steht.
+1.1.7: Rückseite schwarz wie der Rücken, weiße kleinere Klappentext-Schrift, darunter Autoreninfo.

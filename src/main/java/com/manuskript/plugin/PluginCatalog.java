@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -95,34 +96,56 @@ public final class PluginCatalog {
     }
 
     public static List<Entry> list() {
-        return list(catalogDirectory(), activeDirectory());
+        return list(
+                ApplicationPaths.resolveBundledPluginCatalogDirectory(),
+                catalogDirectory(),
+                activeDirectory());
     }
 
     static List<Entry> list(File catalogDir, File pluginsDir) {
         Map<String, Entry> byName = new LinkedHashMap<>();
+        addCatalogJars(byName, catalogDir, pluginsDir);
+        return List.copyOf(byName.values());
+    }
+
+    static List<Entry> list(File bundledCatalog, File writableCatalog, File pluginsDir) {
+        Map<String, Entry> byName = new LinkedHashMap<>();
+        addCatalogJars(byName, bundledCatalog, pluginsDir);
+        addCatalogJars(byName, writableCatalog, pluginsDir);
+        return List.copyOf(byName.values());
+    }
+
+    static void addCatalogJars(Map<String, Entry> byName, File catalogDir, File pluginsDir) {
         File[] jars = catalogDir != null && catalogDir.isDirectory()
                 ? catalogDir.listFiles(file -> file.isFile() && file.getName().toLowerCase().endsWith(".jar"))
                 : null;
         if (jars == null) {
-            return List.of();
+            return;
         }
         for (File jar : jars) {
             if (!PluginLoader.hasPluginDescriptor(jar)) {
                 continue;
             }
+            PluginJarName.Parsed parsed = PluginJarName.parse(jar.getName());
+            if (parsed != null && parsed.version() != null && !parsed.version().isBlank()) {
+                continue;
+            }
             Peek peek = peek(jar);
-            boolean enabled = pluginsDir != null && new File(pluginsDir, jar.getName()).isFile();
-            byName.putIfAbsent(jar.getName().toLowerCase(),
+            boolean enabled = isEnabledIn(pluginsDir, jar.getName(), peek.id);
+            byName.put(jar.getName().toLowerCase(),
                     new Entry(jar, jar.getName(), peek.id, peek.label, enabled));
         }
-        return List.copyOf(byName.values());
     }
 
     public static void setEnabled(Entry entry, boolean enabled) {
         if (entry == null || entry.catalogFile() == null) {
             return;
         }
+        PluginLoader.unload();
         setEnabled(entry.catalogFile(), activeDirectory(), enabled);
+        if (!enabled) {
+            removePluginCopies(entry.fileName(), entry.id());
+        }
     }
 
     static void setEnabled(File catalogJar, File pluginsDir, boolean enabled) {
@@ -137,7 +160,7 @@ public final class PluginCatalog {
                 copySiblingNotes(catalogJar, target);
                 logger.info("Plugin aktiviert: {}", target.getName());
             } else if (target.isFile()) {
-                Files.delete(target.toPath());
+                deleteWithRetry(target.toPath());
                 deleteSiblingNotes(target);
                 logger.info("Plugin deaktiviert: {}", target.getName());
             }
@@ -173,6 +196,113 @@ public final class PluginCatalog {
         } catch (IOException e) {
             logger.warn("Plugin-Notiz nicht geschrieben: {}", jarFileName, e);
         }
+    }
+
+    private static boolean isEnabledIn(File pluginsDir, String fileName, String id) {
+        if (pluginsDir == null || !pluginsDir.isDirectory()) {
+            return false;
+        }
+        if (fileName != null && new File(pluginsDir, fileName).isFile()) {
+            return true;
+        }
+        if (id == null || id.isBlank()) {
+            return false;
+        }
+        File canonical = new File(pluginsDir, id + ".jar");
+        if (canonical.isFile()) {
+            return true;
+        }
+        File[] jars = pluginsDir.listFiles(file -> file.isFile() && file.getName().toLowerCase().endsWith(".jar"));
+        if (jars == null) {
+            return false;
+        }
+        for (File jar : jars) {
+            PluginJarName.Parsed parsed = PluginJarName.parse(jar.getName());
+            if (parsed != null && id.equalsIgnoreCase(parsed.id())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void removePluginCopies(String fileName, String id) {
+        LinkedHashSet<File> dirs = new LinkedHashSet<>();
+        dirs.addAll(PluginLoader.pluginDirectories());
+        File active = activeDirectory();
+        if (active != null) {
+            dirs.add(active);
+        }
+        File cwdPlugins = new File(System.getProperty("user.dir", "."), "plugins");
+        if (cwdPlugins.isDirectory()) {
+            dirs.add(cwdPlugins);
+        }
+        for (File dir : dirs) {
+            if (dir == null || !dir.isDirectory()) {
+                continue;
+            }
+            try {
+                if (fileName != null && !fileName.isBlank()) {
+                    File named = new File(dir, fileName);
+                    if (named.isFile()) {
+                        deleteWithRetry(named.toPath());
+                    }
+                    deleteSiblingNotes(named);
+                }
+                File[] jars = dir.listFiles(file -> file.isFile() && file.getName().toLowerCase().endsWith(".jar"));
+                if (jars == null) {
+                    continue;
+                }
+                for (File jar : jars) {
+                    if (samePlugin(jar, fileName, id)) {
+                        deleteWithRetry(jar.toPath());
+                        deleteSiblingNotes(jar);
+                    }
+                }
+            } catch (IOException e) {
+                throw new IllegalStateException("Löschen fehlgeschlagen: " + e.getMessage(), e);
+            }
+        }
+    }
+
+    private static boolean samePlugin(File jar, String fileName, String id) {
+        if (jar == null) {
+            return false;
+        }
+        String name = jar.getName();
+        if (fileName != null && fileName.equalsIgnoreCase(name)) {
+            return true;
+        }
+        PluginJarName.Parsed parsed = PluginJarName.parse(name);
+        if (parsed == null) {
+            return false;
+        }
+        if (id != null && !id.isBlank() && id.equalsIgnoreCase(parsed.id())) {
+            return true;
+        }
+        if (fileName != null) {
+            PluginJarName.Parsed wanted = PluginJarName.parse(fileName);
+            return wanted != null && wanted.id().equalsIgnoreCase(parsed.id());
+        }
+        return false;
+    }
+
+    private static void deleteWithRetry(Path path) throws IOException {
+        IOException last = null;
+        for (int attempt = 0; attempt < 8; attempt++) {
+            try {
+                Files.deleteIfExists(path);
+                return;
+            } catch (IOException e) {
+                last = e;
+                try {
+                    Thread.sleep(40L * (attempt + 1));
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                    throw e;
+                }
+            }
+        }
+        throw last != null ? last : new IOException("Löschen fehlgeschlagen: " + path);
     }
 
     private static void copySiblingNotes(File fromJar, File toJar) throws IOException {

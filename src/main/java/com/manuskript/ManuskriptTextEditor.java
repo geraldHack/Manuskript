@@ -1378,16 +1378,38 @@ public class ManuskriptTextEditor extends Region {
     }
 
     public void setRenderMarkupHidden(boolean hidden) {
+        if (renderMarkupHidden == hidden) {
+            return;
+        }
+        int savedCaret = caret;
+        int savedAnchor = anchor;
+        double savedPreferredX = preferredCaretX;
+        ViewportAnchor viewport = captureReadingViewportAnchor();
+
         renderMarkupHidden = hidden;
         textWidthCache.clear();
         invalidateLayoutCaches();
         forceFullAutoMarkRebuild = true;
-        preserveReadingViewportOnNextRebuild = true;
+        // Viewport/Caret stellen wir nach dem vollständigen Rebuild selbst wieder her
+        // (inkl. Struktur- und Bild-/HR-Sync), nicht nur im Auto-Mark-Schritt.
+        preserveReadingViewportOnNextRebuild = false;
         rebuildStructuralMarkdownNow();
         autoRuleDelay.stop();
         rebuildAutoMarks();
         syncBlockLayoutFromMarkdown();
-        updateScrollBar();
+
+        caret = Math.max(0, Math.min(text.length(), savedCaret));
+        anchor = Math.max(0, Math.min(text.length(), savedAnchor));
+        preferredCaretX = savedPreferredX;
+
+        boolean previousIgnore = ignoreScrollBarRender;
+        ignoreScrollBarRender = true;
+        try {
+            updateScrollBarPreserving(verticalScrollBar.getValue());
+            restoreViewportAnchor(viewport, viewport.offset());
+        } finally {
+            ignoreScrollBarRender = previousIgnore;
+        }
         render();
     }
 
@@ -4308,7 +4330,9 @@ public class ManuskriptTextEditor extends Region {
     }
 
     private void scheduleImageSyncIfNeeded() {
-        if (textMightContainImages()) {
+        // Bilder und HRs teilen denselben Sync-Pfad (syncBlockLayoutFromMarkdown).
+        // Früher: ohne ![ wurden vorhandene HRs sofort geleert – --- blieb als Rohtext sichtbar.
+        if (textMightContainImages() || textMightContainHorizontalRules()) {
             imageSyncDelay.stop();
             imageSyncDelay.playFromStart();
             return;
@@ -4325,6 +4349,12 @@ public class ManuskriptTextEditor extends Region {
 
     private boolean textMightContainImages() {
         return text.indexOf("![") >= 0 || !imageBlocks.isEmpty() || !hiddenImageBlockRanges.isEmpty();
+    }
+
+    private boolean textMightContainHorizontalRules() {
+        return MarkdownBlockSupport.mightHaveHorizontalRules(text.toString())
+                || !horizontalRules.isEmpty()
+                || !hiddenHorizontalRuleRanges.isEmpty();
     }
 
     private void scheduleTextChangeNotification() {
@@ -4420,13 +4450,20 @@ public class ManuskriptTextEditor extends Region {
         }
         boolean incremental = canRebuildAutoMarksIncrementally();
         boolean restoreReading = preserveReadingViewportOnNextRebuild;
+        ViewportAnchor readingAnchor = restoreReading ? captureReadingViewportAnchor() : null;
+        int savedCaret = caret;
+        int savedAnchor = anchor;
         if (incremental) {
             rebuildAutoMarksIncremental(autoMarkDirtyStart, autoMarkDirtyEnd);
         } else {
             rebuildAutoMarksFull();
         }
         rebuildLinkRangeCache();
-        finishAutoMarkRebuild(restoreReading);
+        finishAutoMarkRebuild(readingAnchor);
+        if (restoreReading) {
+            caret = Math.max(0, Math.min(text.length(), savedCaret));
+            anchor = Math.max(0, Math.min(text.length(), savedAnchor));
+        }
         preserveReadingViewportOnNextRebuild = false;
         forceFullAutoMarkRebuild = false;
         autoMarkDirtyStart = Integer.MAX_VALUE;
@@ -4634,7 +4671,7 @@ public class ManuskriptTextEditor extends Region {
         return area;
     }
 
-    private void finishAutoMarkRebuild(boolean restoreReadingViewport) {
+    private void finishAutoMarkRebuild(ViewportAnchor readingAnchor) {
         mergeHiddenMarkupRanges();
         sortTextRanges(inlineFormatCaretZones);
         double keepScroll = verticalScrollBar.getValue();
@@ -4649,8 +4686,12 @@ public class ManuskriptTextEditor extends Region {
             verticalScrollBar.setVisibleAmount(canvas.getHeight());
             verticalScrollBar.setBlockIncrement(Math.max(lineHeight(), canvas.getHeight() * 0.85));
             verticalScrollBar.setUnitIncrement(lineHeight());
-            verticalScrollBar.setValue(Math.max(0, Math.min(max, keepScroll)));
-            scrollTop = verticalScrollBar.getValue();
+            if (readingAnchor != null) {
+                restoreViewportAnchor(readingAnchor, readingAnchor.offset());
+            } else {
+                verticalScrollBar.setValue(Math.max(0, Math.min(max, keepScroll)));
+                scrollTop = verticalScrollBar.getValue();
+            }
         } finally {
             ignoreScrollBarRender = previousIgnore;
         }

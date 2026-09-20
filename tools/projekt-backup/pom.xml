@@ -7,7 +7,7 @@
 
     <groupId>com.manuskript</groupId>
     <artifactId>projekt-backup</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.8</version>
     <packaging>jar</packaging>
 
     <name>Projekt-Backup</name>
