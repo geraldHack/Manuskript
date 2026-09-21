@@ -71,6 +71,30 @@ class CharacterSheetDocumentTest {
     }
 
     @Test
+    void parseCharacterBody_keepsMultilineAppearanceAndAsciiPersonality() {
+        CharacterSheetDocument.CharacterEntry entry = CharacterSheetDocument.parseCharacterBody("Nene", """
+                **Rolle:** Protagonistin
+                **Alter / Aussehen:**
+                17 Jahre, kurze schwarze Haare, graue Augen.
+                Trägt oft einen abgetragenen Mantel.
+                **Persoenlichkeit:**
+                Ruhig, beobachtend.
+                """);
+
+        assertTrue(entry.field("Alter / Aussehen").contains("kurze schwarze Haare"));
+        assertTrue(entry.field("Alter / Aussehen").contains("Mantel"));
+        assertEquals("Ruhig, beobachtend.", entry.field("Persönlichkeit"));
+    }
+
+    @Test
+    void canonicalizeFieldLabel_mapsAsciiVariants() {
+        assertEquals("Persönlichkeit", CharacterSheetDocument.canonicalizeFieldLabel("Persoenlichkeit"));
+        assertEquals("Alter / Aussehen", CharacterSheetDocument.canonicalizeFieldLabel("Aussehen"));
+        assertEquals("Schwächen / innere Konflikte",
+                CharacterSheetDocument.canonicalizeFieldLabel("Schwaechen / innere Konflikte"));
+    }
+
+    @Test
     void mergeGenerated_respectsFieldSelectionAndOnlyEmpty() {
         CharacterSheetDocument.CharacterEntry existing = new CharacterSheetDocument.CharacterEntry("Luna")
                 .withField("Rolle", "Protagonistin")

@@ -45,10 +45,15 @@ import java.util.function.Consumer;
 import java.util.prefs.Preferences;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Karten-Ansicht für {@code characters.txt}: blättern, suchen, strukturiert bearbeiten.
  */
 public final class CharacterCardsEditor extends BorderPane implements WorldEditorTabContent {
+
+    private static final Logger logger = LoggerFactory.getLogger(CharacterCardsEditor.class);
 
     @FunctionalInterface
     public interface SingleCharacterAiRequest {
@@ -175,7 +180,31 @@ public final class CharacterCardsEditor extends BorderPane implements WorldEdito
 
     @Override
     public String getText() {
+        commitVisibleFieldsToModel();
         return CharacterSheetDocument.serialize(buildDocument());
+    }
+
+    /** Liest die sichtbaren Editor-Widgets in das Modell — Absicherung vor Speichern. */
+    private void commitVisibleFieldsToModel() {
+        if (selectedEntry == null) {
+            return;
+        }
+        boolean wasSuppressed = suppressFieldRefresh;
+        suppressFieldRefresh = false;
+        try {
+            onNameChanged(nameField.getText());
+            if (roleComboBox != null && roleComboBox.getEditor() != null) {
+                updateSelectedField("Rolle", roleComboBox.getEditor().getText());
+            }
+            for (Map.Entry<String, TextField> entry : shortFieldEditors.entrySet()) {
+                updateSelectedField(entry.getKey(), entry.getValue().getText());
+            }
+            for (Map.Entry<String, MdTextArea> entry : fieldEditors.entrySet()) {
+                updateSelectedField(entry.getKey(), entry.getValue().getText());
+            }
+        } finally {
+            suppressFieldRefresh = wasSuppressed;
+        }
     }
 
     @Override
@@ -576,22 +605,23 @@ public final class CharacterCardsEditor extends BorderPane implements WorldEdito
         });
         ManuskriptTextEditor editor = area.getEditor();
         editor.applyEmbeddedFieldTheme(themeIndex);
+        // Höhe über embeddedField-Callback — niemals setOnTextChanged überschreiben
+        // (sonst synct MdTextArea.textProperty nicht mehr → Speichern schreibt alte Daten).
         editor.setEmbeddedFieldMode(true, () -> {
             if (!suppressFieldRefresh) {
                 applyFieldEditorHeight(area, label);
             }
         });
-        bindFieldHeight(area, label);
+        bindFieldHeight(area);
         return area;
     }
 
-    private void bindFieldHeight(MdTextArea area, String label) {
+    private void bindFieldHeight(MdTextArea area) {
         Runnable update = () -> {
             if (!suppressFieldRefresh) {
-                applyFieldEditorHeight(area, label);
+                applyFieldEditorHeight(area, null);
             }
         };
-        area.getEditor().setOnTextChanged(text -> Platform.runLater(update));
         area.widthProperty().addListener((obs, oldVal, newVal) -> Platform.runLater(update));
         Platform.runLater(update);
     }
@@ -756,7 +786,19 @@ public final class CharacterCardsEditor extends BorderPane implements WorldEdito
 
     private void replaceSelectedEntry(CharacterSheetDocument.CharacterEntry updated) {
         int charIndex = characters.indexOf(selectedEntry);
+        if (charIndex < 0 && selectedEntry != null) {
+            // Fallback: nach Name suchen (selectedEntry kann nach Listen-Refresh verwaist sein)
+            String wanted = selectedEntry.name();
+            for (int i = 0; i < characters.size(); i++) {
+                if (characters.get(i).name().equals(wanted)) {
+                    charIndex = i;
+                    break;
+                }
+            }
+        }
         if (charIndex < 0) {
+            logger.warn("Charakter-Änderung verworfen: keine Listenzuordnung für „{}“",
+                    selectedEntry != null ? selectedEntry.name() : "?");
             return;
         }
         CharacterSheetDocument.CharacterEntry copied = copyEntry(updated);

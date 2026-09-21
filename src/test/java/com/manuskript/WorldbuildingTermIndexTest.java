@@ -92,6 +92,77 @@ class WorldbuildingTermIndexTest {
     }
 
     @Test
+    void load_acceptsH2PlacesAfterOrteSection() {
+        String worldbuilding = """
+                ## Orte
+
+                ## Windbruch
+                Ein kleines Dorf.
+
+                ## Alduria
+                Die Hauptstadt.
+
+                ## Die Akademie
+                **Kurzname:** Akademie
+                Schule in Alduria.
+
+                ## Lore
+                Alte Mythen.
+                """;
+
+        WorldbuildingTermIndex index = WorldbuildingTermIndex.load("", worldbuilding);
+        assertTrue(index.entries().stream().anyMatch(e ->
+                e.term().equals("Windbruch") && e.category() == WorldbuildingTermIndex.Category.PLACE));
+        assertTrue(index.entries().stream().anyMatch(e ->
+                e.term().equals("Alduria") && e.category() == WorldbuildingTermIndex.Category.PLACE));
+        assertTrue(index.findMatches("An der Akademie lernte sie.").stream()
+                .anyMatch(m -> m.entry().sectionHeading().equals("Die Akademie")));
+    }
+
+    @Test
+    void load_ignoresLeadingArticlesForPlaces() {
+        String worldbuilding = """
+                ## Orte
+                ### Die Akademie
+                Schule in Alduria.
+                ### Das Krankenhaus
+                Ort der Notwendigkeit.
+                """;
+
+        WorldbuildingTermIndex index = WorldbuildingTermIndex.load("", worldbuilding);
+
+        assertTrue(index.findMatches("An der Akademie lernte sie.").stream()
+                .anyMatch(m -> m.entry().sectionHeading().equals("Die Akademie")));
+        assertTrue(index.findMatches("Das Krankenhaus war voll.").stream()
+                .anyMatch(m -> "Krankenhaus".equals(m.entry().term())
+                        || "Das Krankenhaus".equals(m.entry().term())));
+        assertEquals("Akademie", WorldbuildingTermIndex.stripLeadingArticle("Die Akademie"));
+        assertEquals("Krankenhaus", WorldbuildingTermIndex.stripLeadingArticle("Das Krankenhaus"));
+    }
+
+    @Test
+    void load_readsPlaceKurznameAliases() {
+        String worldbuilding = """
+                ## Orte
+                ### Die Akademie der Geistbinder
+                **Kurzname:** Akademie
+                **Alias:** Die Akademie, Geistbinder-Akademie
+                Prestigeträchtige Schule in Alduria.
+                """;
+
+        WorldbuildingTermIndex index = WorldbuildingTermIndex.load("", worldbuilding);
+
+        assertTrue(index.entries().stream().anyMatch(e ->
+                e.term().equals("Die Akademie der Geistbinder")
+                        && e.category() == WorldbuildingTermIndex.Category.PLACE));
+        assertTrue(index.findMatches("An der Akademie lernte sie Magie.").stream()
+                .anyMatch(m -> m.entry().sectionHeading().equals("Die Akademie der Geistbinder")));
+        assertTrue(index.findMatches("Die Akademie war streng.").stream()
+                .anyMatch(m -> "Die Akademie".equals(m.entry().term())
+                        || "Akademie".equals(m.entry().term())));
+    }
+
+    @Test
     void findMatches_recognizesGenitiveAndApostropheForms() {
         WorldbuildingTermIndex index = WorldbuildingTermIndex.load(
                 """
@@ -125,6 +196,27 @@ class WorldbuildingTermIndexTest {
     @Test
     void normalizeCharacterHeading_stripsDuplicateParentheses() {
         assertEquals("Nene Arista", WorldbuildingTermIndex.normalizeCharacterHeading("Nene Arista (Nene Arista)"));
+    }
+
+    @Test
+    void excerpt_includesAppearanceForCharacters() {
+        String characters = """
+                ## Nene Arista
+                **Rolle:** Protagonistin
+                **Alter / Aussehen:**
+                17, kurze schwarze Haare, graue Augen.
+                **Persoenlichkeit:** Ruhig und wachsam.
+                """;
+
+        WorldbuildingTermIndex index = WorldbuildingTermIndex.load(characters, "");
+        WorldbuildingTermIndex.Entry nene = index.entries().stream()
+                .filter(e -> e.term().equals("Nene Arista") || e.sectionHeading().equals("Nene Arista"))
+                .findFirst()
+                .orElseThrow();
+
+        assertTrue(nene.excerpt().contains("Aussehen:"));
+        assertTrue(nene.excerpt().contains("kurze schwarze Haare"));
+        assertTrue(nene.excerpt().contains("Persönlichkeit:"));
     }
 
     @Test

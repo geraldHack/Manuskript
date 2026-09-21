@@ -241,21 +241,38 @@ public final class CharacterSheetDocument {
         StringBuilder freeform = new StringBuilder();
         Matcher fact = FACT_LINE.matcher(working);
         int lastEnd = 0;
+        String lastLabel = null;
         while (fact.find()) {
             if (fact.start() > lastEnd) {
-                appendFreeform(freeform, working.substring(lastEnd, fact.start()));
+                String gap = working.substring(lastEnd, fact.start());
+                if (lastLabel != null) {
+                    String merged = mergeFieldGap(fields.getOrDefault(lastLabel, ""), gap);
+                    if (!merged.isBlank()) {
+                        fields.put(lastLabel, merged);
+                    }
+                } else {
+                    appendFreeform(freeform, gap);
+                }
             }
-            String label = fact.group(1).trim();
+            String label = canonicalizeFieldLabel(fact.group(1).trim());
             String value = sanitizeFieldText(fact.group(2).trim());
-            if (isKnownField(label)) {
-                fields.put(label, value);
-            } else {
-                fields.put(label, value);
+            if (!label.isBlank()) {
+                String existing = fields.getOrDefault(label, "");
+                fields.put(label, existing.isBlank() ? value : existing + "\n" + value);
+                lastLabel = label;
             }
             lastEnd = fact.end();
         }
         if (lastEnd < working.length()) {
-            appendFreeform(freeform, working.substring(lastEnd));
+            String gap = working.substring(lastEnd);
+            if (lastLabel != null) {
+                String merged = mergeFieldGap(fields.getOrDefault(lastLabel, ""), gap);
+                if (!merged.isBlank()) {
+                    fields.put(lastLabel, merged);
+                }
+            } else {
+                appendFreeform(freeform, gap);
+            }
         }
         String notes = sanitizeFieldText(freeform.toString().trim());
         if (!notes.isEmpty()) {
@@ -263,6 +280,44 @@ public final class CharacterSheetDocument {
             fields.put("Notizen", existing.isBlank() ? notes : existing + "\n\n" + notes);
         }
         return new CharacterEntry(title, imageMarkdown, fields);
+    }
+
+    /** ASCII-Schreibweisen aus KI-Output auf Standard-Labels abbilden. */
+    static String canonicalizeFieldLabel(String label) {
+        if (label == null || label.isBlank()) {
+            return "";
+        }
+        String trimmed = label.trim();
+        String key = WorldbuildingTermIndex.normalizeKey(trimmed);
+        return switch (key) {
+            case "persoenlichkeit", "personality" -> "Persönlichkeit";
+            case "alter / aussehen", "alter/aussehen", "aussehen", "aeusseres", "äußeres",
+                    "aeussere beschreibung", "äußere beschreibung" -> "Alter / Aussehen";
+            case "schwaechen / innere konflikte", "schwaechen/innere konflikte",
+                    "schwaechen", "schwächen" -> "Schwächen / innere Konflikte";
+            case "andere namen / alias", "andere namen", "alias", "aliase" -> "Andere Namen / Alias";
+            case "character arc", "charakterbogen", "entwicklungsbogen" -> "Character Arc";
+            default -> {
+                for (String standard : STANDARD_FIELD_LABELS) {
+                    if (WorldbuildingTermIndex.normalizeKey(standard).equals(key)
+                            || standard.equalsIgnoreCase(trimmed)) {
+                        yield standard;
+                    }
+                }
+                yield trimmed;
+            }
+        };
+    }
+
+    private static String mergeFieldGap(String existing, String gap) {
+        String cleaned = sanitizeFieldText(gap == null ? "" : gap.trim());
+        if (cleaned.isBlank()) {
+            return existing == null ? "" : existing;
+        }
+        if (existing == null || existing.isBlank()) {
+            return cleaned;
+        }
+        return existing + "\n" + cleaned;
     }
 
     static String serializeCharacter(CharacterEntry entry) {

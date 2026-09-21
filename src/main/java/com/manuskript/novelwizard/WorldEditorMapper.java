@@ -107,7 +107,8 @@ public class WorldEditorMapper {
         }
         switch (phase) {
             case BRAINSTORM -> persistBrainstorm(content);
-            case WORLD -> appendSection(NovelManager.WORLDBUILDING_FILE, "Roman-Assistent: Welt", content);
+            case WORLD -> appendSection(NovelManager.WORLDBUILDING_FILE, "Roman-Assistent: Welt",
+                    WorldBuildingDocument.normalize(content));
             case CHARACTERS -> persistCharacterSheets(content);
             case PLOT -> appendSection(NovelManager.OUTLINE_FILE, "Roman-Assistent: Handlung", content);
             case STRUCTURE -> appendSection(AKTE_FILE, "Roman-Assistent: Akte", content);

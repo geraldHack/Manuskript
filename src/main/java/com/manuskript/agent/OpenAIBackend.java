@@ -206,6 +206,11 @@ public class OpenAIBackend implements AIBackend {
         this.temperature = temperature;
     }
 
+    /** Für Tests / Diagnose. */
+    public double getTemperature() {
+        return temperature;
+    }
+
     /** Optional; {@code null} = API-Default (nicht mitsenden). */
     public void setTopP(double topP) {
         this.topP = topP;

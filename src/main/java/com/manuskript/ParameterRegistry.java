@@ -17,6 +17,10 @@ public final class ParameterRegistry {
     private static final List<ParameterDef> ALL = new ArrayList<>();
 
     static {
+        // —— Allgemein (erster Tab in der Parameterverwaltung) ——
+        add("project.root.directory", ParameterDef.Type.STRING, "",
+                "Projektwurzel (Unterordner = Projekte). Installierte App: ~/Documents/Manuskript, nicht im Programmordner.", "Allgemein");
+
         // —— Ollama (Legacy – alter KI-Assistent, nicht mehr in der UI) ——
         add("ollama.temperature", ParameterDef.Type.DOUBLE, "0.1",
                 "Legacy: alter KI-Assistent (entfernt). Für Agenten siehe agent.ollama.* und agent.openai.*.", "Ollama (Legacy)");
@@ -70,10 +74,6 @@ public final class ParameterRegistry {
                 "Anzahl Vorschläge pro Anmerkung (1–5). Weniger = weniger API-Output und Kosten. Typisch 2.", "Online-Lektorat");
         add("api.editor_rewrite.use_online_api", ParameterDef.Type.BOOLEAN, "false",
                 "Kontextmenü „Überarbeiten“ und Sprechantwort-Korrektur per Online-API (OpenAI-kompatibel) statt Agenten-Ollama. Erfordert api.lektorat.api_key.", "Online-Lektorat");
-
-        // —— Projekt ——
-        add("project.root.directory", ParameterDef.Type.STRING, "",
-                "Projektwurzel (Unterordner = Projekte). Installierte App: ~/Documents/Manuskript, nicht im Programmordner.", "Projekt");
 
         // —— UI ——
         add("main_window_theme", ParameterDef.Type.INT, "0",

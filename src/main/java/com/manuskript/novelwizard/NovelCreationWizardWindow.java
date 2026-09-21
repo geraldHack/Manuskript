@@ -1154,7 +1154,7 @@ public class NovelCreationWizardWindow {
                     }
                     String content = document == null || document.isBlank()
                             ? buildPhaseSummary(NovelWizardPhase.WORLD)
-                            : document;
+                            : WorldBuildingDocument.normalize(document);
                     if (!WorldBuildingDocument.hasRequiredSections(content)) {
                         statusLabel.setText("Hinweis: Entwurf ohne alle drei Abschnitte (Setting, Orte, Lore) – bitte prüfen.");
                     }

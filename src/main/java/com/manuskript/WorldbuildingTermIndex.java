@@ -115,19 +115,23 @@ public final class WorldbuildingTermIndex {
                 continue;
             }
             String excerpt = excerpt(slice.body());
-            result.add(new Entry(
-                    Category.CHARACTER,
-                    canonical,
-                    NovelManager.CHARACTERS_FILE,
-                    canonical,
-                    excerpt));
-            for (String alias : parseCharacterAliases(slice.body())) {
-                if (alias.isBlank() || alias.equalsIgnoreCase(canonical)) {
-                    continue;
+            LinkedHashMap<String, String> terms = new LinkedHashMap<>();
+            terms.put(normalizeKey(canonical), canonical);
+            for (String alias : parseAliases(slice.body())) {
+                if (alias != null && !alias.isBlank()) {
+                    terms.putIfAbsent(normalizeKey(alias), alias);
                 }
+            }
+            for (String term : List.copyOf(terms.values())) {
+                String withoutArticle = stripLeadingArticle(term);
+                if (!withoutArticle.equalsIgnoreCase(term) && withoutArticle.length() >= 2) {
+                    terms.putIfAbsent(normalizeKey(withoutArticle), withoutArticle);
+                }
+            }
+            for (String term : terms.values()) {
                 result.add(new Entry(
                         Category.CHARACTER,
-                        alias,
+                        term,
                         NovelManager.CHARACTERS_FILE,
                         canonical,
                         excerpt));
@@ -151,7 +155,8 @@ public final class WorldbuildingTermIndex {
         return trimmed;
     }
 
-    private static List<String> parseCharacterAliases(String body) {
+    /** Kurzname / Alias aus Figuren- oder Orts-/Lore-Abschnitten. */
+    private static List<String> parseAliases(String body) {
         if (body == null || body.isBlank()) {
             return List.of();
         }
@@ -179,19 +184,66 @@ public final class WorldbuildingTermIndex {
         }
     }
 
+    private static final Pattern NAMED_BULLET_COLON_INSIDE = Pattern.compile(
+            "(?m)^\\s*(?:[*\\-•]\\s+)?\\*\\*([^*:\\n]{2,80}?):\\*\\*\\s*(.+)$");
+    private static final Pattern NAMED_BULLET = Pattern.compile(
+            "(?m)^\\s*(?:[*\\-•]\\s+)?\\*\\*([^*:\\n]{2,80}?)\\*\\*\\s*:\\s*(.+)$");
+
     private static void addWorldbuildingEntries(List<Entry> result, String worldbuildingText) {
         if (worldbuildingText == null || worldbuildingText.isBlank()) {
             return;
         }
         List<HeadingSlice> sections = sliceByHeadings(worldbuildingText, H2_HEADING);
+        boolean inPlaces = false;
+        boolean inLore = false;
         for (HeadingSlice slice : sections) {
             String key = normalizeKey(slice.title());
             if ("orte".equals(key)) {
+                inPlaces = true;
+                inLore = false;
+                int before = result.size();
                 addH3Entries(result, slice.body(), Category.PLACE, NovelManager.WORLDBUILDING_FILE);
-            } else if ("lore".equals(key)) {
+                if (result.size() == before) {
+                    addNamedBulletEntries(result, slice.body(), Category.PLACE, NovelManager.WORLDBUILDING_FILE);
+                }
+                continue;
+            }
+            if ("lore".equals(key)) {
+                inPlaces = false;
+                inLore = true;
+                int before = result.size();
                 addH3Entries(result, slice.body(), Category.LORE, NovelManager.WORLDBUILDING_FILE);
+                if (result.size() == before) {
+                    addNamedBulletEntries(result, slice.body(), Category.LORE, NovelManager.WORLDBUILDING_FILE);
+                }
+                continue;
+            }
+            if ("setting".equals(key) || isMetaSection(slice.title())) {
+                inPlaces = false;
+                inLore = false;
+                if ("setting".equals(key) || key.contains("welt") || key.contains("roman-assistent")) {
+                    addNamedBulletEntries(result, slice.body(), Category.PLACE, NovelManager.WORLDBUILDING_FILE);
+                }
+                continue;
+            }
+            // Häufige Fehleingabe: Orte/Lore als weitere ##-Abschnitte statt ###
+            if (inPlaces) {
+                addSectionAsEntry(result, slice, Category.PLACE, NovelManager.WORLDBUILDING_FILE);
+            } else if (inLore) {
+                addSectionAsEntry(result, slice, Category.LORE, NovelManager.WORLDBUILDING_FILE);
             }
         }
+    }
+
+    private static final Pattern LEADING_ARTICLE = Pattern.compile(
+            "(?i)^(der|die|das|dem|den|des|ein|eine|einer|einem|einen|eines|the|a|an)\\s+(.+)$");
+
+    private static void addSectionAsEntry(List<Entry> result, HeadingSlice slice, Category category, String sourceFile) {
+        String title = slice.title() == null ? "" : slice.title().trim();
+        if (title.isBlank() || isMetaSection(title)) {
+            return;
+        }
+        addEntryWithAliases(result, title, slice.body(), category, sourceFile);
     }
 
     private static void addH3Entries(List<Entry> result, String body, Category category, String sourceFile) {
@@ -200,16 +252,70 @@ public final class WorldbuildingTermIndex {
         }
         List<HeadingSlice> subsections = sliceByHeadings(body, H3_HEADING);
         for (HeadingSlice subsection : subsections) {
-            if (subsection.title().isBlank()) {
+            String title = subsection.title().trim();
+            if (title.isBlank()) {
                 continue;
             }
-            result.add(new Entry(
-                    category,
-                    subsection.title(),
-                    sourceFile,
-                    subsection.title(),
-                    excerpt(subsection.body())));
+            addEntryWithAliases(result, title, subsection.body(), category, sourceFile);
         }
+    }
+
+    private static void addNamedBulletEntries(List<Entry> result, String body, Category category, String sourceFile) {
+        if (body == null || body.isBlank()) {
+            return;
+        }
+        Matcher matcher = NAMED_BULLET_COLON_INSIDE.matcher(body);
+        while (matcher.find()) {
+            String name = matcher.group(1).trim();
+            String desc = matcher.group(2).trim();
+            if (name.length() < 2 || isMetaSection(name)) {
+                continue;
+            }
+            addEntryWithAliases(result, name, desc, category, sourceFile);
+        }
+        matcher = NAMED_BULLET.matcher(body);
+        while (matcher.find()) {
+            String name = matcher.group(1).trim();
+            String desc = matcher.group(2).trim();
+            if (name.length() < 2 || isMetaSection(name)) {
+                continue;
+            }
+            addEntryWithAliases(result, name, desc, category, sourceFile);
+        }
+    }
+
+    private static void addEntryWithAliases(List<Entry> result, String title, String body,
+                                            Category category, String sourceFile) {
+        String excerpt = excerpt(body);
+        LinkedHashMap<String, String> terms = new LinkedHashMap<>();
+        terms.put(normalizeKey(title), title);
+        for (String alias : parseAliases(body)) {
+            if (alias != null && !alias.isBlank()) {
+                terms.putIfAbsent(normalizeKey(alias), alias);
+            }
+        }
+        // Artikel am Anfang ignorieren: „Die Akademie“ → auch „Akademie“
+        for (String term : List.copyOf(terms.values())) {
+            String withoutArticle = stripLeadingArticle(term);
+            if (!withoutArticle.equalsIgnoreCase(term) && withoutArticle.length() >= 2) {
+                terms.putIfAbsent(normalizeKey(withoutArticle), withoutArticle);
+            }
+        }
+        for (String term : terms.values()) {
+            result.add(new Entry(category, term, sourceFile, title, excerpt));
+        }
+    }
+
+    /** Entfernt führende deutsche/englische Artikel (Die Akademie → Akademie). */
+    static String stripLeadingArticle(String title) {
+        if (title == null || title.isBlank()) {
+            return "";
+        }
+        Matcher matcher = LEADING_ARTICLE.matcher(title.trim());
+        if (matcher.matches()) {
+            return matcher.group(2).trim();
+        }
+        return title.trim();
     }
 
     private static List<HeadingSlice> sliceByHeadings(String text, Pattern headingPattern) {
@@ -264,10 +370,11 @@ public final class WorldbuildingTermIndex {
         CharacterSheetDocument.CharacterEntry entry = CharacterSheetDocument.parseCharacterBody("", body);
         String structured = structuredCharacterExcerpt(entry);
         String plain = structured.isBlank() ? MarkdownMarkup.toPlainText(body) : structured;
-        if (plain.length() <= 220) {
+        int limit = structured.isBlank() ? 220 : 320;
+        if (plain.length() <= limit) {
             return plain;
         }
-        return plain.substring(0, 219).trim() + "…";
+        return plain.substring(0, limit - 1).trim() + "…";
     }
 
     private static String structuredCharacterExcerpt(CharacterSheetDocument.CharacterEntry entry) {
@@ -275,10 +382,11 @@ public final class WorldbuildingTermIndex {
             return "";
         }
         StringBuilder summary = new StringBuilder();
+        // Aussehen bewusst früh: im Hover sofort sichtbar
         appendExcerptField(summary, "Rolle", entry.field("Rolle"));
-        appendExcerptField(summary, "Kurzname", entry.field("Kurzname"));
-        appendExcerptField(summary, "Alter / Aussehen", entry.field("Alter / Aussehen"));
+        appendExcerptField(summary, "Aussehen", entry.field("Alter / Aussehen"));
         appendExcerptField(summary, "Persönlichkeit", entry.field("Persönlichkeit"));
+        appendExcerptField(summary, "Kurzname", entry.field("Kurzname"));
         if (summary.isEmpty()) {
             appendExcerptField(summary, "Hintergrund", entry.field("Hintergrund"));
         }

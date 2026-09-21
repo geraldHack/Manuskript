@@ -162,7 +162,8 @@ public class SceneWritingAgentTab extends ScrollPane {
 
         useParameterModelCheck = new CheckBox("Parameter-Modell verwenden");
         useParameterModelCheck.setSelected(true);
-        useParameterModelCheck.setTooltip(new Tooltip("Modell aus den globalen Agenten-Parametern nutzen"));
+        useParameterModelCheck.setTooltip(new Tooltip(
+                "Modell und Temperatur aus der Parameterverwaltung nutzen"));
 
         modelSelector = new FilterableModelSelector(true);
         modelSelector.setSelectorDisabled(true);
@@ -171,6 +172,9 @@ public class SceneWritingAgentTab extends ScrollPane {
         useParameterModelCheck.selectedProperty().addListener((obs, o, useParams) -> {
             if (!generating) {
                 modelSelector.setSelectorDisabled(useParams);
+            }
+            if (Boolean.TRUE.equals(useParams)) {
+                temperatureSlider.setValue(AgentSamplingParams.defaultTemperature(config.getBackend()));
             }
         });
 

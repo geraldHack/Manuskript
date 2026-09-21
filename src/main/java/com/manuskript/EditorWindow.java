@@ -14325,7 +14325,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             onError.accept(new IllegalStateException("Backend nicht verfügbar"));
             return null;
         }
-        AgentSamplingParams.applyAgentConfig(backend, config);
+        AgentSamplingParams.applyAgentConfig(backend, config, useParameterModel);
         SceneWritingAgent agent = new SceneWritingAgent(backend);
         agent.setSystemPrompt(config.getSystemPrompt());
 
@@ -14375,8 +14375,10 @@ spacer.setStyle("-fx-background-color: transparent;");
                 onError.accept(new IllegalStateException("Backend nicht verfügbar"));
                 return null;
             }
-            backend.setTemperature(temperature);
-            AgentSamplingParams.applyAgentConfig(backend, config);
+            AgentSamplingParams.applyAgentConfig(backend, config, useParameterModel);
+            if (!useParameterModel) {
+                backend.setTemperature(temperature);
+            }
             ChatbotAgent agent = new ChatbotAgent(backend);
             agent.setSystemPrompt(config.getSystemPrompt());
             int maxTokens = config.getMaxTokens() > 0 ? config.getMaxTokens() : 4096;
@@ -14715,7 +14717,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         agent.setSystemPrompt(config.getSystemPrompt());
         AIBackend backend = agentBackends.get(targetTab.getAgentId());
         if (backend != null) {
-            AgentSamplingParams.applyAgentConfig(backend, config);
+            AgentSamplingParams.applyAgentConfig(backend, config, targetTab.isUseParameterModel());
         }
 
         targetTab.setAnalyzing(true);

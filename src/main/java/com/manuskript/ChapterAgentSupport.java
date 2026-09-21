@@ -505,7 +505,7 @@ public class ChapterAgentSupport {
             onError.accept(new IllegalStateException("Backend nicht verfügbar"));
             return null;
         }
-        AgentSamplingParams.applyAgentConfig(backend, config);
+        AgentSamplingParams.applyAgentConfig(backend, config, useParameterModel);
         SceneWritingAgent agent = new SceneWritingAgent(backend);
         agent.setSystemPrompt(config.getSystemPrompt());
         int maxTokens = config.getMaxTokens() > 0 ? config.getMaxTokens() : 16384;
@@ -602,8 +602,11 @@ public class ChapterAgentSupport {
                 onError.accept(new IllegalStateException("Backend nicht verfügbar"));
                 return null;
             }
-            backend.setTemperature(temperature);
-            AgentSamplingParams.applyAgentConfig(backend, config);
+            // Parameter-Modell → Temperatur aus Parameterverwaltung; sonst Slider/Session
+            AgentSamplingParams.applyAgentConfig(backend, config, useParameterModel);
+            if (!useParameterModel) {
+                backend.setTemperature(temperature);
+            }
             ChatbotAgent agent = new ChatbotAgent(backend);
             agent.setSystemPrompt(config.getSystemPrompt());
             int maxTokens = resolveChatbotMaxTokens(config, contextSize);
@@ -662,7 +665,7 @@ public class ChapterAgentSupport {
         agent.setSystemPrompt(config.getSystemPrompt());
         AIBackend backend = agentBackends.get(targetTab.getAgentId());
         if (backend != null) {
-            AgentSamplingParams.applyAgentConfig(backend, config);
+            AgentSamplingParams.applyAgentConfig(backend, config, targetTab.isUseParameterModel());
             backend.setCurrentModel(model);
         }
         targetTab.setAnalyzing(true);

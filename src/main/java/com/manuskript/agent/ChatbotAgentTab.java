@@ -170,6 +170,7 @@ public class ChatbotAgentTab extends ScrollPane {
         chatArea.setMaxHeight(Double.MAX_VALUE);
 
         inputArea = new TextArea();
+        inputArea.getStyleClass().add("chatbot-input-area");
         inputArea.setPromptText("Frage eingeben…");
         inputArea.setPrefRowCount(3);
         inputArea.setWrapText(true);
@@ -213,8 +214,9 @@ public class ChatbotAgentTab extends ScrollPane {
             fireConfigChanged();
         });
 
-        temperatureSlider = new Slider(0.0, 2.0, config.getTemperature());
-        temperatureValueLabel = new Label(formatValue(config.getTemperature()));
+        temperatureSlider = new Slider(0.0, 2.0,
+                AgentSamplingParams.defaultTemperature(config.getBackend()));
+        temperatureValueLabel = new Label(formatValue(temperatureSlider.getValue()));
         temperatureSlider.valueProperty().addListener((obs, old, val) -> {
             temperatureValueLabel.setText(formatValue(val.doubleValue()));
             config.setTemperature(val.doubleValue());
@@ -224,13 +226,20 @@ public class ChatbotAgentTab extends ScrollPane {
 
         useParameterModelCheck = new CheckBox("Parameter-Modell verwenden");
         useParameterModelCheck.setSelected(true);
+        useParameterModelCheck.setTooltip(new Tooltip(
+                "Modell und Temperatur aus der Parameterverwaltung nutzen"));
         modelSelector = new FilterableModelSelector(true);
         modelSelector.setSelectorDisabled(true);
         modelSelector.setOnLoad(this::loadModelsAsync);
         keepButtonReadable(modelSelector.getLoadButton());
+
         useParameterModelCheck.selectedProperty().addListener((obs, o, useParams) -> {
             if (!sending) {
                 modelSelector.setSelectorDisabled(useParams);
+            }
+            if (Boolean.TRUE.equals(useParams)) {
+                double paramTemp = AgentSamplingParams.defaultTemperature(config.getBackend());
+                temperatureSlider.setValue(paramTemp);
             }
             persistSessionSettings();
         });
@@ -400,8 +409,12 @@ public class ChatbotAgentTab extends ScrollPane {
         chaptersBeforeSpinner.getValueFactory().setValue(contextConfig.getChaptersBefore());
         chaptersAfterSpinner.getValueFactory().setValue(contextConfig.getChaptersAfter());
         useParameterModelCheck.setSelected(currentSession.isUseParameterModel());
-        temperatureSlider.setValue(currentSession.getTemperature() > 0
-                ? currentSession.getTemperature() : config.getTemperature());
+        if (useParameterModelCheck.isSelected()) {
+            temperatureSlider.setValue(AgentSamplingParams.defaultTemperature(config.getBackend()));
+        } else {
+            temperatureSlider.setValue(currentSession.getTemperature() > 0
+                    ? currentSession.getTemperature() : config.getTemperature());
+        }
         if (currentSession.getModel() != null && !currentSession.getModel().isBlank()) {
             modelSelector.setValue(currentSession.getModel());
         }

@@ -43,16 +43,23 @@ public class NovelWizardAiService {
                 <SUMMARY>Kurze Einordnung (1–3 Saetze)</SUMMARY>
                 
                 VERBOTEN: Rueckfragen, Interview-Format, **Frage:**/**Antwort:**-Listen, Stichpunkt-Antworten aus dem Dialog.
+                VERBOTEN unter ## Orte und ## Lore: Bullet-Listen wie „* **Name:** Text“ oder „- Name: Text“.
                 
                 PFLICHT – genau diese drei Abschnitte in dieser Reihenfolge (jeweils ## Ueberschrift):
                 ## Setting
-                (Weltregeln, Gesellschaft, Technologie/Magie, Konflikte, Atmosphaere – wie die Welt *jetzt* funktioniert)
+                (Weltregeln, Gesellschaft, Technologie/Magie, Konflikte, Atmosphaere – wie die Welt *jetzt* funktioniert.
+                Keine Ortsliste hier – Orte gehoeren ausschliesslich unter ## Orte.)
                 
                 ## Orte
-                (Konkrete Schauplaetze; pro Ort eine ### Ueberschrift mit Beschreibung, Rolle in der Handlung, Verbindungen)
+                Pro Schauplatz GENAU so (### Ueberschrift, darunter Fliesstext, keine Bullets):
+                ### Windbruch
+                Kleines Dorf, in dem die Geschichte beginnt. …
+                
+                ### Alduria
+                Hauptstadt mit hohen Mauern. …
                 
                 ## Lore
-                (Geschichte, Mythen, Legenden, Hintergrundwissen – Vergangenheit und Erzaehltradition)
+                Pro Mythos/Hintergrund ebenfalls ### Name und Fliesstext darunter (keine Bullets).
                 
                 Wenn zu einem Bereich wenig Material vorliegt: kurz notieren oder „(noch offen)“ – Abschnitt trotzdem anlegen.
                 """;
@@ -82,7 +89,10 @@ public class NovelWizardAiService {
                 .thenApply(raw -> {
                     NovelWizardTurn turn = NovelWizardResponseParser.parse(raw, true);
                     String content = turn.getContent();
-                    return content == null ? "" : content.trim();
+                    if (content == null || content.isBlank()) {
+                        return "";
+                    }
+                    return WorldBuildingDocument.normalize(content);
                 });
     }
 

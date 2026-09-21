@@ -86,7 +86,7 @@ public final class AgentIdiomReviewRunner {
         agent.setSystemPrompt(config.getSystemPrompt());
         AIBackend backend = agentBackends.get(targetTab.getAgentId());
         if (backend != null) {
-            AgentSamplingParams.applyAgentConfig(backend, config);
+            AgentSamplingParams.applyAgentConfig(backend, config, targetTab.isUseParameterModel());
             backend.setCurrentModel(model);
         }
 

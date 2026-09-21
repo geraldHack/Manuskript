@@ -496,12 +496,13 @@ public class AgentConfigManager {
         String model = "OpenAI".equals(backend)
                 ? ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini")
                 : ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL);
+        double temperature = AgentSamplingParams.defaultTemperature(backend);
         AgentConfig chatAgent = new AgentConfig(
                 "Chat",
                 backend,
                 ChatbotAgent.DEFAULT_SYSTEM_PROMPT,
                 model,
-                0.7, 8192, 0.9, 1.1
+                temperature, 8192, 0.9, 1.1
         );
         chatAgent.setDefaultPrompt(ChatbotAgent.DEFAULT_SYSTEM_PROMPT);
         chatAgent.setAgentType("chatbot");

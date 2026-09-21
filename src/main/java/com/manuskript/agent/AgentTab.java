@@ -180,8 +180,8 @@ public class AgentTab extends ScrollPane {
         useParameterModelCheck = new CheckBox("Parameter-Modell verwenden");
         useParameterModelCheck.setSelected(true);
         useParameterModelCheck.setTooltip(new Tooltip(
-                "Modell aus den globalen Agent-Parametern (aktueller Provider). "
-                        + "Abwählen, um hier ein anderes Modell zu nutzen."));
+                "Modell und Temperatur aus der Parameterverwaltung. "
+                        + "Abwählen, um Modell und Temperatur hier zu überschreiben."));
         modelSelector = new FilterableModelSelector(true);
         modelSelector.setUseModelHistory(true);
         modelSelector.setSelectorDisabled(true);
@@ -194,16 +194,17 @@ public class AgentTab extends ScrollPane {
             }
             fireConfigChanged();
         });
-        useParameterModelCheck.selectedProperty().addListener((obs, old, useParams) -> {
-            modelSelector.setSelectorDisabled(Boolean.TRUE.equals(useParams));
-        });
 
         // Temperature
-        temperatureSlider = new Slider(0.0, 2.0, config.getTemperature());
+        temperatureSlider = new Slider(0.0, 2.0,
+                useParameterModelCheck.isSelected()
+                        ? AgentSamplingParams.defaultTemperature(config.getBackend())
+                        : config.getTemperature());
         temperatureSlider.setMajorTickUnit(0.1);
         temperatureSlider.setBlockIncrement(0.1);
-        temperatureSlider.setTooltip(new Tooltip("Wird an die API übergeben (temperature)."));
-        temperatureValueLabel = new Label(formatValue(config.getTemperature()));
+        temperatureSlider.setTooltip(new Tooltip(
+                "Wird an die API übergeben (temperature). Bei „Parameter-Modell“ gilt die Parameterverwaltung."));
+        temperatureValueLabel = new Label(formatValue(temperatureSlider.getValue()));
         temperatureValueLabel.setPrefWidth(55);
         temperatureValueLabel.setMinWidth(55);
         temperatureValueLabel.setAlignment(Pos.CENTER_RIGHT);
@@ -213,6 +214,13 @@ public class AgentTab extends ScrollPane {
             fireConfigChanged();
         });
         HBox tempRow = createSliderRow("Temperatur:", temperatureSlider, temperatureValueLabel);
+
+        useParameterModelCheck.selectedProperty().addListener((obs, old, useParams) -> {
+            modelSelector.setSelectorDisabled(Boolean.TRUE.equals(useParams));
+            if (Boolean.TRUE.equals(useParams)) {
+                temperatureSlider.setValue(AgentSamplingParams.defaultTemperature(config.getBackend()));
+            }
+        });
 
         // Max Tokens (bis 32768 bleibt wählbar; Plotloch-Default ist 2048)
         maxTokensSlider = new Slider(256, 32768, Math.min(32768, Math.max(256, config.getMaxTokens())));

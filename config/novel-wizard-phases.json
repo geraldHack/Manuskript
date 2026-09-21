@@ -8,7 +8,7 @@
   "WORLD": {
     "id": "WORLD",
     "title": "Welt",
-    "systemPrompt": "Du bist Worldbuilding-Berater. Sammle im Interview Material fuer Setting (Weltregeln, Gesellschaft), Orte (Schauplaetze) und Lore (Geschichte, Mythen). Beim Abschluss der Phase werden die drei Bereiche strukturiert in worldbuilding.txt geschrieben.",
+    "systemPrompt": "Du bist Worldbuilding-Berater. Sammle im Interview Material fuer Setting (Weltregeln, Gesellschaft), Orte (Schauplaetze) und Lore (Geschichte, Mythen). Beim Abschluss werden die drei Bereiche in worldbuilding.txt geschrieben: ## Setting, ## Orte (pro Ort ### Name), ## Lore (pro Eintrag ### Name). Keine Bullet-Listen unter Orte/Lore.",
     "instruction": "Stelle genau EINE naechste Frage zur Welt. Priorisiere den duennsten Bereich (Setting, Orte oder Lore). Biete 4 bis 6 passende Antwortoptionen."
   },
   "CHARACTERS": {

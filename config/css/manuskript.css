@@ -667,9 +667,15 @@
 .weiss-theme .text-area {
     -fx-background-color: #ffffff;
     -fx-text-fill: #000000;
+    -fx-prompt-text-fill: #6c757d;
     -fx-border-color: #ced4da;
     -fx-border-width: 1px;
     -fx-border-radius: 3px;
+}
+
+/* Prompt-Text liegt intern auf .text-input (auch TextArea) */
+.weiss-theme .text-input {
+    -fx-prompt-text-fill: #6c757d;
 }
 
 .weiss-theme .text-area .content {
@@ -761,6 +767,7 @@
 .theme-dark .text-area {
     -fx-background-color: #495057;
     -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #9ca3af;
     -fx-border-color: #6c757d;
     -fx-border-width: 1px;
     -fx-border-radius: 3px;
@@ -768,6 +775,10 @@
 
 .theme-dark .text-area .content {
     -fx-background-color: #495057;
+}
+
+.theme-dark .text-input {
+    -fx-prompt-text-fill: #9ca3af;
 }
 
 .theme-dark .spinner {
@@ -831,6 +842,7 @@
 .theme-dark.gruen-theme .text-area {
     -fx-background-color: #065f46;
     -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #6ee7b7;
     -fx-border-color: #10b981;
     -fx-border-width: 1px;
     -fx-border-radius: 3px;
@@ -840,9 +852,14 @@
     -fx-background-color: #065f46;
 }
 
+.theme-dark.gruen-theme .text-input {
+    -fx-prompt-text-fill: #6ee7b7;
+}
+
 .theme-dark.blau-theme .text-area {
     -fx-background-color: #1e3a8a;
     -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #dbeafe;
     -fx-border-color: #3b82f6;
     -fx-border-width: 1px;
     -fx-border-radius: 3px;
@@ -860,6 +877,7 @@
 .theme-dark.lila-theme .text-area {
     -fx-background-color: #581c87;
     -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #c084fc;
     -fx-border-color: #8b5cf6;
     -fx-border-width: 1px;
     -fx-border-radius: 3px;
@@ -867,6 +885,10 @@
 
 .theme-dark.lila-theme .text-area .content {
     -fx-background-color: #581c87;
+}
+
+.theme-dark.lila-theme .text-input {
+    -fx-prompt-text-fill: #c084fc;
 }
 
 .theme-dark.lila-theme .radio-button {
@@ -1385,6 +1407,7 @@
 .pastell-theme * .text-area {
     -fx-background-color: #f3e5f5;
     -fx-text-fill: #000000;
+    -fx-prompt-text-fill: #7e57c2;
     -fx-border-color: #ba68c8;
 }
 
@@ -2157,6 +2180,7 @@
 .theme-dark .text-area {
     -fx-background-color: -fx-control-inner-background;
     -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #9ca3af;
     -fx-border-color: #4a5568;
 }
 
@@ -3384,6 +3408,7 @@
 .pastell-theme .text-area {
     -fx-background-color: #f3e5f5;
     -fx-text-fill: #000000;
+    -fx-prompt-text-fill: #7e57c2;
     -fx-border-color: #ba68c8;
 }
 
@@ -11728,6 +11753,32 @@
     -fx-font-size: 11px;
     -fx-text-fill: #aaa;
     -fx-wrap-text: true;
+}
+
+/* Chat-Agent: Prompt-/Schattentext in der Eingabe */
+.weiss-theme .chatbot-input-area,
+.weiss-theme .chatbot-input-area.text-input {
+    -fx-prompt-text-fill: #6c757d;
+}
+.pastell-theme .chatbot-input-area,
+.pastell-theme .chatbot-input-area.text-input {
+    -fx-prompt-text-fill: #7e57c2;
+}
+.theme-dark .chatbot-input-area,
+.theme-dark .chatbot-input-area.text-input {
+    -fx-prompt-text-fill: #9ca3af;
+}
+.theme-dark.blau-theme .chatbot-input-area,
+.theme-dark.blau-theme .chatbot-input-area.text-input {
+    -fx-prompt-text-fill: #dbeafe;
+}
+.theme-dark.gruen-theme .chatbot-input-area,
+.theme-dark.gruen-theme .chatbot-input-area.text-input {
+    -fx-prompt-text-fill: #6ee7b7;
+}
+.theme-dark.lila-theme .chatbot-input-area,
+.theme-dark.lila-theme .chatbot-input-area.text-input {
+    -fx-prompt-text-fill: #c084fc;
 }
 
 .chatbot-context-pane,
