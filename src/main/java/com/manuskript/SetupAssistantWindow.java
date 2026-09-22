@@ -208,6 +208,28 @@ public final class SetupAssistantWindow {
         intro.setWrapText(true);
         intro.getStyleClass().add("dialog-label");
 
+        CheckBox offline = new CheckBox("Offline-Modus");
+        offline.setSelected(OfflineMode.isEnabled());
+        offline.setWrapText(true);
+        offline.getStyleClass().add("dialog-label");
+        Label offlineHelp = new Label(
+                "Kein Abruf von Neuigkeiten und kein Online-Plugin-Katalog. "
+                        + "Die beiden Standard-Plugins (OpenRouter- und Mammouth-Monitor) bleiben sichtbar — "
+                        + "um mehr Plugins zu sehen, den Offline-Modus verlassen. "
+                        + "KI-Funktionen über externe Anbieter (OpenRouter, OpenAI u. a.) können weiterhin "
+                        + "in den Parametern konfiguriert und genutzt werden.");
+        offlineHelp.setWrapText(true);
+        offlineHelp.getStyleClass().add("dialog-label");
+        offlineHelp.setStyle("-fx-font-size: 12px; -fx-opacity: 0.9;");
+        offline.selectedProperty().addListener((obs, was, now) -> {
+            OfflineMode.setEnabled(Boolean.TRUE.equals(now));
+            if (onChanged != null) {
+                onChanged.run();
+            }
+        });
+        VBox offlineBox = new VBox(4, offline, offlineHelp);
+        offlineBox.setPadding(new Insets(0, 0, 8, 0));
+
         GridPane cards = new GridPane();
         cards.setHgap(24);
         cards.setVgap(4);
@@ -225,7 +247,7 @@ public final class SetupAssistantWindow {
         }
         applyAiLock(cards, FeaturePacks.isStoredEnabled(FeaturePack.AI));
 
-        VBox root = new VBox(10, intro, new Separator(), cards);
+        VBox root = new VBox(10, intro, offlineBox, new Separator(), cards);
         root.setPadding(new Insets(12, 16, 12, 16));
         EditorDialogThemes.applyToNode(root, themeIndex);
         return root;
@@ -373,6 +395,15 @@ public final class SetupAssistantWindow {
         intro.setWrapText(true);
         intro.getStyleClass().add("dialog-label");
 
+        Label offlineHint = new Label(
+                "Offline-Modus: OpenRouter-Monitor und Mammouth-Monitor bleiben sichtbar. "
+                        + "Um mehr Plugins zu sehen, den Offline-Modus verlassen (Setup → Funktionen).");
+        offlineHint.setWrapText(true);
+        offlineHint.getStyleClass().add("dialog-label");
+        offlineHint.setStyle("-fx-font-size: 12px; -fx-opacity: 0.95;");
+        offlineHint.setVisible(OfflineMode.isEnabled());
+        offlineHint.setManaged(OfflineMode.isEnabled());
+
         TextField pathField = new TextField(catalogPath);
         pathField.setEditable(false);
         pathField.setFocusTraversable(false);
@@ -393,8 +424,15 @@ public final class SetupAssistantWindow {
         paintHolder[0] = () -> {
             list.getChildren().clear();
             List<PluginCatalogItem> items = PluginCatalogItem.merge(PluginCatalog.list(), indexHolder[0]);
+            if (OfflineMode.isEnabled()) {
+                items = items.stream()
+                        .filter(item -> OfflineMode.allowsPluginId(item.id()))
+                        .toList();
+            }
             if (items.isEmpty()) {
-                Label empty = new Label("Noch keine Plugins im Katalog.");
+                Label empty = new Label(OfflineMode.isEnabled()
+                        ? "Keine Standard-Plugins im lokalen Katalog."
+                        : "Noch keine Plugins im Katalog.");
                 empty.setWrapText(true);
                 empty.getStyleClass().add("dialog-label");
                 list.getChildren().add(empty);
@@ -407,6 +445,13 @@ public final class SetupAssistantWindow {
         };
 
         Runnable fetchIndex = () -> {
+            if (OfflineMode.isEnabled()) {
+                reloadCatalog.setDisable(true);
+                status.setText("Offline-Modus — kein Online-Katalog.");
+                indexHolder[0] = null;
+                paintHolder[0].run();
+                return;
+            }
             reloadCatalog.setDisable(true);
             status.setText("Lade Katalog …");
             CompletableFuture.supplyAsync(() -> {
@@ -444,7 +489,7 @@ public final class SetupAssistantWindow {
         HBox statusRow = new HBox(12, reloadCatalog);
         statusRow.setAlignment(Pos.CENTER_LEFT);
 
-        VBox root = new VBox(12, intro, pathField, statusRow, status, new Separator(), list);
+        VBox root = new VBox(12, intro, offlineHint, pathField, statusRow, status, new Separator(), list);
         root.setPadding(new Insets(16));
         EditorDialogThemes.applyToNode(root, themeIndex);
         return root;
@@ -491,7 +536,7 @@ public final class SetupAssistantWindow {
             }
         });
 
-        Button action = pluginActionButton(item, status, refreshList);
+        Button action = pluginActionButton(item, status, refreshList, onPluginsChanged);
         HBox header = new HBox(10, enabled);
         header.setAlignment(Pos.CENTER_LEFT);
         if (action != null) {
@@ -515,7 +560,8 @@ public final class SetupAssistantWindow {
         return row;
     }
 
-    private static Button pluginActionButton(PluginCatalogItem item, Label status, Runnable refreshList) {
+    private static Button pluginActionButton(PluginCatalogItem item, Label status, Runnable refreshList,
+                                            Runnable onPluginsChanged) {
         if (item.remote() == null) {
             return null;
         }
@@ -545,8 +591,11 @@ public final class SetupAssistantWindow {
                     status.setText("Download fehlgeschlagen: " + message);
                     action.setDisable(false);
                 } else {
-                    status.setText(item.label() + " liegt im Katalog. Zum Nutzen in der Toolbar aktivieren.");
+                    status.setText(item.label() + " aktualisiert — Plugin neu geladen.");
                     refreshList.run();
+                    if (onPluginsChanged != null) {
+                        onPluginsChanged.run();
+                    }
                 }
             }));
         });

@@ -56,4 +56,15 @@ public interface PluginHost {
         return CompletableFuture.failedFuture(
                 new UnsupportedOperationException("KI-Chat ist in diesem Host nicht verfügbar"));
     }
+
+    /**
+     * Toolbar-Button des Plugins hervorheben (z. B. ungelesene Nachrichten).
+     * Läuft thread-sicher — Implementierung wechselt bei Bedarf auf den FX-Thread.
+     */
+    default void setToolbarAttention(String pluginId, boolean attention) {
+    }
+
+    /** Kurzer Hinweis-Klang (optional, Host darf no-op sein). */
+    default void playNotificationSound() {
+    }
 }

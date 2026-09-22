@@ -162,9 +162,25 @@ class ApplicationPathsTest {
         Path app = temp.resolve("app");
         Files.createDirectories(app);
         Path data = temp.resolve("data");
-        File chosen = ApplicationPaths.chooseWritableHome(app.toFile(), data.toFile());
+        File chosen = ApplicationPaths.chooseWritableHome(app.toFile(), data.toFile(), false);
         assertEquals(app.toFile().getCanonicalFile(), chosen.getCanonicalFile());
         assertTrue(Files.isDirectory(app.resolve("plugins")));
+    }
+
+    @Test
+    void writableHomeUsesUserDataWhenPackaged(@TempDir Path temp) throws Exception {
+        Path app = temp.resolve("app");
+        Files.createDirectories(app.resolve("config"));
+        Files.writeString(app.resolve("config").resolve("languagetool-dictionary.txt"),
+                "# header\nheldenname\n");
+        Path data = temp.resolve("data");
+
+        File chosen = ApplicationPaths.chooseWritableHome(app.toFile(), data.toFile(), true);
+
+        assertEquals(data.toFile().getCanonicalFile(), chosen.getCanonicalFile());
+        Path migrated = data.resolve("config").resolve("languagetool-dictionary.txt");
+        assertTrue(Files.isRegularFile(migrated));
+        assertTrue(Files.readString(migrated).contains("heldenname"));
     }
 
     @Test
@@ -179,7 +195,7 @@ class ApplicationPathsTest {
         assertTrue(ApplicationPaths.isSystemManagedInstall(new File("/usr/lib/manuskript")));
         assertFalse(ApplicationPaths.isSystemManagedInstall(optApp.toFile()));
 
-        File chosen = ApplicationPaths.chooseWritableHome(fakeOpt, data.toFile());
+        File chosen = ApplicationPaths.chooseWritableHome(fakeOpt, data.toFile(), false);
         assertEquals(data.toFile().getCanonicalFile(), chosen.getCanonicalFile());
         assertTrue(Files.isDirectory(data.resolve("plugins")));
     }
@@ -191,7 +207,7 @@ class ApplicationPathsTest {
         Files.writeString(app.resolve("plugins"), "kein-ordner");
         Path data = temp.resolve("data");
 
-        File chosen = ApplicationPaths.chooseWritableHome(app.toFile(), data.toFile());
+        File chosen = ApplicationPaths.chooseWritableHome(app.toFile(), data.toFile(), false);
         assertEquals(data.toFile().getCanonicalFile(), chosen.getCanonicalFile());
         assertTrue(Files.isDirectory(data.resolve("plugins")));
         assertTrue(Files.isDirectory(data.resolve("config")));

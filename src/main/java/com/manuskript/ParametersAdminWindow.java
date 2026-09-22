@@ -115,7 +115,7 @@ public class ParametersAdminWindow {
                     control = createControl(def);
                     keyToControl.put(def.getKey(), control);
                 }
-                Label keyLabel = new Label(def.getKey());
+                Label keyLabel = new Label(def.getTitle());
                 keyLabel.getStyleClass().add("param-key-label");
                 Label helpLabel = new Label(def.getHelpText());
                 helpLabel.getStyleClass().add("param-help-label");
@@ -1447,6 +1447,23 @@ public class ParametersAdminWindow {
             ParameterDef def = keyToDef.get(key);
             if (def == null) continue;
             String value = getValueFromControl(e.getValue(), def);
+            if (MotdService.PARAM_ENABLED.equals(key)) {
+                boolean previous = MotdService.isEnabled();
+                boolean now = Boolean.parseBoolean(value);
+                if ("Textanalyse".equals(def.getCategory())) {
+                    ResourceManager.saveTextanalysisParameter(key, value);
+                } else {
+                    ResourceManager.saveParameter(key, value);
+                }
+                if (now && !previous) {
+                    MotdService.clearLastSeenId();
+                }
+                continue;
+            }
+            if (OfflineMode.PARAM_KEY.equals(key)) {
+                ResourceManager.saveParameter(key, value);
+                continue;
+            }
             if ("Textanalyse".equals(def.getCategory())) {
                 ResourceManager.saveTextanalysisParameter(key, value);
             } else {

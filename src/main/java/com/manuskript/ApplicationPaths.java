@@ -195,7 +195,16 @@ public final class ApplicationPaths {
     }
 
     static File chooseWritableHome(File appHome, File userData) {
+        return chooseWritableHome(appHome, userData, isPackagedRuntime());
+    }
+
+    /**
+     * @param packaged {@code true} bei jpackage-Laufzeit: Nutzerdaten nie im Installationsordner
+     *                 (Upgrade/Reinstall ersetzt den App-Baum und würde sonst Config/Wörterbuch löschen).
+     */
+    static File chooseWritableHome(File appHome, File userData, boolean packaged) {
         if (appHome != null
+                && !packaged
                 && !isSystemManagedInstall(appHome)
                 && tryPrepareWritableDir(new File(appHome, "plugins"))) {
             return appHome;
@@ -206,8 +215,16 @@ public final class ApplicationPaths {
         ensureDirectory(new File(data, "config"));
         ensureDirectory(new File(data, "logs"));
         File bundledConfig = appHome != null ? new File(appHome, "config") : null;
+        // Zuerst aus dem App-Ordner migrieren (Benutzerdaten vor dem nächsten Reinstall retten),
+        // danach fehlende Vorlagen aus dem Bundle auffüllen — beides ist oft derselbe Ordner.
         seedMissingFiles(bundledConfig, new File(data, "config"));
         return data;
+    }
+
+    /** Läuft die App als jpackage-Image/Installer (nicht {@code mvn javafx:run}). */
+    public static boolean isPackagedRuntime() {
+        String appPath = System.getProperty("jpackage.app-path");
+        return appPath != null && !appPath.isBlank();
     }
 
     /**

@@ -73,6 +73,7 @@ public final class PluginCatalog {
             File pluginsDir = activeDirectory();
             File active = pluginsDir != null ? new File(pluginsDir, fileName) : null;
             if (active != null && active.isFile()) {
+                PluginLoader.unload();
                 Files.copy(dest.toPath(), active.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 copySiblingNotes(dest, active);
                 logger.info("Plugin aktualisiert (aktiv): {}", fileName);

@@ -225,6 +225,8 @@ public class MainController implements Initializable {
     // Theme-System
     private int currentThemeIndex = 0;
     private List<ManuskriptPlugin> loadedPlugins = List.of();
+    private final java.util.Map<String, Button> pluginToolbarButtons = new java.util.HashMap<>();
+    private final java.util.Set<String> pluginAttentionIds = new java.util.HashSet<>();
     private boolean pluginsLoaded;
 
     private boolean restoringMainWindowGeometry;
@@ -438,6 +440,8 @@ public class MainController implements Initializable {
                         loadCoverImageFromCurrentDirectory();
                     }
                 }
+
+                scheduleMotdCheck();
             }
             
             // Prüfe beim Start, ob ein cover_image.png im aktuellen Verzeichnis vorhanden ist
@@ -1408,6 +1412,25 @@ public class MainController implements Initializable {
             return ApplicationPaths.ensureUserProjectsWithDemo();
         }
         return ApplicationPaths.resolveManuskripteDirectory();
+    }
+
+    /** MOTD von spoteroxe.de asynchron laden und einmalig anzeigen. */
+    private void scheduleMotdCheck() {
+        if (OfflineMode.isEnabled()) {
+            return;
+        }
+        MotdService.fetchForDisplayAsync(message -> Platform.runLater(() -> {
+            try {
+                Window owner = null;
+                if (primaryStage != null && primaryStage.isShowing()) {
+                    owner = primaryStage;
+                }
+                int theme = preferences.getInt("main_window_theme", 0);
+                MotdDialog.showIfNeeded(owner, message, theme);
+            } catch (Exception e) {
+                logger.debug("MOTD-Dialog fehlgeschlagen: {}", e.toString());
+            }
+        }));
     }
 
     private void loadLastDirectory() {
@@ -10277,6 +10300,7 @@ public class MainController implements Initializable {
         }
         launcherToolbarBox.setVisible(true);
         launcherToolbarBox.setManaged(true);
+        pluginToolbarButtons.clear();
         java.util.Set<String> seenPluginIds = new java.util.LinkedHashSet<>();
         for (ManuskriptPlugin plugin : loadedPlugins) {
             String id = plugin.id() == null ? "" : plugin.id().trim().toLowerCase();
@@ -10289,6 +10313,14 @@ public class MainController implements Initializable {
             button.setTooltip(new Tooltip("Öffnet „" + plugin.label() + "“ im Manuskript-Fenster"));
             button.setOnAction(e -> startPlugin(plugin));
             applyThemeToNode(button, currentThemeIndex);
+            if (!id.isEmpty()) {
+                pluginToolbarButtons.put(id, button);
+                if (pluginAttentionIds.contains(id)) {
+                    if (!button.getStyleClass().contains("plugin-attention")) {
+                        button.getStyleClass().add("plugin-attention");
+                    }
+                }
+            }
             launcherToolbarBox.getChildren().add(button);
         }
         for (ProgramLauncher launcher : launchers) {
@@ -10311,7 +10343,13 @@ public class MainController implements Initializable {
         }
         pluginsLoaded = true;
         PluginLoader.PluginLoadResult result = PluginLoader.load();
-        loadedPlugins = result.plugins();
+        List<ManuskriptPlugin> plugins = result.plugins();
+        if (OfflineMode.isEnabled()) {
+            plugins = plugins.stream()
+                    .filter(plugin -> OfflineMode.allowsPluginId(plugin.id()))
+                    .toList();
+        }
+        loadedPlugins = plugins;
         if (!result.errors().isEmpty()) {
             logger.warn("Plugins mit Fehlern: {}", result.errors());
             List<String> errors = result.errors();
@@ -10321,11 +10359,69 @@ public class MainController implements Initializable {
 
     private void startPlugin(ManuskriptPlugin plugin) {
         try {
+            String id = plugin.id() == null ? "" : plugin.id().trim().toLowerCase();
+            if (!id.isEmpty()) {
+                setPluginToolbarAttention(id, false);
+            }
             plugin.start(createPluginHost());
         } catch (Exception ex) {
             logger.warn("Plugin fehlgeschlagen: {}", plugin.id(), ex);
             String message = ex.getMessage() != null ? ex.getMessage() : "Unbekannter Fehler";
             showError("Plugin starten", plugin.label() + ": " + message);
+        }
+    }
+
+    private void setPluginToolbarAttention(String pluginId, boolean attention) {
+        if (pluginId == null || pluginId.isBlank()) {
+            return;
+        }
+        String id = pluginId.trim().toLowerCase();
+        Runnable apply = () -> {
+            if (attention) {
+                pluginAttentionIds.add(id);
+            } else {
+                pluginAttentionIds.remove(id);
+            }
+            Button button = pluginToolbarButtons.get(id);
+            if (button == null) {
+                return;
+            }
+            if (attention) {
+                if (!button.getStyleClass().contains("plugin-attention")) {
+                    button.getStyleClass().add("plugin-attention");
+                }
+            } else {
+                button.getStyleClass().remove("plugin-attention");
+            }
+        };
+        if (Platform.isFxApplicationThread()) {
+            apply.run();
+        } else {
+            Platform.runLater(apply);
+        }
+    }
+
+    private void playPluginNotificationSound() {
+        Runnable beep = () -> {
+            try {
+                java.net.URL soundUrl = MainController.class.getResource("/sound/pling.wav");
+                if (soundUrl != null) {
+                    javafx.scene.media.AudioClip clip = new javafx.scene.media.AudioClip(soundUrl.toExternalForm());
+                    clip.play();
+                    return;
+                }
+            } catch (Exception ignored) {
+                // Fallback unten
+            }
+            try {
+                java.awt.Toolkit.getDefaultToolkit().beep();
+            } catch (Exception ignored) {
+            }
+        };
+        if (Platform.isFxApplicationThread()) {
+            beep.run();
+        } else {
+            Platform.runLater(beep);
         }
     }
 
@@ -10401,6 +10497,16 @@ public class MainController implements Initializable {
                         systemPrompt == null ? "" : systemPrompt,
                         userPrompt == null ? "" : userPrompt,
                         Math.max(256, maxTokens));
+            }
+
+            @Override
+            public void setToolbarAttention(String pluginId, boolean attention) {
+                setPluginToolbarAttention(pluginId, attention);
+            }
+
+            @Override
+            public void playNotificationSound() {
+                playPluginNotificationSound();
             }
         };
     }

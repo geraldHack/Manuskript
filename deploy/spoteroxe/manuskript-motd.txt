@@ -1,0 +1,32 @@
+id: 2026-09-21-1 (v4)
+title: Willkommen bei den Manuskript-Nachrichten
+---
+Liebe Tagebuch,
+hier erscheinen künftig kurze Hinweise zu neuen Funktionen.
+
+Du kannst **Markdown** nutzen:
+
+- Aufzählungen
+- `Code`
+- und normale Absätze
+
+### Überschrift
+
+*Schräg* und **fett**
+
+
+| Parameter | Typ | Pflicht | Beschreibung |
+|-----------|-----|:-------:|-------------|
+| `name` | String | Ja | Name des Benutzers |
+| `age` | Integer | Nein | Alter in Jahren |
+| `active` | Boolean | Ja | Gibt an, ob der Benutzer aktiv ist |
+
+
+| Status | Aufgabe | Verantwortlich |
+|--------|---------|----------------|
+| ✅ Fertig | **Dokumentation** | `Peter` |
+| 🔄 Läuft | *Tests* | `Anna` |
+| ❌ Offen | ~~Deployment~~ | `Klaus` |
+
+
+Über **Parameter → Allgemein** lassen sich Nachrichten wieder einschalten.

@@ -14,6 +14,10 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.Text;
+import javafx.scene.Cursor;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -93,11 +97,18 @@ public class CustomAlert {
     // Theme
     private int currentTheme = 0;
     
+    private static final double RESIZE_BORDER = 10.0;
+
     // Drag-Funktionalität
     private double dragOffsetX = 0;
     private double dragOffsetY = 0;
     private boolean isMaximized = false;
     private double originalX, originalY, originalWidth, originalHeight;
+    private boolean edgeResizing;
+    private String edgeResizeDirection = "";
+    private double resizeStartScreenX, resizeStartScreenY;
+    private double resizeStartWinX, resizeStartWinY, resizeStartWidth, resizeStartHeight;
+    private StackPane chromeRoot;
     
     /**
      * Konstruktor
@@ -183,6 +194,11 @@ public class CustomAlert {
         }
         contentContainer.setSpacing(15);
         contentContainer.setPadding(new Insets(20));
+        contentContainer.setMinWidth(0);
+        contentContainer.setMinHeight(0);
+        contentContainer.setMaxWidth(Double.MAX_VALUE);
+        contentContainer.setMaxHeight(Double.MAX_VALUE);
+        VBox.setVgrow(contentContainer, Priority.ALWAYS);
         
         // Button Container
         buttonContainer = new HBox();
@@ -191,10 +207,21 @@ public class CustomAlert {
         buttonContainer.setPadding(new Insets(10, 20, 20, 20));
         
         // Alles zusammenfügen
+        rootContainer.setMinWidth(0);
+        rootContainer.setMinHeight(0);
+        rootContainer.setMaxWidth(Double.MAX_VALUE);
+        rootContainer.setMaxHeight(Double.MAX_VALUE);
         rootContainer.getChildren().addAll(titleBar, contentContainer, buttonContainer);
+
+        chromeRoot = new StackPane(rootContainer);
+        chromeRoot.setMinWidth(0);
+        chromeRoot.setMinHeight(0);
+        chromeRoot.setMaxWidth(Double.MAX_VALUE);
+        chromeRoot.setMaxHeight(Double.MAX_VALUE);
+        installResizeChrome(chromeRoot);
         
         // Scene erstellen
-        Scene scene = new Scene(rootContainer);
+        Scene scene = new Scene(chromeRoot);
         // Zentrales CSS laden, damit Theme-Regeln greifen
         try {
             String cssPath = ResourceManager.getCssResource("css/manuskript.css");
@@ -206,6 +233,220 @@ public class CustomAlert {
         
         // Drag-Funktionalität
         setupDragFunctionality();
+        setupResizeDragFollow(scene);
+    }
+
+    private void installResizeChrome(StackPane chrome) {
+        chrome.getChildren().add(createEdgeStrip("S", Pos.BOTTOM_CENTER, true));
+        chrome.getChildren().add(createEdgeStrip("N", Pos.TOP_CENTER, true));
+        chrome.getChildren().add(createEdgeStrip("W", Pos.CENTER_LEFT, false));
+        chrome.getChildren().add(createEdgeStrip("E", Pos.CENTER_RIGHT, false));
+        chrome.getChildren().add(createCornerPad("NW", Pos.TOP_LEFT));
+        chrome.getChildren().add(createCornerPad("NE", Pos.TOP_RIGHT));
+        chrome.getChildren().add(createCornerPad("SW", Pos.BOTTOM_LEFT));
+        chrome.getChildren().add(createCornerPad("SE", Pos.BOTTOM_RIGHT));
+        chrome.getChildren().add(createResizeHandle());
+    }
+
+    private Region createEdgeStrip(String direction, Pos alignment, boolean horizontal) {
+        Region zone = createPickableResizeRegion();
+        zone.setCursor(cursorForDirection(direction));
+        StackPane.setAlignment(zone, alignment);
+        if (horizontal) {
+            zone.setMinHeight(RESIZE_BORDER);
+            zone.setPrefHeight(RESIZE_BORDER);
+            zone.setMaxHeight(RESIZE_BORDER);
+            zone.setMaxWidth(Double.MAX_VALUE);
+            StackPane.setMargin(zone, new Insets(0, RESIZE_BORDER, 0, RESIZE_BORDER));
+        } else {
+            zone.setMinWidth(RESIZE_BORDER);
+            zone.setPrefWidth(RESIZE_BORDER);
+            zone.setMaxWidth(RESIZE_BORDER);
+            zone.setMaxHeight(Double.MAX_VALUE);
+            StackPane.setMargin(zone, new Insets(RESIZE_BORDER, 0, RESIZE_BORDER, 0));
+        }
+        wireResizeNode(zone, direction);
+        return zone;
+    }
+
+    private Region createCornerPad(String direction, Pos alignment) {
+        Region zone = createPickableResizeRegion();
+        zone.setCursor(cursorForDirection(direction));
+        zone.setMinSize(RESIZE_BORDER, RESIZE_BORDER);
+        zone.setPrefSize(RESIZE_BORDER, RESIZE_BORDER);
+        zone.setMaxSize(RESIZE_BORDER, RESIZE_BORDER);
+        StackPane.setAlignment(zone, alignment);
+        wireResizeNode(zone, direction);
+        return zone;
+    }
+
+    private Node createResizeHandle() {
+        Region handle = createPickableResizeRegion();
+        handle.setCursor(Cursor.SE_RESIZE);
+        handle.setMinSize(18, 18);
+        handle.setPrefSize(18, 18);
+        handle.setMaxSize(18, 18);
+        handle.setBackground(new Background(new BackgroundFill(
+                Color.rgb(120, 120, 120, 0.35), new CornerRadii(2), Insets.EMPTY)));
+        StackPane.setAlignment(handle, Pos.BOTTOM_RIGHT);
+        StackPane.setMargin(handle, new Insets(0, 4, 4, 0));
+        wireResizeNode(handle, "SE");
+        return handle;
+    }
+
+    private Region createPickableResizeRegion() {
+        Region zone = new Region();
+        zone.setPickOnBounds(true);
+        zone.setMouseTransparent(false);
+        zone.setBackground(new Background(new BackgroundFill(
+                Color.rgb(127, 127, 127, 0.01), CornerRadii.EMPTY, Insets.EMPTY)));
+        return zone;
+    }
+
+    private void wireResizeNode(Node node, String direction) {
+        node.setOnMousePressed(event -> {
+            if (event.getButton() != MouseButton.PRIMARY || isMaximized) {
+                return;
+            }
+            beginEdgeResize(event, direction);
+            event.consume();
+        });
+        node.setOnMouseDragged(event -> {
+            if (!edgeResizing) {
+                return;
+            }
+            performEdgeResize(event);
+            event.consume();
+        });
+        node.setOnMouseReleased(event -> {
+            if (!edgeResizing) {
+                return;
+            }
+            finishEdgeResize(stage.getScene());
+            event.consume();
+        });
+    }
+
+    private void setupResizeDragFollow(Scene scene) {
+        scene.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
+            if (!edgeResizing) {
+                return;
+            }
+            performEdgeResize(event);
+            event.consume();
+        });
+        scene.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
+            if (!edgeResizing) {
+                return;
+            }
+            finishEdgeResize(scene);
+            event.consume();
+        });
+    }
+
+    private void beginEdgeResize(MouseEvent event, String direction) {
+        edgeResizing = true;
+        edgeResizeDirection = direction;
+        resizeStartScreenX = event.getScreenX();
+        resizeStartScreenY = event.getScreenY();
+        resizeStartWinX = stage.getX();
+        resizeStartWinY = stage.getY();
+        resizeStartWidth = Math.max(stage.getWidth(), 1);
+        resizeStartHeight = Math.max(stage.getHeight(), 1);
+        Scene scene = stage.getScene();
+        if (scene != null) {
+            scene.setCursor(cursorForDirection(direction));
+        }
+    }
+
+    private void performEdgeResize(MouseEvent event) {
+        if (!edgeResizing || isMaximized) {
+            return;
+        }
+        double deltaX = event.getScreenX() - resizeStartScreenX;
+        double deltaY = event.getScreenY() - resizeStartScreenY;
+        double minW = Math.max(320, stage.getMinWidth());
+        double minH = Math.max(200, stage.getMinHeight());
+        double newX = resizeStartWinX;
+        double newY = resizeStartWinY;
+        double newW = resizeStartWidth;
+        double newH = resizeStartHeight;
+        switch (edgeResizeDirection) {
+            case "E" -> newW = Math.max(minW, resizeStartWidth + deltaX);
+            case "W" -> {
+                newW = Math.max(minW, resizeStartWidth - deltaX);
+                newX = resizeStartWinX + (resizeStartWidth - newW);
+            }
+            case "S" -> newH = Math.max(minH, resizeStartHeight + deltaY);
+            case "N" -> {
+                newH = Math.max(minH, resizeStartHeight - deltaY);
+                newY = resizeStartWinY + (resizeStartHeight - newH);
+            }
+            case "SE" -> {
+                newW = Math.max(minW, resizeStartWidth + deltaX);
+                newH = Math.max(minH, resizeStartHeight + deltaY);
+            }
+            case "SW" -> {
+                newW = Math.max(minW, resizeStartWidth - deltaX);
+                newH = Math.max(minH, resizeStartHeight + deltaY);
+                newX = resizeStartWinX + (resizeStartWidth - newW);
+            }
+            case "NE" -> {
+                newW = Math.max(minW, resizeStartWidth + deltaX);
+                newH = Math.max(minH, resizeStartHeight - deltaY);
+                newY = resizeStartWinY + (resizeStartHeight - newH);
+            }
+            case "NW" -> {
+                newW = Math.max(minW, resizeStartWidth - deltaX);
+                newH = Math.max(minH, resizeStartHeight - deltaY);
+                newX = resizeStartWinX + (resizeStartWidth - newW);
+                newY = resizeStartWinY + (resizeStartHeight - newH);
+            }
+            default -> {
+                return;
+            }
+        }
+        stage.setX(newX);
+        stage.setY(newY);
+        stage.setWidth(newW);
+        stage.setHeight(newH);
+    }
+
+    private void finishEdgeResize(Scene scene) {
+        edgeResizing = false;
+        edgeResizeDirection = "";
+        if (scene != null) {
+            scene.setCursor(Cursor.DEFAULT);
+        }
+    }
+
+    private static Cursor cursorForDirection(String direction) {
+        return switch (direction) {
+            case "N" -> Cursor.N_RESIZE;
+            case "S" -> Cursor.S_RESIZE;
+            case "E" -> Cursor.E_RESIZE;
+            case "W" -> Cursor.W_RESIZE;
+            case "NE" -> Cursor.NE_RESIZE;
+            case "NW" -> Cursor.NW_RESIZE;
+            case "SE" -> Cursor.SE_RESIZE;
+            case "SW" -> Cursor.SW_RESIZE;
+            default -> Cursor.DEFAULT;
+        };
+    }
+
+    /** Startgröße für Dialoge mit wachsendem Custom-Content. */
+    public void setPrefSize(double width, double height) {
+        if (stage == null) {
+            return;
+        }
+        stage.setMinWidth(400);
+        stage.setMinHeight(240);
+        if (width > 0) {
+            stage.setWidth(width);
+        }
+        if (height > 0) {
+            stage.setHeight(height);
+        }
     }
     
     /**
@@ -278,18 +519,25 @@ public class CustomAlert {
      */
     private void setupDragFunctionality() {
         titleBar.setOnMousePressed(e -> {
+            if (edgeResizing || e.getSceneY() < RESIZE_BORDER) {
+                return;
+            }
             dragOffsetX = e.getSceneX();
             dragOffsetY = e.getSceneY();
         });
         
         titleBar.setOnMouseDragged(e -> {
-            if (!isMaximized) {
-                stage.setX(e.getScreenX() - dragOffsetX);
-                stage.setY(e.getScreenY() - dragOffsetY);
+            if (edgeResizing || isMaximized) {
+                return;
             }
+            stage.setX(e.getScreenX() - dragOffsetX);
+            stage.setY(e.getScreenY() - dragOffsetY);
         });
         
         titleBar.setOnMouseReleased(e -> {
+            if (edgeResizing) {
+                return;
+            }
             if (e.getClickCount() == 2) {
                 toggleMaximize();
             }
@@ -531,6 +779,9 @@ public class CustomAlert {
         if (hasCustomContent) {
             if (customContentBox != null) {
                 applyThemeTextColor(customContentBox, THEME_TEXTS[currentTheme]);
+                customContentBox.setMaxWidth(Double.MAX_VALUE);
+                customContentBox.setMaxHeight(Double.MAX_VALUE);
+                VBox.setVgrow(customContentBox, Priority.ALWAYS);
                 contentContainer.getChildren().add(customContentBox);
             } else if (textField != null) {
                 contentContainer.getChildren().add(textField);

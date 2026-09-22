@@ -1,0 +1,5 @@
+Discharge
+@project.version@
+
+Poor-Man-Discord für Manuskript: Name eingeben → automatische ID (Name.nnnn), Freundschaftsanfragen und 1:1-Chat über spoteroxe.
+Toolbar blinkt bei neuen Nachrichten. Verlauf lokal.

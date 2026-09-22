@@ -18,8 +18,22 @@ public final class ParameterRegistry {
 
     static {
         // —— Allgemein (erster Tab in der Parameterverwaltung) ——
-        add("project.root.directory", ParameterDef.Type.STRING, "",
-                "Projektwurzel (Unterordner = Projekte). Installierte App: ~/Documents/Manuskript, nicht im Programmordner.", "Allgemein");
+        addTitled("project.root.directory", "Projektverzeichnis", ParameterDef.Type.STRING, "",
+                "Ordner, in dem deine Projekte liegen (Unterordner = Projekte). "
+                        + "Installierte App: meist ~/Documents/Manuskript, nicht im Programmordner.",
+                "Allgemein");
+        addTitled("motd.enabled", "Neuigkeiten beim Start", ParameterDef.Type.BOOLEAN, "true",
+                "Hinweise und Neuigkeiten beim Programmstart anzeigen. "
+                        + "Nach dem Ausschalten hier wieder einschalten (zeigt die aktuelle Nachricht erneut). "
+                        + "Im Offline-Modus entfallen diese Nachrichten ohnehin.",
+                "Allgemein");
+        addTitled(OfflineMode.PARAM_KEY, "Offline-Modus", ParameterDef.Type.BOOLEAN, "false",
+                "Kein Abruf von Neuigkeiten und Plugin-Katalog aus dem Internet. "
+                        + "Nur die beiden Standard-Plugins (OpenRouter- und Mammouth-Monitor) bleiben sichtbar — "
+                        + "um mehr Plugins zu sehen, den Offline-Modus verlassen. "
+                        + "KI-Funktionen über externe Anbieter (z. B. OpenRouter, OpenAI) können weiterhin "
+                        + "in den Parametern konfiguriert und genutzt werden. Umschalten auch unter Setup → Funktionen.",
+                "Allgemein");
 
         // —— Ollama (Legacy – alter KI-Assistent, nicht mehr in der UI) ——
         add("ollama.temperature", ParameterDef.Type.DOUBLE, "0.1",
@@ -318,6 +332,11 @@ public final class ParameterRegistry {
 
     private static void add(String key, ParameterDef.Type type, String defaultValue, String helpText, String category) {
         ALL.add(new ParameterDef(key, type, defaultValue, helpText, category));
+    }
+
+    private static void addTitled(String key, String title, ParameterDef.Type type, String defaultValue,
+                                  String helpText, String category) {
+        ALL.add(new ParameterDef(key, title, type, defaultValue, helpText, category, null));
     }
 
     private static void add(String key, ParameterDef.Type type, String defaultValue, String helpText, String category, String[] choices) {

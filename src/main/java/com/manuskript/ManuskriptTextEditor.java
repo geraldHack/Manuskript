@@ -1362,6 +1362,13 @@ public class ManuskriptTextEditor extends Region {
         scheduleAutoRuleRebuild();
     }
 
+    /** Sofortiger Neuaufbau der Markdown-Auto-Formate (ohne PauseTransition-Delay). */
+    public void flushFormatAutoRules() {
+        autoRuleDelay.stop();
+        forceFullAutoMarkRebuild = true;
+        rebuildAutoMarks();
+    }
+
     public void setShowLineNumbers(boolean showLineNumbers) {
         if (this.showLineNumbers == showLineNumbers) {
             return;
@@ -6447,8 +6454,15 @@ public class ManuskriptTextEditor extends Region {
     private Font fontFor(RenderStyle style) {
         FontWeight weight = (style.flags & MarkedArea.BOLD) != 0 ? FontWeight.BOLD : FontWeight.NORMAL;
         FontPosture posture = (style.flags & MarkedArea.ITALIC) != 0 ? FontPosture.ITALIC : FontPosture.REGULAR;
-        return Font.font(style.fontFamily == null ? fontFamily : style.fontFamily, weight, posture,
-                effectiveFontSize(style));
+        double size = effectiveFontSize(style);
+        String family = style.fontFamily == null ? fontFamily : style.fontFamily;
+        Font font = Font.font(family, weight, posture, size);
+        // macOS: Segoe UI fällt auf „System“ zurück; System Italic zeichnet auf Canvas oft nicht schräg.
+        if (posture == FontPosture.ITALIC && font.getFamily() != null
+                && "System".equalsIgnoreCase(font.getFamily())) {
+            font = Font.font("Arial", weight, FontPosture.ITALIC, size);
+        }
+        return font;
     }
 
     private double effectiveFontSize(RenderStyle style) {

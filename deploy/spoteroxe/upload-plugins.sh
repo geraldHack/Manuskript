@@ -64,6 +64,7 @@ upload_pair schreib-statistik
 upload_pair mindmap
 upload_pair publish-paket
 upload_pair buch-preview
+upload_pair discharge
 
 echo "[OK] https://spoteroxe.de/downloads/plugins/"
 echo "     Verzeichnislisting muss öffentlich sein (Apache Options Indexes)."
